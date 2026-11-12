@@ -11,7 +11,7 @@
 import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, type ShopArt } from "./siteShop.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
-import { compactBoard, historyRowHtml, historyRowView, liveLineHtml, recordOf, scoreboardHtml, scoreboardOf, watchAsHtml } from "./siteMatches.js";
+import { compactBoard, historyRowHtml, historyRowView, liveLineHtml, recordOf, scoreboardHtml, scoreboardOf, watchAsHtml, type Scoreboard } from "./siteMatches.js";
 import {
   FINISH_NAMES,
   WIDGET_INFO,
@@ -122,6 +122,11 @@ export interface WidgetOpts {
   editing: boolean;
   live?: LiveView;
   capped?: boolean;
+  /** The match the embedded arena shows (render session 67; the page keeps
+   * it), and whether its feed has ended (it is held a moment for its
+   * result and boast, then the next match takes the tile). Absent: the
+   * first live match. */
+  arena?: { matchId: string; ended: boolean } | null;
 }
 
 
@@ -194,18 +199,56 @@ function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   {
     const live = d.live!;
     if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
+    // The tile's arena holds its match a moment after it ends (its result
+    // and boast), also when the round is over and nothing else is live yet.
+    if (w.size === "L" && view === "arena" && o.arena) return arenaBody(w, live, live.matches.map((m) => scoreboardOf(m, d.ownerId, d.viewOf?.(m.matchId) ?? null)), o) + note;
     if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
     // S: the first match's scoreboard; M: its scoreboard and the others as
     // one line each; L: the first on the compact board, the list alongside.
     const sbs = live.matches.map((m) => scoreboardOf(m, d.ownerId, d.viewOf?.(m.matchId) ?? null));
+    if (w.size === "L" && view === "arena") return arenaBody(w, live, sbs, o) + note;
     // The point of view (owner 2026-11-02): the "Watch as" switch on the
     // first match at M and L (S has no room); never on the viewer's own match.
     const first = scoreboardHtml(sbs[0]!, { small: w.size !== "L" }) + (w.size === "L" && view === "board" ? compactBoard(live.matches[0]!, sbs[0]!.near) : "") + (w.size === "S" ? "" : watchAsHtml(sbs[0]!, `wa-${w.id}`));
     const rest = sbs.slice(1);
     const list = w.size === "S" || !rest.length ? "" : `<ul class="lines">${rest.map(liveLineHtml).join("")}</ul>`;
     const boards = w.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
-    return `${boards}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live · featured picks come later</span></div>${note}`;
+    // S is the score alone (render session 67): the header's arrow opens Watch live.
+    const more = w.size === "S" ? "" : `<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live · featured picks come later</span></div>`;
+    return `${boards}${more}${note}`;
   }
+}
+
+/** The arena the tile embeds: its match, or null when that match has
+ * left the live list (ended, held for its result). */
+export function arenaMatchOf(live: SiteLive, o: Pick<WidgetOpts, "arena">): { matchId: string; index: number } {
+  const id = o.arena?.matchId ?? live.matches[0]?.matchId ?? "";
+  return { matchId: id, index: live.matches.findIndex((m) => m.matchId === id) };
+}
+
+/** Watch live at L (the brief's table, render session 67): the live match
+ * on the real arena, embedded in the tile, with its scoreboard and "Watch
+ * as" beside it and the other live matches under them. The page puts the
+ * arena's frame into `.wl-frame` and keeps it across redraws (only
+ * `.wl-info` is redrawn while the match is the same). Under 720 px, or
+ * before the frame has loaded, the compact board stands in. Clicking the
+ * arena opens it full screen. */
+function arenaBody(w: SiteWidget, live: SiteLive, sbs: Scoreboard[], o: WidgetOpts): string {
+  const { matchId, index } = arenaMatchOf(live, o);
+  const sb = index >= 0 ? sbs[index]! : null;
+  const ended = !sb || !!o.arena?.ended;
+  const label = sb ? `${sb.p1.agentName} vs ${sb.p2.agentName}` : "the match";
+  const others = sbs.filter((_, i) => i !== index);
+  const stage = sb
+    ? `<div class="wl-fallback">${compactBoard(live.matches[index]!, sb.near)}</div>`
+    : `<div class="wl-fallback"><p class="muted small">The match is over.</p></div>`;
+  const arena = `<div class="wl-arena" data-match="${esc(matchId)}" data-ended="${ended}"><div class="wl-frame" aria-hidden="true"></div><div class="wl-wait" aria-hidden="true">Joining the match…</div>${stage}<button type="button" class="wl-open" data-act="watch-arena" data-match="${esc(matchId)}" aria-label="${esc(`Watch ${label} full screen on the arena`)}"${sb ? "" : " disabled"}><span>${icon("arrow", 12)} Full screen</span></button></div>`;
+  const head = sb
+    ? scoreboardHtml(sb, { small: true }) + watchAsHtml(sb, `wa-${w.id}`)
+    : `<p class="small"><b>Match over.</b> <span class="muted">Its result and replay are in your match history. The next live match takes this tile in a moment.</span></p>`;
+  const list = others.length ? `<ul class="lines">${others.map(liveLineHtml).join("")}</ul>` : `<p class="muted small">${sb ? "No other match is live." : "No match is live right now. The next ladder round starts soon."}</p>`;
+  const info = `<div class="wl-info">${head}<h4>Also live</h4>${list}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live</span></div></div>`;
+  return `<div class="wl-l">${arena}${info}</div>`;
 }
 
 function historyBody(w: SiteWidget, d: WidgetData): string {

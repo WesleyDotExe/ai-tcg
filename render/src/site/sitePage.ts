@@ -447,12 +447,40 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .sb-mid { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12.5px; text-align: center; max-width: 160px; }
 .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--live); animation: pulse 1.4s ease-in-out infinite; }
 .sb-s .sb-meta { display: none; } .sb-s .sb-hp b { font-size: 17px; } .sb-s { gap: 6px; } .sb-s .sb-mid { max-width: 90px; }
+/* Render session 67: where the score is narrow (Watch live at S, the arena's column at L) the turn line goes on
+   top and the two sides sit under it, side by side; at S without the owner and rating line. */
+.sz-S .sb, .wl-info .sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+.sz-S .sb-mid, .wl-info .sb-mid { grid-column: 1 / -1; grid-row: 1; flex-direction: row; justify-content: center; max-width: none; min-width: 0; font-size: 11.5px; white-space: nowrap; }
+.sz-S .sb-mid b, .wl-info .sb-mid b { overflow: hidden; text-overflow: ellipsis; }
+.sz-S .sb-name small { display: none; } .sz-S .sb-side { padding: 6px 9px; }
 .sb-line { margin: 6px 2px 0; color: #dfe4ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wg:not(.wg-dark) .sb-side { background: var(--soft); } .wg:not(.wg-dark) .sb-line { color: inherit; }
 .cboard { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 6px; padding: 8px; border-radius: 14px; background: rgba(0,0,0,.18); }
 .cb-row { display: flex; gap: 5px; flex-wrap: wrap; min-height: 26px; align-items: center; } .cb-row + .cb-row { border-top: 1px dashed rgba(255,255,255,.18); padding-top: 6px; }
 .uc { font: 600 11.5px system-ui; padding: 3px 8px; border-radius: 8px; background: rgba(255,255,255,.14); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .uc b { font-weight: 700; } .uc.pend { border: 1px dashed rgba(255,207,92,.8); background: transparent; }
+/* Watch live at L (render session 67): the live match on the real arena, embedded. The page scales the arena's
+   frame to .wl-arena (siteClient.ts mountTileArena); the compact board stands in until it has loaded, and on a
+   phone, where the frame isn't made. Clicking the arena opens it full screen. */
+.wl-l { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 16px; flex: 1; min-height: 0; }
+.wl-arena { position: relative; min-height: 0; border-radius: 16px; overflow: hidden; background: #070912; border: 1px solid rgba(255,255,255,.12); display: flex; flex-direction: column; justify-content: center; }
+.wl-frame { position: absolute; inset: 0; }
+.wl-frame iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+.wl-arena.on .wl-frame iframe { opacity: 1; }
+.wl-fallback { padding: 10px; }
+.wl-arena.on .wl-fallback, .wl-arena:not(.joining) .wl-wait { display: none; }
+.wl-wait { position: absolute; left: 12px; top: 10px; font: 600 12px system-ui; color: #c9d2ff; letter-spacing: .02em; }
+.wl-wait::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--live); animation: pulse 1.4s ease-in-out infinite; }
+.wl-open { position: absolute; inset: 0; z-index: 2; border: 0; background: transparent; cursor: zoom-in; display: flex; align-items: flex-end; justify-content: flex-end; padding: 10px; color: #fff; font: 600 12px system-ui; border-radius: 16px; }
+.wl-open span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: rgba(8,10,20,.72); border: 1px solid rgba(255,255,255,.22); opacity: .78; transition: opacity .2s ease; }
+.wl-open:hover span, .wl-open:focus-visible span { opacity: 1; }
+.wl-open:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.wl-open:disabled { cursor: default; } .wl-open:disabled span { display: none; }
+.wl-arena.on[data-ended="true"]::after { display: none; }
+.wl-arena[data-ended="true"]::after { content: "MATCH OVER"; position: absolute; left: 12px; top: 10px; z-index: 1; font: 700 11px system-ui; letter-spacing: .14em; padding: 3px 8px; border-radius: 6px; background: rgba(8,10,20,.72); color: #ffcf5c; }
+.wl-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; overflow: auto; scrollbar-width: thin; }
+.wl-info h4 { margin-top: 4px; }
+@media (max-width: 720px) { .wl-l { grid-template-columns: minmax(0, 1fr); flex: none; } .wl-arena { overflow: visible; justify-content: flex-start; } .wl-frame, .wl-wait { display: none !important; } .wl-arena.on .wl-fallback { display: block; } .wl-open { position: static; padding: 0 10px 10px; } .wl-arena[data-ended="true"]::after { position: static; align-self: flex-start; margin: 10px 0 0 10px; } }
 .lines { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .lline { display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; overflow: hidden; } .lline small { overflow: hidden; text-overflow: ellipsis; }
 .lhp { font: 800 13px system-ui; font-variant-numeric: tabular-nums; padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,.14); }

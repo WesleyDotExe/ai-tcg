@@ -452,6 +452,12 @@ html, body {
 .eventlog .ev.now { color: var(--ink); }
 .eventlog .ev.gameover { color: var(--good); font-weight: bold; }
 
+/* Embedded in a Home tile (render session 67): the board, the HUDs and the
+ * hands only; the website scales the frame to the tile. */
+body.embed { min-height: 0; overflow: hidden; }
+body.embed .controls, body.embed #eventlog, body.embed .pov, body.embed .brand { display: none !important; }
+body.embed .lower { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+body.embed .live-badge { cursor: default; pointer-events: none; }
 .controls { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }
@@ -869,6 +875,12 @@ const JS = `
     return out;
   })();
   const CAN_SWITCH = viewHash['switch'] !== '0';
+  // Embedded in a Home tile (render session 67, the Watch live widget at L;
+  // embed=1, framed only): a view, not a player. No controls, no feed, no
+  // own switch (the tile's "Watch as" sets the side, 'ai-tcg-set-view'),
+  // and silent: sound and music are never mounted, so nothing can start them.
+  const EMBED = FRAMED && viewHash.embed === '1';
+  if (EMBED) document.body.classList.add('embed');
   let near = viewHash.view === 'p2' ? 'p2' : 'p1';
   if (!FRAMED && !viewHash.view) {
     try { const v = sessionStorage.getItem(VIEW_KEY); if (v === 'p1' || v === 'p2') near = v; } catch (err) {}
@@ -2731,10 +2743,10 @@ ${SIG_ZONE_SOURCE}
   // Sound (EFFECTS.md v2 slice 3, render/src/soundFx.ts) is on by default
   // (owner 2026-10-07): armed at load, started by the viewer's first click
   // or key press, muted in one click, and the mute and volume remembered.
-  SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
+  if (!EMBED) SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
   // Music (slice 4, render/src/musicFx.ts): its own toggle, volume and
   // intensity meter, on the same armed / remembered pattern.
-  MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'), null, document.getElementById('music-follow'));
+  if (!EMBED) MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'), null, document.getElementById('music-follow'));
   document.getElementById('music-follow').addEventListener('change', function () { setMusicScene(frames[i]); });
   scrubber.oninput = function () { stop(); goTo(Number(scrubber.value)); };
   document.getElementById('speed').onchange = function () { if (playing) { stop(); play(); } };
@@ -2792,8 +2804,14 @@ ${SIG_ZONE_SOURCE}
   ['p1', 'p2'].forEach(function (pid) {
     document.getElementById('pov-' + pid).addEventListener('click', function () { setView(pid); });
   });
+  // The tile's "Watch as" (render session 67): the website sets the side;
+  // the flip waits for Match Boot or a boast as the arena's own switch does.
+  window.addEventListener('message', function (e) {
+    if (e.source !== window.parent || !e.data || e.data.type !== 'ai-tcg-set-view') return;
+    setView(e.data.view);
+  });
   // For the browser checks: where each player sits now.
-  window.__pov = function () { return { near: near, want: wantView, canSwitch: CAN_SWITCH }; };
+  window.__pov = function () { return { near: near, want: wantView, canSwitch: CAN_SWITCH, embed: EMBED }; };
 
   fitBoards();
   renderFrame();

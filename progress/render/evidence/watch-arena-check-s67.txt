@@ -1,0 +1,53 @@
+PASS  a match is live on the ladder (GET /api/live)
+
+[A] Watch live at S, M and L
+PASS  S. the board saved with Watch live at S
+PASS  S. no arena at S (slot false, frame false)
+PASS  S. the score with both health bars (2 bars)
+PASS  S. nothing overflows (0 px)
+PASS  M. the board saved with Watch live at M
+PASS  M. no arena at M (slot false, frame false)
+PASS  M. the score with both health bars (2 bars)
+PASS  M. nothing overflows (0 px)
+PASS  L. the board saved with Watch live at L
+PASS  L. the tile's arena is the server's first live match (demo-live-009 = demo-live-009, of 2 live)
+PASS  L. its frame is the host's live arena page in embed mode (/live/<key>#view=p1&switch=0&embed=1)
+PASS  L. the arena loaded in the tile (0.5 s, software WebGL)
+PASS  L. the arena is scaled to fill its slot exactly (frame {"w":780,"h":430}, slot {"w":782,"h":432})
+PASS  L. the compact board stand-in is hidden once the arena is up
+PASS  L. the arena is in embed mode: no controls (none), no feed (none)
+PASS  L. sound and music are never mounted in the tile (sound false, music false)
+PASS  L. the near side is the viewer's own agent's (p1; the arena has p1)
+PASS  L. nothing overflows the tile (0 px)
+
+[B] the frame survives the redraws
+PASS  B. after 33 s of redraws, the same frame and the same arena page (element kept, page kept: not reloaded)
+PASS  B. the arena follows the match (move 9 / 9 -> move 91 / 94)
+PASS  B. the scoreboard beside it was redrawn from the server meanwhile
+      scoreboard then: Vector HalcyonNova · 1756 Platinum20Energy 0/2 · Hand 5 · Units 1Turn 4 · Static Widow to playStatic WidowHouse Null · 1402 Placement24Energy 2/2 · Hand 6 · Units 0
+      scoreboard now:  Vector HalcyonNova · 1756 Platinum8Energy 0/6 · Hand 0 · Units 4Turn 12 · Static Widow to playStatic WidowHouse Null · 1402 Placement10Energy 6/6 · Hand 5 · Units 4
+
+[C] full screen, Customise
+PASS  C. Full screen opens the arena over the page and takes the tile's down (tile frame false)
+PASS  C. Close brings the tile's arena back (a new frame)
+PASS  C. Customise takes the frame down (frame false; tiles move while editing)
+PASS  C. Done brings it back
+
+[D] the match ends
+PASS  D. the tile holds demo-live-009 once it is recorded (data-ended true)
+PASS  D. its column says so: "Match over. Its result and replay are in your match history. The next live match takes thi"
+PASS  D. the arena stays in the tile while it is held (frame true, on true)
+PASS  D. the arena itself has the end: its LIVE badge is off ({"liveDisabled":true,"count":"move 126 / 126"})
+      tile: 06:15:14 demo-live-009 ended=false frame=true on=true joining=false
+      tile: 06:15:21 demo-live-009 ended=true frame=true on=true joining=false
+      tile: 06:15:40 demo-live-011 ended=false frame=true on=true joining=false
+PASS  D. after the hold, the next live match takes the tile (demo-live-011; the server has demo-live-011, demo-live-012)
+PASS  D. and its arena loads
+
+[E] dark, a phone
+PASS  E. on a phone no frame is made; the compact board stands in (frame false, board true)
+PASS  E. on a phone: no sideways scroll (390 <= 390)
+PASS  E. no external requests
+PASS  E. no page errors
+
+36 PASS, 0 FAIL

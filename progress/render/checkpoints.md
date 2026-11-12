@@ -7,6 +7,41 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-12 — Watch live at L: the live match on the arena, in the tile (session 67) — AWAITING FEEDBACK (four small calls)
+
+The last widget on the brief's S/M/L table; the widgets' S/M/L pass is finished. Try it: `npm run site-demo -w
+@ai-tcg/render -- --ladder`, sign in as nova, Customise on Home, add Watch live and set it to S, M and L.
+
+**What you'll see:**
+- **S:** the live score: the turn line on top, both agents with their health under it.
+- **M:** + the owner and rating line, health bars, "Watch as" on a match that isn't yours, the other live matches.
+- **L:** the live match playing on the real arena inside the tile (the same arena Full screen opens: the boards,
+  the HUDs, the hands, every effect), with its score, "Watch as" and the other live matches beside it. Click the
+  arena for Full screen. When the match ends the tile keeps it for its result and the winner's boast, says "Match
+  over", then the next live match takes the tile. On a phone the tile shows the compact board instead.
+
+**Evidence:** `progress/render/evidence/watch-arena-check-s67.txt` (**36 PASS, 0 FAIL**, the real owner API with the
+ladder playing: the tile's arena is the server's live match and follows it; 33 s of Home's redraws without the
+arena reloading; Full screen and Customise take it down and bring it back; the end held, then the next match). The
+two earlier runs are kept in `watch-arena-check-s67-first-runs.txt` (a real bug found and fixed: the arena vanished
+between ladder rounds; and Watch live at S, which overflowed its tile since session 50). Stills
+`v2-s67-watch-S/M/L.jpg`, `-L-dark`, `-L-ended` (the boast in the tile), `-fullscreen`, `-phone`. Render tests 990
+(+7); CI browser check 61 PASS.
+
+**Small calls (kept as built unless you say otherwise):**
+1. **One embedded arena per board.** Each is a whole arena page running; a second Watch live at L shows the compact
+   board (it still counts as one of the two live boards).
+2. **The tile is silent.** Sound and music never start in the tile, even after you click the page; Full screen has
+   them as before.
+3. **The end is held 20 seconds** (the result and the boast), then the next live match. Between rounds, when nothing
+   else is live, the finished match stays until the hold ends.
+4. **Watch live at S is the score alone:** no "Watch live" button (the tile's arrow opens the page); it didn't fit.
+
+**Next:** the game lane's turn; then the Stats page, the ladder page and the notifications bell. Render hardening
+pass due at 69.
+
+---
+
 ## 2026-11-12 — Daily rewards, Showcase and Collection at S, M and L (session 66) — AWAITING FEEDBACK (four small calls)
 
 Three more widgets on the brief's S/M/L table. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder`, sign in

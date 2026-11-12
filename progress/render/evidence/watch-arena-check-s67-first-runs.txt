@@ -1,0 +1,23 @@
+Render session 67: watch-arena-check-s67.mjs, the runs before the final one (kept, per the lane's habit of
+keeping first runs). The final run is watch-arena-check-s67.txt (36 PASS, 0 FAIL).
+
+Run 1: 33 PASS, 1 FAIL
+  FAIL  S. nothing overflows (92 px)
+        Watch live at S (built in session 50, not new this session): the small scoreboard's three columns
+        overlapped in a 3-column tile and the "Watch live" button row ran 92 px past the tile.
+  Also seen only in the stills (no check covered it yet): when the tile's match ended, the tile showed
+  "MATCH OVER" over an empty slot instead of the arena's final board and boast. The check gained a trail of
+  the tile's states and two checks (the arena stays while held; the arena itself has the end).
+
+Run 2: 33 PASS, 3 FAIL
+  FAIL  S. nothing overflows (58 px)                    (the score fixed: stacked; the button row still over)
+  FAIL  D. the arena stays in the tile while it is held (frame false, on false)
+  FAIL  D. the arena itself has the end: its LIVE badge is off (null)
+        tile: 06:11:02 demo-live-009 ended=false frame=true on=true joining=false
+        tile: 06:11:09 null ended=null frame=false on=false joining=false     <- the cause
+        tile: 06:11:12 demo-live-009 ended=true frame=false on=false joining=false
+        tile: 06:11:39 demo-live-011 ended=false frame=true on=false joining=true
+  The cause: between ladder rounds GET /api/live is briefly empty, and the widget drew "No match is live"
+  before it looked at the held match, so the arena's frame went with that redraw. Fixed in siteWidgets.ts
+  (a held match is drawn even when nothing else is live; test in siteBoard.test.ts). S drops its button row
+  (the header's arrow opens Watch live).

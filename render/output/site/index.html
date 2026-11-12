@@ -395,12 +395,40 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .sb-mid { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12.5px; text-align: center; max-width: 160px; }
 .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--live); animation: pulse 1.4s ease-in-out infinite; }
 .sb-s .sb-meta { display: none; } .sb-s .sb-hp b { font-size: 17px; } .sb-s { gap: 6px; } .sb-s .sb-mid { max-width: 90px; }
+/* Render session 67: where the score is narrow (Watch live at S, the arena's column at L) the turn line goes on
+   top and the two sides sit under it, side by side; at S without the owner and rating line. */
+.sz-S .sb, .wl-info .sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+.sz-S .sb-mid, .wl-info .sb-mid { grid-column: 1 / -1; grid-row: 1; flex-direction: row; justify-content: center; max-width: none; min-width: 0; font-size: 11.5px; white-space: nowrap; }
+.sz-S .sb-mid b, .wl-info .sb-mid b { overflow: hidden; text-overflow: ellipsis; }
+.sz-S .sb-name small { display: none; } .sz-S .sb-side { padding: 6px 9px; }
 .sb-line { margin: 6px 2px 0; color: #dfe4ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wg:not(.wg-dark) .sb-side { background: var(--soft); } .wg:not(.wg-dark) .sb-line { color: inherit; }
 .cboard { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 6px; padding: 8px; border-radius: 14px; background: rgba(0,0,0,.18); }
 .cb-row { display: flex; gap: 5px; flex-wrap: wrap; min-height: 26px; align-items: center; } .cb-row + .cb-row { border-top: 1px dashed rgba(255,255,255,.18); padding-top: 6px; }
 .uc { font: 600 11.5px system-ui; padding: 3px 8px; border-radius: 8px; background: rgba(255,255,255,.14); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .uc b { font-weight: 700; } .uc.pend { border: 1px dashed rgba(255,207,92,.8); background: transparent; }
+/* Watch live at L (render session 67): the live match on the real arena, embedded. The page scales the arena's
+   frame to .wl-arena (siteClient.ts mountTileArena); the compact board stands in until it has loaded, and on a
+   phone, where the frame isn't made. Clicking the arena opens it full screen. */
+.wl-l { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 16px; flex: 1; min-height: 0; }
+.wl-arena { position: relative; min-height: 0; border-radius: 16px; overflow: hidden; background: #070912; border: 1px solid rgba(255,255,255,.12); display: flex; flex-direction: column; justify-content: center; }
+.wl-frame { position: absolute; inset: 0; }
+.wl-frame iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+.wl-arena.on .wl-frame iframe { opacity: 1; }
+.wl-fallback { padding: 10px; }
+.wl-arena.on .wl-fallback, .wl-arena:not(.joining) .wl-wait { display: none; }
+.wl-wait { position: absolute; left: 12px; top: 10px; font: 600 12px system-ui; color: #c9d2ff; letter-spacing: .02em; }
+.wl-wait::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--live); animation: pulse 1.4s ease-in-out infinite; }
+.wl-open { position: absolute; inset: 0; z-index: 2; border: 0; background: transparent; cursor: zoom-in; display: flex; align-items: flex-end; justify-content: flex-end; padding: 10px; color: #fff; font: 600 12px system-ui; border-radius: 16px; }
+.wl-open span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: rgba(8,10,20,.72); border: 1px solid rgba(255,255,255,.22); opacity: .78; transition: opacity .2s ease; }
+.wl-open:hover span, .wl-open:focus-visible span { opacity: 1; }
+.wl-open:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.wl-open:disabled { cursor: default; } .wl-open:disabled span { display: none; }
+.wl-arena.on[data-ended="true"]::after { display: none; }
+.wl-arena[data-ended="true"]::after { content: "MATCH OVER"; position: absolute; left: 12px; top: 10px; z-index: 1; font: 700 11px system-ui; letter-spacing: .14em; padding: 3px 8px; border-radius: 6px; background: rgba(8,10,20,.72); color: #ffcf5c; }
+.wl-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; overflow: auto; scrollbar-width: thin; }
+.wl-info h4 { margin-top: 4px; }
+@media (max-width: 720px) { .wl-l { grid-template-columns: minmax(0, 1fr); flex: none; } .wl-arena { overflow: visible; justify-content: flex-start; } .wl-frame, .wl-wait { display: none !important; } .wl-arena.on .wl-fallback { display: block; } .wl-open { position: static; padding: 0 10px 10px; } .wl-arena[data-ended="true"]::after { position: static; align-self: flex-start; margin: 10px 0 0 10px; } }
 .lines { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .lline { display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; overflow: hidden; } .lline small { overflow: hidden; text-overflow: ellipsis; }
 .lhp { font: 800 13px system-ui; font-variant-numeric: tabular-nums; padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,.14); }
@@ -1922,8 +1950,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
 
   // ../engine/src/cards/modes.ts
   function findMode(card, modeId) {
-    var _a3;
-    return (_a3 = card.modes) == null ? void 0 : _a3.find((m) => m.id === modeId);
+    var _a4;
+    return (_a4 = card.modes) == null ? void 0 : _a4.find((m) => m.id === modeId);
   }
   function withMode(card, modeId) {
     if (card.chosenMode !== void 0) throw new Error(`withMode: ${card.name} is already played in mode "${card.chosenMode}"`);
@@ -1932,8 +1960,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return { ...card, abilities: [...card.abilities, ...mode.abilities], chosenMode: modeId };
   }
   function allAbilities(card) {
-    var _a3;
-    return [...card.abilities, ...((_a3 = card.modes) != null ? _a3 : []).flatMap((m) => m.abilities)];
+    var _a4;
+    return [...card.abilities, ...((_a4 = card.modes) != null ? _a4 : []).flatMap((m) => m.abilities)];
   }
   function playVariants(card) {
     if (!card.modes || card.modes.length === 0) return [{ card }];
@@ -4584,7 +4612,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return false;
   }
   function isRemovalOrDebuffCard(card) {
-    var _a3;
+    var _a4;
     for (const ability of allAbilities(card)) {
       if (!REMOVAL_ELIGIBLE_TRIGGERS.includes(ability.trigger)) continue;
       if (ability.trigger === "static") {
@@ -4594,17 +4622,17 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       const targeting = ability.targeting;
       const scope = targeting == null ? void 0 : targeting.scope;
       const filter = targeting && "filter" in targeting ? targeting.filter : void 0;
-      for (const effect of walkEffects((_a3 = ability.effects) != null ? _a3 : [])) {
+      for (const effect of walkEffects((_a4 = ability.effects) != null ? _a4 : [])) {
         if (isRemovalOrDebuffEffect(effect, scope, filter)) return true;
       }
     }
     return false;
   }
   function findExcessiveTargetedDamage(card) {
-    var _a3, _b;
+    var _a4, _b;
     if (card.cost >= TARGETED_DAMAGE_COST_THRESHOLD) return void 0;
     for (const ability of allAbilities(card)) {
-      const scope = (_a3 = ability.targeting) == null ? void 0 : _a3.scope;
+      const scope = (_a4 = ability.targeting) == null ? void 0 : _a4.scope;
       if (scope !== "chosen" && scope !== "random") continue;
       for (const effect of walkEffects((_b = ability.effects) != null ? _b : [])) {
         if (effect.kind === "damage" && effect.amount.mode === "flat" && effect.amount.value > card.cost + TARGETED_DAMAGE_MARGIN) {
@@ -4629,8 +4657,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return cards.some(
       (card) => allAbilities(card).some(
         (ability) => {
-          var _a3;
-          return [...walkEffects((_a3 = ability.effects) != null ? _a3 : [])].some((effect) => effect.kind === "drawCard");
+          var _a4;
+          return [...walkEffects((_a4 = ability.effects) != null ? _a4 : [])].some((effect) => effect.kind === "drawCard");
         }
       )
     );
@@ -4639,11 +4667,11 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const hasAttacker = cards.some((card) => card.type === "Unit" && card.attack > 0);
     const hasFaceDamage = cards.some(
       (card) => allAbilities(card).some((ability) => {
-        var _a3;
+        var _a4;
         const targeting = ability.targeting;
         const filter = targeting && "filter" in targeting ? targeting.filter : void 0;
         if (!filter || filter.kind !== "player" || !targetsOpponent(filter)) return false;
-        return [...walkEffects((_a3 = ability.effects) != null ? _a3 : [])].some((effect) => effect.kind === "damage");
+        return [...walkEffects((_a4 = ability.effects) != null ? _a4 : [])].some((effect) => effect.kind === "damage");
       })
     );
     return hasAttacker || hasFaceDamage;
@@ -4688,7 +4716,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     }
   }
   function neutralCardViolations(card) {
-    var _a3;
+    var _a4;
     const out = [];
     if (card.faction !== "Neutral") return [`"${card.name}" is not a Neutral card`];
     if (card.rarity === "Mythic") out.push(`"${card.name}": a Mythic is a faction signature, never neutral`);
@@ -4701,7 +4729,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       out.push(`"${card.name}": evolution lines and telegraphs are faction identity`);
     }
     for (const ability of allAbilities(card)) {
-      const effects = (_a3 = ability.effects) != null ? _a3 : [];
+      const effects = (_a4 = ability.effects) != null ? _a4 : [];
       if ([...walkEffects(effects)].some((e) => e.kind === "summon")) {
         out.push(`"${card.name}": summoning tokens is faction identity`);
       }
@@ -4738,12 +4766,12 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   }
   var ZERO_DAY_MODES = 2;
   function zeroDayCardViolations(card) {
-    var _a3, _b;
+    var _a4, _b;
     const out = [];
     if (card.topTier !== "zeroDay") out.push(`"${card.name}" is not marked as a Zero-Day card`);
     if (card.faction !== "Neutral") out.push(`"${card.name}": the Season 0 Zero-Day cards are Neutral`);
     if (card.rarity !== "Mythic") out.push(`"${card.name}": a Zero-Day card counts as a Mythic (1 per deck)`);
-    if (((_b = (_a3 = card.modes) == null ? void 0 : _a3.length) != null ? _b : 0) !== ZERO_DAY_MODES) out.push(`"${card.name}": a Zero-Day card has exactly ${ZERO_DAY_MODES} modes`);
+    if (((_b = (_a4 = card.modes) == null ? void 0 : _a4.length) != null ? _b : 0) !== ZERO_DAY_MODES) out.push(`"${card.name}": a Zero-Day card has exactly ${ZERO_DAY_MODES} modes`);
     out.push(...modalCardViolations(card));
     return out;
   }
@@ -5517,8 +5545,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       ...option,
       abilities: worded(option.abilities, option.text, option.keywords),
       sizes: option.sizes.map((size) => {
-        var _a3;
-        return { ...size, abilities: worded(size.abilities, size.text, (_a3 = size.keywords) != null ? _a3 : option.keywords) };
+        var _a4;
+        return { ...size, abilities: worded(size.abilities, size.text, (_a4 = size.keywords) != null ? _a4 : option.keywords) };
       })
     };
   }
@@ -5911,18 +5939,18 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   // src/site/siteLoadout.ts
   var FACTION_ORDER = ["Aegis", "Swarm", "Null", "Cortex"];
   function deckFactionOf(play2) {
-    var _a3, _b, _c, _d;
-    const playing = (_b = (_a3 = play2.activeDeck) == null ? void 0 : _a3.deckId) != null ? _b : null;
+    var _a4, _b, _c, _d;
+    const playing = (_b = (_a4 = play2.activeDeck) == null ? void 0 : _a4.deckId) != null ? _b : null;
     const r = (_c = play2.rebuild.job) == null ? void 0 : _c.result;
     if (r && playing && r.deckId === playing) return r.faction;
     return (_d = play2.factionLock) != null ? _d : null;
   }
   function starterFactionOf(c) {
-    var _a3;
+    var _a4;
     const n = /* @__PURE__ */ new Map();
     for (const card of c.cards) {
       const starters = card.copies.filter((k) => k.origin === "starter").length;
-      if (starters && card.faction) n.set(card.faction, ((_a3 = n.get(card.faction)) != null ? _a3 : 0) + starters);
+      if (starters && card.faction) n.set(card.faction, ((_a4 = n.get(card.faction)) != null ? _a4 : 0) + starters);
     }
     let best = null;
     for (const [f, k] of n) if (best === null || k > n.get(best)) best = f;
@@ -5950,7 +5978,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   }
   var PICKER_SLOTS = LOADOUT_SLOTS;
   function loadoutPayload(x) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     const text = loadoutSlotText(CLOSE_WIN_HEALTH);
     const ownedBy = new Map(x.owned.map((o) => [o.itemId, o]));
     const items = /* @__PURE__ */ new Map();
@@ -5962,28 +5990,28 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const deckFaction2 = deckFactionOf(x.play);
     const rowFaction = deckFaction2 != null ? deckFaction2 : starterFactionOf(x.collection);
     const rank = (i, owned) => {
-      var _a4;
-      return (owned ? 0 : 100) + (i.season === "standard" ? Math.max(0, FACTION_ORDER.indexOf((_a4 = i.faction) != null ? _a4 : "")) : 10);
+      var _a5;
+      return (owned ? 0 : 100) + (i.season === "standard" ? Math.max(0, FACTION_ORDER.indexOf((_a5 = i.faction) != null ? _a5 : "")) : 10);
     };
     const slots = PICKER_SLOTS.map((slot) => {
-      var _a4, _b2;
+      var _a5, _b2;
       const kind = SLOT_KIND[slot];
       const server = x.loadout.slots.find((s) => s.slot === slot);
-      const choices = new Set((_a4 = server == null ? void 0 : server.choices) != null ? _a4 : []);
+      const choices = new Set((_a5 = server == null ? void 0 : server.choices) != null ? _a5 : []);
       const ownedTiles = [...choices].map((id) => items.get(id)).filter((i) => !!i);
       const lockedTiles = x.onSale.filter((s) => s.kind === kind && !s.owned && !choices.has(s.itemId));
       const sorted = [...ownedTiles.map((i) => ({ i, owned: true })), ...lockedTiles.map((i) => ({ i, owned: false }))].sort(
         (a, b) => rank(a.i, a.owned) - rank(b.i, b.owned) || a.i.name.localeCompare(b.i.name)
       );
       const tiles = sorted.map(({ i, owned }) => {
-        var _a5, _b3;
+        var _a6, _b3;
         return {
           itemId: i.itemId,
           name: i.name,
           faction: i.faction,
           season: i.season,
           owned,
-          source: owned ? (_b3 = (_a5 = ownedBy.get(i.itemId)) == null ? void 0 : _a5.source) != null ? _b3 : null : null,
+          source: owned ? (_b3 = (_a6 = ownedBy.get(i.itemId)) == null ? void 0 : _a6.source) != null ? _b3 : null : null,
           priceCredits: owned ? null : i.priceCredits,
           description: i.description
         };
@@ -6001,7 +6029,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       });
       return { slot, ...text[slot], tiles };
     });
-    const live = (_a3 = x.play.liveMatch) != null ? _a3 : x.loadout.locked ? { matchId: "", startedAt: "" } : null;
+    const live = (_a4 = x.play.liveMatch) != null ? _a4 : x.loadout.locked ? { matchId: "", startedAt: "" } : null;
     const isConnected = ((_b = x.play.connectedAgent) == null ? void 0 : _b.agentId) === x.agent.agentId;
     const note = [
       isConnected ? "Your connected agent: its matches play what's equipped here." : "Not connected: what's equipped here plays once you connect this agent.",
@@ -6024,16 +6052,16 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return { scenario, starters, names };
   }
   function agentLoadoutRows(play2, loadouts, names) {
-    var _a3, _b;
-    const connected = (_b = (_a3 = play2.connectedAgent) == null ? void 0 : _a3.agentId) != null ? _b : null;
+    var _a4, _b;
+    const connected = (_b = (_a4 = play2.connectedAgent) == null ? void 0 : _a4.agentId) != null ? _b : null;
     const deckFaction2 = deckFactionOf(play2);
     const nm = (id) => {
-      var _a4;
-      return id ? (_a4 = names[id]) != null ? _a4 : id : null;
+      var _a5;
+      return id ? (_a5 = names[id]) != null ? _a5 : id : null;
     };
     return [...play2.agents].sort((a, b) => Number(b.agentId === connected) - Number(a.agentId === connected)).map((a) => {
-      var _a4, _b2, _c, _d, _e;
-      const l = (_a4 = loadouts[a.agentId]) == null ? void 0 : _a4.loadout;
+      var _a5, _b2, _c, _d, _e;
+      const l = (_a5 = loadouts[a.agentId]) == null ? void 0 : _a5.loadout;
       const boast = l ? (_b2 = nm(l.boast)) != null ? _b2 : `Empty: plays ${deckFaction2 ? `${deckFaction2}'s starter` : "the deck's starter"}` : "\u2026";
       const closeWin = l ? (_c = nm(l.closeWinBoast)) != null ? _c : "Empty: plays the victory boast" : "\u2026";
       const coin = l ? (_e = nm(l.coin)) != null ? _e : `Empty: flips ${(_d = names["coin-chrome-token"]) != null ? _d : "the Chrome Token"}` : "\u2026";
@@ -6075,8 +6103,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return needs.length ? `Waiting on the server for: ${needs.join(", ")}.` : "The server serves this now; the page is being built next.";
   }
   function pageFromHash(hash) {
-    var _a3;
-    const id = (_a3 = hash.replace(/^#\/?/, "").split(/[/?]/)[0]) != null ? _a3 : "";
+    var _a4;
+    const id = (_a4 = hash.replace(/^#\/?/, "").split(/[/?]/)[0]) != null ? _a4 : "";
     return Object.prototype.hasOwnProperty.call(PAGE_TITLES, id) ? id : "home";
   }
   function hashOf(page) {
@@ -6091,8 +6119,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return { label: "Ready", tone: "ready" };
   }
   function styleName(play2, id) {
-    var _a3, _b;
-    return (_b = (_a3 = play2.playStyles.find((s) => s.id === id)) == null ? void 0 : _a3.name) != null ? _b : id;
+    var _a4, _b;
+    return (_b = (_a4 = play2.playStyles.find((s) => s.id === id)) == null ? void 0 : _a4.name) != null ? _b : id;
   }
   function deckLine(play2) {
     const d = play2.activeDeck;
@@ -6101,12 +6129,12 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return `Your agent picks: ${play2.agentDeck.name} \xB7 ${play2.agentDeck.cards} cards`;
   }
   function rebuildView(play2) {
-    var _a3;
+    var _a4;
     const job = play2.rebuild.job;
     if ((job == null ? void 0 : job.state) === "running") return { kind: "running", text: "Your agent is building its deck. This page keeps working while it plays its games." };
     if (play2.deckChoice === "forced") return { kind: "forced", text: "You chose the deck, so the agent doesn't build one. Hand the choice back to the agent to rebuild." };
     if (play2.rebuild.reasons.length > 0) return { kind: "wanted", text: "Your agent's deck wants a rebuild:", reasons: play2.rebuild.reasons };
-    if ((job == null ? void 0 : job.state) === "failed") return { kind: "failed", text: `The last rebuild failed: ${(_a3 = job.error) != null ? _a3 : "no reason given"}` };
+    if ((job == null ? void 0 : job.state) === "failed") return { kind: "failed", text: `The last rebuild failed: ${(_a4 = job.error) != null ? _a4 : "no reason given"}` };
     return { kind: "current", text: play2.agentDeck ? "Your agent's deck is up to date." : "Your agent hasn't built a deck yet." };
   }
   function jobSummary(job) {
@@ -6256,7 +6284,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return defaultView === "p2" ? "p2" : "p1";
   }
   function scoreboardOf(m, viewerOwnerId, chosen = null) {
-    var _a3;
+    var _a4;
     const n = m.now;
     const name = (s) => m[s].agentName;
     const status = n.winner === "draw" ? "Draw" : n.winner ? `${name(n.winner)} wins` : `Turn ${n.turn} \xB7 ${name(n.activePlayer)} to play`;
@@ -6266,20 +6294,20 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       p1: scoreSide(m.p1, n.p1, !n.winner && n.activePlayer === "p1", n.winner === "p1"),
       p2: scoreSide(m.p2, n.p2, !n.winner && n.activePlayer === "p2", n.winner === "p2"),
       status,
-      lastLine: (_a3 = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).pop()) != null ? _a3 : null,
+      lastLine: (_a4 = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).pop()) != null ? _a4 : null,
       mine,
       near: nearSeat(mine, chosen, m.defaultView),
       moves: m.released
     };
   }
   function myLiveMatch(live) {
-    var _a3;
+    var _a4;
     if (!live || !live.mine) return null;
-    return (_a3 = live.matches.find((m) => m.matchId === live.mine)) != null ? _a3 : null;
+    return (_a4 = live.matches.find((m) => m.matchId === live.mine)) != null ? _a4 : null;
   }
   function historyRowHtml(v, opts = {}) {
-    var _a3;
-    const replay = v.canReplay ? `<button type="button" class="btn sm" data-act="replay" data-match="${esc(v.matchId)}">Replay</button>` : `<span class="muted small" title="${esc((_a3 = v.noReplay) != null ? _a3 : "")}">No replay</span>`;
+    var _a4;
+    const replay = v.canReplay ? `<button type="button" class="btn sm" data-act="replay" data-match="${esc(v.matchId)}">Replay</button>` : `<span class="muted small" title="${esc((_a4 = v.noReplay) != null ? _a4 : "")}">No replay</span>`;
     const log = v.canLog && !opts.compact ? `<button type="button" class="btn sm ghost" data-act="match-log" data-match="${esc(v.matchId)}">Log</button>` : "";
     return `<li class="hrow" data-match="${esc(v.matchId)}"><span class="wl ${v.tone}" aria-hidden="true">${esc(v.letter)}</span><span class="hr-main"><b>${esc(v.word)}</b> <span class="hr-vs">${esc(v.versus)}</span><small class="muted">${esc(v.when)}${v.turns ? ` \xB7 ${esc(v.turns)}` : ""}</small></span><span class="hr-num"><b>${esc(v.credits)}</b><small class="rt ${v.ratingTone}">${esc(v.rating)}</small></span><span class="hr-act">${replay}${log}</span></li>`;
   }
@@ -6453,30 +6481,30 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent), !!p.liveMatch);
   }
   function ringTicks(p) {
-    var _a3;
-    return !!(p == null ? void 0 : p.connectedAgent) && ((_a3 = p.autoPlay.allowance) == null ? void 0 : _a3.state) === "running";
+    var _a4;
+    return !!(p == null ? void 0 : p.connectedAgent) && ((_a4 = p.autoPlay.allowance) == null ? void 0 : _a4.state) === "running";
   }
   function statusPollMs(p, now) {
-    var _a3;
+    var _a4;
     if (!p) return 15e3;
-    if (((_a3 = p.rebuild.job) == null ? void 0 : _a3.state) === "running") return 1500;
+    if (((_a4 = p.rebuild.job) == null ? void 0 : _a4.state) === "running") return 1500;
     const a = allowanceOf(p.autoPlay, now);
     if (a && (a.state === "finishing" || a.state === "running" && a.secondsLeft !== void 0 && a.secondsLeft < 30)) return 5e3;
     return 15e3;
   }
   function dialView(p, liveStyle) {
-    var _a3;
+    var _a4;
     const a = p.connectedAgent;
     if (!a || !p.playStyles.length) return null;
     const n = p.playStyles.length;
     const stops = p.playStyles.map((s, i) => ({ id: s.id, name: s.name, summary: s.summary, angle: Math.round(360 * i / n), on: s.id === a.playStyle }));
-    const cur = (_a3 = stops.find((s) => s.on)) != null ? _a3 : { id: a.playStyle, name: styleName(p, a.playStyle), summary: "", angle: 0, on: true };
+    const cur = (_a4 = stops.find((s) => s.on)) != null ? _a4 : { id: a.playStyle, name: styleName(p, a.playStyle), summary: "", angle: 0, on: true };
     const note = liveStyle && liveStyle !== a.playStyle ? `This match: ${styleName(p, liveStyle)}. ${cur.name} from the next match.` : liveStyle ? "A change applies from the next match." : "Applies from the next match.";
     return { agentId: a.agentId, stops, current: { id: cur.id, name: cur.name, summary: cur.summary }, angle: cur.angle, note };
   }
   function dialHtml(v, opts = {}) {
-    var _a3;
-    const size = (_a3 = opts.size) != null ? _a3 : 112;
+    var _a4;
+    const size = (_a4 = opts.size) != null ? _a4 : 112;
     const r = size / 2 - 9;
     const notches = v.stops.map((s) => {
       const rad = s.angle * Math.PI / 180;
@@ -6487,18 +6515,18 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return `<div class="dial"><div class="dn-knob" style="width:${size}px;height:${size}px" role="radiogroup" aria-label="Personality dial">${notches}<span class="dn-face" aria-hidden="true"><i style="transform:rotate(${v.angle}deg)"></i></span></div><div class="dn-txt"><span class="muted small">Personality</span><b>${esc(v.current.name)}</b>${v.current.summary && opts.summary !== false ? `<span class="small">${esc(v.current.summary)}</span>` : ""}<span class="muted small">${esc(v.note)}</span></div></div>`;
   }
   function dialKeyTarget(styleIds, current, key) {
-    var _a3;
+    var _a4;
     const n = styleIds.length;
     if (n < 2) return null;
     const i = Math.max(0, styleIds.indexOf(current));
     const j = key === "ArrowRight" || key === "ArrowDown" ? (i + 1) % n : key === "ArrowLeft" || key === "ArrowUp" ? (i - 1 + n) % n : key === "Home" ? 0 : key === "End" ? n - 1 : -1;
-    return j < 0 || j === i ? null : (_a3 = styleIds[j]) != null ? _a3 : null;
+    return j < 0 || j === i ? null : (_a4 = styleIds[j]) != null ? _a4 : null;
   }
   function deckOptions(p) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     const agentOn = p.deckChoice === "agent";
     const built = p.agentDeck;
-    const out = [{ value: "agent", name: "Your agent picks", detail: built ? `${built.name} \xB7 ${built.cards} cards` : "No deck built yet", faction: (_a3 = built == null ? void 0 : built.faction) != null ? _a3 : null, on: agentOn, blocked: null }];
+    const out = [{ value: "agent", name: "Your agent picks", detail: built ? `${built.name} \xB7 ${built.cards} cards` : "No deck built yet", faction: (_a4 = built == null ? void 0 : built.faction) != null ? _a4 : null, on: agentOn, blocked: null }];
     for (const d of p.decks) {
       if (built && d.deckId === built.deckId) continue;
       out.push({
@@ -6520,12 +6548,12 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     }).join("")}</div>`;
   }
   function factionOf(p) {
-    var _a3, _b, _c, _d, _e, _f;
-    return (_f = (_e = (_b = (_a3 = p.activeDeck) == null ? void 0 : _a3.faction) != null ? _b : p.factionLock) != null ? _e : (_d = (_c = p.rebuild.job) == null ? void 0 : _c.result) == null ? void 0 : _d.faction) != null ? _f : null;
+    var _a4, _b, _c, _d, _e, _f;
+    return (_f = (_e = (_b = (_a4 = p.activeDeck) == null ? void 0 : _a4.faction) != null ? _b : p.factionLock) != null ? _e : (_d = (_c = p.rebuild.job) == null ? void 0 : _c.result) == null ? void 0 : _d.faction) != null ? _f : null;
   }
   function ftag(f) {
-    var _a3;
-    return f ? `<span class="ftag" style="--c:${(_a3 = FACTION_HEX[f]) != null ? _a3 : "#8f8cff"}">${esc(f.toUpperCase())}</span>` : "";
+    var _a4;
+    return f ? `<span class="ftag" style="--c:${(_a4 = FACTION_HEX[f]) != null ? _a4 : "#8f8cff"}">${esc(f.toUpperCase())}</span>` : "";
   }
   function avatar(name, faction, size) {
     const c = faction && FACTION_HEX[faction] || "#8f8cff";
@@ -6660,10 +6688,10 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   var LIQUID_SLOW_FPS = 20;
   var LIQUID_WINDOW = { frames: 30, ms: 2e3 };
   function nextScale(scale, fps) {
-    var _a3;
+    var _a4;
     if (fps >= LIQUID_SLOW_FPS) return scale;
     const i = LIQUID_SCALES.findIndex((s) => s <= scale + 1e-9);
-    return i < 0 ? scale : (_a3 = LIQUID_SCALES[Math.min(i + 1, LIQUID_SCALES.length - 1)]) != null ? _a3 : scale;
+    return i < 0 ? scale : (_a4 = LIQUID_SCALES[Math.min(i + 1, LIQUID_SCALES.length - 1)]) != null ? _a4 : scale;
   }
   function liquidPause(s) {
     if (!s.webgl) return "no-webgl";
@@ -7111,7 +7139,7 @@ gl_FragColor=vec4(col,1.);}`;
   ];
   var ZERO_DAY_PER_SEASON = 3;
   function secretCards(set, illustrations) {
-    var _a3;
+    var _a4;
     const total = set.cards.length;
     const width = Math.max(3, String(total * 2 + illustrations.length + ZERO_DAY_PER_SEASON).length);
     const pad = (n) => String(n).padStart(width, "0");
@@ -7126,7 +7154,7 @@ gl_FragColor=vec4(col,1.);}`;
       const code = `${set.code}-ZD${i}`;
       const card = getCard(code);
       if (card && (card.topTier !== "zeroDay" || card.rarity !== "Mythic")) throw new Error(`${code}: the registry's card under this id is not a Mythic Zero-Day card`);
-      out.push({ code, kind: "zeroDay", cardId: code, name: (_a3 = card == null ? void 0 : card.name) != null ? _a3 : `Zero-Day ${i} (not designed yet)`, rarity: "Mythic", collectorNumber: `${pad(next++)}/${pad(total)}`, art: `placeholder:zero-day/${code}`, animated: true });
+      out.push({ code, kind: "zeroDay", cardId: code, name: (_a4 = card == null ? void 0 : card.name) != null ? _a4 : `Zero-Day ${i} (not designed yet)`, rarity: "Mythic", collectorNumber: `${pad(next++)}/${pad(total)}`, art: `placeholder:zero-day/${code}`, animated: true });
     }
     if (new Set(illustrations).size !== illustrations.length) throw new Error("an illustration is listed twice");
     return out;
@@ -7207,10 +7235,10 @@ gl_FragColor=vec4(col,1.);}`;
     return { ...set, secrets: secretCards(set, S0_ILLUSTRATIONS), glitch: glitchList(set, S0_GLITCH_CARDS) };
   }
   function glitchList(set, ids) {
-    var _a3;
+    var _a4;
     for (const id of ids) {
       if (!set.cards.some((c) => c.cardId === id)) throw new Error(`Glitch version of ${id}: not a card of ${set.code}`);
-      if (((_a3 = getCard(id)) == null ? void 0 : _a3.type) !== "Unit") throw new Error(`Glitch version of ${id}: Units only`);
+      if (((_a4 = getCard(id)) == null ? void 0 : _a4.type) !== "Unit") throw new Error(`Glitch version of ${id}: Units only`);
     }
     if (new Set(ids).size !== ids.length) throw new Error("a Glitch card is listed twice");
     return ids;
@@ -7310,7 +7338,7 @@ gl_FragColor=vec4(col,1.);}`;
     };
   }
   function revealCard(c) {
-    var _a3, _b;
+    var _a4, _b;
     return {
       copyId: c.copyId,
       cardId: c.cardId,
@@ -7325,12 +7353,12 @@ gl_FragColor=vec4(col,1.);}`;
       ownedAfter: c.ownedAfter,
       prototype: c.prototype,
       secret: c.secret,
-      build: withSerialCount(revealBuildOf(revealKindOf(c.finish), c.rarity, (_b = (_a3 = getCard(c.cardId)) == null ? void 0 : _a3.faction) != null ? _b : "Neutral"), c.prototype)
+      build: withSerialCount(revealBuildOf(revealKindOf(c.finish), c.rarity, (_b = (_a4 = getCard(c.cardId)) == null ? void 0 : _a4.faction) != null ? _b : "Neutral"), c.prototype)
     };
   }
   function withSerialCount(b, prototype) {
-    var _a3;
-    if (((_a3 = b.takeover) == null ? void 0 : _a3.kind) === "prototype" && prototype) b.takeover.count = serialCountUp(prototype.serial);
+    var _a4;
+    if (((_a4 = b.takeover) == null ? void 0 : _a4.kind) === "prototype" && prototype) b.takeover.count = serialCountUp(prototype.serial);
     return b;
   }
   function cardFaceOf(c) {
@@ -7354,7 +7382,7 @@ gl_FragColor=vec4(col,1.);}`;
     return faceOfCard(card);
   }
   function faceOfCard(card) {
-    var _a3;
+    var _a4;
     const keywords = card.type === "Unit" ? card.keywords : card.type === "Tool" ? card.grantedKeywords.map((k) => `Grants ${k}`) : [];
     const text = [...keywords.length ? [keywords.join(", ")] : [], ...card.abilities.map((a) => a.text)];
     if (card.type === "Tool") text.unshift(`+${card.attackBonus}/+${card.healthBonus}`);
@@ -7368,7 +7396,7 @@ gl_FragColor=vec4(col,1.);}`;
       attack: card.type === "Unit" ? card.attack : null,
       health: card.type === "Unit" ? card.health : null,
       text,
-      modes: ((_a3 = card.modes) != null ? _a3 : []).map((m) => ({ name: m.name, text: m.text })),
+      modes: ((_a4 = card.modes) != null ? _a4 : []).map((m) => ({ name: m.name, text: m.text })),
       flavor: card.flavor,
       visualSeed: visualSeedFor(card.id),
       visualPattern: visualPatternFor(card.id)
@@ -7399,9 +7427,9 @@ gl_FragColor=vec4(col,1.);}`;
     const newEntries = /* @__PURE__ */ new Set();
     const ownedAfter = /* @__PURE__ */ new Map();
     packs.forEach((p, pi) => {
-      var _a3;
+      var _a4;
       for (const c of p.cards) {
-        ownedAfter.set(c.cardId, Math.max((_a3 = ownedAfter.get(c.cardId)) != null ? _a3 : 0, c.ownedAfter));
+        ownedAfter.set(c.cardId, Math.max((_a4 = ownedAfter.get(c.cardId)) != null ? _a4 : 0, c.ownedAfter));
         const entry = entryKeyOf(c);
         const isNew = c.isNew && !newEntries.has(entry);
         if (isNew) newEntries.add(entry);
@@ -7472,8 +7500,8 @@ gl_FragColor=vec4(col,1.);}`;
   function bestCardIndex(cards) {
     let best = 0;
     const score = (c) => {
-      var _a3;
-      return [BEST_FINISH.length - BEST_FINISH.indexOf(c.finish), (_a3 = RARITY_RANK_TELL[c.face.rarity]) != null ? _a3 : 0];
+      var _a4;
+      return [BEST_FINISH.length - BEST_FINISH.indexOf(c.finish), (_a4 = RARITY_RANK_TELL[c.face.rarity]) != null ? _a4 : 0];
     };
     for (let i = 1; i < cards.length; i++) {
       const [f, r] = score(cards[i]);
@@ -7490,7 +7518,7 @@ gl_FragColor=vec4(col,1.);}`;
     return h % UNDER_PROMISE_ONE_IN === 0;
   }
   function packTellOf(cards, seed) {
-    var _a3;
+    var _a4;
     if (!cards.length) {
       return { bestIndex: -1, best: "plain", bestFaction: "Neutral", rung: 0, backdropRung: 0, underPromise: false, backdrop: "calm", burst: { colour: FACTION_TELL_HEX.Neutral, faction: FACTION_TELL_HEX.Neutral, size: 0.35, rung: "calm" } };
     }
@@ -7499,7 +7527,7 @@ gl_FragColor=vec4(col,1.);}`;
     const rung = TELL_RUNGS.indexOf(RUNG_OF[c.reveal]);
     const underPromise = rung > 0 && underPromises(seed);
     const backdropRung = underPromise ? rung - 1 : rung;
-    const faction = (_a3 = FACTION_TELL_HEX[c.face.faction]) != null ? _a3 : FACTION_TELL_HEX.Neutral;
+    const faction = (_a4 = FACTION_TELL_HEX[c.face.faction]) != null ? _a4 : FACTION_TELL_HEX.Neutral;
     return {
       bestIndex,
       best: c.reveal,
@@ -7627,9 +7655,9 @@ gl_FragColor=vec4(col,1.);}`;
     return out.filter((v, i) => i === 0 || v > out[i - 1]);
   }
   function setBarOf(reveal, base, inSet) {
-    var _a3;
+    var _a4;
     const inPack = /* @__PURE__ */ new Map();
-    for (const c of reveal.cards) inPack.set(c.cardId, ((_a3 = inPack.get(c.cardId)) != null ? _a3 : 0) + 1);
+    for (const c of reveal.cards) inPack.set(c.cardId, ((_a4 = inPack.get(c.cardId)) != null ? _a4 : 0) + 1);
     const filled = [];
     for (const c of reveal.cards) {
       if (filled.includes(c.cardId) || !inSet(c.cardId)) continue;
@@ -7700,8 +7728,8 @@ gl_FragColor=vec4(col,1.);}`;
     return WIDGET_INFO[w2.type].large === "wide" ? "sz-Lw" : "sz-Lt";
   }
   function limitOf(rules, type) {
-    var _a3, _b;
-    return (_b = (_a3 = rules.widgetTypes.find((t) => t.type === type)) == null ? void 0 : _a3.limit) != null ? _b : 0;
+    var _a4, _b;
+    return (_b = (_a4 = rules.widgetTypes.find((t) => t.type === type)) == null ? void 0 : _a4.limit) != null ? _b : 0;
   }
   function addBlock(widgets, type, rules) {
     const limit = limitOf(rules, type);
@@ -7758,6 +7786,7 @@ gl_FragColor=vec4(col,1.);}`;
     const views = /* @__PURE__ */ new Map();
     const capped = /* @__PURE__ */ new Set();
     let shown = 0;
+    let arena = false;
     for (const w2 of widgets) {
       if (!WIDGET_INFO[w2.type].live) continue;
       if (w2.type === "watch" && w2.size === "M") {
@@ -7767,7 +7796,9 @@ gl_FragColor=vec4(col,1.);}`;
       const wants = w2.size !== "S";
       if (wants && shown < maxBoards) {
         shown++;
-        views.set(w2.id, "board");
+        const embed = w2.type === "watch" && w2.size === "L" && !arena;
+        if (embed) arena = true;
+        views.set(w2.id, embed ? "arena" : "board");
       } else {
         views.set(w2.id, "scoreboard");
         if (wants) capped.add(w2.id);
@@ -7818,14 +7849,14 @@ gl_FragColor=vec4(col,1.);}`;
   var FINISH_RANK2 = { zeroDay: 10, prototype: 9, secret: 8, glitch: 7, gold: 6, altArt: 5, fullArt: 4, tournament: 3, foil: 2, standard: 1 };
   var RARITY_RANK2 = { Mythic: 4, Rare: 3, Uncommon: 2, Common: 1 };
   function collectionView(c, pulls = 5) {
-    var _a3;
+    var _a4;
     const set = c.sets[0];
     const factionOf2 = new Map(c.cards.map((x) => [x.cardId, x.faction]));
     const lastPulls = [];
     for (const p of c.recentPulls) {
       for (const k of p.cards) {
         if (lastPulls.length >= pulls) break;
-        lastPulls.push({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a3 = factionOf2.get(k.cardId)) != null ? _a3 : null, finish: k.finish, serial: k.serial });
+        lastPulls.push({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a4 = factionOf2.get(k.cardId)) != null ? _a4 : null, finish: k.finish, serial: k.serial });
       }
     }
     if (!set) return { setCode: null, held: 0, total: 0, pct: 0, secrets: "", prototypes: "", lastPulls };
@@ -7840,12 +7871,12 @@ gl_FragColor=vec4(col,1.);}`;
     };
   }
   function bestCards(c, n) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     const all = [];
     const seen = /* @__PURE__ */ new Set();
     for (const card of c.cards) {
       for (const k of card.copies) {
-        const key = `${card.cardId}|${k.finish}|${(_a3 = k.secretCode) != null ? _a3 : ""}`;
+        const key = `${card.cardId}|${k.finish}|${(_a4 = k.secretCode) != null ? _a4 : ""}`;
         if (seen.has(key)) continue;
         seen.add(key);
         all.push({ cardId: card.cardId, name: card.name, rarity: card.rarity, faction: card.faction, finish: k.finish, serial: k.serial, score: ((_b = FINISH_RANK2[k.finish]) != null ? _b : 1) * 10 + ((_c = RARITY_RANK2[card.rarity]) != null ? _c : 0) });
@@ -7861,8 +7892,8 @@ gl_FragColor=vec4(col,1.);}`;
     return `${n(pity.packsSinceFullArt)} since a Full Art \xB7 ${n(pity.packsSinceMythic)} since a Mythic`;
   }
   function packsView(p, credits) {
-    var _a3, _b, _c, _d;
-    const offer = (_a3 = p.offer[0]) != null ? _a3 : null;
+    var _a4, _b, _c, _d;
+    const offer = (_a4 = p.offer[0]) != null ? _a4 : null;
     const n = p.unopened.length;
     return {
       head: n === 0 ? "No packs waiting" : `${n} unopened pack${n === 1 ? "" : "s"}`,
@@ -7924,8 +7955,8 @@ gl_FragColor=vec4(col,1.);}`;
     ownerDaily: "Free daily pack"
   };
   function sourceName(source) {
-    var _a3;
-    return (_a3 = PACK_SOURCE_NAMES[source]) != null ? _a3 : source;
+    var _a4;
+    return (_a4 = PACK_SOURCE_NAMES[source]) != null ? _a4 : source;
   }
   function shortWhen(iso, timeZone) {
     const d = new Date(iso);
@@ -7939,8 +7970,8 @@ gl_FragColor=vec4(col,1.);}`;
     return { waiting: n, cap: d.cap, canClaim: n > 0, button: n > 1 ? `Claim free daily pack (${n})` : "Claim free daily pack", line };
   }
   function zoneCity(timeZone) {
-    var _a3;
-    return ((_a3 = timeZone.split("/").pop()) != null ? _a3 : timeZone).replace(/_/g, " ");
+    var _a4;
+    return ((_a4 = timeZone.split("/").pop()) != null ? _a4 : timeZone).replace(/_/g, " ");
   }
   function unopenedGroups(unopened) {
     const out = [];
@@ -7963,8 +7994,8 @@ gl_FragColor=vec4(col,1.);}`;
         openedAt: p.openedAt,
         jackpot: p.jackpot,
         cards: p.cards.map((k) => {
-          var _a3;
-          return { cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a3 = factionOf2.get(k.cardId)) != null ? _a3 : null, finish: k.finish, serial: k.serial };
+          var _a4;
+          return { cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a4 = factionOf2.get(k.cardId)) != null ? _a4 : null, finish: k.finish, serial: k.serial };
         }),
         best: best ? FINISH_WORDS[best] : ""
       };
@@ -8053,8 +8084,8 @@ gl_FragColor=vec4(col,1.);}`;
   }
   var KIND_WORDS = { boast: "Victory boast", coin: "Coin", cardBack: "Card back", avatar: "Avatar", arena: "Arena" };
   function cosmeticKind(kind) {
-    var _a3;
-    return (_a3 = KIND_WORDS[kind]) != null ? _a3 : kind.charAt(0).toUpperCase() + kind.slice(1);
+    var _a4;
+    return (_a4 = KIND_WORDS[kind]) != null ? _a4 : kind.charAt(0).toUpperCase() + kind.slice(1);
   }
   function cosmeticTiles(cosmetics, credits) {
     const rows = cosmetics.map((c, i) => ({ c, i })).sort((a, b) => Number(a.c.owned) - Number(b.c.owned) || a.i - b.i);
@@ -8144,15 +8175,15 @@ gl_FragColor=vec4(col,1.);}`;
   var DEFAULT_FILTERS = { tab: "set", faction: "All", show: "all" };
   var FINISH_ORDER2 = ["zeroDay", "prototype", "tournament", "secret", "gold", "glitch", "altArt", "fullArt", "foil", "standard"];
   function factionOfCard(cardId) {
-    var _a3, _b;
-    return (_b = (_a3 = getCard(cardId)) == null ? void 0 : _a3.faction) != null ? _b : "Neutral";
+    var _a4, _b;
+    return (_b = (_a4 = getCard(cardId)) == null ? void 0 : _a4.faction) != null ? _b : "Neutral";
   }
   function copiesByCard(c) {
     return new Map(c.cards.map((x) => [x.cardId, x.copies]));
   }
   function copiesOfSlot(slot, copies) {
-    var _a3;
-    const all = (_a3 = copies.get(slot.cardId)) != null ? _a3 : [];
+    var _a4;
+    const all = (_a4 = copies.get(slot.cardId)) != null ? _a4 : [];
     if (slot.section === "base") return all;
     if (slot.section === "secrets") return all.filter((c) => c.secretCode === slot.secretCode);
     if (slot.section === "glitch") return all.filter((c) => c.finish === "glitch");
@@ -8174,9 +8205,9 @@ gl_FragColor=vec4(col,1.);}`;
     prototypes: () => "prototype"
   };
   function slotOf(section, e, copies) {
-    var _a3;
+    var _a4;
     const slot = {
-      key: `${section}:${(_a3 = e.secretCode) != null ? _a3 : e.cardId}`,
+      key: `${section}:${(_a4 = e.secretCode) != null ? _a4 : e.cardId}`,
       section,
       kind: e.kind,
       number: e.number,
@@ -8194,7 +8225,7 @@ gl_FragColor=vec4(col,1.);}`;
     return slot;
   }
   function prototypeSlot(r) {
-    var _a3;
+    var _a4;
     const card = getCard(r.cardId);
     return {
       key: `prototypes:${r.runCode}`,
@@ -8205,7 +8236,7 @@ gl_FragColor=vec4(col,1.);}`;
       secretCode: null,
       runCode: r.runCode,
       name: r.name,
-      rarity: (_a3 = card == null ? void 0 : card.rarity) != null ? _a3 : "Mythic",
+      rarity: (_a4 = card == null ? void 0 : card.rarity) != null ? _a4 : "Mythic",
       faction: factionOfCard(r.cardId),
       owned: r.serialsHeld.length,
       finish: r.serialsHeld.length ? "prototype" : null,
@@ -8262,8 +8293,8 @@ gl_FragColor=vec4(col,1.);}`;
     };
   }
   function faceOfSlot(s) {
-    var _a3;
-    const finish = (_a3 = s.finish) != null ? _a3 : s.section === "base" ? "standard" : s.section === "secrets" ? s.kind === "zeroDay" ? "zeroDay" : "secret" : s.section === "prototypes" ? "prototype" : s.section === "glitch" ? "glitch" : "gold";
+    var _a4;
+    const finish = (_a4 = s.finish) != null ? _a4 : s.section === "base" ? "standard" : s.section === "secrets" ? s.kind === "zeroDay" ? "zeroDay" : "secret" : s.section === "prototypes" ? "prototype" : s.section === "glitch" ? "glitch" : "gold";
     const serial = s.run && s.run.serialsHeld.length ? s.run.serialsHeld[0] : null;
     return {
       face: cardFaceOf({ cardId: s.cardId, name: s.name, rarity: s.rarity }),
@@ -8283,9 +8314,9 @@ gl_FragColor=vec4(col,1.);}`;
     tournament: "Prize"
   };
   function originName(origin) {
-    var _a3;
+    var _a4;
     if (!origin) return "";
-    return (_a3 = ORIGIN_NAMES[origin]) != null ? _a3 : origin.charAt(0).toUpperCase() + origin.slice(1);
+    return (_a4 = ORIGIN_NAMES[origin]) != null ? _a4 : origin.charAt(0).toUpperCase() + origin.slice(1);
   }
   function copyLines(copies) {
     const rank = (f) => {
@@ -8367,10 +8398,10 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="seg" role="group" aria-label="${esc(label)}">${options.map((o) => `<button type="button" data-act="${act2}" data-v="${esc(o.id)}" aria-pressed="${o.id === value}">${esc(o.label)}</button>`).join("")}</div>`;
   }
   function slotHtml(s, face2, setCode) {
-    var _a3;
+    var _a4;
     const fin = s.finish && s.finish !== "standard" ? FINISH_NAMES[s.finish] : "";
     const label = s.owned ? `${s.name}, ${s.number}, ${s.rarity}${fin ? `, ${fin}` : ""}: you hold ${s.owned}` : `${s.name}, ${s.number}, ${s.rarity}: missing`;
-    const hex = (_a3 = FACTION_HEX[s.faction]) != null ? _a3 : FACTION_HEX.Neutral;
+    const hex = (_a4 = FACTION_HEX[s.faction]) != null ? _a4 : FACTION_HEX.Neutral;
     if (!s.owned) {
       const run = s.run ? `<small>Run of ${s.run.size} \xB7 ${s.run.found} found</small>` : `<small class="bm-n">${esc(s.name)}</small>`;
       return `<button type="button" class="bslot miss" data-act="view-slot" data-slot="${esc(s.key)}" data-faction="${esc(s.faction)}" aria-label="${esc(label)}" style="--c:${hex}"><span class="bmiss"><b>${esc(s.number)}</b>${run}<i class="r-${esc(s.rarity)}" aria-hidden="true"></i></span></button>`;
@@ -8400,9 +8431,9 @@ gl_FragColor=vec4(col,1.);}`;
     return m ? `Season ${m[1]}` : setCode;
   }
   function viewerHtml(s, b, c, v, packPoints, nav, face2) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     const copies = copiesOfSlot(s, copiesByCard(c));
-    const allOfCard = (_a3 = copiesByCard(c).get(s.cardId)) != null ? _a3 : [];
+    const allOfCard = (_a4 = copiesByCard(c).get(s.cardId)) != null ? _a4 : [];
     const lines = copyLines(copies);
     const held = lines.length ? `<ul class="cv-copies">${lines.map((l) => `<li><b>${esc(l.finish)}</b>${l.serial ? ` \xB7 serial ${esc(l.serial)}` : ""}<span class="muted"> \xB7 ${esc(l.origin || "Held")}</span>${l.bound ? ' <span class="tag bound" title="Plays, but never sells or salvages">Account-bound</span>' : ""}</li>`).join("")}</ul>` : `<p class="muted">Not in your collection yet.</p>`;
     const h = v.holdings;
@@ -8443,15 +8474,15 @@ gl_FragColor=vec4(col,1.);}`;
     Mythic: "#c95cff"
   };
   function tierHex(tier) {
-    var _a3;
-    return (_a3 = TIER_HEX[tier]) != null ? _a3 : "#8f8cff";
+    var _a4;
+    return (_a4 = TIER_HEX[tier]) != null ? _a4 : "#8f8cff";
   }
   function tierBadge(tier, size = 34) {
     const placed = tier !== "Placement";
     return `<span class="tbadge${placed ? "" : " plc"}" style="--t:${tierHex(tier)};--s:${size}px" role="img" aria-label="${esc(tier)} tier"><svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path class="tb-o" d="M12 1.5 21.5 7v10L12 22.5 2.5 17V7z"/><path class="tb-i" d="M12 5.5 17.8 9v6L12 18.5 6.2 15V9z"/><path class="tb-h" d="M12 5.5 17.8 9 12 12.2 6.2 9z"/></svg></span>`;
   }
   function tierProgress(you, tiers, placementMatches) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     if (you.tier === "Placement") {
       const left = Math.max(0, placementMatches - you.ratedMatches);
       return { tier: "Placement", next: null, pct: Math.round(Math.min(you.ratedMatches, placementMatches) / Math.max(1, placementMatches) * 100), line: left ? `${left} more rated match${left === 1 ? "" : "es"} to place` : "Placed after the next match" };
@@ -8459,14 +8490,14 @@ gl_FragColor=vec4(col,1.);}`;
     const i = tiers.findIndex((t) => t.tier === you.tier);
     const next = i >= 0 && i + 1 < tiers.length ? tiers[i + 1] : null;
     if (i < 0 || !next || next.from === null) return { tier: you.tier, next: null, pct: 100, line: "Top tier" };
-    const from = (_c = tiers[i].from) != null ? _c : next.from - (((_b = (_a3 = tiers[i + 2]) == null ? void 0 : _a3.from) != null ? _b : next.from + 150) - next.from);
+    const from = (_c = tiers[i].from) != null ? _c : next.from - (((_b = (_a4 = tiers[i + 2]) == null ? void 0 : _a4.from) != null ? _b : next.from + 150) - next.from);
     const pct2 = Math.max(0, Math.min(100, Math.round((you.rating - from) / Math.max(1, next.from - from) * 100)));
     const gap = Math.max(1, Math.ceil(next.from - you.rating));
     return { tier: you.tier, next: next.tier, pct: pct2, line: `${gap} to ${next.tier}` };
   }
   function tierBar(p) {
-    var _a3;
-    return `<div class="tbar" style="--t:${tierHex(p.tier)};--n:${tierHex((_a3 = p.next) != null ? _a3 : p.tier)}" role="img" aria-label="${esc(p.line)}"><i style="width:${p.pct}%"></i></div>`;
+    var _a4;
+    return `<div class="tbar" style="--t:${tierHex(p.tier)};--n:${tierHex((_a4 = p.next) != null ? _a4 : p.tier)}" role="img" aria-label="${esc(p.line)}"><i style="width:${p.pct}%"></i></div>`;
   }
   function ratingText(r) {
     return r.tier === "Placement" ? "\u2014" : String(Math.round(r.rating));
@@ -8489,9 +8520,9 @@ gl_FragColor=vec4(col,1.);}`;
   }
   function tierLadderHtml(l) {
     const rows = [...l.tiers].reverse().map((t) => {
-      var _a3, _b;
+      var _a4, _b;
       const on = t.tier === l.you.tier;
-      return `<li class="tl${on ? " on" : ""}" style="--t:${tierHex(t.tier)}"><i></i><span>${esc(t.tier)}</span><small>${t.from === null ? "below " + ((_b = (_a3 = l.tiers[1]) == null ? void 0 : _a3.from) != null ? _b : "") : `${t.from}+`}</small></li>`;
+      return `<li class="tl${on ? " on" : ""}" style="--t:${tierHex(t.tier)}"><i></i><span>${esc(t.tier)}</span><small>${t.from === null ? "below " + ((_b = (_a4 = l.tiers[1]) == null ? void 0 : _a4.from) != null ? _b : "") : `${t.from}+`}</small></li>`;
     });
     return `<ol class="tladder" aria-label="The tiers">${rows.join("")}<li class="tl${l.you.tier === "Placement" ? " on" : ""}" style="--t:${TIER_HEX.Placement}"><i></i><span>Placement</span><small>first ${l.placementMatches}</small></li></ol>`;
   }
@@ -8563,10 +8594,10 @@ gl_FragColor=vec4(col,1.);}`;
     return `<svg class="rchart ${tone}" viewBox="0 0 ${w2} ${h}" width="${w2}" height="${h}" role="img" aria-label="${esc(`Rating over ${chart.length} days: ${first} to ${last}`)}">${floors}<polygon class="rc-a" points="${area}"/><polyline class="rc-line" points="${pts}"/>${dots}<circle class="rc-now" cx="${x(chart.length - 1).toFixed(1)}" cy="${y(chart[chart.length - 1].rating).toFixed(1)}" r="4"/>${labels}</svg>`;
   }
   function shortDay(day) {
-    var _a3;
+    var _a4;
     const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(day);
     if (!m) return day;
-    return `${Number(m[2])} ${(_a3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(m[1]) - 1]) != null ? _a3 : ""}`;
+    return `${Number(m[2])} ${(_a4 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(m[1]) - 1]) != null ? _a4 : ""}`;
   }
   function winRing(t, px) {
     const decided = t.wins + t.losses + t.draws;
@@ -8575,10 +8606,10 @@ gl_FragColor=vec4(col,1.);}`;
   }
   function factionBars(rows) {
     return `<ul class="fbars">${rows.map((f) => {
-      var _a3;
+      var _a4;
       const decided = f.wins + f.losses + f.draws;
       const pct2 = decided ? Math.round(f.winRate * 100) : 0;
-      return `<li style="--c:${(_a3 = FACTION_HEX[f.faction]) != null ? _a3 : "#8f8cff"}"><span class="fb-n">${esc(f.faction)}</span><span class="fb-b"><i style="width:${decided ? Math.max(3, pct2) : 0}%"></i></span><span class="fb-v small">${decided ? `${pct2}% <span class="muted">of ${decided}</span>` : `<span class="muted">none</span>`}</span></li>`;
+      return `<li style="--c:${(_a4 = FACTION_HEX[f.faction]) != null ? _a4 : "#8f8cff"}"><span class="fb-n">${esc(f.faction)}</span><span class="fb-b"><i style="width:${decided ? Math.max(3, pct2) : 0}%"></i></span><span class="fb-v small">${decided ? `${pct2}% <span class="muted">of ${decided}</span>` : `<span class="muted">none</span>`}</span></li>`;
     }).join("")}</ul>`;
   }
   function streakChip(s) {
@@ -8595,9 +8626,9 @@ gl_FragColor=vec4(col,1.);}`;
     const mid = head + ratingChartSvg(s.rating.chart, tiers, 300, 64) + `<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(10, s.recent.length)}</span></div>` + formPips(s.recent, 10) + chips;
     if (size === "M") return mid;
     const recent = s.recent.length ? `<ul class="fm-rec">${s.recent.slice(0, 4).map((r) => {
-      var _a3;
+      var _a4;
       const p = RESULT_PIP[r.result];
-      const fc = r.opponent.faction ? `<span class="ftag" style="--c:${(_a3 = FACTION_HEX[r.opponent.faction]) != null ? _a3 : "#8f8cff"}">${esc(r.opponent.faction.toUpperCase())}</span>` : "";
+      const fc = r.opponent.faction ? `<span class="ftag" style="--c:${(_a4 = FACTION_HEX[r.opponent.faction]) != null ? _a4 : "#8f8cff"}">${esc(r.opponent.faction.toUpperCase())}</span>` : "";
       return `<li><span class="wl ${p.tone}">${esc(p.letter)}</span><span class="fr-n"><b>vs ${esc(r.opponent.agentName)}</b> ${fc}<small class="muted">${esc(r.opponent.ownerName)} \xB7 ${esc(whenText(r.endedAt, now))}</small></span><span class="rt ${r.rating ? r.rating.change > 0 ? "up" : r.rating.change < 0 ? "down" : "flat" : "none"} small">${r.rating ? esc(signed(r.rating.change)) : "unrated"}</span></li>`;
     }).join("")}</ul>` : `<p class="muted small">No results yet.</p>`;
     const notRec = s.factionNotRecorded.matches ? `<p class="muted small">${s.factionNotRecorded.matches} older match${s.factionNotRecorded.matches === 1 ? "" : "es"} kept no faction.</p>` : "";
@@ -8623,7 +8654,7 @@ gl_FragColor=vec4(col,1.);}`;
     abandonedByOpponent: "Opponent abandoned"
   };
   function noticeView(n, now, factionOf2 = () => null) {
-    var _a3;
+    var _a4;
     const base = { id: n.notificationId, kind: n.kind, unread: n.readAt === null, when: whenText(n.createdAt, now), href: KIND_INFO[n.kind].href, cards: [] };
     switch (n.kind) {
       case "matchResult": {
@@ -8636,7 +8667,7 @@ gl_FragColor=vec4(col,1.);}`;
       case "bigPull": {
         const b = n.bigPull;
         const best = b.cards[0];
-        const fin = best ? (_a3 = FINISH_NAMES[best.finish]) != null ? _a3 : "" : "";
+        const fin = best ? (_a4 = FINISH_NAMES[best.finish]) != null ? _a4 : "" : "";
         const title = b.jackpot ? "Jackpot pack" : (best == null ? void 0 : best.prototype) ? `Prototype ${best.name} #${best.prototype.serial}` : best ? `${fin ? fin + " " : ""}${best.name}` : "A big pull";
         const more = b.cards.length > 1 ? ` and ${b.cards.length - 1} more` : "";
         const fresh = b.cards.some((c) => c.isNew) ? " \xB7 new to you" : "";
@@ -8646,8 +8677,8 @@ gl_FragColor=vec4(col,1.);}`;
           title,
           line: `${b.setCode} pack${more}${fresh}`,
           cards: b.cards.map((c) => {
-            var _a4, _b;
-            return { cardId: c.cardId, name: c.name, rarity: c.rarity, faction: factionOf2(c.cardId), finish: c.finish, serial: (_b = (_a4 = c.prototype) == null ? void 0 : _a4.serial) != null ? _b : null };
+            var _a5, _b;
+            return { cardId: c.cardId, name: c.name, rarity: c.rarity, faction: factionOf2(c.cardId), finish: c.finish, serial: (_b = (_a5 = c.prototype) == null ? void 0 : _a5.serial) != null ? _b : null };
           })
         };
       }
@@ -8683,8 +8714,8 @@ gl_FragColor=vec4(col,1.);}`;
     if (!views.length) return head + `<p class="muted small">Match results, big pulls, the free daily pack and auto-play stops show here. Which ones is in Settings.</p>`;
     if (size === "M") return head + `<ul class="ntl">${views.slice(0, 4).map((v) => noticeHtml(v, { cards: false, miniCard: opts.miniCard })).join("")}</ul>`;
     const kinds = Object.keys(KIND_INFO).map((k) => {
-      var _a3;
-      return `<span class="nk-c" style="--k:${KIND_INFO[k].hue}">${kindGlyph(k, 20)}<span>${esc(KIND_INFO[k].name)}</span><b>${(_a3 = page.unreadByKind[k]) != null ? _a3 : 0}</b></span>`;
+      var _a4;
+      return `<span class="nk-c" style="--k:${KIND_INFO[k].hue}">${kindGlyph(k, 20)}<span>${esc(KIND_INFO[k].name)}</span><b>${(_a4 = page.unreadByKind[k]) != null ? _a4 : 0}</b></span>`;
     }).join("");
     return head + `<div class="nk-row" aria-label="Unread by kind">${kinds}</div><ul class="ntl">${views.slice(0, 8).map((v) => noticeHtml(v, { cards: true, miniCard: opts.miniCard })).join("")}</ul>${page.more || views.length > 8 ? `<p class="muted small">Showing the latest 8.</p>` : ""}`;
   }
@@ -8694,10 +8725,10 @@ gl_FragColor=vec4(col,1.);}`;
     const out = [];
     const nextNth = d.wins.length + 1;
     d.schedule.forEach((row, band) => {
-      var _a3, _b;
+      var _a4, _b;
       if (row.toWin === null || row.credits <= 0) return;
       for (let n = row.fromWin; n <= row.toWin; n++) {
-        const win = (_a3 = d.wins.find((w2) => w2.nth === n)) != null ? _a3 : null;
+        const win = (_a4 = d.wins.find((w2) => w2.nth === n)) != null ? _a4 : null;
         out.push({ nth: n, credits: win ? win.credits : row.credits, slot: row.credits, state: win ? "paid" : n === nextNth && d.nextWinPays > 0 ? "next" : "ahead", band, endedAt: (_b = win == null ? void 0 : win.endedAt) != null ? _b : null });
       }
     });
@@ -8797,12 +8828,12 @@ gl_FragColor=vec4(col,1.);}`;
     return [...out].sort();
   }
   function agentFaction(p) {
-    var _a3, _b, _c, _d, _e, _f;
-    return (_f = (_e = (_b = (_a3 = p.activeDeck) == null ? void 0 : _a3.faction) != null ? _b : p.factionLock) != null ? _e : (_d = (_c = p.rebuild.job) == null ? void 0 : _c.result) == null ? void 0 : _d.faction) != null ? _f : null;
+    var _a4, _b, _c, _d, _e, _f;
+    return (_f = (_e = (_b = (_a4 = p.activeDeck) == null ? void 0 : _a4.faction) != null ? _b : p.factionLock) != null ? _e : (_d = (_c = p.rebuild.job) == null ? void 0 : _c.result) == null ? void 0 : _d.faction) != null ? _f : null;
   }
   function miniCard(c, opts = {}) {
-    var _a3;
-    const fin = (_a3 = FINISH_NAMES[c.finish]) != null ? _a3 : c.finish;
+    var _a4;
+    const fin = (_a4 = FINISH_NAMES[c.finish]) != null ? _a4 : c.finish;
     const hex = c.faction && FACTION_HEX[c.faction] || FACTION_HEX.Neutral;
     const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
     const lg = opts.scale && opts.scale !== 1 ? ` lg` : "";
@@ -8811,8 +8842,8 @@ gl_FragColor=vec4(col,1.);}`;
   }
   var SHOWCASE_SIZES = { S: { n: 1, scale: 0.8 }, M: { n: 3, scale: 1.55 }, L: { n: 6, scale: 2 } };
   function showcaseCard(c, scale, caption) {
-    var _a3;
-    const fin = (_a3 = FINISH_NAMES[c.finish]) != null ? _a3 : c.finish;
+    var _a4;
+    const fin = (_a4 = FINISH_NAMES[c.finish]) != null ? _a4 : c.finish;
     const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
     const what = [c.rarity, fin ? fin + serial : ""].filter(Boolean).join(" \xB7 ");
     return `<figure class="scw">${miniCard(c, { scale })}${caption ? `<figcaption><b>${esc(c.name)}</b><small>${esc(what)}</small></figcaption>` : ""}</figure>`;
@@ -8828,43 +8859,68 @@ gl_FragColor=vec4(col,1.);}`;
     return data[src] ? null : `<p class="muted small wload">Loading\u2026</p>`;
   }
   function ladderWidget(w2, d) {
-    var _a3;
-    return (_a3 = loading(d, "ladder")) != null ? _a3 : ladderBody(w2.size, d.ladder);
+    var _a4;
+    return (_a4 = loading(d, "ladder")) != null ? _a4 : ladderBody(w2.size, d.ladder);
   }
   function formWidget(w2, d) {
-    var _a3, _b, _c;
-    return (_c = loading(d, "stats")) != null ? _c : formBody(w2.size, d.stats, (_b = (_a3 = d.ladder) == null ? void 0 : _a3.tiers) != null ? _b : null, d.now);
+    var _a4, _b, _c;
+    return (_c = loading(d, "stats")) != null ? _c : formBody(w2.size, d.stats, (_b = (_a4 = d.ladder) == null ? void 0 : _a4.tiers) != null ? _b : null, d.now);
   }
   function notifWidget(w2, d) {
-    var _a3, _b;
+    var _a4, _b;
     const l = loading(d, "notif");
     if (l) return l;
-    const fac = new Map(((_b = (_a3 = d.collection) == null ? void 0 : _a3.cards) != null ? _b : []).map((x) => [x.cardId, x.faction]));
+    const fac = new Map(((_b = (_a4 = d.collection) == null ? void 0 : _a4.cards) != null ? _b : []).map((x) => [x.cardId, x.faction]));
     return notifBody(w2.size, d.notif, d.now, { miniCard: (c) => miniCard(c), factionOf: (id) => {
-      var _a4;
-      return (_a4 = fac.get(id)) != null ? _a4 : null;
+      var _a5;
+      return (_a5 = fac.get(id)) != null ? _a5 : null;
     }, busy: d.busy });
   }
   function liveBody(w2, d, o) {
-    var _a3;
-    const view = (_a3 = o.live) != null ? _a3 : "scoreboard";
+    var _a4;
+    const view = (_a4 = o.live) != null ? _a4 : "scoreboard";
     const note = o.capped ? `<p class="muted small wcap">Scoreboard only: two live boards are already showing.</p>` : "";
     const l = loading(d, "live");
     if (l) return l + note;
     {
       const live = d.live;
       if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
+      if (w2.size === "L" && view === "arena" && o.arena) return arenaBody(w2, live, live.matches.map((m) => {
+        var _a5, _b;
+        return scoreboardOf(m, d.ownerId, (_b = (_a5 = d.viewOf) == null ? void 0 : _a5.call(d, m.matchId)) != null ? _b : null);
+      }), o) + note;
       if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
       const sbs = live.matches.map((m) => {
-        var _a4, _b;
-        return scoreboardOf(m, d.ownerId, (_b = (_a4 = d.viewOf) == null ? void 0 : _a4.call(d, m.matchId)) != null ? _b : null);
+        var _a5, _b;
+        return scoreboardOf(m, d.ownerId, (_b = (_a5 = d.viewOf) == null ? void 0 : _a5.call(d, m.matchId)) != null ? _b : null);
       });
+      if (w2.size === "L" && view === "arena") return arenaBody(w2, live, sbs, o) + note;
       const first = scoreboardHtml(sbs[0], { small: w2.size !== "L" }) + (w2.size === "L" && view === "board" ? compactBoard(live.matches[0], sbs[0].near) : "") + (w2.size === "S" ? "" : watchAsHtml(sbs[0], `wa-${w2.id}`));
       const rest = sbs.slice(1);
       const list = w2.size === "S" || !rest.length ? "" : `<ul class="lines">${rest.map(liveLineHtml).join("")}</ul>`;
       const boards = w2.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
-      return `${boards}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live \xB7 featured picks come later</span></div>${note}`;
+      const more = w2.size === "S" ? "" : `<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live \xB7 featured picks come later</span></div>`;
+      return `${boards}${more}${note}`;
     }
+  }
+  function arenaMatchOf(live, o) {
+    var _a4, _b, _c, _d;
+    const id = (_d = (_c = (_a4 = o.arena) == null ? void 0 : _a4.matchId) != null ? _c : (_b = live.matches[0]) == null ? void 0 : _b.matchId) != null ? _d : "";
+    return { matchId: id, index: live.matches.findIndex((m) => m.matchId === id) };
+  }
+  function arenaBody(w2, live, sbs, o) {
+    var _a4;
+    const { matchId, index } = arenaMatchOf(live, o);
+    const sb = index >= 0 ? sbs[index] : null;
+    const ended = !sb || !!((_a4 = o.arena) == null ? void 0 : _a4.ended);
+    const label = sb ? `${sb.p1.agentName} vs ${sb.p2.agentName}` : "the match";
+    const others = sbs.filter((_, i) => i !== index);
+    const stage = sb ? `<div class="wl-fallback">${compactBoard(live.matches[index], sb.near)}</div>` : `<div class="wl-fallback"><p class="muted small">The match is over.</p></div>`;
+    const arena = `<div class="wl-arena" data-match="${esc(matchId)}" data-ended="${ended}"><div class="wl-frame" aria-hidden="true"></div><div class="wl-wait" aria-hidden="true">Joining the match\u2026</div>${stage}<button type="button" class="wl-open" data-act="watch-arena" data-match="${esc(matchId)}" aria-label="${esc(`Watch ${label} full screen on the arena`)}"${sb ? "" : " disabled"}><span>${icon("arrow", 12)} Full screen</span></button></div>`;
+    const head = sb ? scoreboardHtml(sb, { small: true }) + watchAsHtml(sb, `wa-${w2.id}`) : `<p class="small"><b>Match over.</b> <span class="muted">Its result and replay are in your match history. The next live match takes this tile in a moment.</span></p>`;
+    const list = others.length ? `<ul class="lines">${others.map(liveLineHtml).join("")}</ul>` : `<p class="muted small">${sb ? "No other match is live." : "No match is live right now. The next ladder round starts soon."}</p>`;
+    const info = `<div class="wl-info">${head}<h4>Also live</h4>${list}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live</span></div></div>`;
+    return `<div class="wl-l">${arena}${info}</div>`;
   }
   function historyBody(w2, d) {
     const l = loading(d, "history");
@@ -8889,11 +8945,11 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="pkw-pile${n ? "" : " none"}">${back}<div class="pkw-front">${sealedPackHtml(setCode, px, art)}</div>${n ? `<b class="pkw-c" aria-hidden="true">${n}</b>` : ""}</div>`;
   }
   function packsBody(w2, d) {
-    var _a3, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e;
     const l = loading(d, "packs");
     if (l) return l;
     const p = d.packs;
-    const v = packsView(p, (_b = (_a3 = d.wallet) == null ? void 0 : _a3.credits) != null ? _b : 0);
+    const v = packsView(p, (_b = (_a4 = d.wallet) == null ? void 0 : _a4.credits) != null ? _b : 0);
     const set = (_c = v.setCode) != null ? _c : p.dailyPack.setCode;
     const open = `<button type="button" class="btn pri sm" data-act="open-packs" data-count="1"${v.canOpen ? "" : " disabled"}>Open</button>`;
     const count = `<p class="pkw-n">${v.unopened}<small>unopened</small></p>`;
@@ -8905,35 +8961,35 @@ gl_FragColor=vec4(col,1.);}`;
     const factionOf2 = new Map(((_d = c == null ? void 0 : c.cards) != null ? _d : []).map((x) => [x.cardId, x.faction]));
     const pulls = ((_e = c == null ? void 0 : c.recentPulls) != null ? _e : []).slice(0, 2);
     const strip = pulls.length ? pulls.map((o) => `<div class="muted small">${esc(clock(o.openedAt))} \xB7 ${esc(o.setCode)}${o.jackpot ? " \xB7 Jackpot pack" : ""}</div><div class="mrow">${o.cards.map((k) => {
-      var _a4;
-      return miniCard({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a4 = factionOf2.get(k.cardId)) != null ? _a4 : null, finish: k.finish, serial: k.serial });
+      var _a5;
+      return miniCard({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a5 = factionOf2.get(k.cardId)) != null ? _a5 : null, finish: k.finish, serial: k.serial });
     }).join("")}</div>`).join("") : `<div class="muted small">${c ? "Your last pulls appear here" : "Loading your last pulls\u2026"}</div>`;
     return `<div class="wsplit wide-l">${m}<div class="wcol pkw-pulls"><h4>Your last pulls</h4>${strip}</div></div>`;
   }
   function dailyWidget(w2, d) {
-    var _a3, _b, _c;
-    return (_c = loading(d, "daily")) != null ? _c : dailyBody(w2.size, d.daily, (_b = (_a3 = d.packs) == null ? void 0 : _a3.dailyPack) != null ? _b : null, d.now);
+    var _a4, _b, _c;
+    return (_c = loading(d, "daily")) != null ? _c : dailyBody(w2.size, d.daily, (_b = (_a4 = d.packs) == null ? void 0 : _a4.dailyPack) != null ? _b : null, d.now);
   }
   var FACTION_FILTERS2 = ["All", "Cortex", "Aegis", "Swarm", "Null", "Neutral"];
   function collectionBody(w2, d) {
-    var _a3;
+    var _a4;
     const l = loading(d, "collection");
     if (l) return l;
     const c = d.collection;
     const v = collectionView(c);
-    const ring = `<div class="row nowrap"><div class="ring" style="--p:${v.pct}" role="img" aria-label="${v.pct}% of the set"><b>${v.pct}%</b></div><div><b>${v.held}/${v.total}</b> <span class="muted small">${esc((_a3 = v.setCode) != null ? _a3 : "No set")} cards</span>${w2.size === "S" ? "" : `<div class="muted small">${esc(v.secrets)} \xB7 ${esc(v.prototypes)}</div><div class="muted small">${amount(c.copies)} copies in all</div>`}</div></div>`;
+    const ring = `<div class="row nowrap"><div class="ring" style="--p:${v.pct}" role="img" aria-label="${v.pct}% of the set"><b>${v.pct}%</b></div><div><b>${v.held}/${v.total}</b> <span class="muted small">${esc((_a4 = v.setCode) != null ? _a4 : "No set")} cards</span>${w2.size === "S" ? "" : `<div class="muted small">${esc(v.secrets)} \xB7 ${esc(v.prototypes)}</div><div class="muted small">${amount(c.copies)} copies in all</div>`}</div></div>`;
     if (w2.size === "S") return ring;
     if (w2.size === "M") return ring + `<div class="muted small">Last ${v.lastPulls.length} pulls</div><div class="mrow">${v.lastPulls.map((k) => miniCard(k)).join("") || '<span class="muted small">No packs opened yet.</span>'}</div>`;
     const f = FACTION_FILTERS2.includes(d.colFilter) ? d.colFilter : "All";
     const held = c.cards.filter((x) => {
-      var _a4;
-      return f === "All" || ((_a4 = x.faction) != null ? _a4 : "Neutral") === f;
+      var _a5;
+      return f === "All" || ((_a5 = x.faction) != null ? _a5 : "Neutral") === f;
     });
     const pills2 = `<div class="pills" role="group" aria-label="Faction">${FACTION_FILTERS2.map((x) => `<button type="button" class="pill${x === f ? " on" : ""}" data-act="col-filter" data-f="${x}" aria-pressed="${x === f}">${x}</button>`).join("")}</div>`;
     return ring + pills2 + `<div class="mbinder">${held.map((x) => miniCard({ cardId: x.cardId, name: x.name, rarity: x.rarity, faction: x.faction, finish: "standard", serial: null }, { count: x.owned })).join("") || '<span class="muted small">No cards of this faction.</span>'}</div>`;
   }
   function showcaseBody(w2, d) {
-    var _a3;
+    var _a4;
     const l = loading(d, "collection");
     if (l) return l;
     const z = SHOWCASE_SIZES[w2.size];
@@ -8941,14 +8997,14 @@ gl_FragColor=vec4(col,1.);}`;
     if (!cards.length) return `<p class="muted small">Your best cards show here once you hold some.</p>`;
     if (w2.size === "S") {
       const c = cards[0];
-      const fin = (_a3 = FINISH_NAMES[c.finish]) != null ? _a3 : c.finish;
+      const fin = (_a4 = FINISH_NAMES[c.finish]) != null ? _a4 : c.finish;
       return `<div class="sc-s">${showcaseCard(c, z.scale, false)}<div class="dn"><b>${esc(c.name)}</b><div class="muted small">${esc(c.rarity)}${fin ? ` \xB7 ${esc(fin)}` : ""}</div><div class="muted small">Your best card</div></div></div>`;
     }
     return `<div class="sc-row">${cards.map((k) => showcaseCard(k, z.scale, true)).join("")}</div>${w2.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
   }
   function storeBody(w2, d) {
-    var _a3, _b, _c;
-    const l = (_a3 = loading(d, "packs")) != null ? _a3 : w2.size === "L" ? loading(d, "store") : null;
+    var _a4, _b, _c;
+    const l = (_a4 = loading(d, "packs")) != null ? _a4 : w2.size === "L" ? loading(d, "store") : null;
     if (l) return l;
     const p = d.packs;
     const credits = (_c = (_b = d.wallet) == null ? void 0 : _b.credits) != null ? _c : 0;
@@ -8993,9 +9049,9 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function agentData(d) {
-    var _a3, _b;
+    var _a4, _b;
     const { rating, daily, history: history2, live } = d.errors;
-    return { play: d.play, rating: (_a3 = d.rating) != null ? _a3 : null, daily: d.daily, history: d.history, live: d.live, allowance: (_b = d.allowance) != null ? _b : null, errors: { rating, daily, history: history2, live }, now: d.now, busy: d.busy };
+    return { play: d.play, rating: (_a4 = d.rating) != null ? _a4 : null, daily: d.daily, history: d.history, live: d.live, allowance: (_b = d.allowance) != null ? _b : null, errors: { rating, daily, history: history2, live }, now: d.now, busy: d.busy };
   }
   function widgetHtml(w2, d, o) {
     const info = WIDGET_INFO[w2.type];
@@ -9012,6 +9068,68 @@ gl_FragColor=vec4(col,1.);}`;
     if (isNaN(t)) return iso;
     const d = new Date(t);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  // src/site/siteTileArena.ts
+  var TILE_ARENA_W = 1180;
+  var TILE_ARENA_HOLD_END_MS = 2e4;
+  var TILE_ARENA_HOLD_GONE_MS = 3e4;
+  function arenaPick(held, liveIds, now) {
+    var _a4, _b;
+    if (held) {
+      if (liveIds.includes(held.matchId)) return { matchId: held.matchId, ended: held.ended };
+      const gone = (_a4 = held.goneAt) != null ? _a4 : now;
+      const keep = held.ended ? now - ((_b = held.endedAt) != null ? _b : now) < TILE_ARENA_HOLD_END_MS : now - gone < TILE_ARENA_HOLD_GONE_MS;
+      if (keep) return { matchId: held.matchId, ended: true };
+    }
+    return liveIds.length ? { matchId: liveIds[0], ended: false } : null;
+  }
+  function arenaFit(w2, h) {
+    const scale = w2 > 0 ? w2 / TILE_ARENA_W : 1;
+    return { width: TILE_ARENA_W, height: Math.max(1, Math.round(h / scale)), scale };
+  }
+  function keyOf(e) {
+    var _a4;
+    if (e.id) return `#${e.id}`;
+    const did = e.getAttribute("data-id");
+    if (did !== null) return `@${did}`;
+    return `${e.tagName}.${(_a4 = e.classList[0]) != null ? _a4 : ""}`;
+  }
+  function syncAttributes(to, from) {
+    for (const a of [...to.attributes]) if (!from.hasAttribute(a.name)) to.removeAttribute(a.name);
+    for (const a of [...from.attributes]) if (to.getAttribute(a.name) !== a.value) to.setAttribute(a.name, a.value);
+  }
+  function patchAround(oldEl, newEl, keep) {
+    const path = [];
+    let o = oldEl;
+    let n = newEl;
+    while (o !== keep) {
+      const oc = [...o.children].find((c) => c.contains(keep));
+      if (!oc) return false;
+      const k = keyOf(oc);
+      const nc = [...n.children].find((c) => keyOf(c) === k);
+      if (!nc) return false;
+      path.push([o, n]);
+      o = oc;
+      n = nc;
+    }
+    for (let i = path.length - 1; i >= 0; i--) {
+      const [op, np] = path[i];
+      const oc = i + 1 < path.length ? path[i + 1][0] : keep;
+      const nc = [...np.children].find((c) => keyOf(c) === keyOf(oc));
+      if (oc !== keep) syncAttributes(oc, nc);
+      for (const node of [...op.childNodes]) if (node !== oc) op.removeChild(node);
+      let before = true;
+      for (const node of [...np.childNodes]) {
+        if (node === nc) {
+          before = false;
+          continue;
+        }
+        if (before) op.insertBefore(node, oc);
+        else op.appendChild(node);
+      }
+    }
+    return true;
   }
 
   // src/site/siteClient.ts
@@ -9070,22 +9188,22 @@ gl_FragColor=vec4(col,1.);}`;
     }),
     /** The replay frame's own hook (the arena's), or null. */
     arena: () => {
-      var _a3, _b;
-      return (_b = (_a3 = replayFrame == null ? void 0 : replayFrame.contentWindow) == null ? void 0 : _a3.__replay) != null ? _b : null;
+      var _a4, _b;
+      return (_b = (_a4 = replayFrame == null ? void 0 : replayFrame.contentWindow) == null ? void 0 : _a4.__replay) != null ? _b : null;
     },
     /** The pack-opening frame's own state (its log of every beat), or null. */
     pack: () => {
-      var _a3, _b;
-      return (_b = (_a3 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a3.__pack) != null ? _b : null;
+      var _a4, _b;
+      return (_b = (_a4 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a4.__pack) != null ? _b : null;
     },
     /** The loadout frame's own hook (its state and stats), or null. */
     loadout: () => {
-      var _a3, _b;
-      return (_b = (_a3 = dressFrame == null ? void 0 : dressFrame.contentWindow) == null ? void 0 : _a3.__loadout) != null ? _b : null;
+      var _a4, _b;
+      return (_b = (_a4 = dressFrame == null ? void 0 : dressFrame.contentWindow) == null ? void 0 : _a4.__loadout) != null ? _b : null;
     },
     liquid: () => {
-      var _a3;
-      return (_a3 = liquid == null ? void 0 : liquid.stats()) != null ? _a3 : null;
+      var _a4;
+      return (_a4 = liquid == null ? void 0 : liquid.stats()) != null ? _a4 : null;
     }
   };
   function loadSession() {
@@ -9102,17 +9220,17 @@ gl_FragColor=vec4(col,1.);}`;
   var VIEW_KEY = "ai-tcg.watchAs";
   var viewChoices = new Map(loadViews());
   function loadViews() {
-    var _a3;
+    var _a4;
     try {
-      const raw = JSON.parse((_a3 = sessionStorage.getItem(VIEW_KEY)) != null ? _a3 : "{}");
+      const raw = JSON.parse((_a4 = sessionStorage.getItem(VIEW_KEY)) != null ? _a4 : "{}");
       return Object.entries(raw).filter((e) => e[1] === "p1" || e[1] === "p2");
     } catch {
       return [];
     }
   }
   function viewOf(matchId) {
-    var _a3;
-    return (_a3 = viewChoices.get(matchId)) != null ? _a3 : null;
+    var _a4;
+    return (_a4 = viewChoices.get(matchId)) != null ? _a4 : null;
   }
   function setViewOf(matchId, seat) {
     viewChoices.delete(matchId);
@@ -9327,9 +9445,9 @@ gl_FragColor=vec4(col,1.);}`;
     void loadHome();
   }
   async function loadHome(only) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     if (!state.session) return;
-    const widgets = (_c = (_b = state.draft) != null ? _b : (_a3 = state.board) == null ? void 0 : _a3.widgets) != null ? _c : [];
+    const widgets = (_c = (_b = state.draft) != null ? _b : (_a4 = state.board) == null ? void 0 : _a4.widgets) != null ? _c : [];
     const need = sourcesFor(widgets).filter((x) => !only || only.includes(x));
     if (!need.length) return;
     const token = state.session.token;
@@ -9379,13 +9497,13 @@ gl_FragColor=vec4(col,1.);}`;
     const v = ringOfPlay(p, Date.now());
     const name = p.connectedAgent.name;
     rings.forEach((el) => {
-      var _a3, _b;
+      var _a4, _b;
       const size = Number(el.dataset.size);
       if (!size) return;
       const g = ringParts(name, v, size);
       el.className = `tring t-${g.tone}`;
       el.setAttribute("aria-label", g.label);
-      (_a3 = el.querySelector(".tr-fg")) == null ? void 0 : _a3.setAttribute("stroke-dasharray", g.dash);
+      (_a4 = el.querySelector(".tr-fg")) == null ? void 0 : _a4.setAttribute("stroke-dasharray", g.dash);
       const c = el.querySelector(".tr-c");
       if (c && c.innerHTML !== g.centreHtml) {
         c.innerHTML = g.centreHtml;
@@ -9415,10 +9533,10 @@ gl_FragColor=vec4(col,1.);}`;
   }
   window.setInterval(tickClocks, 1e3);
   async function refresh() {
-    var _a3, _b;
+    var _a4, _b;
     if (!state.session || document.hidden) return schedulePoll();
     try {
-      const was = (_a3 = state.play) == null ? void 0 : _a3.rebuild.job;
+      const was = (_a4 = state.play) == null ? void 0 : _a4.rebuild.job;
       const token = state.session.token;
       const [play2, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err) => {
         if (err instanceof SiteApiError && err.signedOut) throw err;
@@ -9448,10 +9566,10 @@ gl_FragColor=vec4(col,1.);}`;
     return `<a class="navb${n.soon ? " is-soon" : ""}" href="${hashOf(n.id)}" data-page="${n.id}"${n.soon ? ' aria-disabled="true" title="Comes after Season 0"' : ""}>${icon(n.icon)}<span>${esc(n.label)}</span>${soon}</a>`;
   }
   function drawShell() {
-    var _a3, _b;
+    var _a4, _b;
     $("#nav").innerHTML = NAV_MAIN.map(navButton).join("") + '<hr class="nav-rule">' + NAV_LOWER.map(navButton).join("");
     const s = state.session;
-    const name = (_b = (_a3 = state.me) == null ? void 0 : _a3.name) != null ? _b : s.login;
+    const name = (_b = (_a4 = state.me) == null ? void 0 : _a4.name) != null ? _b : s.login;
     const acct = $("#acct-btn");
     acct.textContent = initialOf(name);
     acct.setAttribute("aria-label", `Account: ${name}`);
@@ -9462,7 +9580,7 @@ gl_FragColor=vec4(col,1.);}`;
     applyTheme();
   }
   function drawWallet() {
-    var _a3, _b;
+    var _a4, _b;
     const el = $("#wallet");
     const w2 = state.wallet;
     if (!w2) {
@@ -9470,7 +9588,7 @@ gl_FragColor=vec4(col,1.);}`;
       return;
     }
     const open = openButton(w2.unopenedPacks.length);
-    const hadFocus = ((_a3 = document.activeElement) == null ? void 0 : _a3.id) === "open-btn";
+    const hadFocus = ((_a4 = document.activeElement) == null ? void 0 : _a4.id) === "open-btn";
     el.innerHTML = `<span class="cur" title="Credits"><i class="coin" aria-hidden="true"></i><b>${amount(w2.credits)}</b><span class="vh"> credits</span></span><span class="cur" title="Pack points"><i class="pp" aria-hidden="true"></i><b>${amount(w2.packPoints)}</b><span class="vh"> pack points</span></span><button type="button" class="obtn${open.enabled ? "" : " none"}" id="open-btn" data-act="open-packs" data-count="1"${open.enabled ? "" : " disabled"} aria-label="${esc(open.label)}" title="${esc(open.label)}">${icon("store", 16)}<span>Open</span>${open.enabled ? `<b class="ocount">${open.count}</b>` : ""}</button>`;
     if (hadFocus) (_b = document.getElementById("open-btn")) == null ? void 0 : _b.focus();
   }
@@ -9479,8 +9597,8 @@ gl_FragColor=vec4(col,1.);}`;
     return `<span class="av" style="--c:${c};width:${size}px;height:${size}px">${avatarSvg(name)}</span>`;
   }
   function agentFaction2(play2) {
-    var _a3, _b, _c, _d;
-    return (_d = (_c = play2.factionLock) != null ? _c : (_b = (_a3 = play2.rebuild.job) == null ? void 0 : _a3.result) == null ? void 0 : _b.faction) != null ? _d : null;
+    var _a4, _b, _c, _d;
+    return (_d = (_c = play2.factionLock) != null ? _c : (_b = (_a4 = play2.rebuild.job) == null ? void 0 : _a4.result) == null ? void 0 : _b.faction) != null ? _d : null;
   }
   function drawAgentCard() {
     const p = state.play;
@@ -9495,9 +9613,9 @@ gl_FragColor=vec4(col,1.);}`;
     card.innerHTML = `<div class="ac-top">${avatar2(a.name, agentFaction2(p), 36)}<div class="ac-name"><b>${esc(a.name)}</b><small>${esc(styleName(p, a.playStyle))}</small></div></div><span class="status ${st.tone}"><i></i>${esc(st.label)}</span>`;
   }
   function route() {
-    var _a3;
+    var _a4;
     const page = pageFromHash(location.hash);
-    if ((_a3 = NAV_MAIN.find((n) => n.id === page)) == null ? void 0 : _a3.soon) {
+    if ((_a4 = NAV_MAIN.find((n) => n.id === page)) == null ? void 0 : _a4.soon) {
       toast("Tournaments come after Season 0.");
       history.replaceState(null, "", hashOf(state.page));
       return;
@@ -9524,15 +9642,17 @@ gl_FragColor=vec4(col,1.);}`;
     if (state.session && state.play) route();
   });
   function drawPage() {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     const p = state.play;
     if (!p) return;
     const el = $("#page");
     const page = state.page;
     const keep = focusKey(el);
-    const keepTile = keep ? (_c = (_b = (_a3 = document.activeElement) == null ? void 0 : _a3.closest("[data-tile]")) == null ? void 0 : _b.dataset.tile) != null ? _c : null : null;
-    if (page === "home") el.innerHTML = homePage(p);
-    else if (page === "settings") el.innerHTML = settingsPage(p);
+    const keepTile = keep ? (_c = (_b = (_a4 = document.activeElement) == null ? void 0 : _a4.closest("[data-tile]")) == null ? void 0 : _b.dataset.tile) != null ? _c : null : null;
+    if (page === "home") {
+      const html = homePage(p);
+      if (!keepTileArena(el, html)) el.innerHTML = html;
+    } else if (page === "settings") el.innerHTML = settingsPage(p);
     else if (page === "connect") el.innerHTML = connectPage(p);
     else if (page === "store") el.innerHTML = storePage();
     else if (page === "collection") el.innerHTML = collectionPage();
@@ -9541,6 +9661,7 @@ gl_FragColor=vec4(col,1.);}`;
     else el.innerHTML = waitsPage(page);
     applyTheme();
     if (keep) restoreFocus(el, keep, keepTile);
+    mountTileArena();
   }
   function restoreFocus(root, key, tileId) {
     const twin = root.querySelector(key);
@@ -9560,9 +9681,9 @@ gl_FragColor=vec4(col,1.);}`;
     return `[data-act="${CSS.escape(act2)}"]${extra}`;
   }
   function homePage(p) {
-    var _a3, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e;
     const editing = state.draft !== null;
-    const widgets = (_c = (_b = state.draft) != null ? _b : (_a3 = state.board) == null ? void 0 : _a3.widgets) != null ? _c : [];
+    const widgets = (_c = (_b = state.draft) != null ? _b : (_a4 = state.board) == null ? void 0 : _a4.widgets) != null ? _c : [];
     const bar = `<div class="boardbar"><h2>Your board</h2><span class="sp"></span>${!state.board ? "" : editing ? `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="background">Background</button><button type="button" class="btn" data-act="recommended">Recommended layout</button><button type="button" class="btn pri" data-act="done"${state.saving ? " disabled" : ""}>${state.saving ? "Saving\u2026" : "Done"}</button>` : `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="customise">Customise</button>`}</div>${editing ? '<p class="hint2">Drag a widget to move it, or click it and use the arrow keys. Pick S, M or L to resize; "\u2212" or Delete removes it. Done saves your board.</p>' : ""}`;
     if (!state.board) {
       return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>${state.boardError ? "Your board couldn't be read" : "Loading your board\u2026"}</h3>${state.boardError ? `<p class="muted">${esc(state.boardError)}</p><button type="button" class="btn pri" data-act="retry-board">Try again</button>` : ""}</div></div>`;
@@ -9572,7 +9693,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
     const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
     const { views, capped } = liveViews(widgets);
-    const tiles = widgets.map((w2) => widgetHtml(w2, data, { editing, live: views.get(w2.id), capped: capped.has(w2.id) })).join("");
+    const tiles = widgets.map((w2) => widgetHtml(w2, data, { editing, live: views.get(w2.id), capped: capped.has(w2.id), arena: views.get(w2.id) === "arena" ? tileArenaPick() : void 0 })).join("");
     const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
     const note = !editing && state.board.recommended ? `<p class="muted small board-note">This is the recommended layout. Customise it and it's saved to your account.</p>` : "";
     return `<div class="pg-wide">${bar}<div class="wgrid${editing ? " editing" : ""}" id="wgrid">${tiles}${addTile}</div>${note}</div>`;
@@ -9625,9 +9746,9 @@ gl_FragColor=vec4(col,1.);}`;
     drawPage();
   }
   function addWidgetDialog() {
-    var _a3;
+    var _a4;
     if (!state.board) return;
-    const widgets = (_a3 = state.draft) != null ? _a3 : state.board.widgets;
+    const widgets = (_a4 = state.draft) != null ? _a4 : state.board.widgets;
     const rules = state.board.rules;
     const items = rules.widgetTypes.map(({ type }) => {
       const info = WIDGET_INFO[type];
@@ -9635,11 +9756,11 @@ gl_FragColor=vec4(col,1.);}`;
       return `<button type="button" class="wli" data-add="${type}"${block ? " disabled" : ""}><span class="wic big2" style="--g:${info.grad}">${icon(info.icon, 18)}</span><span><b>${esc(info.name)}</b><small>${esc(block != null ? block : info.desc)}</small></span></button>`;
     }).join("");
     sheet(`<h2 id="dlg-t">Add a widget</h2><p>Widgets start at medium size. Resize them in Customise.</p><div class="wlib">${items}</div><div class="row end"><button type="button" class="btn" data-a="close">Close</button></div>`, (el) => {
-      var _a4;
+      var _a5;
       const t = el.closest("[data-add]");
       if (!t || t.disabled) return false;
       const type = t.dataset.add;
-      const now = (_a4 = state.draft) != null ? _a4 : state.board.widgets;
+      const now = (_a5 = state.draft) != null ? _a5 : state.board.widgets;
       void changeBoard(addWidget(now, type, state.board.rules), `${WIDGET_INFO[type].name} added.`).then(() => {
         const last = document.querySelector("#wgrid .wg:last-of-type");
         last == null ? void 0 : last.scrollIntoView({ block: "nearest" });
@@ -9656,18 +9777,18 @@ gl_FragColor=vec4(col,1.);}`;
     void changeBoard(recommendedWidgets(state.board.rules), "Recommended layout applied.");
   }
   function sheet(html, onPick, size = "") {
-    var _a3;
+    var _a4;
     const d = $("#dialog");
     const opener = document.activeElement;
     d.innerHTML = `<div class="dlg glass${size ? ` ${size}` : ""}" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${html}</div>`;
     d.className = "dim on";
     const close = () => {
-      var _a4;
+      var _a5;
       d.className = "dim";
       d.innerHTML = "";
       d.onclick = null;
       document.removeEventListener("keydown", onKey, true);
-      (_a4 = opener == null ? void 0 : opener.focus) == null ? void 0 : _a4.call(opener);
+      (_a5 = opener == null ? void 0 : opener.focus) == null ? void 0 : _a5.call(opener);
     };
     const onKey = (e) => {
       if (e.key === "Escape") {
@@ -9681,11 +9802,11 @@ gl_FragColor=vec4(col,1.);}`;
       if (e.target === d || t.closest('[data-a="close"]')) return close();
       if (onPick(t)) close();
     };
-    (_a3 = d.querySelector("button:not([disabled])")) == null ? void 0 : _a3.focus();
+    (_a4 = d.querySelector("button:not([disabled])")) == null ? void 0 : _a4.focus();
   }
   async function buyPacks(setCode, count) {
-    var _a3, _b, _c, _d, _e;
-    const price = (_c = (_b = (_a3 = state.shop.packs) != null ? _a3 : state.home.packs) == null ? void 0 : _b.offer.find((o) => o.setCode === setCode)) == null ? void 0 : _c.priceCredits;
+    var _a4, _b, _c, _d, _e;
+    const price = (_c = (_b = (_a4 = state.shop.packs) != null ? _a4 : state.home.packs) == null ? void 0 : _b.offer.find((o) => o.setCode === setCode)) == null ? void 0 : _c.priceCredits;
     if (!state.session || price === void 0) return;
     const total = price * count;
     if (!await confirmDialog(count === 1 ? "Buy a pack?" : `Buy ${count} packs?`, `${count === 1 ? "One pack" : `${count} packs`} for ${amount(total)} credits. You have ${amount((_e = (_d = state.wallet) == null ? void 0 : _d.credits) != null ? _e : 0)}.`, `Buy \xB7 ${amount(total)}`)) return;
@@ -9700,9 +9821,9 @@ gl_FragColor=vec4(col,1.);}`;
     await afterChange();
   }
   async function buyCosmetic(itemId, name, price) {
-    var _a3, _b;
+    var _a4, _b;
     if (!state.session) return;
-    if (!await confirmDialog(`Buy ${name}?`, `${amount(price)} credits. You have ${amount((_b = (_a3 = state.wallet) == null ? void 0 : _a3.credits) != null ? _b : 0)}.`, `Buy \xB7 ${amount(price)}`)) return;
+    if (!await confirmDialog(`Buy ${name}?`, `${amount(price)} credits. You have ${amount((_b = (_a4 = state.wallet) == null ? void 0 : _a4.credits) != null ? _b : 0)}.`, `Buy \xB7 ${amount(price)}`)) return;
     try {
       const r = await api.buyCosmetic(state.session.token, itemId);
       state.wallet = r.wallet;
@@ -9715,8 +9836,8 @@ gl_FragColor=vec4(col,1.);}`;
   }
   var dragging = null;
   document.addEventListener("dragstart", (e) => {
-    var _a3, _b, _c;
-    const tile = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, "#wgrid.editing .wg");
+    var _a4, _b, _c;
+    const tile = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, "#wgrid.editing .wg");
     if (!tile || !state.draft) return;
     dragging = (_c = tile.dataset.id) != null ? _c : null;
     tile.classList.add("dragging");
@@ -9729,18 +9850,18 @@ gl_FragColor=vec4(col,1.);}`;
     }
   });
   document.addEventListener("dragover", (e) => {
-    var _a3, _b;
+    var _a4, _b;
     if (!dragging) return;
-    const tile = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, "#wgrid .wg");
+    const tile = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, "#wgrid .wg");
     e.preventDefault();
     document.querySelectorAll(".dropb").forEach((x) => x.classList.remove("dropb"));
     if (tile && tile.dataset.id !== dragging) tile.classList.add("dropb");
   });
   document.addEventListener("drop", (e) => {
-    var _a3, _b, _c, _d;
+    var _a4, _b, _c, _d;
     if (!dragging || !state.draft) return;
     e.preventDefault();
-    const tile = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, "#wgrid .wg");
+    const tile = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, "#wgrid .wg");
     const from = dragging;
     dragging = null;
     if (tile && tile.dataset.id && tile.dataset.id !== from) {
@@ -9760,20 +9881,20 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="seg" id="${id}" role="group" aria-label="${esc(label)}">${options.map(([v, t]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${v === value}">${esc(t)}</button>`).join("")}</div>`;
   }
   function settingsPage(p) {
-    var _a3, _b;
+    var _a4, _b;
     const rv = rebuildView(p);
     const job = p.rebuild.job ? jobSummary(p.rebuild.job) : [];
     const lockOpts = [["", "Any"], ...p.lockableFactions.map((f) => [f, f])];
     const decks = p.decks.length ? p.decks.map((d) => {
-      var _a4, _b2;
-      const isActive = ((_a4 = p.activeDeck) == null ? void 0 : _a4.deckId) === d.deckId;
+      var _a5, _b2;
+      const isActive = ((_a5 = p.activeDeck) == null ? void 0 : _a5.deckId) === d.deckId;
       const agentsOwn = ((_b2 = p.agentDeck) == null ? void 0 : _b2.deckId) === d.deckId;
       const miss = d.complete ? "" : `<small class="warn-t">Incomplete: ${d.missing.map((m) => `${esc(m.cardId)} ${m.owned}/${m.uses}`).join(", ")}</small>`;
       return `<button type="button" class="deckrow${isActive ? " on" : ""}" data-deck="${esc(d.deckId)}" ${d.complete ? "" : 'aria-disabled="true"'}><span class="radio" aria-hidden="true"></span><span class="dn"><b>${esc(d.name)}</b><small>${d.cards} cards${agentsOwn ? " \xB7 built by your agent" : ""}</small>${miss}</span>${isActive ? '<span class="pill on">Playing</span>' : ""}</button>`;
     }).join("") : '<p class="muted">No saved decks yet.</p>';
     const agents = p.agents.map((a) => {
-      var _a4;
-      const connected = ((_a4 = p.connectedAgent) == null ? void 0 : _a4.agentId) === a.agentId;
+      var _a5;
+      const connected = ((_a5 = p.connectedAgent) == null ? void 0 : _a5.agentId) === a.agentId;
       return `<div class="agrow">${avatar2(a.name, connected ? agentFaction2(p) : null, 32)}<div class="dn"><b>${esc(a.name)}</b><small>${connected ? "Connected" : "Not connected"}</small></div><label class="sel"><span class="vh">Play style for ${esc(a.name)}</span><select data-style-for="${esc(a.agentId)}">${p.playStyles.map((s) => `<option value="${esc(s.id)}"${s.id === a.playStyle ? " selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label></div>`;
     }).join("");
     const styleHelp = p.playStyles.map((s) => `<li><b>${esc(s.name)}</b> ${esc(s.summary)}</li>`).join("");
@@ -9784,7 +9905,7 @@ gl_FragColor=vec4(col,1.);}`;
   <h3>Play</h3>
   <section class="panel glass">
     <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
-    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, (_a3 = p.factionLock) != null ? _a3 : "", "Faction lock")}</div>
+    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, (_a4 = p.factionLock) != null ? _a4 : "", "Faction lock")}</div>
     <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
     ${ask2xField()}
   </section>
@@ -9803,14 +9924,14 @@ gl_FragColor=vec4(col,1.);}`;
   </div>`;
   }
   function ask2xField() {
-    var _a3;
+    var _a4;
     const st = state.settings;
-    if (!st || typeof st.ask2xEveryMatch !== "boolean" || ((_a3 = state.play) == null ? void 0 : _a3.autoPlay.house)) return "";
+    if (!st || typeof st.ask2xEveryMatch !== "boolean" || ((_a4 = state.play) == null ? void 0 : _a4.autoPlay.house)) return "";
     const on = st.ask2xEveryMatch;
     return `<div class="field"><div><b>Ask for 2\xD7 in every match</b><small>Asks for 2\xD7 as each of your agent's matches starts. It plays at 2\xD7 once the other owner agrees (against the house, at once). You can take it back in the match.</small></div><button type="button" class="switch${on ? " on" : ""}" id="ask-2x-every" role="switch" aria-checked="${on}" data-act="ask-2x-every" data-on="${on ? "0" : "1"}"${state.speedBusy ? " disabled" : ""}><i aria-hidden="true"></i><span>${on ? "On" : "Off"}</span></button></div>`;
   }
   async function setAsk2xEvery(on) {
-    var _a3;
+    var _a4;
     if (!state.session || !state.settings || state.speedBusy) return;
     state.speedBusy = true;
     try {
@@ -9824,7 +9945,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
     if (state.page === "settings") {
       drawPage();
-      (_a3 = document.getElementById("ask-2x-every")) == null ? void 0 : _a3.focus();
+      (_a4 = document.getElementById("ask-2x-every")) == null ? void 0 : _a4.focus();
     }
   }
   function bgPicker() {
@@ -9838,8 +9959,8 @@ gl_FragColor=vec4(col,1.);}`;
   }
   function connectPage(p) {
     const rows = p.agents.map((a) => {
-      var _a3;
-      const on = ((_a3 = p.connectedAgent) == null ? void 0 : _a3.agentId) === a.agentId;
+      var _a4;
+      const on = ((_a4 = p.connectedAgent) == null ? void 0 : _a4.agentId) === a.agentId;
       return `<div class="agrow">${avatar2(a.name, on ? agentFaction2(p) : null, 40)}<div class="dn"><b>${esc(a.name)}</b><small>${esc(styleName(p, a.playStyle))} play style</small></div>${on ? '<span class="pill on">Connected</span>' : '<span class="pill">Not connected</span>'}</div>`;
     }).join("");
     return `<div class="pg"><h3>Your agents</h3><section class="panel glass">${rows || '<p class="muted">No agents yet.</p>'}</section>
@@ -9867,11 +9988,11 @@ gl_FragColor=vec4(col,1.);}`;
     void loadHome();
   }
   async function loadShop() {
-    var _a3;
+    var _a4;
     if (!state.session) return;
     const token = state.session.token;
     try {
-      const play2 = (_a3 = state.play) != null ? _a3 : state.play = await api.play(token);
+      const play2 = (_a4 = state.play) != null ? _a4 : state.play = await api.play(token);
       const [packs, store, recent, owned, ...loadouts] = await Promise.all([
         api.packs(token),
         api.store(token),
@@ -9905,12 +10026,12 @@ gl_FragColor=vec4(col,1.);}`;
     await Promise.all(reads);
   }
   function storePage() {
-    var _a3, _b, _c, _d;
+    var _a4, _b, _c, _d;
     const sh = state.shop;
     if (!sh.packs || !sh.store) {
       return `<div class="pg-wide"><div class="wempty glass"><h3>${sh.error ? "The Store couldn't be read" : "Loading the Store\u2026"}</h3>${sh.error ? `<p class="muted">${esc(sh.error)}</p><button type="button" class="btn pri" data-act="retry-shop">Try again</button>` : ""}</div></div>`;
     }
-    const credits = (_b = (_a3 = state.wallet) == null ? void 0 : _a3.credits) != null ? _b : sh.packs.wallet.credits;
+    const credits = (_b = (_a4 = state.wallet) == null ? void 0 : _a4.credits) != null ? _b : sh.packs.wallet.credits;
     const now = Date.now();
     const art = shopArt();
     const head = `<div class="sh-head">${balanceHtml(credits)}${resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">Every pack also pays 5 pack points.</span></div>`;
@@ -9933,17 +10054,17 @@ gl_FragColor=vec4(col,1.);}`;
     const plates = /* @__PURE__ */ new Map();
     const fn = f.packPlateSvg;
     shopArtCache = { plate: (s) => {
-      var _a3;
-      return (_a3 = plates.get(s)) != null ? _a3 : (plates.set(s, fn(s)), plates.get(s));
+      var _a4;
+      return (_a4 = plates.get(s)) != null ? _a4 : (plates.set(s, fn(s)), plates.get(s));
     } };
     return shopArtCache;
   }
   function agentsPanel() {
-    var _a3, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e;
     const play2 = state.play;
     if (!play2) return "";
     const names = {};
-    for (const o of (_a3 = state.shop.owned) != null ? _a3 : []) names[o.itemId] = o.item.name;
+    for (const o of (_a4 = state.shop.owned) != null ? _a4 : []) names[o.itemId] = o.item.name;
     for (const c of (_c = (_b = state.shop.store) == null ? void 0 : _b.cosmetics) != null ? _c : []) (_e = names[_d = c.itemId]) != null ? _e : names[_d] = c.name;
     const rows = agentLoadoutRows(play2, state.shop.loadouts, names);
     const locked = !!play2.liveMatch;
@@ -9958,7 +10079,7 @@ gl_FragColor=vec4(col,1.);}`;
     return `${p.pity.packsSinceFullArt} pack${p.pity.packsSinceFullArt === 1 ? "" : "s"} since a Full Art \xB7 ${p.pity.packsSinceMythic} since a Mythic`;
   }
   async function markAllRead() {
-    var _a3;
+    var _a4;
     if (!state.session) return;
     try {
       await api.markNotificationsRead(state.session.token, { all: true });
@@ -9966,7 +10087,7 @@ gl_FragColor=vec4(col,1.);}`;
       fail(err);
     }
     await loadHome(["notif"]);
-    (_a3 = document.querySelector('#wgrid .wg[data-type="notif"] .ntl a')) == null ? void 0 : _a3.focus();
+    (_a4 = document.querySelector('#wgrid .wg[data-type="notif"] .ntl a')) == null ? void 0 : _a4.focus();
   }
   async function claimDaily() {
     if (!state.session) return;
@@ -9987,12 +10108,12 @@ gl_FragColor=vec4(col,1.);}`;
   }
   var siteFace = () => window.SITE_FACE;
   async function loadCollection() {
-    var _a3, _b, _c, _d;
+    var _a4, _b, _c, _d;
     if (!state.session) return;
     const token = state.session.token;
     try {
       const collection = await api.collection(token, 1);
-      const setCode = (_d = (_c = (_a3 = collection.sets[0]) == null ? void 0 : _a3.setCode) != null ? _c : (_b = state.col.binder) == null ? void 0 : _b.setCode) != null ? _d : "S0";
+      const setCode = (_d = (_c = (_a4 = collection.sets[0]) == null ? void 0 : _a4.setCode) != null ? _c : (_b = state.col.binder) == null ? void 0 : _b.setCode) != null ? _d : "S0";
       const binder = await api.binder(token, setCode);
       state.col = { ...state.col, binder, collection, error: null };
     } catch (err) {
@@ -10007,12 +10128,12 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function collectionPage() {
-    var _a3, _b;
+    var _a4, _b;
     const c = state.col;
     if (!c.binder || !c.collection) {
       return `<div class="pg-wide"><div class="wempty glass"><h3>${c.error ? "The collection couldn't be read" : "Loading your collection\u2026"}</h3>${c.error ? `<p class="muted">${esc(c.error)}</p><button type="button" class="btn pri" data-act="retry-col">Try again</button>` : ""}</div></div>`;
     }
-    return collectionPageHtml(c.binder, c.collection, c.filters, (_b = (_a3 = state.wallet) == null ? void 0 : _a3.packPoints) != null ? _b : 0, face());
+    return collectionPageHtml(c.binder, c.collection, c.filters, (_b = (_a4 = state.wallet) == null ? void 0 : _a4.packPoints) != null ? _b : 0, face());
   }
   function slotByKey(key) {
     const c = state.col;
@@ -10051,7 +10172,7 @@ gl_FragColor=vec4(col,1.);}`;
     drawViewer();
   }
   function drawViewer() {
-    var _a3, _b, _c, _d;
+    var _a4, _b, _c, _d;
     const el = $("#viewer");
     const v = state.col.viewer;
     const s = v ? slotByKey(v.key) : null;
@@ -10063,7 +10184,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
     const hadFocus = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id || document.activeElement.dataset.act || null : null;
     const blocks = binderBlocks(c.binder, c.collection, { ...c.filters, tab: c.filters.tab === "promos" ? "set" : c.filters.tab });
-    el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, (_b = (_a3 = state.wallet) == null ? void 0 : _a3.packPoints) != null ? _b : 0, neighbours(blocks, s.key), face())}</div>`;
+    el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, (_b = (_a4 = state.wallet) == null ? void 0 : _a4.packPoints) != null ? _b : 0, neighbours(blocks, s.key), face())}</div>`;
     const wasHidden = el.hidden;
     el.hidden = false;
     const faceEl = el.querySelector(".cv-card .face");
@@ -10073,21 +10194,21 @@ gl_FragColor=vec4(col,1.);}`;
     (_d = again && !again.disabled ? again : closeBtn) == null ? void 0 : _d.focus();
   }
   function closeViewer(giveFocusBack) {
-    var _a3;
+    var _a4;
     if (!state.col.viewer) return;
     const key = state.col.viewer.key;
     state.col.viewer = null;
     drawViewer();
     if (!giveFocusBack) return;
-    const el = (_a3 = document.querySelector(`#page [data-slot="${CSS.escape(key)}"]`)) != null ? _a3 : viewerOpener && document.querySelector(`#page [data-slot="${CSS.escape(viewerOpener.key)}"]`);
+    const el = (_a4 = document.querySelector(`#page [data-slot="${CSS.escape(key)}"]`)) != null ? _a4 : viewerOpener && document.querySelector(`#page [data-slot="${CSS.escape(viewerOpener.key)}"]`);
     el == null ? void 0 : el.focus();
   }
   async function craftSlot() {
-    var _a3, _b, _c, _d, _e, _f;
+    var _a4, _b, _c, _d, _e, _f;
     const v = state.col.viewer;
     const s = v ? slotByKey(v.key) : null;
     if (!v || !s || !state.session || !state.col.collection) return;
-    const cv = craftView(s, { cardCopies: (_b = (_a3 = copiesByCard(state.col.collection).get(s.cardId)) == null ? void 0 : _a3.length) != null ? _b : 0 }, (_d = (_c = state.wallet) == null ? void 0 : _c.packPoints) != null ? _d : 0);
+    const cv = craftView(s, { cardCopies: (_b = (_a4 = copiesByCard(state.col.collection).get(s.cardId)) == null ? void 0 : _a4.length) != null ? _b : 0 }, (_d = (_c = state.wallet) == null ? void 0 : _c.packPoints) != null ? _d : 0);
     if (!cv.call || cv.cost === null) return;
     if (!await confirmDialog(`Craft ${s.name}?`, `${amount(cv.cost)} pack points. You have ${amount((_f = (_e = state.wallet) == null ? void 0 : _e.packPoints) != null ? _f : 0)}. Crafted copies are account-bound: they play, but never sell or salvage.`, `Craft \xB7 ${amount(cv.cost)} pp`)) return;
     v.busy = true;
@@ -10145,8 +10266,8 @@ gl_FragColor=vec4(col,1.);}`;
     void loadHome(["collection"]);
   }
   document.addEventListener("pointermove", (e) => {
-    var _a3, _b;
-    const card = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, "#cv-card");
+    var _a4, _b;
+    const card = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, "#cv-card");
     if (!card || (motionQuery == null ? void 0 : motionQuery.matches)) return;
     const r = card.getBoundingClientRect();
     const a = siteFace().packTiltAngles((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, 12);
@@ -10155,8 +10276,8 @@ gl_FragColor=vec4(col,1.);}`;
     card.style.setProperty("--gy", `${Math.round((e.clientY - r.top) / r.height * 100)}%`);
   });
   document.addEventListener("pointerout", (e) => {
-    var _a3, _b;
-    const card = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, "#cv-card");
+    var _a4, _b;
+    const card = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, "#cv-card");
     if (card && !card.contains(e.relatedTarget)) card.style.transform = "";
   });
   document.addEventListener("keydown", (e) => {
@@ -10221,8 +10342,8 @@ gl_FragColor=vec4(col,1.);}`;
       frame.addEventListener(
         "load",
         () => {
-          var _a3;
-          const P = (_a3 = frame.contentWindow) == null ? void 0 : _a3.PACK;
+          var _a4;
+          const P = (_a4 = frame.contentWindow) == null ? void 0 : _a4.PACK;
           if (P) resolve(P);
           else reject(new Error("the pack opening didn't load"));
         },
@@ -10295,7 +10416,7 @@ gl_FragColor=vec4(col,1.);}`;
     else closeOpening();
   }
   function play(P, r) {
-    var _a3;
+    var _a4;
     showOpening(null);
     P.S.onSummary = (btns) => summaryHere(btns, "single");
     P.S.onBulkSummary = (btns) => summaryHere(btns, "bulk");
@@ -10307,11 +10428,11 @@ gl_FragColor=vec4(col,1.);}`;
       P.openBulk(0);
     }
     frame == null ? void 0 : frame.focus();
-    (_a3 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a3.focus();
+    (_a4 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a4.focus();
   }
   function summaryHere(btns, kind) {
-    var _a3, _b, _c, _d, _e, _f, _g, _h;
-    const n = (_b = (_a3 = state.wallet) == null ? void 0 : _a3.unopenedPacks.length) != null ? _b : 0;
+    var _a4, _b, _c, _d, _e, _f, _g, _h;
+    const n = (_b = (_a4 = state.wallet) == null ? void 0 : _a4.unopenedPacks.length) != null ? _b : 0;
     const bulk = (_e = (_d = (_c = state.shop.packs) != null ? _c : state.home.packs) == null ? void 0 : _d.bulkOpenCount) != null ? _e : 10;
     const list = summaryButtons(kind, n, bulk);
     btns.innerHTML = list.map((b) => `<button type="button"${b.primary ? ' class="pri"' : ""} data-site="${b.act}"${b.enabled ? "" : " disabled"}>${esc(b.label)}</button>`).join("");
@@ -10319,22 +10440,22 @@ gl_FragColor=vec4(col,1.);}`;
     (_g = (_f = btns.parentElement) == null ? void 0 : _f.querySelector(".why")) == null ? void 0 : _g.remove();
     if (why.length) btns.insertAdjacentHTML("afterend", `<p class="why">${why.map(esc).join(" ")}</p>`);
     btns.onclick = (e) => {
-      var _a4;
+      var _a5;
       const b = e.target.closest("[data-site]");
       if (!b || b.disabled) return;
       const act2 = b.dataset.site;
-      if (act2 === "done") return void ((_a4 = packApi()) == null ? void 0 : _a4.close("done"));
+      if (act2 === "done") return void ((_a5 = packApi()) == null ? void 0 : _a5.close("done"));
       btns.querySelectorAll("button").forEach((x) => x.disabled = true);
       void openPacks({ count: act2 === "ten" ? 10 : 1 });
     };
     (_h = btns.querySelector("button.pri:not([disabled])")) == null ? void 0 : _h.focus({ preventScroll: true });
   }
   function packApi() {
-    var _a3, _b;
-    return (_b = (_a3 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a3.PACK) != null ? _b : null;
+    var _a4, _b;
+    return (_b = (_a4 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a4.PACK) != null ? _b : null;
   }
   function closeOpening() {
-    var _a3;
+    var _a4;
     const el = document.getElementById("opening");
     if (!el || el.hidden) {
       state.opening = false;
@@ -10346,7 +10467,7 @@ gl_FragColor=vec4(col,1.);}`;
       return;
     }
     el.hidden = true;
-    (_a3 = el.querySelector(".op-wait")) == null ? void 0 : _a3.remove();
+    (_a4 = el.querySelector(".op-wait")) == null ? void 0 : _a4.remove();
     state.opening = false;
     liquid == null ? void 0 : liquid.refresh();
     const back = (openedFrom == null ? void 0 : openedFrom.el.isConnected) ? openedFrom.el : (openedFrom == null ? void 0 : openedFrom.sel) ? document.querySelector(openedFrom.sel) : null;
@@ -10390,9 +10511,9 @@ gl_FragColor=vec4(col,1.);}`;
     // Buy from inside the picker: the Store's own confirm, then the server's
     // buy, then the page is handed the agent's state read again.
     buy: async (itemId) => {
-      var _a3, _b, _c, _d, _e;
+      var _a4, _b, _c, _d, _e;
       if (!state.session || !dressAgent) return { ok: false, error: "not signed in" };
-      const c = (_a3 = state.shop.store) == null ? void 0 : _a3.cosmetics.find((x) => x.itemId === itemId);
+      const c = (_a4 = state.shop.store) == null ? void 0 : _a4.cosmetics.find((x) => x.itemId === itemId);
       const name = (_b = c == null ? void 0 : c.name) != null ? _b : "this";
       const price = (_c = c == null ? void 0 : c.priceCredits) != null ? _c : 0;
       const yes = await confirmDialog(`Buy ${name}?`, `${amount(price)} credits. You have ${amount((_e = (_d = state.wallet) == null ? void 0 : _d.credits) != null ? _e : 0)}. It's yours on every agent.`, `Buy \xB7 ${amount(price)}`);
@@ -10417,8 +10538,8 @@ gl_FragColor=vec4(col,1.);}`;
       dressFrame.addEventListener(
         "load",
         () => {
-          var _a3;
-          const L = (_a3 = dressFrame.contentWindow) == null ? void 0 : _a3.LOADOUT;
+          var _a4;
+          const L = (_a4 = dressFrame.contentWindow) == null ? void 0 : _a4.LOADOUT;
           if (L) resolve(L);
           else reject(new Error("the loadout picker didn't load"));
         },
@@ -10435,12 +10556,12 @@ gl_FragColor=vec4(col,1.);}`;
     return dressReady;
   }
   async function openDress(agentId, from) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     if (!state.session || dressAgent) return;
     dressAgent = agentId;
     if (from) dressFrom = { el: from, sel: from.dataset.agent ? `[data-act="dress"][data-agent="${CSS.escape(from.dataset.agent)}"]` : null };
     const el = $("#dress");
-    (_a3 = el.querySelector(".op-wait")) == null ? void 0 : _a3.remove();
+    (_a4 = el.querySelector(".op-wait")) == null ? void 0 : _a4.remove();
     el.insertAdjacentHTML("beforeend", '<div class="op-wait">Reading the loadout\u2026</div>');
     el.hidden = false;
     liquid == null ? void 0 : liquid.refresh();
@@ -10457,14 +10578,14 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function closeDress() {
-    var _a3, _b;
+    var _a4, _b;
     const el = document.getElementById("dress");
     if (!el || el.hidden) {
       dressAgent = null;
       return;
     }
     el.hidden = true;
-    (_a3 = el.querySelector(".op-wait")) == null ? void 0 : _a3.remove();
+    (_a4 = el.querySelector(".op-wait")) == null ? void 0 : _a4.remove();
     dressAgent = null;
     liquid == null ? void 0 : liquid.refresh();
     const sel = (_b = dressFrom == null ? void 0 : dressFrom.sel) != null ? _b : null;
@@ -10473,9 +10594,9 @@ gl_FragColor=vec4(col,1.);}`;
     dressFrom = null;
     if (!state.session) return;
     void afterChange().then(() => {
-      var _a4;
+      var _a5;
       const a = document.activeElement;
-      if (sel && (!a || a === document.body || !a.isConnected)) (_a4 = document.querySelector(sel)) == null ? void 0 : _a4.focus();
+      if (sel && (!a || a === document.body || !a.isConnected)) (_a5 = document.querySelector(sel)) == null ? void 0 : _a5.focus();
     });
   }
   var HISTORY_PAGE = 20;
@@ -10483,11 +10604,11 @@ gl_FragColor=vec4(col,1.);}`;
   var replayFrame = null;
   var replayFrom = null;
   async function loadHistory(fresh) {
-    var _a3;
+    var _a4;
     if (!state.session || state.hist.loading) return;
     state.hist.loading = true;
     try {
-      const before = fresh ? void 0 : (_a3 = state.hist.rows[state.hist.rows.length - 1]) == null ? void 0 : _a3.matchId;
+      const before = fresh ? void 0 : (_a4 = state.hist.rows[state.hist.rows.length - 1]) == null ? void 0 : _a4.matchId;
       const h = await api.matches(state.session.token, HISTORY_PAGE, before);
       state.hist.rows = fresh ? h.matches : [...state.hist.rows, ...h.matches.filter((x) => !state.hist.rows.some((r) => r.matchId === x.matchId))];
       state.hist.more = h.more;
@@ -10503,10 +10624,10 @@ gl_FragColor=vec4(col,1.);}`;
     if (state.page === "match") redrawPart("#m-hist", histHtml());
   }
   async function loadLive() {
-    var _a3, _b, _c, _d;
+    var _a4, _b, _c, _d;
     clearTimeout(livePoll);
     if (!state.session) return;
-    const wasMine = (_b = (_a3 = state.home.live) == null ? void 0 : _a3.mine) != null ? _b : null;
+    const wasMine = (_b = (_a4 = state.home.live) == null ? void 0 : _a4.mine) != null ? _b : null;
     try {
       state.home.live = await api.live(state.session.token);
       delete state.home.errors.live;
@@ -10527,9 +10648,9 @@ gl_FragColor=vec4(col,1.);}`;
     if (liveOnScreen()) livePoll = window.setTimeout(() => void loadLive(), document.hidden ? 15e3 : 3e3);
   }
   async function followFeed(matchId) {
-    var _a3, _b;
+    var _a4, _b;
     if (!state.session) return;
-    if (((_a3 = state.follow) == null ? void 0 : _a3.matchId) !== matchId) state.follow = { matchId, next: 0, started: false, lines: [] };
+    if (((_a4 = state.follow) == null ? void 0 : _a4.matchId) !== matchId) state.follow = { matchId, next: 0, started: false, lines: [] };
     const f = state.follow;
     try {
       const feed = await api.liveFeed(state.session.token, matchId, f.next);
@@ -10547,22 +10668,22 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function liveOnScreen() {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     if (state.page === "match" || state.page === "live") return true;
     if (state.page !== "home") return false;
-    return ((_c = (_b = state.draft) != null ? _b : (_a3 = state.board) == null ? void 0 : _a3.widgets) != null ? _c : []).some((w2) => w2.type === "live" || w2.type === "watch");
+    return ((_c = (_b = state.draft) != null ? _b : (_a4 = state.board) == null ? void 0 : _a4.widgets) != null ? _c : []).some((w2) => w2.type === "live" || w2.type === "watch");
   }
   function redrawPart(sel, html) {
-    var _a3;
+    var _a4;
     const el = document.querySelector(sel);
     if (!el) return;
     const focused = document.activeElement;
     const id = focused && el.contains(focused) ? focused.id : "";
     el.innerHTML = html;
-    if (id) (_a3 = document.getElementById(id)) == null ? void 0 : _a3.focus();
+    if (id) (_a4 = document.getElementById(id)) == null ? void 0 : _a4.focus();
   }
   function drawLive() {
-    var _a3, _b;
+    var _a4, _b;
     if (state.replay) return drawArenaSpeed();
     if (state.page === "match" && state.play) {
       redrawPart("#m-live", mLiveHtml(state.play));
@@ -10573,14 +10694,18 @@ gl_FragColor=vec4(col,1.);}`;
       const p = state.play;
       if (!p) return;
       const widgets = state.board.widgets;
-      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a3 = state.me) == null ? void 0 : _a3.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
+      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
       const { views, capped } = liveViews(widgets);
       for (const w2 of widgets) {
         if (w2.type !== "live" && w2.type !== "watch") continue;
         const tile = document.querySelector(`#wgrid .wg[data-id="${CSS.escape(w2.id)}"]`);
         if (!tile || tile.contains(document.activeElement)) continue;
-        tile.outerHTML = widgetHtml(w2, data, { editing: false, live: views.get(w2.id), capped: capped.has(w2.id) });
+        const view = views.get(w2.id);
+        const html = widgetHtml(w2, data, { editing: false, live: view, capped: capped.has(w2.id), arena: view === "arena" ? tileArenaPick() : void 0 });
+        if (view === "arena" && patchArenaTile(tile, html)) continue;
+        tile.outerHTML = html;
       }
+      mountTileArena();
     }
   }
   function matchPage(p) {
@@ -10594,7 +10719,7 @@ gl_FragColor=vec4(col,1.);}`;
   <h3>Match history</h3><section class="panel glass" id="m-hist">${histHtml()}</section></div>`;
   }
   function mLiveHtml(p) {
-    var _a3, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e;
     if (!p.connectedAgent) return `<p class="muted small">No agent connected, so no match.</p>`;
     const live = state.home.live;
     if (!live) return state.home.errors.live ? `<p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p>` : `<p class="muted small">Loading\u2026</p>`;
@@ -10604,7 +10729,7 @@ gl_FragColor=vec4(col,1.);}`;
       const ap = autoPlayView(p.autoPlay, true);
       return `<p class="small">${esc(p.liveMatch ? "Your agent's match is starting." : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now: auto-play is off, so your agent sits out.")}</p>${live.matches.length ? `<p class="muted small">${live.matches.length} other match${live.matches.length === 1 ? " is" : "es are"} live. <a href="#/live">Watch live</a></p>` : ""}`;
     }
-    const sb = scoreboardOf(m, (_b = (_a3 = state.me) == null ? void 0 : _a3.ownerId) != null ? _b : null);
+    const sb = scoreboardOf(m, (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null);
     const names = { p1: m.p1.agentName, p2: m.p2.agentName };
     const lines = ((_c = state.follow) == null ? void 0 : _c.matchId) === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
     const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
@@ -10626,12 +10751,12 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="pg-wide"><p class="muted small">Every match the ladder is showing now. Featured picks ("Top rated") and viewer counts come with their endpoint.</p><div id="live-list">${liveListHtml()}</div></div>`;
   }
   function liveListHtml() {
-    var _a3, _b;
+    var _a4, _b;
     const live = state.home.live;
     if (!live) return state.home.errors.live ? `<section class="panel glass"><p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p></section>` : `<section class="panel glass"><p class="muted small">Loading\u2026</p></section>`;
     if (!live.running) return `<section class="panel glass"><p class="muted small">The ladder isn't running on this server, so nothing is live.</p></section>`;
     if (!live.matches.length) return `<section class="panel glass"><p class="muted small">No match is live right now. The next ladder round starts soon.</p></section>`;
-    const me = (_b = (_a3 = state.me) == null ? void 0 : _a3.ownerId) != null ? _b : null;
+    const me = (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null;
     return live.matches.map((m) => {
       const sb = scoreboardOf(m, me, viewOf(m.matchId));
       const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
@@ -10641,10 +10766,10 @@ gl_FragColor=vec4(col,1.);}`;
     }).join("");
   }
   async function setAutoPlay(on, time) {
-    var _a3, _b, _c;
+    var _a4, _b, _c;
     if (!state.session || !state.play || state.autoBusy) return;
     state.autoBusy = true;
-    const focusId = (_b = (_a3 = document.activeElement) == null ? void 0 : _a3.id) != null ? _b : "";
+    const focusId = (_b = (_a4 = document.activeElement) == null ? void 0 : _a4.id) != null ? _b : "";
     try {
       const r = (time == null ? void 0 : time.add) ? await api.addPlayTime(state.session.token, time.minutes) : await api.setAutoPlay(state.session.token, on, time == null ? void 0 : time.minutes);
       state.play = { ...state.play, autoPlay: r.autoPlay };
@@ -10660,10 +10785,10 @@ gl_FragColor=vec4(col,1.);}`;
     if (focusId) (_c = document.getElementById(focusId)) == null ? void 0 : _c.focus();
   }
   async function setLiveSpeed(matchId, ask) {
-    var _a3, _b, _c, _d;
+    var _a4, _b, _c, _d;
     if (!state.session || state.speedBusy) return;
     state.speedBusy = true;
-    const focusId = (_b = (_a3 = document.activeElement) == null ? void 0 : _a3.id) != null ? _b : "";
+    const focusId = (_b = (_a4 = document.activeElement) == null ? void 0 : _a4.id) != null ? _b : "";
     drawLive();
     try {
       const r = await api.setLiveSpeed(state.session.token, matchId, ask);
@@ -10681,10 +10806,10 @@ gl_FragColor=vec4(col,1.);}`;
     if (focusId) (_d = document.getElementById(focusId)) == null ? void 0 : _d.focus();
   }
   function drawArenaSpeed() {
-    var _a3, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e;
     const box = document.getElementById("rp-speed");
     if (!box || !arenaLive || !state.replay) return;
-    const m = (_b = (_a3 = state.home.live) == null ? void 0 : _a3.matches.find((x) => x.matchId === state.replay)) != null ? _b : null;
+    const m = (_b = (_a4 = state.home.live) == null ? void 0 : _a4.matches.find((x) => x.matchId === state.replay)) != null ? _b : null;
     const v = m ? speedControlView(m, (_d = (_c = state.me) == null ? void 0 : _c.ownerId) != null ? _d : null) : null;
     const html = v && v.canVote ? speedControlHtml(v, "rp-speed-btn", m.matchId, state.speedBusy) : "";
     if (box.contains(document.activeElement) && box.innerHTML === html) return;
@@ -10709,15 +10834,19 @@ gl_FragColor=vec4(col,1.);}`;
     return `#view=${near}&switch=${mine ? 0 : 1}`;
   }
   function arenaView(matchId) {
-    var _a3, _b, _c, _d;
-    const m = (_b = (_a3 = state.home.live) == null ? void 0 : _a3.matches.find((x) => x.matchId === matchId)) != null ? _b : null;
-    const me = (_d = (_c = state.me) == null ? void 0 : _c.ownerId) != null ? _d : null;
-    const mine = m && me ? m.p1.ownerId === me ? "p1" : m.p2.ownerId === me ? "p2" : null : null;
+    const { mine, m } = arenaSeats(matchId);
     return arenaHash(matchId, mine, m == null ? void 0 : m.defaultView);
   }
+  function arenaSeats(matchId) {
+    var _a4, _b, _c, _d;
+    const m = (_b = (_a4 = state.home.live) == null ? void 0 : _a4.matches.find((x) => x.matchId === matchId)) != null ? _b : null;
+    const me = (_d = (_c = state.me) == null ? void 0 : _c.ownerId) != null ? _d : null;
+    const mine = m && me ? m.p1.ownerId === me ? "p1" : m.p2.ownerId === me ? "p2" : null : null;
+    return { mine, near: nearSeat(mine, viewOf(matchId), m == null ? void 0 : m.defaultView), m };
+  }
   function replayView(matchId) {
-    var _a3, _b, _c;
-    const row = (_c = (_b = state.hist.rows.find((r) => r.matchId === matchId)) != null ? _b : (_a3 = state.home.history) == null ? void 0 : _a3.matches.find((r) => r.matchId === matchId)) != null ? _c : null;
+    var _a4, _b, _c;
+    const row = (_c = (_b = state.hist.rows.find((r) => r.matchId === matchId)) != null ? _b : (_a4 = state.home.history) == null ? void 0 : _a4.matches.find((r) => r.matchId === matchId)) != null ? _c : null;
     return arenaHash(matchId, row ? row.seat : null, null);
   }
   window.addEventListener("message", (e) => {
@@ -10730,6 +10859,7 @@ gl_FragColor=vec4(col,1.);}`;
   async function openLiveArena(matchId, from) {
     if (!state.session || state.replay) return;
     state.replay = matchId;
+    teardownTileArena();
     replayFrom = from;
     const el = $("#replay");
     el.innerHTML = `<div class="op-wait">Joining the match\u2026</div><div class="rp-speed" id="rp-speed"></div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
@@ -10744,8 +10874,8 @@ gl_FragColor=vec4(col,1.);}`;
       replayFrame = document.createElement("iframe");
       replayFrame.title = "Live match on the arena";
       replayFrame.addEventListener("load", () => {
-        var _a3;
-        (_a3 = el.querySelector(".op-wait")) == null ? void 0 : _a3.remove();
+        var _a4;
+        (_a4 = el.querySelector(".op-wait")) == null ? void 0 : _a4.remove();
         replayFrame == null ? void 0 : replayFrame.focus();
         void feedArena();
       }, { once: true });
@@ -10759,26 +10889,160 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   async function feedArena() {
-    var _a3, _b;
     const live = arenaLive;
-    if (!live || !state.session || !replayFrame) return;
+    if (!live) return;
+    await feedLive(live, () => arenaLive === live ? replayFrame : null, () => {
+      var _a4;
+      return (_a4 = document.getElementById("rp-speed")) == null ? void 0 : _a4.replaceChildren();
+    });
+  }
+  async function feedLive(live, frameOf, onEnd) {
+    var _a4;
+    if (!state.session || !frameOf()) return;
     clearTimeout(live.poll);
     try {
       const r = await api.liveFrames(state.session.token, live.key, live.have);
-      if (arenaLive !== live || !(replayFrame == null ? void 0 : replayFrame.contentWindow)) return;
+      const frame2 = frameOf();
+      if (!(frame2 == null ? void 0 : frame2.contentWindow)) return;
       live.have += r.frames.length;
       live.ended = r.ended;
-      if (r.frames.length || r.ended || r.record || r.rate) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record, rate: (_a3 = r.rate) != null ? _a3 : 1 }, location.origin);
-      if (r.ended) (_b = document.getElementById("rp-speed")) == null ? void 0 : _b.replaceChildren();
+      if (r.frames.length || r.ended || r.record || r.rate) frame2.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record, rate: (_a4 = r.rate) != null ? _a4 : 1 }, location.origin);
+      if (r.ended) onEnd();
     } catch (err) {
       if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
       if (err instanceof SiteApiError && err.status === 404) return;
     }
-    if (arenaLive === live && !live.ended) live.poll = window.setTimeout(() => void feedArena(), document.hidden ? 15e3 : 3e3);
+    if (frameOf() && !live.ended) live.poll = window.setTimeout(() => void feedLive(live, frameOf, onEnd), document.hidden ? 15e3 : 3e3);
+  }
+  var heldArena = null;
+  var tileArena = null;
+  var tileObserver = null;
+  var tileSwap = 0;
+  var phoneQuery = window.matchMedia ? window.matchMedia("(max-width: 720px)") : null;
+  var _a3;
+  (_a3 = phoneQuery == null ? void 0 : phoneQuery.addEventListener) == null ? void 0 : _a3.call(phoneQuery, "change", () => mountTileArena());
+  function tileArenaPick() {
+    var _a4, _b;
+    const ids = ((_b = (_a4 = state.home.live) == null ? void 0 : _a4.matches) != null ? _b : []).map((m) => m.matchId);
+    const now = Date.now();
+    if (heldArena && !ids.includes(heldArena.matchId) && heldArena.goneAt === null) heldArena.goneAt = now;
+    const pick = arenaPick(heldArena, ids, now);
+    if (pick && (heldArena == null ? void 0 : heldArena.matchId) !== pick.matchId) heldArena = { matchId: pick.matchId, ended: false, endedAt: null, goneAt: null };
+    if (!pick) heldArena = null;
+    return pick;
+  }
+  function keepTileArena(page, html) {
+    var _a4;
+    const t = tileArena;
+    const keep = t == null ? void 0 : t.frame.parentElement;
+    if (!t || !keep || !page.contains(keep)) return false;
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html;
+    if (((_a4 = tpl.content.querySelector(".wl-arena")) == null ? void 0 : _a4.getAttribute("data-match")) !== t.matchId) return false;
+    return patchAround(page, tpl.content, keep);
+  }
+  function patchArenaTile(tile, html) {
+    var _a4;
+    const t = tileArena;
+    const keep = t == null ? void 0 : t.frame.parentElement;
+    if (!t || !keep || !tile.contains(keep)) return false;
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html;
+    const next = tpl.content.firstElementChild;
+    if (!next || ((_a4 = next.querySelector(".wl-arena")) == null ? void 0 : _a4.getAttribute("data-match")) !== t.matchId) return false;
+    if (!patchAround(tile, next, keep)) return false;
+    syncAttributes(tile, next);
+    return true;
+  }
+  function teardownTileArena() {
+    tileObserver == null ? void 0 : tileObserver.disconnect();
+    tileObserver = null;
+    const t = tileArena;
+    if (!t) return;
+    tileArena = null;
+    if (t.feed) clearTimeout(t.feed.poll);
+    const slot = t.frame.closest(".wl-arena");
+    slot == null ? void 0 : slot.classList.remove("on", "joining");
+    t.frame.remove();
+  }
+  function mountTileArena() {
+    var _a4;
+    const slot = state.page === "home" && !state.draft && !state.replay && !(phoneQuery == null ? void 0 : phoneQuery.matches) ? document.querySelector("#wgrid .wl-arena[data-match]") : null;
+    const matchId = (_a4 = slot == null ? void 0 : slot.dataset.match) != null ? _a4 : null;
+    if (!slot || !matchId) return teardownTileArena();
+    if (tileArena && tileArena.matchId === matchId && slot.contains(tileArena.frame)) return syncTileArena();
+    teardownTileArena();
+    if (slot.dataset.ended === "true") return;
+    startTileArena(slot, matchId);
+  }
+  function startTileArena(slot, matchId) {
+    if (!state.session) return;
+    const frame2 = document.createElement("iframe");
+    frame2.title = "The live match on the arena";
+    frame2.tabIndex = -1;
+    frame2.setAttribute("aria-hidden", "true");
+    slot.querySelector(".wl-frame").appendChild(frame2);
+    const t = { matchId, frame: frame2, feed: null, near: arenaSeats(matchId).near, loaded: false, failed: false };
+    tileArena = t;
+    syncTileArena();
+    const token = state.session.token;
+    api.livePage(token, matchId).then((page) => {
+      if (tileArena !== t) return;
+      const feed = { key: page.key, have: page.released + 1, poll: 0, ended: false };
+      t.feed = feed;
+      frame2.addEventListener("load", () => {
+        if (tileArena !== t) return;
+        t.loaded = true;
+        syncTileArena();
+        void feedLive(feed, () => tileArena === t ? t.frame : null, () => tileArenaEnded(matchId));
+      }, { once: true });
+      const { mine } = arenaSeats(matchId);
+      frame2.src = `${page.url}#view=${t.near}&switch=${mine ? 0 : 1}&embed=1`;
+    }).catch((err) => {
+      if (tileArena !== t) return;
+      if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+      t.failed = true;
+      syncTileArena();
+    });
+  }
+  function tileArenaEnded(matchId) {
+    if ((heldArena == null ? void 0 : heldArena.matchId) === matchId && !heldArena.ended) {
+      heldArena.ended = true;
+      heldArena.endedAt = Date.now();
+    }
+    clearTimeout(tileSwap);
+    tileSwap = window.setTimeout(() => drawLive(), TILE_ARENA_HOLD_END_MS + 200);
+  }
+  function syncTileArena() {
+    var _a4;
+    const t = tileArena;
+    const slot = t == null ? void 0 : t.frame.closest(".wl-arena");
+    if (!t || !slot) return;
+    slot.classList.toggle("on", t.loaded);
+    slot.classList.toggle("joining", !t.loaded && !t.failed);
+    const fit = () => {
+      const f = arenaFit(slot.clientWidth, slot.clientHeight);
+      t.frame.style.width = `${f.width}px`;
+      t.frame.style.height = `${f.height}px`;
+      t.frame.style.transform = `scale(${f.scale})`;
+    };
+    fit();
+    if (!tileObserver && typeof ResizeObserver !== "undefined") {
+      tileObserver = new ResizeObserver(() => {
+        if (tileArena === t && slot.isConnected) fit();
+      });
+      tileObserver.observe(slot);
+    }
+    const seats = arenaSeats(t.matchId);
+    if (seats.m && seats.near !== t.near && t.loaded) {
+      t.near = seats.near;
+      (_a4 = t.frame.contentWindow) == null ? void 0 : _a4.postMessage({ type: "ai-tcg-set-view", view: seats.near }, location.origin);
+    }
   }
   async function openReplay(matchId, from) {
     if (!state.session || state.replay) return;
     state.replay = matchId;
+    teardownTileArena();
     replayFrom = from;
     const el = $("#replay");
     el.innerHTML = `<div class="op-wait">Rebuilding the match\u2026</div><button type="button" class="rp-close" data-act="close-replay">Close replay</button>`;
@@ -10791,8 +11055,8 @@ gl_FragColor=vec4(col,1.);}`;
       replayFrame = document.createElement("iframe");
       replayFrame.title = "Match replay";
       replayFrame.addEventListener("load", () => {
-        var _a3;
-        (_a3 = el.querySelector(".op-wait")) == null ? void 0 : _a3.remove();
+        var _a4;
+        (_a4 = el.querySelector(".op-wait")) == null ? void 0 : _a4.remove();
         replayFrame == null ? void 0 : replayFrame.focus();
       }, { once: true });
       replayFrame.src = page.url + replayView(matchId);
@@ -10804,7 +11068,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function closeReplay() {
-    var _a3;
+    var _a4;
     const el = $("#replay");
     if (el.hidden) return;
     el.hidden = true;
@@ -10816,7 +11080,7 @@ gl_FragColor=vec4(col,1.);}`;
     liquid == null ? void 0 : liquid.refresh();
     drawLive();
     const id = replayFrom == null ? void 0 : replayFrom.dataset.match;
-    const act2 = (_a3 = replayFrom == null ? void 0 : replayFrom.dataset.act) != null ? _a3 : "replay";
+    const act2 = (_a4 = replayFrom == null ? void 0 : replayFrom.dataset.act) != null ? _a4 : "replay";
     const back = replayFrom && replayFrom.isConnected ? replayFrom : id ? document.querySelector(`#page [data-act="${CSS.escape(act2)}"][data-match="${CSS.escape(id)}"]`) : null;
     back == null ? void 0 : back.focus();
     replayFrom = null;
@@ -10828,8 +11092,8 @@ gl_FragColor=vec4(col,1.);}`;
     }
   });
   document.addEventListener("keydown", (e) => {
-    var _a3, _b, _c, _d;
-    const stop = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, '[data-act="play-style"]');
+    var _a4, _b, _c, _d;
+    const stop = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, '[data-act="play-style"]');
     if (!stop || !state.play || e.altKey || e.ctrlKey || e.metaKey) return;
     const ids = state.play.playStyles.map((x) => x.id);
     const next = dialKeyTarget(ids, (_c = stop.dataset.style) != null ? _c : "", e.key);
@@ -10844,8 +11108,8 @@ gl_FragColor=vec4(col,1.);}`;
     return act(fn, ok);
   }
   function focusAct(act2, key, value) {
-    var _a3;
-    (_a3 = document.querySelector(`[data-act="${act2}"][data-${key}="${CSS.escape(value)}"]`)) == null ? void 0 : _a3.focus();
+    var _a4;
+    (_a4 = document.querySelector(`[data-act="${act2}"][data-${key}="${CSS.escape(value)}"]`)) == null ? void 0 : _a4.focus();
   }
   async function act(fn, ok) {
     if (!state.session || state.busy) return;
@@ -10878,7 +11142,7 @@ gl_FragColor=vec4(col,1.);}`;
     schedulePoll();
   }
   document.addEventListener("click", (e) => {
-    var _a3, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+    var _a4, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
     const t = e.target;
     const off = t.closest('a[aria-disabled="true"]');
     if (off && !off.classList.contains("navb")) {
@@ -10908,7 +11172,7 @@ gl_FragColor=vec4(col,1.);}`;
         return;
       }
       if (act2 === "col-filter") {
-        state.colFilter = (_a3 = actEl.dataset.f) != null ? _a3 : "All";
+        state.colFilter = (_a4 = actEl.dataset.f) != null ? _a4 : "All";
         return drawPage();
       }
       if (act2 === "buy-packs") return void buyPacks(actEl.dataset.set, Number(actEl.dataset.count));
@@ -11013,8 +11277,8 @@ gl_FragColor=vec4(col,1.);}`;
     if (!t.closest("#acct-menu")) menu.hidden = true;
   });
   document.addEventListener("keydown", (e) => {
-    var _a3, _b, _c, _d, _e, _f, _g;
-    const tile = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, "#wgrid.editing .wg");
+    var _a4, _b, _c, _d, _e, _f, _g;
+    const tile = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, "#wgrid.editing .wg");
     if (tile && state.draft && e.target === tile) {
       const id = tile.dataset.id;
       const step2 = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
@@ -11041,8 +11305,8 @@ gl_FragColor=vec4(col,1.);}`;
     const ids = BACKGROUND_IDS;
     const next = ids[(ids.indexOf((_g = sw.dataset.bg) != null ? _g : "") + step + ids.length) % ids.length];
     void saveLook({ background: next }).then(() => {
-      var _a4;
-      return (_a4 = document.querySelector(`#bg-picker .sw[data-bg="${next}"]`)) == null ? void 0 : _a4.focus();
+      var _a5;
+      return (_a5 = document.querySelector(`#bg-picker .sw[data-bg="${next}"]`)) == null ? void 0 : _a5.focus();
     });
   });
   document.addEventListener("change", (e) => {
