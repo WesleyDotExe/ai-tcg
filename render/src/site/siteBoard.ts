@@ -433,7 +433,7 @@ export function packsView(p: SitePacks, credits: number): PacksView {
 /** What a waiting widget says it waits on (the game lane's "Not built yet"
  * list in OWNER_API.md), and what it will show. */
 export const WIDGET_WAITS: Partial<Record<WidgetType, { needs: string; will: string }>> = {
-  ladder: { needs: "the ladder", will: "Your rank and rating, and the top 8 around you." },
-  form: { needs: "ratings and stats", will: "Your rating, its weekly trend and your recent results." },
-  notif: { needs: "notifications", will: "Your alerts: matches, packs and the season." },
+  // Empty since render session 65: Ladder, Rating & form and Notifications
+  // draw the server's data (siteStanding.ts). Kept for a widget a later
+  // season adds before its data is served.
 };

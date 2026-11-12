@@ -64,6 +64,7 @@ import {
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
+import type { SiteLadder, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -122,7 +123,7 @@ const state: {
   draft: SiteWidget[] | null;
   saving: boolean;
   /** What the widgets read, each fetched only when a widget on the board needs it. */
-  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; live: SiteLive | null; history: SiteHistory | null; rating: SiteRating | null; errors: Partial<Record<WidgetSource, string>> };
+  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; live: SiteLive | null; history: SiteHistory | null; rating: SiteRating | null; ladder: SiteLadder | null; stats: SiteStats | null; notif: SiteNotifications | null; errors: Partial<Record<WidgetSource, string>> };
   colFilter: string;
   /** The Store page's own reads: the packs (with the daily pack), the store,
    * and the collection's recent openings. */
@@ -149,7 +150,7 @@ const state: {
   follow: { matchId: string; next: number; started: boolean; lines: string[] } | null;
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
-  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} }, colFilter: "All",
+  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} }, colFilter: "All",
   shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
   hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, speedBusy: false, replay: null, follow: null,
@@ -364,7 +365,7 @@ function signedOut(message: string): void {
   state.board = null;
   state.boardError = null;
   state.draft = null;
-  state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} };
+  state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} };
   state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
   closeReplay();
   clearTimeout(livePoll);
@@ -471,6 +472,10 @@ async function loadHome(only?: WidgetSource[]): Promise<void> {
     live: () => api.live(token),
     history: () => api.matches(token, 20),
     rating: () => api.rating(token, 20),
+    // Render session 65: the Ladder, Rating & form and Notifications widgets.
+    ladder: () => api.ladder(token, 100),
+    stats: () => api.stats(token, { days: 30, recent: 20 }),
+    notif: () => api.notifications(token, 20),
   };
   let signedOutNow = false;
   await Promise.all(
@@ -571,7 +576,7 @@ async function refresh(): Promise<void> {
     }
     drawAgentCard();
     if (!state.busy && !dragging) drawPage();
-    if (state.page === "home") void loadHome(["daily", "packs"]);
+    if (state.page === "home") void loadHome(["daily", "packs", "notif"]);
     if (state.page === "store" && !state.opening) void loadShop();
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
@@ -1106,7 +1111,7 @@ async function loadShop(): Promise<void> {
 /** After anything that changes packs or credits: the wallet, Home's
  * widgets and the Store page read again. */
 async function afterChange(): Promise<void> {
-  const reads: Promise<unknown>[] = [loadHome(["packs", "store", "collection"])];
+  const reads: Promise<unknown>[] = [loadHome(["packs", "store", "collection", "notif"])];
   // The Store's reads too, once it has been read: so coming back to it
   // never shows packs that were opened elsewhere (Home's Open, the top bar).
   if (state.page === "store" || state.shop.packs) reads.push(loadShop());
@@ -1192,6 +1197,23 @@ function pityText(p: SitePacks): string {
   const sure = [p.pity.next.fullArt ? "a Full Art or better" : "", p.pity.next.mythic ? "a Mythic" : ""].filter(Boolean);
   if (sure.length) return `Your next pack is sure to hold ${sure.join(" and ")}.`;
   return `${p.pity.packsSinceFullArt} pack${p.pity.packsSinceFullArt === 1 ? "" : "s"} since a Full Art · ${p.pity.packsSinceMythic} since a Mythic`;
+}
+
+/** The Notifications widget's "Mark all read" (render session 65): the
+ * server marks every unread one read (`POST /api/notifications/read`,
+ * `{ all: true }`), then the widget reads its page again. Showing them
+ * marks nothing read on its own (OWNER_API.md: the website marks what it
+ * showed; here, when the owner says so). */
+async function markAllRead(): Promise<void> {
+  if (!state.session) return;
+  try {
+    await api.markNotificationsRead(state.session.token, { all: true });
+  } catch (err) {
+    fail(err);
+  }
+  await loadHome(["notif"]);
+  // The button is gone once nothing is unread: keep focus in the widget.
+  document.querySelector<HTMLElement>('#wgrid .wg[data-type="notif"] .ntl a')?.focus();
 }
 
 async function claimDaily(): Promise<void> {
@@ -1843,7 +1865,7 @@ async function loadLive(): Promise<void> {
   if (wasMine && wasMine !== nowMine) {
     window.setTimeout(() => {
       void loadHistory(true);
-      if (state.page === "home") void loadHome(["history", "daily", "rating"]);
+      if (state.page === "home") void loadHome(["history", "daily", "rating", "ladder", "stats", "notif"]);
       void refresh();
     }, 1500);
   }
@@ -2305,6 +2327,7 @@ document.addEventListener("click", (e) => {
     if (act === "buy-cosmetic") return void buyCosmetic(actEl.dataset.item!, actEl.dataset.name ?? "this", Number(actEl.dataset.price));
     if (act === "open-packs") return void openPacks(actEl.dataset.pack ? { packId: actEl.dataset.pack } : { count: Number(actEl.dataset.count) === 10 ? 10 : 1 }, actEl);
     if (act === "claim-daily") return void claimDaily();
+    if (act === "notif-read") return void markAllRead();
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
     if (act === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });

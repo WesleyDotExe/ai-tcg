@@ -7,6 +7,43 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-12 — Ladder, Rating & form and Notifications at S, M and L (session 65) — AWAITING FEEDBACK (four small calls)
+
+The three widgets that still said "waits on the server" now draw the server's data, per the brief's rule for the
+rest ("apply the S/M/L principle using only data they already show"). Try it: `npm run site-demo -w @ai-tcg/render
+-- --ladder`, sign in as nova, Customise on Home, add the three and set each to S, M and L.
+
+**What you'll see:**
+- **Ladder.** S: a tier gem in the tier's colour, your rank ("#1 of 4"), your rating and a bar to the next tier.
+  M: + "45 to Diamond", your record and ±RD, and four rows around you (yours highlighted). L: + a column of every
+  tier with its floor (yours lit), the top 8, your neighbours when you're not in it, and a footnote on how the
+  ladder rates. In placement (your first 5 rated matches) there's no rank or number, only "2/5 placed".
+- **Rating & form.** S: the gem, your rating, the week's change ("−86 this week", green up, red down). M: + the
+  last 30 days as a line (a dot on each day you played, green for a winning day, red for a losing one; dashed lines
+  where it crosses a tier floor), the last ten results as W/L pips, your streak and best streak. L: + a bigger chart
+  with its scale, twenty pips, a win-rate ring, credits from matches, win rate per deck faction as bars, the last 4.
+- **Notifications.** S: a bell with the unread count and the latest one. M: + "24 unread", **Mark all read**, the
+  latest four (unread ones tinted with a dot). L: + unread counts per kind, the latest eight, and a big pull's cards
+  shown as cards. Each one links to its page (Store, Collection, Agent match). New ones arrive within 15 s.
+
+**Evidence:** `progress/render/evidence/widgets-check-s65.txt` (**38 PASS, 0 FAIL**, the real owner API with the
+ladder playing; the first run's 3 overflow fails kept in `widgets-check-s65-first-run.txt`), stills
+`v2-s65-widgets-S/M/L.jpg`, `-L-dark`, `-phone`, `-notif-read`. Render tests 972 (+13); CI browser check 61 PASS.
+
+**Small calls (kept as built unless you say otherwise):**
+1. **Showing notifications doesn't mark them read; only Mark all read does.** The server leaves it to the website;
+   marking on sight would clear the badge before you'd looked. The bell (item 1, not built yet) could mark what its
+   panel shows when opened.
+2. **Ladder M shows four rows around you, one line each** (agent name only; the owner names show at L), to fit M
+   without scrolling.
+3. **A streak of one shows "No streak"**, as My agent already does.
+4. **The Rating & form chart reads the ladder too** (for the tier floors it draws); without it, the chart draws
+   plain.
+
+**Next:** the game lane's turn; then Daily rewards, Watch live at L, Showcase and Collection.
+
+---
+
 ## 2026-11-12 — Render hardening pass (session 64) — AWAITING FEEDBACK (two small calls)
 
 No new features. The two checks that had gone stale by design (the website's Store check from session 47 and the

@@ -63,10 +63,11 @@ describe("the widget catalogue", () => {
     const tall = WIDGET_TYPES.filter((t) => sizeClass({ type: t, size: "L" }) === "sz-Lt");
     expect(tall.sort()).toEqual(["daily", "history", "ladder", "notif"]);
   });
-  it("every widget with a page opens it; the waiting widgets each say what they wait on", () => {
+  it("every widget with a page opens it; no widget waits on the server any more", () => {
     for (const t of WIDGET_TYPES) if (t !== "notif") expect(WIDGET_INFO[t].page, t).not.toBeNull();
     // Session 50: Live match, Watch live and Match history draw the server's matches.
-    expect(Object.keys(WIDGET_WAITS).sort()).toEqual(["form", "ladder", "notif"]);
+    // Render session 65: Ladder, Rating & form and Notifications draw theirs.
+    expect(Object.keys(WIDGET_WAITS)).toEqual([]);
   });
 });
 
@@ -349,7 +350,8 @@ describe("what the widgets show", () => {
   it("the page reads only what the board's widgets need at their sizes", () => {
     expect(sourcesFor([])).toEqual([]);
     // Render session 57: My agent at M reads the rating and the history too.
-    expect(sourcesFor(recommendedWidgets(RULES))).toEqual(["collection", "daily", "history", "live", "packs", "rating"]);
+    // Render session 65: the recommended board's Ladder and Rating & form read theirs.
+    expect(sourcesFor(recommendedWidgets(RULES))).toEqual(["collection", "daily", "history", "ladder", "live", "packs", "rating", "stats"]);
     expect(sourcesOf(W("w", "agent", "S"))).toEqual(["rating"]);
     expect(sourcesOf(W("w", "live", "S"))).toEqual([]);
     expect(sourcesOf(W("w", "live", "L"))).toEqual(["history", "live"]);
@@ -357,7 +359,10 @@ describe("what the widgets show", () => {
     expect(sourcesOf(W("w", "watch", "S"))).toEqual(["live"]);
     expect(sourcesOf(W("w", "store", "L"))).toEqual(["packs", "store"]);
     expect(sourcesOf(W("w", "packs", "L"))).toContain("collection");
-    expect(sourcesFor([W("a", "ladder"), W("b", "notif")])).toEqual([]);
+    expect(sourcesFor([W("a", "ladder"), W("b", "notif")])).toEqual(["ladder", "notif"]);
+    expect(sourcesOf(W("w", "form", "S"))).toEqual(["stats"]);
+    expect(sourcesOf(W("w", "form", "M"))).toEqual(["ladder", "stats"]);
+    expect(sourcesOf(W("w", "notif", "L"))).toEqual(["collection", "notif"]);
   });
 });
 

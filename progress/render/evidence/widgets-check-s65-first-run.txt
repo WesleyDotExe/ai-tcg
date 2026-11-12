@@ -1,0 +1,52 @@
+
+[A] the three widgets at S, M and L
+PASS  S. the board saved with Ladder, Rating & form and Notifications at S
+      S: {"ladder":{"rank":"#1","of":"of 4","rating":"1756","tier":"Platinum","badge":"Platinum tier","bar":true,"rows":0,"you":0,"tiers":0,"tierOn":null,"line":null,"over":0},"form":{"rating":"1756","week":"−86","chart":false,"dots":0,"pips":0,"ring":null,"fbars":0,"rec":0,"over":0},"notif":{"badge":"24","items":0,"unreadItems":0,"mark":false,"kinds":0,"cards":0,"first":"Your free daily pack is waiting","over":0},"waits":0}
+PASS  S. no widget says it waits on the server
+PASS  S. Ladder: #1 1756 Platinum (GET /api/ladder: rank 1, 1755.5, Platinum, 23 rated)
+PASS  S. Rating & form: 1756, −86 this week (GET /api/stats: 1755.5, a week ago 1842.0)
+PASS  S. Notifications: the badge 24 (GET /api/notifications: 24 unread)
+PASS  M. the board saved with Ladder, Rating & form and Notifications at M
+      M: {"ladder":{"rank":"#1","of":"of 4","rating":"1756","tier":"Platinum","badge":"Platinum tier","bar":true,"rows":4,"you":1,"tiers":0,"tierOn":null,"line":"45 to Diamond","over":44},"form":{"rating":"1756","week":"−86","chart":true,"dots":15,"pips":10,"ring":null,"fbars":0,"rec":0,"over":0},"notif":{"badge":"24","items":4,"unreadItems":4,"mark":true,"kinds":0,"cards":0,"first":"Your free daily pack is waiting","over":4},"waits":0}
+PASS  M. no widget says it waits on the server
+PASS  M. Ladder: #1 1756 Platinum (GET /api/ladder: rank 1, 1755.5, Platinum, 23 rated)
+PASS  M. Rating & form: 1756, −86 this week (GET /api/stats: 1755.5, a week ago 1842.0)
+PASS  M. Notifications: the badge 24 (GET /api/notifications: 24 unread)
+PASS  L. the board saved with Ladder, Rating & form and Notifications at L
+      L: {"ladder":{"rank":"#1","of":"of 4","rating":"1756","tier":"Platinum","badge":"Platinum tier","bar":true,"rows":4,"you":1,"tiers":7,"tierOn":"Platinum","line":"45 to Diamond","over":0},"form":{"rating":"1756","week":"−86","chart":true,"dots":15,"pips":20,"ring":"91% of 23 decided matches won","fbars":4,"rec":6,"over":35},"notif":{"badge":"24","items":10,"unreadItems":10,"mark":true,"kinds":4,"cards":0,"first":"Your free daily pack is waiting","over":49},"waits":0}
+PASS  L. no widget says it waits on the server
+PASS  L. Ladder: #1 1756 Platinum (GET /api/ladder: rank 1, 1755.5, Platinum, 23 rated)
+PASS  L. Rating & form: 1756, −86 this week (GET /api/stats: 1755.5, a week ago 1842.0)
+PASS  L. Notifications: the badge 24 (GET /api/notifications: 24 unread)
+PASS  A. Ladder S: badge, rank, rating, bar; M: + 4 rows around you (yours marked); L: + the 7 tiers (Platinum lit) and 4 rows
+PASS  A. Ladder M: the rows are the server's standings around you (4 on the list, you on it)
+PASS  A. Rating & form S: rating and week; M: + chart and 10 pips; L: + 15 rated days on the chart (server: 15), the ring "91% of 23 decided matches won", 4 faction bars, 6 recent
+PASS  A. Notifications S: bell and latest; M: 4 items; L: 10 items and the 4 kinds
+PASS  A. the unread items are the server's unread (10)
+PASS  A. Notifications L draws each big pull's cards (0; server: 0)
+FAIL  A. nothing overflows its widget (ladder/form/notif px: S 0/0/0, M 44/0/4, L 0/35/49)
+
+[B] Mark all read
+PASS  B. 24 unread: the widget offers Mark all read
+PASS  B. after it: the server's unread 0, no badge, no button, no unread item
+PASS  B. focus stays inside the Notifications widget
+
+[C] a match finishing reaches the widgets without a reload; placed after 5
+PASS  C. the ladder wrote a new notification for Nova
+PASS  C. it reached the widget without a reload: badge 1 (server 1 unread), latest "Lost vs Static Widow"
+      placed: {"rank":"#1","of":"of 4","rating":"1670","tier":"Platinum","badge":"Platinum tier","bar":true,"rows":4,"you":1,"tiers":7,"tierOn":"Platinum","line":"131 to Diamond","over":0}
+PASS  C. no widget says it waits on the server
+PASS  C. Ladder: #1 1670 Platinum (GET /api/ladder: rank 1, 1669.8, Platinum, 24 rated)
+PASS  C. Rating & form: 1670, −172 this week (GET /api/stats: 1669.8, a week ago 1842.0)
+PASS  C. Notifications: the badge 1 (GET /api/notifications: 1 unread)
+PASS  C. placed: the Ladder shows #1 of 4 in Platinum, the server's
+FAIL  C. placed, nothing overflows (0/35/49 px)
+PASS  C. placed at S: rank #1, nothing overflows (0/0/0 px)
+FAIL  C. placed at M: rank #1, nothing overflows (44/0/4 px)
+
+[D] dark, phone
+PASS  D. on a phone: no sideways scroll (390 <= 390)
+PASS  D. no external requests
+PASS  D. no page errors
+
+35 PASS, 3 FAIL
