@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-12, game session 87 (a spare session: a round's whole-history read into SQL; the live feed sized);
-before that render session 64 (the render hardening pass: stale checks rewritten, a Skip bug fixed).
+Updated 2026-11-12, game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -165,6 +165,10 @@ new ideas go to `progress/season-1-ideas.md`.
      its last two opponents: 1.8 s a round at Season 0's end, refused by SQLite past 32,766 matches. Now
      `store.recentOpponents` (~5 ms a round). Evidence `progress/ladder-scale-001.txt` (a record); the live feed
      sized, no cap needed for Season 0 (`progress/live-feed-size-001.txt`, CI demo set).
+   - [x] Spare session 88 (item 7): the rest of session 87's scale gaps measured on a season-size file
+     (`progress/season-scale-001.txt`, a record): recording a real match ~5 ms, Stats ~60 ms, the ladder ~30 ms,
+     the season end and next season's file under 0.2 s, at Season 0's end; disk ~150 MB over the 7 days. Nothing
+     needed a fix for Season 0 (an owner index tried, no gain, not added); the slow demo set re-run.
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
