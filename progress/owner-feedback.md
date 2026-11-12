@@ -4682,3 +4682,16 @@ Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #15
 4. **Keep:** on a phone the free pack sits on its own line, the ten wins in one row under it, and the "no quests in Season 0" footnote is hidden.
 
 Next session by alternation: game. Next render slice, as planned: Watch live at L, completing the widgets' S/M/L pass.
+
+---
+
+## 2026-11-12 — Owner: for the next game session, first: the daily-earnings order mismatch (render session 66's note)
+
+Render session 66 noted (in `progress/render/notes-for-owner.md`) that `GET /api/daily` numbers the day's wins by when each match ended, but pays them in the order they were recorded. In the demo's clock-jump warm-up the two disagreed. The owner wants it addressed even though it is small; it is a bug fix, so it fits the feature freeze.
+
+**In the next game session, first:**
+1. **Find out whether it can happen in real play,** not only in the demo (for example two matches ending close together, or recorded out of their end order on the live ladder), and say which in `progress/notes-for-owner.md`.
+2. **Either way, make the numbering and the payout use the same order** (one rule for both), so a win's place in the day's schedule always matches what it was paid. Add a test that fails on today's code, and re-run the affected demos.
+3. Tell the render lane in the notes once it's fixed, so it can drop its note.
+
+Then continue as planned.
