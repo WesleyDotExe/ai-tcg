@@ -4636,3 +4636,12 @@ Owner decisions on the 2 small calls in `progress/render/checkpoints.md` (PR #15
 2. **Keep:** the claimed daily tile reads "Claimed today · the next in hh:mm:ss" on the head's ticking clock, without "(midnight Sydney)", since the head says it once already.
 
 Next session by alternation: game. Next render slice, as planned: the rest of the widgets' S/M/L pass.
+
+---
+
+## 2026-11-12 — Owner: answer to game session 87 (a spare session: the ladder round's history read), keep the call
+
+Owner decision on the small call in `progress/notes-for-owner.md` (PR #154, `progress/ladder-scale-001.txt`, `progress/live-feed-size-001.txt`).
+1. **Keep:** no live-feed cap for Season 0. The numbers stay in `progress/quality-debt.md` for launch scale.
+
+Next session by alternation: render (the rest of the widgets' S/M/L pass).
