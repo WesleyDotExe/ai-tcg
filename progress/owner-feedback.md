@@ -4659,3 +4659,12 @@ Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #15
 4. **Keep:** the Rating & form chart reads the ladder too, for the tier floors; without it, the chart draws plain.
 
 Next session by alternation: game. Next render slice, as planned: Daily rewards, Watch live at L, Showcase and Collection.
+
+---
+
+## 2026-11-12 — Owner: answer to game session 88 (a spare session: the season-scale reads measured), keep the call
+
+Owner decision on the small call in `progress/notes-for-owner.md` (PR #156, `progress/season-scale-001.txt`).
+1. **Keep:** match logs and replays are kept forever in Season 0 (about 0.9 GB a season, fine on the Mac mini). A clean-up rule (e.g. keep replays, drop text logs after N days) comes at launch scale.
+
+Next session by alternation: render (Daily rewards, Watch live at L, Showcase and Collection).
