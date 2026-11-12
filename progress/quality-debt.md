@@ -262,6 +262,28 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 87 (a spare session: the round's whole-history read; no schema change): what was raised, and what is still thin
+
+- **Raised: a ladder round no longer reads every owner's whole history.** `startRound` took each owner's last two
+  opponents from `matchHistory({ ownerId })` (every record, with its ratings, loadouts and boasts). Measured with
+  the eight house agents in every round (`progress/ladder-scale-001.txt`): 1.8 s a round at Season 0's end
+  (~6,300 matches each), 4.0 s at twice that, the whole server blocked meanwhile; refused by SQLite past 32,766
+  matches for one owner (one `IN (...)` value per match), which would have stopped the pairing. Now
+  `store.recentOpponents`: ~5 ms a round at any size. Tested against the old read (3 tests, checked to bite).
+- **Measured, not changed: the live feed's size** (`progress/live-feed-size-001.txt`, CI demo). A page opened on a
+  match's last move reads ~180 KB (median), ~305 KB (max) at once; a poll is a move or two, under 5 KB. Fine for Season 0.
+  A cap is still owed at launch scale, and it is a two-lane change: the website's first read builds the arena from
+  the first move, so it would have to loop until it has everything.
+- **Still thin: only the round's start was measured at scale.** Recording a match stayed ~3 ms at every size here
+  (the "history written" lines), but `recordPlayed` through the live ladder (the payouts, notifications, the daily
+  tally, the replay file) wasn't timed at a season's history, nor `GET /api/stats` past 5,000 (30 ms, linear), nor
+  the season end's standings at 6,300 matches per owner. The clean-up dry run (2-4 Dec) runs on a fresh file, so it
+  won't see any of this either; a seeded season-size file for the dry run would.
+- **Still thin: the measure writes the history with `recordMatch`, not real matches.** Faster to build, and the
+  pairing only reads owners, times and order; a real season's rows are the same shape.
+- **Still thin: `matchHistory()` unfiltered and `stats()`** (session 86's entries, unchanged). No code outside the
+  dev demos calls `matchHistory()` now except `matchById` (one row).
+
 ## Session 86 (the game lane's hardening pass; no schema change): what was raised, and what is still thin
 
 - **Raised: one process per season file** (owner 2026-11-11, answer 4). `<file>.lock` held by `npm run season`,
@@ -610,8 +632,9 @@ real, but here is where it's thin.
   floor, not a replay. Not designed yet.
 - ~~**`GET /api/matches` pages the owner's whole history in memory**~~ (session 86: one page by SQL, ~70 ms -> ~2 ms
   at a season), and `GET /api/live/:id` copies every
-  released step from `from` on. Fine for Season 0's handful of owners; both need SQL paging / a size cap before
-  launch scale.
+  released step from `from` on (measured session 87: ~180 KB median, ~305 KB max for a page opened on a match's last
+  move; `progress/live-feed-size-001.txt`). Fine for Season 0's handful of owners; the cap is for launch scale, and
+  needs the website's first read to loop.
 - **Logs and replays live in a directory beside the database**, not in it: a backup of the `.db` alone loses
   them, and nothing cleans them up. Each replay is about 20-40 KB.
 - ~~**A replay needs this engine's cards.**~~ Session 70: an `/2` file carries its cards, an `/1` file reads the

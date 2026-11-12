@@ -4616,7 +4616,7 @@ Next session by alternation: game (session 86, the hardening pass, the lock file
 
 ---
 
-## 2026-11-12 — Owner: answers to game session 86 (the hardening pass: the season-file lock), keep all 3
+## 2026-11-12 — Owner: answers to game session 86 (the hardening pass: the season-file lock), keep all 3 (HANDLED 2026-11-12, game session 87 — calls 1-3 stand unchanged; call 3 (stop with Ctrl-C) stays in the clean-up switch steps. The early dry run was left alone, not decided, as said: it stays in clean-up)
 
 Owner decisions on the 3 small calls in `progress/notes-for-owner.md` (PR #152, `progress/season-lock-001.txt`).
 1. **Keep:** a second server on the same season file is refused too, not only `season:next`.

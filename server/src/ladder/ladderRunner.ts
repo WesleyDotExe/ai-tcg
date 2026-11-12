@@ -230,13 +230,11 @@ export class Ladder {
   }
 
   /** Last opponents of an owner, most recent first, from match history
-   * (so a restart remembers them). */
+   * (so a restart remembers them). (Session 87) Read by SQL, two rows: the
+   * whole history's last two cost ~1.8 s of every round at Season 0's end
+   * (progress/ladder-scale-001.txt). */
   private recentOpponents(ownerId: string): string[] {
-    return this.store
-      .matchHistory({ ownerId })
-      .slice(-2)
-      .reverse()
-      .map((m) => (m.p1OwnerId === ownerId ? m.p2OwnerId : m.p1OwnerId));
+    return this.store.recentOpponents(ownerId, 2);
   }
 
   private emit(e: LadderEvent): void {

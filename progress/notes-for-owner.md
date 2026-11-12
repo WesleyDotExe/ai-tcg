@@ -1,5 +1,25 @@
 # Notes for the owner
 
+**Updated 2026-11-12, session 87 (game lane; a spare session).** Nothing is blocking. Lane: the last merged PR,
+#153, was "Render:", so this is a game session; no PR was open. Your answers to session 86: all 3 stand; the early
+dry run stays in clean-up, as you left it undecided.
+
+**What I did (no new feature; the quality-debt list):**
+- **Found and fixed a slowdown that would have grown through Season 0.** Before each round, the ladder looked up
+  every owner's last two opponents by loading that owner's entire match history. Measured with the eight house
+  agents (`progress/ladder-scale-001.txt`): about 0.6 s a round two weeks in, **1.8 s a round by Season 0's end**,
+  4 s by the end of Season 1 (the history carries over), with the whole server (Watch live, every page) stalled for
+  that time. Past about 33,000 matches for one owner the lookup would have failed outright and stopped the ladder.
+  It now reads just the two rows it needs: ~5 ms a round at any size.
+- **Measured the live feed's size** (`progress/live-feed-size-001.txt`): a page opened late in a match downloads
+  ~180 KB (at most ~305 KB) once, then a few KB every few seconds. No cap needed for Season 0.
+
+**Small calls you may want to overrule:**
+1. **No live-feed cap for Season 0.** A cap means the website's first read must loop, a change to both lanes; I left
+   it for launch scale, with the numbers written down.
+
+---
+
 **Updated 2026-11-11, session 86 (game lane; the hardening pass).** Nothing is blocking. Lane: the last merged PR,
 #151, was "Render:", so this is a game session; no game PR was open. Your answers to session 85: calls 1-3 stand;
 answer 4 (the lock file) is built.

@@ -5005,6 +5005,29 @@ export class EconomyStore {
     return { matches: this.matchRecords(rows.slice(0, limit)), total, more };
   }
 
+  /**
+   * (session 87) The owners an owner last played, most recent first, at
+   * most `count`: the ladder's pairing reads it every round ("not the same
+   * opponent again"). By SQL on the same order as `matchHistory` (ended_at,
+   * then the order recorded), every outcome counted, as before. It used to
+   * be the whole history's last two: ~240 ms an owner a round at a season's
+   * ~6,300 matches, and refused by SQLite past 32,766 matches
+   * (progress/ladder-scale-001.txt).
+   */
+  recentOpponents(ownerId: string, count: number): string[] {
+    if (!Number.isInteger(count) || count < 0) throw new EconomyError(`a count of opponents is a whole number, got ${count}`);
+    if (count === 0) return [];
+    // Each seat read newest first down its own (owner, ended_at) index and
+    // cut to `count`, then merged: a few index steps however long the
+    // history is (an OR over both seats scans every match). An owner never
+    // sits in both seats of one match (recordMatch refuses it).
+    const seat = (col: string) => `SELECT * FROM (SELECT p1_owner, p2_owner, ended_at, rowid AS rid FROM matches WHERE ${col} = :o ORDER BY ended_at DESC, rowid DESC LIMIT :n)`;
+    const rows = this.db
+      .prepare(`${seat("p1_owner")} UNION ALL ${seat("p2_owner")} ORDER BY ended_at DESC, rid DESC LIMIT :n`)
+      .all({ o: ownerId, n: count }) as Row[];
+    return rows.map((r) => (str(r.p1_owner) === ownerId ? str(r.p2_owner) : str(r.p1_owner)));
+  }
+
   /** Match rows (SELECT * FROM matches) as records, in the rows' order. */
   private matchRecords(rows: Row[]): MatchRecord[] {
     const loadouts = new Map<string, { p1: Loadout; p2: Loadout }>();

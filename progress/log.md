@@ -5141,3 +5141,43 @@ with the real commands). Marked handled. Every 5th game session is a hardening p
 **Thin:** in quality-debt.md: the process-id trust, tsx's force-kill on a relayed stop, `stats()` still linear,
 unfiltered `matchHistory()`.
 **Blocked:** nothing.
+
+
+## 2026-11-12 — Session 87 (game lane): the ladder's round no longer reads every owner's whole history (no schema change)
+
+**Lane:** the last merged PR, #153, was "Render:", so this is a game session. No PR from either lane was open.
+Owner feedback: the answers to session 86 (keep all 3; the early dry run not decided, so left in clean-up). Marked
+handled. A spare session (checklist item 7: the quality-debt list), inside the feature freeze: no new feature.
+
+**What:**
+1. **Measured the two candidates current.md named, before changing anything.**
+   - *The live feed's size* (`server/src/dev/liveFeedSizeMeasure.ts`, `progress/live-feed-size-001.txt`, a CI demo:
+     fixed seeds, ~9 s): 100 real ladder matches. A page opened on a match's last move reads the whole match at
+     once: median ~180 KB, max ~305 KB; a poll is a move or two (under 5 KB). Fine for Season 0 on one machine. A cap
+     would make the website's first read loop (it builds the arena from the first move), a change to both lanes:
+     left for launch scale, now with the number in quality-debt.md.
+   - *A ladder round at a season's history* (`server/src/dev/ladderScaleMeasure.ts`, `progress/ladder-scale-001.txt`,
+     a record). This found the real problem: `startRound` asked each owner's last two opponents by loading its whole
+     match history (every record, its ratings, loadouts and boasts) and keeping two. With the eight house agents
+     playing every round: 42 ms at 150 matches each, 629 ms at 2,500, **1.8 s at 6,300 (Season 0's end)**, 4.0 s at
+     12,600 (history carries into Season 1, owner 2026-11-10). That 1.8 s blocks the whole server (the live
+     release, every owner API read) once a round. And past 32,766 matches for one owner the read is refused by
+     SQLite (too many `IN (...)` values), which would stop the ladder pairing at all.
+2. **The fix:** `store.recentOpponents(ownerId, count)`, two index-ordered reads (one per seat, down the existing
+   `(owner, ended_at)` indexes, each cut to `count`) merged; the same order as before (ended_at, then the order
+   recorded). The ladder calls it. `startRound` at 6,300: ~1.8 s -> ~5 ms; at 33,000 the new read is ~0.1 ms.
+
+**Ran it:**
+- `economy/test/matchHistoryPage.test.ts`: 3 new tests. The new read equals the old whole-history read for every
+  owner, after every match of nine history lengths, at counts 1-3 (ties in `ended_at`, both seats, every outcome);
+  newest first at a tie; empty and refused counts. Checked they bite: flipping the tie-break makes 2 of them fail.
+- `progress/ladder-scale-001.txt`: the after run (all six levels, up to 33,000 matches per owner, where the old
+  read is refused and the new one is ~0.1 ms); the before run's startRound lines are copied into the file's end.
+- The measure's first full run died at the 33,000 level on its own counter (it used the old whole-history read:
+  "too many SQL variables", the very refusal), which confirmed the limit; the counter now counts rounds.
+- `npm test`: engine 372, economy 292, server 203, render 959, agents 17, protocol 7, all pass. Typecheck clean in
+  every workspace. `npm run demos`: 31 demos (live-feed-size-001 new), 0 stale; it reproduces byte for byte.
+
+**Worked:** measuring first turned a "size cap" chore into a real fix for the 7-day unattended run.
+**Thin:** in quality-debt.md.
+**Blocked:** nothing.

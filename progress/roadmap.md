@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-12, render session 64 (the render hardening pass: stale checks rewritten, a Skip bug fixed);
-before that game session 86 (the hardening pass: the season-file lock; two reads into SQL).
+Updated 2026-11-12, game session 87 (a spare session: a round's whole-history read into SQL; the live feed sized);
+before that render session 64 (the render hardening pass: stale checks rewritten, a Skip bug fixed).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -161,6 +161,10 @@ new ideas go to `progress/season-1-ideas.md`.
      (`server/src/seasonLock.ts`). Evidence `progress/season-lock-001.txt` (16 PASS, real commands, CI demo set).
      Same session: `GET /api/matches` pages by SQL and `ownerStats` counts four columns (~70 ms -> ~2 ms at a
      season's 2,500 matches; `progress/stats-scale-001.txt`). The switch steps (clean-up) say: stop with Ctrl-C.
+   - [x] Spare session 87 (item 7, the quality-debt list): a ladder round read every owner's whole history for
+     its last two opponents: 1.8 s a round at Season 0's end, refused by SQLite past 32,766 matches. Now
+     `store.recentOpponents` (~5 ms a round). Evidence `progress/ladder-scale-001.txt` (a record); the live feed
+     sized, no cap needed for Season 0 (`progress/live-feed-size-001.txt`, CI demo set).
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
