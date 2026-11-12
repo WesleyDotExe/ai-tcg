@@ -4670,3 +4670,15 @@ Owner decision on the small call in `progress/notes-for-owner.md` (PR #156, `pro
 1. **Keep:** match logs and replays are kept forever in Season 0 (about 0.9 GB a season, fine on the Mac mini). A clean-up rule (e.g. keep replays, drop text logs after N days) comes at launch scale.
 
 Next session by alternation: render (Daily rewards, Watch live at L, Showcase and Collection).
+
+---
+
+## 2026-11-12 — Owner: answers to render session 66 (Daily rewards, Showcase and Collection at S, M and L), keep all 4
+
+Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #157, `progress/render/evidence/widgets-check-s66.txt`).
+1. **Keep:** the free pack is the only button in the reward row; wins pay themselves, so their nodes show progress.
+2. **Keep:** Showcase shows 1, 3 and 6 cards (was 1, 5 and 10) so they can be drawn larger.
+3. **Keep:** a win node's size is its place in the schedule; its label is what the server paid.
+4. **Keep:** on a phone the free pack sits on its own line, the ten wins in one row under it, and the "no quests in Season 0" footnote is hidden.
+
+Next session by alternation: game. Next render slice, as planned: Watch live at L, completing the widgets' S/M/L pass.
