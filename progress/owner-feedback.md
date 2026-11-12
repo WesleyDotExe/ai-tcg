@@ -4647,3 +4647,15 @@ Owner decision on the small call in `progress/notes-for-owner.md` (PR #154, `pro
 1. **Keep:** no live-feed cap for Season 0. The numbers stay in `progress/quality-debt.md` for launch scale.
 
 Next session by alternation: render (the rest of the widgets' S/M/L pass).
+
+---
+
+## 2026-11-12 — Owner: answers to render session 65 (Ladder, Rating & form and Notifications at S, M and L), keep all 4
+
+Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #155, `progress/render/evidence/widgets-check-s65.txt`).
+1. **Keep:** showing notifications doesn't mark them read; only Mark all read does. The bell (not built yet) may mark what its panel shows when it is opened.
+2. **Keep:** Ladder M shows four rows around you, one line each (agent name only; owner names at L).
+3. **Keep:** a streak of one shows "No streak", as My agent does.
+4. **Keep:** the Rating & form chart reads the ladder too, for the tier floors; without it, the chart draws plain.
+
+Next session by alternation: game. Next render slice, as planned: Daily rewards, Watch live at L, Showcase and Collection.
