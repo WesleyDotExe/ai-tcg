@@ -4626,3 +4626,13 @@ Owner decisions on the 3 small calls in `progress/notes-for-owner.md` (PR #152, 
 **Not decided:** an early Season 0 dry run in a spare game session (including restarting the Mac mini and checking the server comes back, takes over its lock and carries on). Suggested to the owner; no decision yet, so don't act on it. The dry run stays in clean-up (2–4 December) as planned.
 
 Next session by alternation: render (session 64, the render hardening pass).
+
+---
+
+## 2026-11-12 — Owner: answers to render session 64 (the render hardening pass), keep both calls
+
+Owner decisions on the 2 small calls in `progress/render/checkpoints.md` (PR #153, `progress/render/evidence/pack-bulk-check-s64.txt`, `site-check-s64.txt`).
+1. **Keep:** Skip ahead pressed during a pack's tear carries on with that pack if it holds a stop (it deals and stops as usual), then skips only the plain packs after it.
+2. **Keep:** the claimed daily tile reads "Claimed today · the next in hh:mm:ss" on the head's ticking clock, without "(midnight Sydney)", since the head says it once already.
+
+Next session by alternation: game. Next render slice, as planned: the rest of the widgets' S/M/L pass.
