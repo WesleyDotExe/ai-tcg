@@ -5181,3 +5181,30 @@ handled. A spare session (checklist item 7: the quality-debt list), inside the f
 **Worked:** measuring first turned a "size cap" chore into a real fix for the 7-day unattended run.
 **Thin:** in quality-debt.md.
 **Blocked:** nothing.
+
+
+## 2026-11-12 — Session 88 (game lane): the rest of the season-scale reads measured; the slow demos re-run (no code or schema change)
+
+**Lane:** the last merged PR, #155, was "Render:", so this is a game session. No PR from either lane was open.
+Owner feedback: the answer to session 87 (no live-feed cap for Season 0) already marked handled; render 65's
+answers are the render lane's. A spare session (checklist item 7), inside the feature freeze: no new feature.
+
+**What:**
+1. **Measured session 87's remaining scale gaps** (`server/src/dev/seasonScaleMeasure.ts`,
+   `progress/season-scale-001.txt`, a record). Seven house owners and a player owner on auto-play, history to
+   150 / 2,500 / 6,300 / 12,600 matches each, then one real round per level through the server's Ladder. At
+   Season 0's end: `recordPlayed` ~5 ms (flat), `stats` ~60 ms, `ladder` ~22-38 ms, `ratingHistory` ~12 ms,
+   notifications ~3 ms, `endSeason` ~30-45 ms, `startNextSeason` ~140 ms (flat). The website's 15 s poll reads
+   daily, packs and notifications only (`render/src/site/siteClient.ts` `refresh`), so the linear reads cost once
+   per page view: nothing to fix for Season 0. Disk: the file ~36 MB, ~37 KB of log and replay files per real
+   match (~150 MB over the 7 days).
+2. **Tried an owner index on `match_ratings`** (the Stats and rating-history reads scan the table): no gain at
+   eight owners (each is a quarter of the rows). Not added; noted for launch scale.
+3. **Ran the slow demo set**: 014 and 016 same; 011 stale only on "schema v27" -> "v28" (since session 84),
+   regenerated.
+
+**Ran it:** the measure (2.5 min); `npm test`: engine 372, economy 292, server 203, render 972, agents 17,
+protocol 7, all pass; server typecheck clean; `npm run demos`: 31, 0 stale; the slow three: 0 stale after 011.
+**Worked:** measuring first again, and this time it showed there was nothing to fix, so I didn't change anything.
+**Thin:** in quality-debt.md (linear reads at launch scale; nothing prunes the log files).
+**Blocked:** nothing.
