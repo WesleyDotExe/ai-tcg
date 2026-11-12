@@ -18,6 +18,7 @@
 
 import type { SiteBinder, SiteCopy, SiteDeckShortfall, SiteHoldings, SiteSalvagePlan } from "./siteCollection.js";
 import type { BulkOpening, PackOpening } from "@ai-tcg/economy";
+import type { SiteLadder, SiteNotifications, SiteStats } from "./siteStanding.js";
 import type { SiteCosmeticItem, SiteLoadout, SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { SiteRating } from "./siteAgent.js";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
@@ -394,6 +395,13 @@ export interface SiteApi {
   /** `GET /api/rating?recent=N` (game session 66): the caller's rating and
    * its recent changes, newest first (render session 57: My agent). */
   rating(token: string, recent?: number): Promise<SiteRating>;
+  /** Render session 65: the Ladder, Rating & form and Notifications widgets.
+   * `GET /api/ladder` (game 66), `GET /api/stats` (game 78),
+   * `GET /api/notifications` and `POST /api/notifications/read` (game 77). */
+  ladder(token: string, limit?: number): Promise<SiteLadder>;
+  stats(token: string, opts?: { days?: number; recent?: number }): Promise<SiteStats>;
+  notifications(token: string, limit?: number): Promise<SiteNotifications>;
+  markNotificationsRead(token: string, what: { all: true } | { ids: number[] }): Promise<unknown>;
   live(token: string): Promise<SiteLive>;
   /** `GET /api/live/:matchId?from=N`: the match now and the moves released from N on. */
   liveFeed(token: string, matchId: string, from: number): Promise<SiteLiveFeed>;
@@ -519,6 +527,13 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     setAutoPlay: (token, on, minutes) => call("PUT", "/api/play/auto-play", { token, body: minutes ? { on, minutes } : { on } }),
     addPlayTime: (token, minutes) => call("POST", "/api/play/auto-play/time", { token, body: { minutes } }),
     rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
+    ladder: (token, limit) => call("GET", `/api/ladder${limit ? `?limit=${limit}` : ""}`, { token }),
+    stats: (token, opts = {}) => {
+      const q = [opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
+      return call("GET", `/api/stats${q ? `?${q}` : ""}`, { token });
+    },
+    notifications: (token, limit) => call("GET", `/api/notifications${limit ? `?limit=${limit}` : ""}`, { token }),
+    markNotificationsRead: (token, what) => call("POST", "/api/notifications/read", { token, body: what }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
     setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),

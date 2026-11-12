@@ -448,6 +448,62 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .dsw-o i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 2px var(--c); } .dsw-o.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); } .dsw-o.on i { background: var(--c); }
 .dsw-o span { display: flex; flex-direction: column; min-width: 0; } .dsw-o small { opacity: .75; font-size: 11.5px; } .dsw-o[disabled] { opacity: .5; cursor: default; }
 @media (prefers-reduced-motion: reduce) { .tring .tr-fg, .dn-face i { transition: none; } .tring.t-finish .tr-bg { animation: none; } }
+/* Render session 65: Ladder, Rating & form and Notifications on the server's data (siteStanding.ts). */
+.tbadge { position: relative; flex: none; display: inline-grid; place-items: center; width: var(--s); height: var(--s); filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--t) 45%, transparent)); }
+.tbadge .tb-o { fill: color-mix(in srgb, var(--t) 70%, #10142e); } .tbadge .tb-i { fill: var(--t); } .tbadge .tb-h { fill: rgba(255,255,255,.42); }
+.tbadge.plc { filter: none; } .tbadge.plc .tb-o { fill: transparent; stroke: var(--t); stroke-width: 1.6; stroke-dasharray: 3 2.4; } .tbadge.plc .tb-i { fill: color-mix(in srgb, var(--t) 30%, transparent); } .tbadge.plc .tb-h { fill: transparent; }
+.ld-head, .fm-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.ld-k, .ld-rt, .fm-v, .fm-w { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.ld-k b, .fm-v b { font: 800 26px ui-rounded, system-ui; font-variant-numeric: tabular-nums; } .sz-S .ld-k b, .sz-S .fm-v b { font-size: 21px; }
+.ld-rt { margin-left: auto; align-items: flex-end; } .ld-rt b { font: 800 18px ui-rounded, system-ui; font-variant-numeric: tabular-nums; }
+.fm-w { margin-left: auto; align-items: flex-end; } .fm-w b { font: 800 19px ui-rounded, system-ui; font-variant-numeric: tabular-nums; } .fm-w small { font-size: 11px; opacity: .8; }
+.tbar { flex: none; height: 8px; border-radius: 99px; background: var(--soft); box-shadow: var(--soft-edge); overflow: hidden; }
+.tbar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--t), var(--n)); transform-origin: left; animation: wg-grow .7s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes wg-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.lrows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; width: 100%; }
+.lr { display: grid; grid-template-columns: 30px minmax(0,1fr) auto auto; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 10px; font-size: 13px; }
+.lr.you { background: color-mix(in srgb, var(--accent) 22%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.lr-k { font: 800 13px ui-rounded, system-ui; font-variant-numeric: tabular-nums; text-align: center; opacity: .85; }
+.lr-n { display: flex; flex-direction: column; min-width: 0; } .lr-n b, .lr-n small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .lr-n small { font-size: 11px; color: var(--muted); }
+.lr-t { display: inline-flex; align-items: center; gap: 5px; font: 800 13px ui-rounded, system-ui; font-variant-numeric: tabular-nums; } .lr-t i { width: 9px; height: 9px; transform: rotate(45deg); border-radius: 2px; background: var(--t); }
+.lr-r { white-space: nowrap; } .sz-M .lr-n small { display: none; } .sz-M .lr { padding-top: 4px; padding-bottom: 4px; } .lr-gap { text-align: center; color: var(--muted); line-height: .8; }
+.ld-l { display: grid; grid-template-columns: 112px minmax(0,1fr); gap: 14px; }
+.tladder { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.tl { display: grid; grid-template-columns: 12px 1fr; column-gap: 7px; align-items: center; padding: 4px 7px; border-radius: 9px; font: 600 12.5px system-ui; opacity: .6; }
+.tl i { grid-row: span 2; width: 10px; height: 10px; transform: rotate(45deg); border-radius: 2px; background: var(--t); } .tl small { font-size: 10.5px; color: var(--muted); }
+.tl.on { opacity: 1; background: color-mix(in srgb, var(--t) 24%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--t) 70%, transparent); }
+.rchart { display: block; width: 100%; height: auto; overflow: visible; }
+.rchart .rc-line { fill: none; stroke: #8fb3ff; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; } .rchart .rc-a { fill: rgba(143,179,255,.15); }
+.rchart.up .rc-line { stroke: #5fe39a; } .rchart.up .rc-a { fill: rgba(95,227,154,.15); } .rchart.down .rc-line { stroke: #ff8a9b; } .rchart.down .rc-a { fill: rgba(255,138,155,.13); }
+.rchart .rc-floor { stroke: var(--t); stroke-opacity: .45; stroke-width: 1; stroke-dasharray: 4 4; } .rchart .rc-ft { fill: var(--t); font: 700 9.5px system-ui; opacity: .85; }
+.rchart .rc-d { stroke: rgba(10,12,30,.6); stroke-width: 1; } .rchart .rc-d.w { fill: #5fe39a; } .rchart .rc-d.l { fill: #ff8a9b; } .rchart .rc-d.e { fill: #c6cbe8; }
+.rchart .rc-now { fill: #fff; stroke: var(--accent); stroke-width: 2; } .rchart .rc-l { fill: var(--muted); font: 600 10px system-ui; }
+.fm-chart { width: 100%; max-width: 460px; }
+.pips { display: flex; gap: 4px; flex-wrap: wrap; } .pips .wl { width: 20px; height: 20px; border-radius: 6px; font-size: 10.5px; }
+.fm-tot { display: flex; align-items: center; gap: 14px; } .ring.wr { background: conic-gradient(#3cc47c calc(var(--p) * 1%), var(--soft) 0); }
+.fbars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; width: 100%; }
+.fbars li { display: grid; grid-template-columns: 62px minmax(0,1fr) 78px; gap: 8px; align-items: center; font: 600 12.5px system-ui; }
+.fb-b { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; } .fb-b i { display: block; height: 100%; border-radius: inherit; background: var(--c); transform-origin: left; animation: wg-grow .7s cubic-bezier(.2,.8,.2,1) both; }
+.fb-v { text-align: right; white-space: nowrap; }
+.fm-rec { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.fm-rec li { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; gap: 8px; align-items: center; font-size: 13px; }
+.fr-n { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; } .fr-n small { flex-basis: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nbell { position: relative; flex: none; display: grid; place-items: center; width: var(--s); height: var(--s); border-radius: 30%; color: #fff; background: linear-gradient(135deg, #ff4d6d, #ff8a5c); box-shadow: 0 4px 14px rgba(255,77,109,.35); }
+.nbell .nbadge { position: absolute; top: -5px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 99px; display: grid; place-items: center; background: #fff; color: #d6274a; font: 800 11px ui-rounded, system-ui; box-shadow: 0 0 0 2px #ff4d6d; animation: wg-pop .45s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes wg-pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.nt-s, .nt-head { display: flex; align-items: center; gap: 12px; min-width: 0; } .nt-s .dn, .nt-head .dn { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.nt-s-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13.5px; line-height: 1.25; }
+.ntl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; width: 100%; }
+.nt { display: grid; grid-template-columns: 30px minmax(0,1fr) auto; gap: 10px; align-items: start; padding: 6px 8px; border-radius: 12px; }
+.nt.unread { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.nt-m { display: flex; flex-direction: column; min-width: 0; color: inherit; text-decoration: none; gap: 1px; } .nt-m b { font-size: 13.5px; } .nt-m small { font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.nt-m:hover b { text-decoration: underline; } .nt-m:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.nt-w { display: flex; align-items: center; gap: 6px; white-space: nowrap; } .nt-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.nt.t-gold .nt-m b { color: #e9b52f; } .nt-cards { margin-top: 6px; }
+.nk { display: grid; place-items: center; flex: none; border-radius: 30%; color: var(--k); background: color-mix(in srgb, var(--k) 20%, transparent); box-shadow: inset 0 0 0 1.2px color-mix(in srgb, var(--k) 55%, transparent); }
+.nk-row { display: flex; gap: 6px; flex-wrap: wrap; } .nk-c { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 3px; border-radius: 99px; background: var(--soft); font: 600 12px system-ui; } .nk-c b { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .tbar i, .fb-b i, .nbell .nbadge { animation: none; } }
+@media (max-width: 720px) { .ld-l { grid-template-columns: 1fr; } .tladder { flex-direction: row; flex-wrap: wrap; } .fm-l { grid-template-columns: 1fr; } }
 .btn.ghost { background: transparent; box-shadow: none; border: 1px solid var(--line); }
 .sz-M .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .sz-M .hrow .hr-act { grid-column: 2 / 4; justify-content: flex-start; } .sz-M .hlist { gap: 2px; }
 .mlog { max-height: 60vh; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; background: rgba(0,0,0,.06); padding: 12px; border-radius: 12px; }
@@ -6868,6 +6924,13 @@ gl_FragColor=vec4(col,1.);}`;
       setAutoPlay: (token, on, minutes) => call("PUT", "/api/play/auto-play", { token, body: minutes ? { on, minutes } : { on } }),
       addPlayTime: (token, minutes) => call("POST", "/api/play/auto-play/time", { token, body: { minutes } }),
       rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
+      ladder: (token, limit) => call("GET", `/api/ladder${limit ? `?limit=${limit}` : ""}`, { token }),
+      stats: (token, opts = {}) => {
+        const q = [opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
+        return call("GET", `/api/stats${q ? `?${q}` : ""}`, { token });
+      },
+      notifications: (token, limit) => call("GET", `/api/notifications${limit ? `?limit=${limit}` : ""}`, { token }),
+      markNotificationsRead: (token, what) => call("POST", "/api/notifications/read", { token, body: what }),
       live: (token) => call("GET", "/api/live", { token }),
       liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
       setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),
@@ -7770,9 +7833,9 @@ gl_FragColor=vec4(col,1.);}`;
     };
   }
   var WIDGET_WAITS = {
-    ladder: { needs: "the ladder", will: "Your rank and rating, and the top 8 around you." },
-    form: { needs: "ratings and stats", will: "Your rating, its weekly trend and your recent results." },
-    notif: { needs: "notifications", will: "Your alerts: matches, packs and the season." }
+    // Empty since render session 65: Ladder, Rating & form and Notifications
+    // draw the server's data (siteStanding.ts). Kept for a widget a later
+    // season adds before its data is served.
   };
 
   // src/site/siteStore.ts
@@ -8323,6 +8386,263 @@ gl_FragColor=vec4(col,1.);}`;
 </div>`;
   }
 
+  // src/site/siteStanding.ts
+  var TIER_HEX = {
+    Placement: "#9aa0b8",
+    Bronze: "#c98b5a",
+    Silver: "#b8c3d6",
+    Gold: "#f6c445",
+    Platinum: "#6fe0d2",
+    Diamond: "#8fb3ff",
+    Mythic: "#c95cff"
+  };
+  function tierHex(tier) {
+    var _a3;
+    return (_a3 = TIER_HEX[tier]) != null ? _a3 : "#8f8cff";
+  }
+  function tierBadge(tier, size = 34) {
+    const placed = tier !== "Placement";
+    return `<span class="tbadge${placed ? "" : " plc"}" style="--t:${tierHex(tier)};--s:${size}px" role="img" aria-label="${esc(tier)} tier"><svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path class="tb-o" d="M12 1.5 21.5 7v10L12 22.5 2.5 17V7z"/><path class="tb-i" d="M12 5.5 17.8 9v6L12 18.5 6.2 15V9z"/><path class="tb-h" d="M12 5.5 17.8 9 12 12.2 6.2 9z"/></svg></span>`;
+  }
+  function tierProgress(you, tiers, placementMatches) {
+    var _a3, _b, _c;
+    if (you.tier === "Placement") {
+      const left = Math.max(0, placementMatches - you.ratedMatches);
+      return { tier: "Placement", next: null, pct: Math.round(Math.min(you.ratedMatches, placementMatches) / Math.max(1, placementMatches) * 100), line: left ? `${left} more rated match${left === 1 ? "" : "es"} to place` : "Placed after the next match" };
+    }
+    const i = tiers.findIndex((t) => t.tier === you.tier);
+    const next = i >= 0 && i + 1 < tiers.length ? tiers[i + 1] : null;
+    if (i < 0 || !next || next.from === null) return { tier: you.tier, next: null, pct: 100, line: "Top tier" };
+    const from = (_c = tiers[i].from) != null ? _c : next.from - (((_b = (_a3 = tiers[i + 2]) == null ? void 0 : _a3.from) != null ? _b : next.from + 150) - next.from);
+    const pct2 = Math.max(0, Math.min(100, Math.round((you.rating - from) / Math.max(1, next.from - from) * 100)));
+    const gap = Math.max(1, Math.ceil(next.from - you.rating));
+    return { tier: you.tier, next: next.tier, pct: pct2, line: `${gap} to ${next.tier}` };
+  }
+  function tierBar(p) {
+    var _a3;
+    return `<div class="tbar" style="--t:${tierHex(p.tier)};--n:${tierHex((_a3 = p.next) != null ? _a3 : p.tier)}" role="img" aria-label="${esc(p.line)}"><i style="width:${p.pct}%"></i></div>`;
+  }
+  function ratingText(r) {
+    return r.tier === "Placement" ? "\u2014" : String(Math.round(r.rating));
+  }
+  function record(r) {
+    return `${r.wins}W ${r.losses}L${r.draws ? ` ${r.draws}D` : ""}`;
+  }
+  function aroundYou(l, n) {
+    const all = l.standings;
+    const at = all.findIndex((r) => r.ownerId === l.you.ownerId);
+    if (at < 0) return { rows: [...all.slice(0, Math.max(0, n - 1)), l.you], youShown: true, gapBeforeYou: all.length > n - 1 || l.you.rank === null };
+    const start = Math.max(0, Math.min(at - Math.floor(n / 2), all.length - n));
+    return { rows: all.slice(start, start + n), youShown: true, gapBeforeYou: false };
+  }
+  function ladderRowHtml(r, youId, opts = {}) {
+    const you = r.ownerId === youId;
+    const rank = r.rank === null ? "\u2014" : String(r.rank);
+    const who = r.agent ? `${r.agent.name}` : r.ownerName;
+    return `${opts.gap ? `<li class="lr-gap" aria-hidden="true">\u22EF</li>` : ""}<li class="lr${you ? " you" : ""}" style="--t:${tierHex(r.tier)}"><span class="lr-k">${esc(rank)}</span><span class="lr-n"><b>${esc(who)}</b><small>${esc(r.ownerName)}${r.ownerKind === "house" ? " \xB7 house" : ""}${you ? " \xB7 you" : ""}</small></span><span class="lr-t" title="${esc(r.tier)}"><i></i>${esc(ratingText(r))}</span><span class="lr-r small muted">${esc(record(r))}</span></li>`;
+  }
+  function tierLadderHtml(l) {
+    const rows = [...l.tiers].reverse().map((t) => {
+      var _a3, _b;
+      const on = t.tier === l.you.tier;
+      return `<li class="tl${on ? " on" : ""}" style="--t:${tierHex(t.tier)}"><i></i><span>${esc(t.tier)}</span><small>${t.from === null ? "below " + ((_b = (_a3 = l.tiers[1]) == null ? void 0 : _a3.from) != null ? _b : "") : `${t.from}+`}</small></li>`;
+    });
+    return `<ol class="tladder" aria-label="The tiers">${rows.join("")}<li class="tl${l.you.tier === "Placement" ? " on" : ""}" style="--t:${TIER_HEX.Placement}"><i></i><span>Placement</span><small>first ${l.placementMatches}</small></li></ol>`;
+  }
+  function ladderBody(size, l) {
+    const y = l.you;
+    const prog = tierProgress(y, l.tiers, l.placementMatches);
+    const rank = y.rank === null ? y.ratedMatches ? "Placement" : "Unranked" : `#${y.rank}`;
+    const of = y.rank === null ? `${y.ratedMatches}/${l.placementMatches} placed` : `of ${l.owners}`;
+    const head = `<div class="ld-head">${tierBadge(y.tier, size === "S" ? 38 : 46)}<div class="ld-k"><b>${esc(rank)}</b><small class="muted">${esc(of)}</small></div><div class="ld-rt"><b>${esc(ratingText(y))}</b><small class="muted">${esc(y.tier)}</small></div></div>`;
+    if (size === "S") return head + tierBar(prog);
+    const sub = `${tierBar(prog)}<div class="row between small"><span>${esc(prog.line)}</span><span class="muted">${esc(record(y))} \xB7 \xB1${Math.round(y.rd)}</span></div>`;
+    if (!l.standings.length) return head + sub + `<p class="muted small">No one has a rated match yet. The ladder fills as the rounds are played.</p>`;
+    const n = size === "M" ? 4 : 8;
+    const a = aroundYou(l, n);
+    const list = (rows, gapAt) => `<ol class="lrows">${rows.map((r, i) => ladderRowHtml(r, y.ownerId, { gap: i === gapAt })).join("")}</ol>`;
+    const near = list(a.rows, a.gapBeforeYou ? a.rows.length - 1 : -1);
+    if (size === "M") return head + sub + `<h4>Around you</h4>` + near;
+    const top = l.standings.slice(0, 8);
+    const youInTop = top.some((r) => r.ownerId === y.ownerId);
+    const topHtml = list(top, -1);
+    const around = youInTop ? "" : `<h4>Around you</h4>${list(aroundYou(l, 3).rows, aroundYou(l, 3).gapBeforeYou ? 2 : -1)}`;
+    const placed = l.standings.filter((r) => r.rank !== null).length;
+    return `${head}${sub}<div class="ld-l">${tierLadderHtml(l)}<div class="wcol"><h4>Top ${top.length}</h4>${topHtml}${around}</div></div><p class="muted small">${l.owners} owner${l.owners === 1 ? "" : "s"} rated \xB7 ${placed} placed \xB7 Glicko-2, one rating per owner. A tier shows after ${l.placementMatches} rated matches.</p>`;
+  }
+  var RESULT_PIP = {
+    win: { letter: "W", tone: "w", word: "Win" },
+    loss: { letter: "L", tone: "l", word: "Loss" },
+    draw: { letter: "D", tone: "d", word: "Draw" },
+    cancelled: { letter: "\u2013", tone: "x", word: "Cancelled" },
+    abandonedByYou: { letter: "L", tone: "l", word: "You abandoned" },
+    abandonedByOpponent: { letter: "W", tone: "w", word: "Opponent abandoned" }
+  };
+  function formPips(recent, n) {
+    const rows = recent.slice(0, n).reverse();
+    if (!rows.length) return `<span class="muted small">No results yet.</span>`;
+    return `<div class="pips" role="list" aria-label="Recent results, oldest first">${rows.map((r) => {
+      const p = RESULT_PIP[r.result];
+      const ch = r.rating ? ` ${signed(r.rating.change)}` : "";
+      return `<span role="listitem" class="wl ${p.tone}" title="${esc(`${p.word} vs ${r.opponent.agentName}${ch}`)}">${esc(p.letter)}</span>`;
+    }).join("")}</div>`;
+  }
+  function weekTrend(s) {
+    const d = Math.round(s.rating.now.rating) - Math.round(s.rating.weekAgo);
+    return { value: String(Math.round(s.rating.now.rating)), change: d > 0 ? `+${d}` : d < 0 ? `\u2212${-d}` : "\xB10", tone: d > 0 ? "up" : d < 0 ? "down" : "flat" };
+  }
+  function ratingChartSvg(chart, tiers, w2, h, opts = {}) {
+    if (chart.length < 2) return `<p class="muted small">The chart draws after two days on the server.</p>`;
+    const vals = chart.map((c) => c.rating);
+    let lo = Math.min(...vals);
+    let hi = Math.max(...vals);
+    if (hi - lo < 40) {
+      const mid = (hi + lo) / 2;
+      lo = mid - 20;
+      hi = mid + 20;
+    }
+    const padX = opts.labels ? 30 : 4;
+    const padY = 6;
+    const bottom = opts.labels ? 16 : 4;
+    const x = (i) => padX + i * (w2 - padX - 4) / (chart.length - 1);
+    const y = (v) => padY + (1 - (v - lo) / (hi - lo)) * (h - padY - bottom);
+    const pts = chart.map((c, i) => `${x(i).toFixed(1)},${y(c.rating).toFixed(1)}`).join(" ");
+    const area = `${x(0).toFixed(1)},${(h - bottom).toFixed(1)} ${pts} ${x(chart.length - 1).toFixed(1)},${(h - bottom).toFixed(1)}`;
+    const first = Math.round(chart[0].rating);
+    const last = Math.round(chart[chart.length - 1].rating);
+    const tone = last > first ? "up" : last < first ? "down" : "flat";
+    const floors = (tiers != null ? tiers : []).filter((t) => t.from !== null && t.from > lo && t.from < hi).map((t) => `<line class="rc-floor" x1="${padX}" x2="${w2 - 4}" y1="${y(t.from).toFixed(1)}" y2="${y(t.from).toFixed(1)}" style="--t:${tierHex(t.tier)}"/>${opts.labels ? `<text class="rc-ft" x="${w2 - 6}" y="${(y(t.from) - 3).toFixed(1)}" text-anchor="end" style="--t:${tierHex(t.tier)}">${esc(t.tier)}</text>` : ""}`).join("");
+    const dots = chart.map((c, i) => c.rated ? `<circle class="rc-d ${c.wins > c.losses ? "w" : c.losses > c.wins ? "l" : "e"}" cx="${x(i).toFixed(1)}" cy="${y(c.rating).toFixed(1)}" r="${opts.labels ? 3.2 : 2.4}"><title>${esc(`${c.day}: ${c.rated} rated, ${c.wins}W ${c.losses}L${c.draws ? ` ${c.draws}D` : ""} \xB7 ${Math.round(c.rating)}`)}</title></circle>` : "").join("");
+    const labels = opts.labels ? `<text class="rc-l" x="${padX - 4}" y="${(y(hi) + 4).toFixed(1)}" text-anchor="end">${Math.round(hi)}</text><text class="rc-l" x="${padX - 4}" y="${y(lo).toFixed(1)}" text-anchor="end">${Math.round(lo)}</text><text class="rc-l" x="${padX}" y="${h - 3}">${esc(shortDay(chart[0].day))}</text><text class="rc-l" x="${w2 - 4}" y="${h - 3}" text-anchor="end">Today</text>` : "";
+    return `<svg class="rchart ${tone}" viewBox="0 0 ${w2} ${h}" width="${w2}" height="${h}" role="img" aria-label="${esc(`Rating over ${chart.length} days: ${first} to ${last}`)}">${floors}<polygon class="rc-a" points="${area}"/><polyline class="rc-line" points="${pts}"/>${dots}<circle class="rc-now" cx="${x(chart.length - 1).toFixed(1)}" cy="${y(chart[chart.length - 1].rating).toFixed(1)}" r="4"/>${labels}</svg>`;
+  }
+  function shortDay(day) {
+    var _a3;
+    const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(day);
+    if (!m) return day;
+    return `${Number(m[2])} ${(_a3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(m[1]) - 1]) != null ? _a3 : ""}`;
+  }
+  function winRing(t, px) {
+    const decided = t.wins + t.losses + t.draws;
+    const pct2 = decided ? Math.round(t.winRate * 100) : 0;
+    return `<div class="ring wr" style="--p:${pct2};width:${px}px;height:${px}px" role="img" aria-label="${decided ? `${pct2}% of ${decided} decided matches won` : "No decided match yet"}"><b style="width:${px - 14}px;height:${px - 14}px">${decided ? `${pct2}%` : "\u2014"}</b></div>`;
+  }
+  function factionBars(rows) {
+    return `<ul class="fbars">${rows.map((f) => {
+      var _a3;
+      const decided = f.wins + f.losses + f.draws;
+      const pct2 = decided ? Math.round(f.winRate * 100) : 0;
+      return `<li style="--c:${(_a3 = FACTION_HEX[f.faction]) != null ? _a3 : "#8f8cff"}"><span class="fb-n">${esc(f.faction)}</span><span class="fb-b"><i style="width:${decided ? Math.max(3, pct2) : 0}%"></i></span><span class="fb-v small">${decided ? `${pct2}% <span class="muted">of ${decided}</span>` : `<span class="muted">none</span>`}</span></li>`;
+    }).join("")}</ul>`;
+  }
+  function streakChip(s) {
+    if (!s || s.length < 2) return `<span class="chip"><small>No streak</small></span>`;
+    return `<span class="chip ${s.kind === "win" ? "hot" : "cold"}">${s.kind === "win" ? `${s.length} wins in a row` : `Lost ${s.length} in a row`}</span>`;
+  }
+  function formBody(size, s, tiers, now) {
+    const t = weekTrend(s);
+    const placed = s.rating.now.tier !== "Placement";
+    const head = `<div class="fm-head">${tierBadge(s.rating.now.tier, size === "S" ? 34 : 42)}<div class="fm-v"><b>${esc(placed ? t.value : "\u2014")}</b><small class="muted">${esc(s.rating.now.tier)}${placed ? ` \xB1${Math.round(s.rating.now.rd)}` : ` \xB7 ${s.rating.now.ratedMatches} rated`}</small></div><div class="fm-w rt ${t.tone}"><b>${esc(t.change)}</b><small>this week</small></div></div>`;
+    if (size === "S") return head;
+    const tot = s.totals;
+    const chips = `<div class="ma-chips">${streakChip(tot.currentStreak)}<span class="chip"><b class="w">${tot.wins}W</b> <b class="l">${tot.losses}L</b>${tot.draws ? ` <b>${tot.draws}D</b>` : ""}</span><span class="chip"><small>Best streak</small> <b>${tot.bestWinStreak}</b></span></div>`;
+    const mid = head + ratingChartSvg(s.rating.chart, tiers, 300, 64) + `<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(10, s.recent.length)}</span></div>` + formPips(s.recent, 10) + chips;
+    if (size === "M") return mid;
+    const recent = s.recent.length ? `<ul class="fm-rec">${s.recent.slice(0, 4).map((r) => {
+      var _a3;
+      const p = RESULT_PIP[r.result];
+      const fc = r.opponent.faction ? `<span class="ftag" style="--c:${(_a3 = FACTION_HEX[r.opponent.faction]) != null ? _a3 : "#8f8cff"}">${esc(r.opponent.faction.toUpperCase())}</span>` : "";
+      return `<li><span class="wl ${p.tone}">${esc(p.letter)}</span><span class="fr-n"><b>vs ${esc(r.opponent.agentName)}</b> ${fc}<small class="muted">${esc(r.opponent.ownerName)} \xB7 ${esc(whenText(r.endedAt, now))}</small></span><span class="rt ${r.rating ? r.rating.change > 0 ? "up" : r.rating.change < 0 ? "down" : "flat" : "none"} small">${r.rating ? esc(signed(r.rating.change)) : "unrated"}</span></li>`;
+    }).join("")}</ul>` : `<p class="muted small">No results yet.</p>`;
+    const notRec = s.factionNotRecorded.matches ? `<p class="muted small">${s.factionNotRecorded.matches} older match${s.factionNotRecorded.matches === 1 ? "" : "es"} kept no faction.</p>` : "";
+    const left = `<div class="wcol">${head}<div class="fm-chart">${ratingChartSvg(s.rating.chart, tiers, 440, 128, { labels: true })}</div>${chips}<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(20, s.recent.length)}</span></div>${formPips(s.recent, 20)}</div>`;
+    const right = `<div class="wcol"><div class="fm-tot">${winRing(tot, 72)}<div><b class="wbig-s">${tot.matches}</b> <span class="muted small">matches</span><div class="small">${amount0(tot.creditsFromMatches)} credits from matches</div>${tot.void ? `<div class="muted small">${tot.void} void (cancelled or abandoned)</div>` : ""}</div></div><h4>Win rate by deck faction</h4>${factionBars(s.byFaction)}${notRec}<h4>Recent</h4>${recent}</div>`;
+    return `<div class="wsplit wide-l fm-l">${left}${right}</div>`;
+  }
+  function amount0(n) {
+    return Math.round(n).toLocaleString("en-US");
+  }
+  var KIND_INFO = {
+    matchResult: { glyph: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', hue: "#8fb3ff", name: "Match results", href: "#/match" },
+    bigPull: { glyph: '<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 21l-2.2-6.8L3.5 12l6.3-2.7z"/>', hue: "#f6c445", name: "Big pulls", href: "#/collection" },
+    dailyPack: { glyph: '<path d="M4 8h16l-1.5 12h-13z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/>', hue: "#3cc47c", name: "Daily pack", href: "#/store" },
+    autoPlayStopped: { glyph: '<rect x="6" y="6" width="12" height="12" rx="2"/>', hue: "#ff8a5c", name: "Auto-play", href: "#/" }
+  };
+  var RESULT_TITLE = {
+    win: "Won",
+    loss: "Lost",
+    draw: "Drew",
+    cancelled: "Cancelled",
+    abandonedByYou: "You abandoned",
+    abandonedByOpponent: "Opponent abandoned"
+  };
+  function noticeView(n, now, factionOf2 = () => null) {
+    var _a3;
+    const base = { id: n.notificationId, kind: n.kind, unread: n.readAt === null, when: whenText(n.createdAt, now), href: KIND_INFO[n.kind].href, cards: [] };
+    switch (n.kind) {
+      case "matchResult": {
+        const m = n.matchResult;
+        const tone = m.result === "win" || m.result === "abandonedByOpponent" ? "w" : m.result === "loss" || m.result === "abandonedByYou" ? "l" : m.result === "draw" ? "d" : "x";
+        const pay = m.credits > 0 ? `+${m.credits} credits` : "no credits";
+        const rt = m.rating ? ` \xB7 ${signed(m.rating.change)} rating` : "";
+        return { ...base, tone, title: `${RESULT_TITLE[m.result]} vs ${m.opponent.agentName}`, line: `${m.agentName} \xB7 ${pay}${rt}${m.turns ? ` \xB7 ${m.turns} turns` : ""}` };
+      }
+      case "bigPull": {
+        const b = n.bigPull;
+        const best = b.cards[0];
+        const fin = best ? (_a3 = FINISH_NAMES[best.finish]) != null ? _a3 : "" : "";
+        const title = b.jackpot ? "Jackpot pack" : (best == null ? void 0 : best.prototype) ? `Prototype ${best.name} #${best.prototype.serial}` : best ? `${fin ? fin + " " : ""}${best.name}` : "A big pull";
+        const more = b.cards.length > 1 ? ` and ${b.cards.length - 1} more` : "";
+        const fresh = b.cards.some((c) => c.isNew) ? " \xB7 new to you" : "";
+        return {
+          ...base,
+          tone: "gold",
+          title,
+          line: `${b.setCode} pack${more}${fresh}`,
+          cards: b.cards.map((c) => {
+            var _a4, _b;
+            return { cardId: c.cardId, name: c.name, rarity: c.rarity, faction: factionOf2(c.cardId), finish: c.finish, serial: (_b = (_a4 = c.prototype) == null ? void 0 : _a4.serial) != null ? _b : null };
+          })
+        };
+      }
+      case "dailyPack": {
+        const d = n.dailyPack;
+        return { ...base, tone: "ok", title: d.waiting > 1 ? `${d.waiting} free packs waiting` : "Your free daily pack is waiting", line: `Claim it in the Store (up to ${d.cap} wait)` };
+      }
+      case "autoPlayStopped": {
+        const a = n.autoPlayStopped;
+        return a.reason === "timeUp" ? { ...base, tone: "warn", title: "Your agent's time is up", line: `${a.allowanceMinutes ? `The ${a.allowanceMinutes} minutes` : "Its time"} ran out; it finished its match and stopped` } : { ...base, tone: "warn", title: "Today's rewards are maxed", line: "Auto-play switched off until the midnight reset" };
+      }
+    }
+  }
+  function kindGlyph(kind, px) {
+    const k = KIND_INFO[kind];
+    return `<span class="nk" style="--k:${k.hue};width:${px}px;height:${px}px" aria-hidden="true"><svg viewBox="0 0 24 24" width="${Math.round(px * 0.55)}" height="${Math.round(px * 0.55)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${k.glyph}</svg></span>`;
+  }
+  function bell(unread, px) {
+    return `<span class="nbell" style="--s:${px}px" role="img" aria-label="${unread ? `${unread} unread` : "Nothing unread"}"><svg viewBox="0 0 24 24" width="${Math.round(px * 0.6)}" height="${Math.round(px * 0.6)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>${unread ? `<b class="nbadge">${unread > 99 ? "99+" : unread}</b>` : ""}</span>`;
+  }
+  function noticeHtml(v, opts) {
+    const cards = opts.cards && v.cards.length ? `<div class="mrow nt-cards">${v.cards.slice(0, 5).map(opts.miniCard).join("")}</div>` : "";
+    return `<li class="nt t-${v.tone}${v.unread ? " unread" : ""}" data-nid="${v.id}">${kindGlyph(v.kind, 30)}<a class="nt-m" href="${v.href}"><b>${esc(v.title)}</b><small class="muted">${esc(v.line)}</small>${cards}</a><span class="nt-w small muted">${esc(v.when)}${v.unread ? `<i class="nt-dot" aria-label="unread"></i>` : ""}</span></li>`;
+  }
+  function notifBody(size, page, now, opts) {
+    const views = page.notifications.map((n) => noticeView(n, now, opts.factionOf));
+    const latest = views[0];
+    if (size === "S") {
+      return `<div class="nt-s">${bell(page.unread, 44)}<div class="dn">${latest ? `<b class="nt-s-t">${esc(latest.title)}</b><small class="muted">${esc(latest.when)}</small>` : `<b>All quiet</b><small class="muted">Nothing yet</small>`}</div></div>`;
+    }
+    const mark = page.unread ? `<button type="button" class="btn sm" data-act="notif-read"${opts.busy ? " disabled" : ""}>Mark all read</button>` : "";
+    const head = `<div class="nt-head">${bell(page.unread, 40)}<div class="dn"><b>${page.unread ? `${page.unread} unread` : "All read"}</b><small class="muted">${page.notifications.length ? `latest ${whenText(page.notifications[0].createdAt, now)}` : "Nothing yet"}</small></div>${mark}</div>`;
+    if (!views.length) return head + `<p class="muted small">Match results, big pulls, the free daily pack and auto-play stops show here. Which ones is in Settings.</p>`;
+    if (size === "M") return head + `<ul class="ntl">${views.slice(0, 4).map((v) => noticeHtml(v, { cards: false, miniCard: opts.miniCard })).join("")}</ul>`;
+    const kinds = Object.keys(KIND_INFO).map((k) => {
+      var _a3;
+      return `<span class="nk-c" style="--k:${KIND_INFO[k].hue}">${kindGlyph(k, 20)}<span>${esc(KIND_INFO[k].name)}</span><b>${(_a3 = page.unreadByKind[k]) != null ? _a3 : 0}</b></span>`;
+    }).join("");
+    return head + `<div class="nk-row" aria-label="Unread by kind">${kinds}</div><ul class="ntl">${views.slice(0, 8).map((v) => noticeHtml(v, { cards: true, miniCard: opts.miniCard })).join("")}</ul>${page.more || views.length > 8 ? `<p class="muted small">Showing the latest 8.</p>` : ""}`;
+  }
+
   // src/site/siteWidgets.ts
   function sourcesOf(w2) {
     switch (w2.type) {
@@ -8345,6 +8665,15 @@ gl_FragColor=vec4(col,1.);}`;
         return ["live"];
       case "history":
         return ["history"];
+      // Render session 65: the three that waited on the server. Rating & form
+      // reads the ladder at M and L for the tier floors its chart crosses; the
+      // Notifications widget at L the collection, for a pulled card's faction.
+      case "ladder":
+        return ["ladder"];
+      case "form":
+        return w2.size === "S" ? ["stats"] : ["ladder", "stats"];
+      case "notif":
+        return w2.size === "L" ? ["collection", "notif"] : ["notif"];
       default:
         return [];
     }
@@ -8370,12 +8699,31 @@ gl_FragColor=vec4(col,1.);}`;
   }
   function waitsBody(type, size) {
     const w2 = WIDGET_WAITS[type];
+    if (!w2) return `<p class="muted small">Not in Season 0.</p>`;
     return `<div class="wwait">${size === "S" ? "" : `<p>${esc(w2.will)}</p>`}<p class="muted small">Waits on the server for ${esc(w2.needs)}.</p></div>`;
   }
   function loading(data, src) {
     const err = data.errors[src];
     if (err) return `<p class="muted small">Couldn't load this: ${esc(err)}</p>`;
     return data[src] ? null : `<p class="muted small wload">Loading\u2026</p>`;
+  }
+  function ladderWidget(w2, d) {
+    var _a3;
+    return (_a3 = loading(d, "ladder")) != null ? _a3 : ladderBody(w2.size, d.ladder);
+  }
+  function formWidget(w2, d) {
+    var _a3, _b, _c;
+    return (_c = loading(d, "stats")) != null ? _c : formBody(w2.size, d.stats, (_b = (_a3 = d.ladder) == null ? void 0 : _a3.tiers) != null ? _b : null, d.now);
+  }
+  function notifWidget(w2, d) {
+    var _a3, _b;
+    const l = loading(d, "notif");
+    if (l) return l;
+    const fac = new Map(((_b = (_a3 = d.collection) == null ? void 0 : _a3.cards) != null ? _b : []).map((x) => [x.cardId, x.faction]));
+    return notifBody(w2.size, d.notif, d.now, { miniCard: (c) => miniCard(c), factionOf: (id) => {
+      var _a4;
+      return (_a4 = fac.get(id)) != null ? _a4 : null;
+    }, busy: d.busy });
   }
   function liveBody(w2, d, o) {
     var _a3;
@@ -8516,6 +8864,12 @@ gl_FragColor=vec4(col,1.);}`;
         return storeBody(w2, d);
       case "history":
         return historyBody(w2, d);
+      case "ladder":
+        return ladderWidget(w2, d);
+      case "form":
+        return formWidget(w2, d);
+      case "notif":
+        return notifWidget(w2, d);
       default:
         return waitsBody(w2.type, w2.size);
     }
@@ -8561,7 +8915,7 @@ gl_FragColor=vec4(col,1.);}`;
     boardError: null,
     draft: null,
     saving: false,
-    home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} },
+    home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} },
     colFilter: "All",
     shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null },
     opening: false,
@@ -8770,7 +9124,7 @@ gl_FragColor=vec4(col,1.);}`;
     state.board = null;
     state.boardError = null;
     state.draft = null;
-    state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} };
+    state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} };
     state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
     closeReplay();
     clearTimeout(livePoll);
@@ -8868,7 +9222,11 @@ gl_FragColor=vec4(col,1.);}`;
       store: () => api.store(token),
       live: () => api.live(token),
       history: () => api.matches(token, 20),
-      rating: () => api.rating(token, 20)
+      rating: () => api.rating(token, 20),
+      // Render session 65: the Ladder, Rating & form and Notifications widgets.
+      ladder: () => api.ladder(token, 100),
+      stats: () => api.stats(token, { days: 30, recent: 20 }),
+      notif: () => api.notifications(token, 20)
     };
     let signedOutNow = false;
     await Promise.all(
@@ -8957,7 +9315,7 @@ gl_FragColor=vec4(col,1.);}`;
       }
       drawAgentCard();
       if (!state.busy && !dragging) drawPage();
-      if (state.page === "home") void loadHome(["daily", "packs"]);
+      if (state.page === "home") void loadHome(["daily", "packs", "notif"]);
       if (state.page === "store" && !state.opening) void loadShop();
     } catch (err) {
       if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
@@ -9413,7 +9771,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (state.page === "store" && !state.busy) drawPage();
   }
   async function afterChange() {
-    const reads = [loadHome(["packs", "store", "collection"])];
+    const reads = [loadHome(["packs", "store", "collection", "notif"])];
     if (state.page === "store" || state.shop.packs) reads.push(loadShop());
     if (state.page === "collection" || state.col.binder) reads.push(loadCollection());
     else if (state.session)
@@ -9480,6 +9838,17 @@ gl_FragColor=vec4(col,1.);}`;
     const sure = [p.pity.next.fullArt ? "a Full Art or better" : "", p.pity.next.mythic ? "a Mythic" : ""].filter(Boolean);
     if (sure.length) return `Your next pack is sure to hold ${sure.join(" and ")}.`;
     return `${p.pity.packsSinceFullArt} pack${p.pity.packsSinceFullArt === 1 ? "" : "s"} since a Full Art \xB7 ${p.pity.packsSinceMythic} since a Mythic`;
+  }
+  async function markAllRead() {
+    var _a3;
+    if (!state.session) return;
+    try {
+      await api.markNotificationsRead(state.session.token, { all: true });
+    } catch (err) {
+      fail(err);
+    }
+    await loadHome(["notif"]);
+    (_a3 = document.querySelector('#wgrid .wg[data-type="notif"] .ntl a')) == null ? void 0 : _a3.focus();
   }
   async function claimDaily() {
     if (!state.session) return;
@@ -10032,7 +10401,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (wasMine && wasMine !== nowMine) {
       window.setTimeout(() => {
         void loadHistory(true);
-        if (state.page === "home") void loadHome(["history", "daily", "rating"]);
+        if (state.page === "home") void loadHome(["history", "daily", "rating", "ladder", "stats", "notif"]);
         void refresh();
       }, 1500);
     }
@@ -10428,6 +10797,7 @@ gl_FragColor=vec4(col,1.);}`;
       if (act2 === "buy-cosmetic") return void buyCosmetic(actEl.dataset.item, (_b = actEl.dataset.name) != null ? _b : "this", Number(actEl.dataset.price));
       if (act2 === "open-packs") return void openPacks(actEl.dataset.pack ? { packId: actEl.dataset.pack } : { count: Number(actEl.dataset.count) === 10 ? 10 : 1 }, actEl);
       if (act2 === "claim-daily") return void claimDaily();
+      if (act2 === "notif-read") return void markAllRead();
       if (act2 === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
       if (act2 === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
       if (act2 === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });

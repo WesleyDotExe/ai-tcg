@@ -4637,6 +4637,8 @@ Owner decisions on the 2 small calls in `progress/render/checkpoints.md` (PR #15
 
 Next session by alternation: game. Next render slice, as planned: the rest of the widgets' S/M/L pass.
 
+**Render part handled (render session 65):** both calls stand as built, nothing changed. The widgets' S/M/L pass started: Ladder, Rating & form and Notifications on the server's data (`progress/render/checkpoints.md`).
+
 ---
 
 ## 2026-11-12 — Owner: answer to game session 87 (a spare session: the ladder round's history read), keep the call

@@ -32,10 +32,11 @@ import {
 } from "./siteBoard.js";
 import { agentControlsHtml, myAgentHtml, type SiteRating, type TimeAllowance } from "./siteAgent.js";
 import { amount } from "./siteLook.js";
+import { formBody, ladderBody, notifBody, type SiteLadder, type SiteNotifications, type SiteStats } from "./siteStanding.js";
 import { dailyPackView } from "./siteStore.js";
 import { FACTION_HEX, PAGE_TITLES, esc, hashOf, icon } from "./siteModel.js";
 
-export type WidgetSource = "packs" | "collection" | "daily" | "store" | "live" | "history" | "rating";
+export type WidgetSource = "packs" | "collection" | "daily" | "store" | "live" | "history" | "rating" | "ladder" | "stats" | "notif";
 
 /** Which server reads a widget needs at its size (the page fetches only
  * what the board shows). */
@@ -60,6 +61,15 @@ export function sourcesOf(w: Pick<SiteWidget, "type" | "size">): WidgetSource[] 
       return ["live"];
     case "history":
       return ["history"];
+    // Render session 65: the three that waited on the server. Rating & form
+    // reads the ladder at M and L for the tier floors its chart crosses; the
+    // Notifications widget at L the collection, for a pulled card's faction.
+    case "ladder":
+      return ["ladder"];
+    case "form":
+      return w.size === "S" ? ["stats"] : ["ladder", "stats"];
+    case "notif":
+      return w.size === "L" ? ["collection", "notif"] : ["notif"];
     default:
       return [];
   }
@@ -83,6 +93,11 @@ export interface WidgetData {
   history: SiteHistory | null;
   /** `GET /api/rating` (render session 57: My agent). Absent: not read. */
   rating?: SiteRating | null;
+  /** Render session 65: `GET /api/ladder`, `GET /api/stats`,
+   * `GET /api/notifications`. Absent: not read. */
+  ladder?: SiteLadder | null;
+  stats?: SiteStats | null;
+  notif?: SiteNotifications | null;
   /** The play-time allowance (Agent controls' ring); null until the server
    * has one (game session 76). */
   allowance?: TimeAllowance | null;
@@ -131,7 +146,8 @@ function bar(pct: number): string {
 }
 
 function waitsBody(type: WidgetType, size: WidgetSize): string {
-  const w = WIDGET_WAITS[type]!;
+  const w = WIDGET_WAITS[type];
+  if (!w) return `<p class="muted small">Not in Season 0.</p>`;
   return `<div class="wwait">${size === "S" ? "" : `<p>${esc(w.will)}</p>`}<p class="muted small">Waits on the server for ${esc(w.needs)}.</p></div>`;
 }
 
@@ -139,6 +155,23 @@ function loading(data: WidgetData, src: WidgetSource): string | null {
   const err = data.errors[src];
   if (err) return `<p class="muted small">Couldn't load this: ${esc(err)}</p>`;
   return data[src] ? null : `<p class="muted small wload">Loading…</p>`;
+}
+
+function ladderWidget(w: SiteWidget, d: WidgetData): string {
+  return loading(d, "ladder") ?? ladderBody(w.size, d.ladder!);
+}
+
+function formWidget(w: SiteWidget, d: WidgetData): string {
+  // The tier floors are a garnish on the chart: a ladder read still out or
+  // failed draws the chart without them rather than holding the widget.
+  return loading(d, "stats") ?? formBody(w.size, d.stats!, d.ladder?.tiers ?? null, d.now);
+}
+
+function notifWidget(w: SiteWidget, d: WidgetData): string {
+  const l = loading(d, "notif");
+  if (l) return l;
+  const fac = new Map((d.collection?.cards ?? []).map((x) => [x.cardId, x.faction]));
+  return notifBody(w.size, d.notif!, d.now, { miniCard: (c) => miniCard(c), factionOf: (id) => fac.get(id) ?? null, busy: d.busy });
 }
 
 function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
@@ -297,6 +330,12 @@ function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
       return storeBody(w, d);
     case "history":
       return historyBody(w, d);
+    case "ladder":
+      return ladderWidget(w, d);
+    case "form":
+      return formWidget(w, d);
+    case "notif":
+      return notifWidget(w, d);
     default:
       return waitsBody(w.type, w.size);
   }

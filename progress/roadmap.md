@@ -186,10 +186,9 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
    (served since game session 77).
 2. [x] The look: the liquid WebGL backgrounds and picker, saved to the account (session 45); reduce motion and
    transparency rules (44).
-3. [~] Home as the widget board (session 46: 12-column grid, S/M/L, Customise, saved to the account, the twelve
-   Season 0 widgets). **Left: three widgets still say "waiting on the server" though the data is served:** Ladder
-   (`GET /api/ladder`, game 66), Rating & form (Stats data, game 78), Notifications (game 77). Their S/M/L goes in
-   item 7's widget pass.
+3. [x] Home as the widget board (session 46: 12-column grid, S/M/L, Customise, saved to the account, the twelve
+   Season 0 widgets). Since render session 65 no widget waits on the server: Ladder (`GET /api/ladder`), Rating &
+   form (`GET /api/stats`) and Notifications (`GET /api/notifications`, Mark all read) draw their data at S/M/L.
 4. [x] Live play: auto-play, Watch live (50), the big live board (51), "Watch as" (52), the 2× controls (56).
 5. [ ] The ladder page (or the ladder inside the Stats page, the render lane's call at a checkpoint).
 6. [x] Coin skins: the flip in Match Boot (53); every Season 0 coin drawn, the Coin line in the picker and the
@@ -217,8 +216,12 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      the tiles and the stops (`site-check-s64` 56 passed, `pack-bulk-check-s64` 14 PASS); a bug they found fixed
      (Skip pressed during a pack's tear ran past its stops); the claimed daily tile on the head's clock; focus kept
      on the tile after a buy or claim
-   - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
-     cards), Collection, and Ladder, Rating & form and Notifications on their real data
+   - [~] The rest of the widgets' S/M/L pass. Done (render 65): Ladder (tier badge, rank and rating / + the tier
+     bar and four rows around you / + the tier column and the top 8), Rating & form (rating and the week's change /
+     + the 30-day chart with tier floors, form pips and streak / + win-rate ring, faction bars, recent) and
+     Notifications (bell and latest / + four and Mark all read / + unread by kind, eight, big pulls' cards), on
+     the real API (`widgets-check-s65`). Left: Daily rewards, Watch live (embedded at L), Showcase (larger
+     cards), Collection
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so

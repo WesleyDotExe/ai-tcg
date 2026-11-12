@@ -155,8 +155,16 @@ items are removed, with the fix in `log.md`.
   sound and music settings aren't handed to it (it uses its own toggles).
 - **The demo's ladder is opt-in** (`--ladder`), so sessions 46-49's checks don't see live matches; nothing
   re-checks the Store's loadout lock against a live match in the browser yet.
-- **Three of the twelve widgets only say what they wait on:** Ladder, Rating & form, Notifications. My agent
-  has no rating, record, persona or signature card (the Stats endpoint).
+- **Ladder, Rating & form and Notifications draw the server's data at S, M and L (session 65), with thin
+  spots.** Checked against the real API with the ladder playing (`widgets-check-s65.txt`). **Thin:** a big pull's
+  cards in the Notifications widget are only unit-tested (the demo's last eight notifications held no big pull, so
+  the browser never drew one); Mark all read is the only way to mark them read (showing marks nothing; the bell,
+  roadmap item 1, isn't built); a notification's link goes to its page, not to the match or the pack itself; the
+  Rating & form chart's 30 days show long flat stretches where the demo's warm-up skipped days (correct, but dull);
+  the tier floors on the chart need the ladder read (without it the chart draws without them); Ladder M fits four
+  rows by dropping the owner names at M; the widgets were looked at once on a phone; the ladder's "Around you" at L
+  was never seen with the owner off the top 8 in the browser (four owners in the demo; unit-tested). My agent still
+  has no persona or signature card.
 - **Pages are still missing:** Stats, Admin. Featured picks, viewer counts and the 2× vote have no endpoint.
   The Store has no "Watch again", and the Collection no craft price from the API or Promos, though the game
   lane serves all three since its session 68 (render work not done yet).

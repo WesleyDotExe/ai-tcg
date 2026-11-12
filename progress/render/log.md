@@ -5517,3 +5517,76 @@ any check (the rule is source-tested only); the focus fix was not run against th
 **Next render-lane slice:** after this PR the next session is game. The next render session: the rest of the
 widgets' S/M/L pass (Daily rewards, Watch live embedded at L, Showcase, Collection, and Ladder, Rating & form and
 Notifications on their real data), checklist item 7.
+
+## 2026-11-12 — Render session 65: the Ladder, Rating & form and Notifications widgets at S, M and L
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #154 "A ladder round no longer reads every owner's whole
+history (session 87)", is not "Render:"; the catch-up after #143 is long done). No PR from either lane was open.
+**Read first:** owner-feedback.md (the 2026-11-12 answers to render 64, both calls kept, nothing to change; game
+87's answer), DESIGN.md, RENDER.md, `progress/season0-final-brief.md` section 1, this lane's log, debt and notes.
+Not a hardening pass (64 was; the next is 69).
+
+**The slice:** of the widget pass's list, the three widgets that still said "waits on the server" though the game
+lane serves their data (roadmap render item 3's last gap): Ladder (`GET /api/ladder`, game 66), Rating & form
+(`GET /api/stats`, game 78) and Notifications (`GET /api/notifications`, `POST /api/notifications/read`, game 77).
+Daily rewards, Watch live at L, Showcase and Collection are left for the next render session.
+
+**1. The pure strings (`render/src/site/siteStanding.ts`, new).** Types as OWNER_API.md documents them (the
+notifications' from `@ai-tcg/economy`, type-only).
+- *Ladder:* `tierBadge` (a faceted gem in the tier's colour; Placement a dashed outline), `tierProgress` (from the
+  tier's floor to the next, from the server's `tiers`; in placement, the rated matches left of `placementMatches`;
+  the top tier full), `aroundYou` (n rows with the owner as central as the list allows; off the list, the top n-1
+  and the owner last with a gap). S: badge, rank ("#1 of 4", or "Placement 2/5 placed"), rating (none in
+  placement, as the ladder shows none), the tier bar. M: + "45 to Diamond", the record and ±RD, four rows around
+  you (one line each). L: + the tier column (every tier with its floor, the owner's lit), the top 8, "Around you"
+  when not in it, the footnote (owners rated, placed, the placement count).
+- *Rating & form:* `weekTrend` (now minus a week ago, whole, signed), `ratingChartSvg` (the 30 reset days as a
+  line, a dot on each day with rated matches coloured by that day's wins and losses, the tier floors it crosses as
+  dashed lines; a flat month still gets a 40-point window), `formPips` (oldest left; an opponent's abandon a W, a
+  cancel a dash). S: badge, rating, the week's change. M: + the chart, ten pips, the streak, W/L, best streak. L:
+  + a larger chart with its scale, twenty pips, a win-rate ring, matches, credits from matches, void count, win
+  rate per deck faction as bars (the four, zeros as "none"; matches before v24 said, not guessed), the last four.
+- *Notifications:* `noticeView` (each kind in the widget's words from its fields: "Won vs Hive", "+30 credits ·
+  +12 rating · 14 turns"; "Prototype Alpha Node #7", "S0 pack and 1 more · new to you"; "2 free packs waiting";
+  "Your agent's time is up"), a bell with the unread badge (99+), a glyph per kind. S: the bell and the latest.
+  M: + "N unread", **Mark all read**, the latest four (unread tinted with a dot). L: + unread by kind as chips,
+  the latest eight, each big pull's cards as mini cards (faction from the collection, read at L only).
+
+**2. Wiring.** `siteApi.ts`: `ladder`, `stats`, `notifications`, `markNotificationsRead`. `siteWidgets.ts`: the
+sources (`ladder`; `form` S `stats`, M/L + `ladder` for the floors; `notif`, L + `collection`) and the bodies;
+`WIDGET_WAITS` is now empty (kept for a later widget), and `waitsBody` no longer throws on a type without one.
+`siteClient.ts`: the reads; the notifications re-read on the 15 s status poll and after a buy/claim/open; the
+ladder, stats and notifications after the owner's match ends; "Mark all read" posts `{ all: true }`, reads again
+and keeps focus in the widget. Showing notifications marks nothing read (OWNER_API.md: the website marks what it
+showed; here only when the owner says so). Styles in `sitePage.ts` (keyframes `wg-grow` and `wg-pop`,
+transform/opacity only, off under reduce motion; one column for the L layouts on a phone).
+
+**Tests (+13, render 972):** `siteStanding.test.ts`: the tier bar (floors, Bronze's open floor, placement, the
+top), around you (middle, both ends, off the list), each widget's S/M/L differences, placement and an empty
+ladder, the week's sign, the pips' order and letters, the chart (dots per rated day, the floors it crosses, a flat
+month, one day), no decided match, every notification kind's words, the badge's cap, the empty and all-read
+states, the keyframes; and one test on the **real owner API** over a real store (seven recorded matches: the
+widgets draw the server's rank, rating, record, week change and rated days; seven match notifications; Mark all
+read takes the server's unread to 0). `siteBoard.test.ts`: the waits list is empty, the new sources.
+
+**Ran it:** `widgets-check-s65.mjs` against the real owner API with the game lane's ladder playing at 8x. The
+first full run was **35 PASS, 3 FAIL** (kept as `widgets-check-s65-first-run.txt`): every number matched the
+server's, but three widgets overflowed: Ladder M by 44 px (and its tier bar was squeezed to nothing: an
+`overflow: hidden` child of the flex body shrinks), Rating & form L by 35, Notifications L by 49 and M by 4. Fixed:
+the bar `flex: none`; Ladder M four rows, one line each; Rating & form L four recent; Notifications L eight, the
+items 1 px tighter. Re-run: **38 PASS, 0 FAIL** (`widgets-check-s65.txt`): the three at S/M/L with the server's
+numbers (rank #1 of 4, 1756 Platinum, −86 this week, 24 unread), each size's content different, 0 px overflow
+everywhere; Mark all read (the server's unread 0, the badge and button gone, focus kept); a match finishing on the
+ladder reached the widget without a reload (the 15 s poll: badge 1, "Lost vs Static Widow") and the Ladder followed
+(1670, "131 to Diamond"); dark and phone stills; no external requests or page errors. The CI browser check 61 PASS
+(`ci-browser-check-s65.txt`); `npm test` (render) 972 pass; typecheck clean; `render/output/site/index.html`
+rebuilt (the other pages read nothing changed).
+
+**Not done (named):** a big pull's cards in the Notifications widget never drawn in a browser (none in the demo's
+last eight; unit-tested); placement and "around you" off the top 8 never seen in a browser (the demo's warm-up
+places Nova, four owners; unit-tested); the bell (item 1) and the Stats and ladder pages; Daily rewards, Watch live
+at L, Showcase and Collection.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session: the rest of the
+widgets' S/M/L pass (Daily rewards: the ring, reward row, reset timer; Watch live embedded at L; Showcase larger
+cards; Collection), then the Stats page, the ladder page and the bell. Render hardening pass due at 69.

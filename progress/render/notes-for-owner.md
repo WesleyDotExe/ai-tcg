@@ -1320,3 +1320,11 @@ season mark) is proposed as a mark, call 1.
    widget sizes.
 3. **Nothing needed from the game lane.** (A bar to the pity guarantee would need the thresholds sent; not asked
    for, see call 6.)
+
+## 2026-11-12 — Render session 65 (the Ladder, Rating & form and Notifications widgets)
+
+1. **Four small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
+   call 1 (notifications are marked read only by Mark all read, never just by being shown).
+2. **For the game lane's roadmap upkeep:** render item 3 is ticked (no widget waits on the server); item 7's widget
+   pass is started (three of seven widgets done).
+3. **Nothing needed from the game lane.**
