@@ -1,0 +1,56 @@
+Ladder scale 001 — a ladder round's pairing at a season's history (session 87, game lane)
+========================================================================
+Machine: 4 cores, Intel(R) Xeon(R) Processor @ 2.10GHz; node v22.23.4. Times in ms, median and max of 10.
+Eight house owners on their starter decks, every one in every round (one match each a round), on a file on disk.
+startRound: the whole pairing step the live ladder runs before each round (house shopping off).
+Per owner: its last two opponents, read the old way (the whole history, keep the last two) and by SQL now.
+
+  0 matches per owner (0 in the file; 0.0 days at ~150 rounds a day)
+    (history written in 0.0 s) [timing, varies per run]
+    startRound(), all eight                          6.8 ms (max    21.0) [timing, varies per run]
+    one owner, the whole history (old)               0.1 ms (max     0.2) [timing, varies per run]
+    one owner, store.recentOpponents (SQL)           0.1 ms (max     0.1) [timing, varies per run]
+
+  150 matches per owner (600 in the file; 0.9 days at ~150 rounds a day)
+    (history written in 1.8 s) [timing, varies per run]
+    startRound(), all eight                          4.8 ms (max     7.6) [timing, varies per run]
+    one owner, the whole history (old)               4.0 ms (max     7.1) [timing, varies per run]
+    one owner, store.recentOpponents (SQL)           0.1 ms (max     0.1) [timing, varies per run]
+
+  2500 matches per owner (10000 in the file; 15.6 days at ~150 rounds a day)
+    (history written in 26.8 s) [timing, varies per run]
+    startRound(), all eight                          4.9 ms (max    12.0) [timing, varies per run]
+    one owner, the whole history (old)              81.3 ms (max   104.8) [timing, varies per run]
+    one owner, store.recentOpponents (SQL)           0.1 ms (max     0.1) [timing, varies per run]
+
+  6300 matches per owner (25200 in the file; 39.4 days at ~150 rounds a day)
+    (history written in 51.0 s) [timing, varies per run]
+    startRound(), all eight                          4.4 ms (max    14.5) [timing, varies per run]
+    one owner, the whole history (old)             227.6 ms (max   249.1) [timing, varies per run]
+    one owner, store.recentOpponents (SQL)           0.1 ms (max     0.1) [timing, varies per run]
+
+  12600 matches per owner (50400 in the file; 78.8 days at ~150 rounds a day)
+    (history written in 74.7 s) [timing, varies per run]
+    startRound(), all eight                          4.6 ms (max    18.1) [timing, varies per run]
+    one owner, the whole history (old)             488.1 ms (max   524.8) [timing, varies per run]
+    one owner, store.recentOpponents (SQL)           0.1 ms (max     0.1) [timing, varies per run]
+
+  33000 matches per owner (132000 in the file; 206.3 days at ~150 rounds a day)
+    (history written in 257.8 s) [timing, varies per run]
+    startRound(), all eight                          4.4 ms (max     4.6) [timing, varies per run]
+    one owner, the whole history (old)             refused: too many SQL variables
+    one owner, store.recentOpponents (SQL)           0.1 ms (max     0.1) [timing, varies per run]
+
+
+Before the fix (the same script, run this session with the ladder still reading the whole history; startRound only):
+  0 matches per owner (0 in the file; 0.0 days at ~150 rounds a day)
+    startRound(), all eight                          4.4 ms (max     6.2) [timing, varies per run]
+  150 matches per owner (600 in the file; 0.9 days at ~150 rounds a day)
+    startRound(), all eight                         41.9 ms (max    58.9) [timing, varies per run]
+  2500 matches per owner (10000 in the file; 15.6 days at ~150 rounds a day)
+    startRound(), all eight                        628.8 ms (max   784.9) [timing, varies per run]
+  6300 matches per owner (25200 in the file; 39.4 days at ~150 rounds a day)
+    startRound(), all eight                       1808.4 ms (max  1884.9) [timing, varies per run]
+  12600 matches per owner (50400 in the file; 78.8 days at ~150 rounds a day)
+    startRound(), all eight                       3980.9 ms (max  4176.7) [timing, varies per run]
+  33000 matches per owner: not run before the fix; the old read is refused (above), so startRound would have thrown.

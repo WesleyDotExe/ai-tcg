@@ -1,0 +1,15 @@
+Live feed size 001 — how big GET /api/live/:id gets (session 87, game lane)
+========================================================================
+100 real ladder matches (25 rounds of the eight house agents), sized as the JSON the owner API sends.
+The feed's own part only (start, opening lines and hands, the steps): the live view's fields every read also carries
+(both sides, the board now, the last few lines, the speed) are not counted.
+
+  moves in a match                         min        68  median       119  p90       163  max       191
+  from=0 on the last move (a late page)    min   73.0 KB  median  178.4 KB  p90  257.5 KB  max  305.4 KB
+  per move                                 min    1.1 KB  median    1.5 KB  p90    1.7 KB  max    1.7 KB
+  the largest one-move poll                min    1.7 KB  median    2.7 KB  p90    3.7 KB  max    4.8 KB
+
+Largest read: 305.4 KB, once per page opened; after that each poll carries only the moves released since.
+Season 0 runs on one machine for a handful of owners: no cap is needed for it. A cap would make the website's
+first read loop until it has the whole match (it builds the arena from the first move on), so it is a change to
+both lanes, for launch scale (quality-debt.md).

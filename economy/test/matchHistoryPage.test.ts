@@ -122,3 +122,44 @@ describe("ownerStats counted from four columns", () => {
     expect(store.ownerStats(store.listOwners()[0]!.ownerId).void).toBeGreaterThan(0);
   });
 });
+
+// (session 87) The ladder's pairing reads each owner's last two opponents
+// every round; it read the whole history for them until this session.
+/** The old read (ladderRunner's recentOpponents before session 87). */
+function oldRecentOpponents(store: EconomyStore, ownerId: string, count: number): string[] {
+  return store
+    .matchHistory({ ownerId })
+    .slice(-count)
+    .reverse()
+    .map((m) => (m.p1OwnerId === ownerId ? m.p2OwnerId : m.p1OwnerId));
+}
+
+describe("recentOpponents by SQL", () => {
+  it("is the old whole-history read, for every owner, after every match, at counts 1-3", () => {
+    // Re-read after each match: ties in ended_at (every 4th), either seat,
+    // cancels and abandons counted the same as before.
+    for (const total of [1, 2, 3, 4, 5, 8, 12, 25, 60]) {
+      const { store } = history(total);
+      for (const o of store.listOwners()) {
+        for (const count of [1, 2, 3]) expect(store.recentOpponents(o.ownerId, count)).toEqual(oldRecentOpponents(store, o.ownerId, count));
+      }
+    }
+  });
+
+  it("is newest first: the match recorded last at a tied ended_at comes first", () => {
+    const { store, ada } = history(8); // m-0004 and m-0008 share the previous match's ended_at
+    const mine = store.matchHistory({ ownerId: ada.ownerId });
+    const other = (m: MatchRecord) => (m.p1OwnerId === ada.ownerId ? m.p2OwnerId : m.p1OwnerId);
+    expect(mine[mine.length - 1]!.endedAt).toBe(mine[mine.length - 2]!.endedAt);
+    expect(store.recentOpponents(ada.ownerId, 2)).toEqual([other(mine[mine.length - 1]!), other(mine[mine.length - 2]!)]);
+  });
+
+  it("an owner with no matches has none; 0 asks for none; a count that isn't whole is refused", () => {
+    const { store, ada } = history(5);
+    const nobody = store.createOwner({ name: "Ed", kind: "player" });
+    expect(store.recentOpponents(nobody.ownerId, 2)).toEqual([]);
+    expect(store.recentOpponents(ada.ownerId, 0)).toEqual([]);
+    expect(() => store.recentOpponents(ada.ownerId, 1.5)).toThrow(/whole number/);
+    expect(() => store.recentOpponents(ada.ownerId, -1)).toThrow(/whole number/);
+  });
+});
