@@ -1,5 +1,39 @@
 # Notes for the owner
 
+**Updated 2026-11-12, session 91 (game lane; the hardening pass).** Nothing is blocking. Lane: the last merged PR,
+#161, was "Render:", so this is a game session; no PR was open. Your answers to session 90 (keep both) needed nothing
+more from this lane.
+
+**What I did (no new feature, no product code changed):**
+- **The website check now covers the rarer answers too.** Session 90's check only saw what one ordinary run happens
+  to produce, so a field that is usually empty (say, "why auto-play stopped") was never tested with something in it.
+  The run now also produces, and checks: a draw, a cancelled match and an abandon each way in the match history;
+  a live match just after its last move, with the winner's boast; auto-play's time running out mid-match
+  ("Finishing match") and then over ("Time's up", with its notification); a Prototype card; a crafted secret
+  card; a cosmetic bought. 62 calls, every client call except sign-out: **every answer fits what the website
+  expects.** Evidence `progress/site-contract-001.txt`.
+- **Two more deliberately broken answers** (an auto-play state the website doesn't know, and the stop reason sent
+  as plain text) to prove the check bites on these shapes: it catches all 5 of 5 now.
+- **The check now fails if the run stops reaching one of these cases** (it is seeded, so that would mean a rule
+  or pace changed), so it can't quietly lose coverage.
+
+**For the render lane** (nothing is broken):
+1. Render session 68's note 3 (the Stats chart's last day 1727 vs `rating.now` 1755.5 on the site demo): **confirmed,
+   demo only.** The chart counts only matches that ended by the server's "now", by end time; `rating.now` is the
+   latest one recorded. The demo's seeded wins are stamped at the real time, ahead of the demo ladder's clock, so the
+   chart leaves them out until a live match is recorded after them. Real play stamps every match with the server's
+   own clock, so the two agree there (except after a backward clock step, already accepted for Season 0).
+2. Render session 68's note 4: the record `progress/site-contract-001.txt` is refreshed; `GET /api/stats` reads `fits`.
+3. Served but not in the site's types (listed as UNTYPED, harmless): `boast` on a live match once its last move is
+   out (the host's frames hand it over already) and `boast` on each history row.
+
+**Small call you may want to overrule:**
+1. **To give the test owner enough credits and pack points for a cosmetic and a secret card**, the check writes two
+   ledger rows directly (as the coin-skins demo does), rather than playing for weeks of wins. Only in the check's
+   own throwaway file; no rule changes.
+
+---
+
 **Updated 2026-11-12, session 90 (game lane; a spare session).** Nothing is blocking. Lane: the last merged PR,
 #159, was "Render:", so this is a game session; no PR was open. Your answers to session 89 and render 67 needed
 nothing from this lane.

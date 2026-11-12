@@ -5282,3 +5282,27 @@ the card viewer and salvage were skipped (the spare card was picked before the p
 trusting its zero.
 **Thin:** in quality-debt.md (the site host's own readers aren't checked; only the shapes this run reached).
 **Blocked:** nothing.
+
+## 2026-11-12 — Session 91 (game lane): the hardening pass: the site contract check's rarer shapes (no product code or schema change)
+
+**Lane:** the last merged PR, #161, was "Render:", so this is a game session. No PR from either lane was open.
+Owner feedback: the answers to session 90 (keep both calls; three render items placed) needed nothing more from
+this lane. Session 91 is the game lane's every-5th hardening pass (81, 86, 91): no new features.
+
+**What:** session 90's check covered only the shapes one plain run produced. `server/src/dev/siteContractCheck.ts`
+now also sets up and reaches: a draw, a cancelled match and an abandon each way on earlier days (history rows and
+a match view of every result kind); the first live match seen with its last move out, read with its boast; Player
+Two on a 15-minute allowance with the clock run on until it is "finishing" and then "done" with `stopped:
+timeUp` and the notification; a Prototype copy (binder, card viewer); a crafted secret illustration and a bought
+cosmetic (credits and pack points written as ledger rows); the text log. Two new controls (an allowance state the
+site doesn't know; `stopped` sent as text). A "Shapes reached" list; the check exits 1 if any is unreached.
+
+**Ran it:** `progress/site-contract-001.txt`: 62 calls, every client method but `signOut` (and the host's three),
+**0 mismatches**, 200 untyped field lines, controls 5 of 5, 14 of 14 shapes reached. Two runs identical.
+`npm test -w server` 203 pass; typecheck clean in every workspace; `npm run demos` 32 same.
+Also confirmed render session 68's note 3 in the code (`stats()`: the chart reads matches with `ended_at <= now`
+by end time; `rating.now` is the latest recorded): the site demo's seeded wins are stamped ahead of its ladder's
+clock, so demo only. Told the render lane in notes-for-owner.md.
+**Worked:** controls on the new shapes, so the zero means something there too; failing on an unreached shape.
+**Thin:** in quality-debt.md (dailyRewardsMaxed, Zero-Day crafts, error bodies still unreached; the host's readers).
+**Blocked:** nothing.

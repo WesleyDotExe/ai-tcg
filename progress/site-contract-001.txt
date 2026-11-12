@@ -1,4 +1,4 @@
-# The site contract check: the render's site types against the served answers (game session 90)
+# The site contract check: the render's site types against the served answers (game sessions 90-91)
 
 The website's own client (render/src/site/siteApi.ts, unchanged) called the real owner API over a real
 season file with the live ladder playing (5 owners, a fixed clock and seeds). Each answer it parsed was
@@ -8,7 +8,7 @@ compiler settings.
   UNTYPED   the server sends a field the type doesn't name: harmless; the site could read it.
             (Every one is listed: the check repeats with each reported field taken out.)
 
-Ladder: 8 matches started before the reads; calls made: 46; refused: 0.
+Ladder: 12 matches started before the reads; calls made: 62; refused: 0.
 
 fits  POST /api/session (one)  (SiteApi.signIn)
 fits  POST /api/session (two)  (SiteApi.signIn)
@@ -51,23 +51,11 @@ fits (with untyped fields)  GET /api/cosmetics  (SiteApi.cosmetics)
 fits  GET /api/agents/:id/loadout  (SiteApi.loadout)
 fits  GET /api/rating?recent=10  (SiteApi.rating)
 fits  GET /api/ladder?limit=10  (SiteApi.ladder)
-fits (with untyped fields)  GET /api/stats  (SiteApi.stats)
-    UNTYPED   today is sent; the type doesn't name it
+fits  GET /api/stats  (SiteApi.stats)
 fits  GET /api/notifications?limit=10  (SiteApi.notifications)
 fits (with untyped fields)  GET /api/live  (SiteApi.live)
     UNTYPED   featured is sent; the type doesn't name it
     UNTYPED   matches[].boast is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.art is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.attack is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.cardId is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.cost is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.flavor is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.health is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.inZone is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.keywords is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.nextCost is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.rulesText is sent; the type doesn't name it
-    UNTYPED   matches[].now.p2.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   matches[].p1.arena is sent; the type doesn't name it
     UNTYPED   matches[].p1.coin is sent; the type doesn't name it
     UNTYPED   matches[].p1.faction is sent; the type doesn't name it
@@ -77,17 +65,6 @@ fits (with untyped fields)  GET /api/live  (SiteApi.live)
     UNTYPED   matches[].viewers is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/live/:id?from=N (the last two moves)  (SiteApi.liveFeed)
     UNTYPED   boast is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.art is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.attack is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.cardId is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.cost is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.flavor is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.health is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.inZone is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.keywords is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.nextCost is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.rulesText is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   openingHands is sent; the type doesn't name it
     UNTYPED   p1.arena is sent; the type doesn't name it
     UNTYPED   p1.coin is sent; the type doesn't name it
@@ -95,33 +72,11 @@ fits (with untyped fields)  GET /api/live/:id?from=N (the last two moves)  (Site
     UNTYPED   p2.arena is sent; the type doesn't name it
     UNTYPED   p2.coin is sent; the type doesn't name it
     UNTYPED   p2.faction is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.art is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.attack is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.cardId is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.cost is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.flavor is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.health is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.inZone is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.keywords is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.nextCost is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.rulesText is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   steps[].events is sent; the type doesn't name it
     UNTYPED   steps[].move is sent; the type doesn't name it
     UNTYPED   viewers is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/live/:id?from=0 (from the start)  (SiteApi.liveFeed)
     UNTYPED   boast is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.art is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.attack is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.cardId is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.cost is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.flavor is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.health is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.inZone is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.keywords is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.nextCost is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.rulesText is sent; the type doesn't name it
-    UNTYPED   now.p2.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   openingHands is sent; the type doesn't name it
     UNTYPED   p1.arena is sent; the type doesn't name it
     UNTYPED   p1.coin is sent; the type doesn't name it
@@ -129,33 +84,11 @@ fits (with untyped fields)  GET /api/live/:id?from=0 (from the start)  (SiteApi.
     UNTYPED   p2.arena is sent; the type doesn't name it
     UNTYPED   p2.coin is sent; the type doesn't name it
     UNTYPED   p2.faction is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.art is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.attack is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.cardId is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.cost is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.flavor is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.health is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.inZone is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.keywords is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.nextCost is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.rulesText is sent; the type doesn't name it
-    UNTYPED   start.p2.signature.timesPlayed is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.art is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.attack is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.cardId is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.cost is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.flavor is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.health is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.inZone is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.keywords is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.nextCost is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.rulesText is sent; the type doesn't name it
-    UNTYPED   steps[].after.p2.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   steps[].events is sent; the type doesn't name it
     UNTYPED   steps[].move is sent; the type doesn't name it
     UNTYPED   viewers is sent; the type doesn't name it
-fits  GET /api/matches?limit=5  (SiteApi.matches)
-fits (with untyped fields)  GET /api/matches/:id  (SiteApi.match)
+fits  GET /api/matches?limit=50 (every result kind)  (SiteApi.matches)
+fits (with untyped fields)  GET /api/matches/:id (loss)  (SiteApi.match)
     UNTYPED   defaultView is sent; the type doesn't name it
     UNTYPED   p1.arena is sent; the type doesn't name it
     UNTYPED   p1.coin is sent; the type doesn't name it
@@ -167,6 +100,63 @@ fits (with untyped fields)  GET /api/matches/:id  (SiteApi.match)
     UNTYPED   p2.rating.ownerId is sent; the type doesn't name it
     UNTYPED   p2.rating.score is sent; the type doesn't name it
     UNTYPED   p2.ratingAtStart is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/matches/:id (win)  (SiteApi.match)
+    UNTYPED   defaultView is sent; the type doesn't name it
+    UNTYPED   p1.arena is sent; the type doesn't name it
+    UNTYPED   p1.coin is sent; the type doesn't name it
+    UNTYPED   p1.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p1.rating.score is sent; the type doesn't name it
+    UNTYPED   p1.ratingAtStart is sent; the type doesn't name it
+    UNTYPED   p2.arena is sent; the type doesn't name it
+    UNTYPED   p2.coin is sent; the type doesn't name it
+    UNTYPED   p2.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p2.rating.score is sent; the type doesn't name it
+    UNTYPED   p2.ratingAtStart is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/matches/:id (abandonedByYou)  (SiteApi.match)
+    UNTYPED   defaultView is sent; the type doesn't name it
+    UNTYPED   p1.arena is sent; the type doesn't name it
+    UNTYPED   p1.coin is sent; the type doesn't name it
+    UNTYPED   p1.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p1.rating.score is sent; the type doesn't name it
+    UNTYPED   p1.ratingAtStart is sent; the type doesn't name it
+    UNTYPED   p2.arena is sent; the type doesn't name it
+    UNTYPED   p2.coin is sent; the type doesn't name it
+    UNTYPED   p2.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p2.rating.score is sent; the type doesn't name it
+    UNTYPED   p2.ratingAtStart is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/matches/:id (abandonedByOpponent)  (SiteApi.match)
+    UNTYPED   defaultView is sent; the type doesn't name it
+    UNTYPED   p1.arena is sent; the type doesn't name it
+    UNTYPED   p1.coin is sent; the type doesn't name it
+    UNTYPED   p1.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p1.rating.score is sent; the type doesn't name it
+    UNTYPED   p1.ratingAtStart is sent; the type doesn't name it
+    UNTYPED   p2.arena is sent; the type doesn't name it
+    UNTYPED   p2.coin is sent; the type doesn't name it
+    UNTYPED   p2.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p2.rating.score is sent; the type doesn't name it
+    UNTYPED   p2.ratingAtStart is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/matches/:id (cancelled)  (SiteApi.match)
+    UNTYPED   defaultView is sent; the type doesn't name it
+    UNTYPED   p1.arena is sent; the type doesn't name it
+    UNTYPED   p1.coin is sent; the type doesn't name it
+    UNTYPED   p1.ratingAtStart is sent; the type doesn't name it
+    UNTYPED   p2.arena is sent; the type doesn't name it
+    UNTYPED   p2.coin is sent; the type doesn't name it
+    UNTYPED   p2.ratingAtStart is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/matches/:id (draw)  (SiteApi.match)
+    UNTYPED   defaultView is sent; the type doesn't name it
+    UNTYPED   p1.arena is sent; the type doesn't name it
+    UNTYPED   p1.coin is sent; the type doesn't name it
+    UNTYPED   p1.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p1.rating.score is sent; the type doesn't name it
+    UNTYPED   p1.ratingAtStart is sent; the type doesn't name it
+    UNTYPED   p2.arena is sent; the type doesn't name it
+    UNTYPED   p2.coin is sent; the type doesn't name it
+    UNTYPED   p2.rating.ownerId is sent; the type doesn't name it
+    UNTYPED   p2.rating.score is sent; the type doesn't name it
+    UNTYPED   p2.ratingAtStart is sent; the type doesn't name it
+fits  GET /api/matches/:id/log (text)  (SiteApi.matchLog)
 fits (with untyped fields)  PATCH /api/account/settings  (SiteApi.updateAccountSettings)
     UNTYPED   notifications is sent; the type doesn't name it
 fits  POST /api/packs/open {count:1}  (SiteApi.openPacks)
@@ -196,6 +186,23 @@ fits (with untyped fields)  POST /api/collection/cards/:id/craft  (SiteApi.craft
     UNTYPED   copy.stamp is sent; the type doesn't name it
     UNTYPED   holdings.copyLimit is sent; the type doesn't name it
     UNTYPED   holdings.craft is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/collection/cards/:id (a Prototype copy)  (SiteApi.cardHoldings)
+    UNTYPED   copyLimit is sent; the type doesn't name it
+    UNTYPED   craft is sent; the type doesn't name it
+fits (with untyped fields)  POST /api/collection/secrets/:code/craft  (SiteApi.craftSecret)
+    UNTYPED   copy.originRef is sent; the type doesn't name it
+    UNTYPED   copy.ownerId is sent; the type doesn't name it
+    UNTYPED   copy.stamp is sent; the type doesn't name it
+fits (with untyped fields)  POST /api/store/cosmetics/:id/buy  (SiteApi.buyCosmetic)
+    UNTYPED   cosmetic is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/collection (after the Prototype and the secret)  (SiteApi.collection)
+    UNTYPED   cards[].copies[].accountBound is sent; the type doesn't name it
+    UNTYPED   cards[].copies[].origin is sent; the type doesn't name it
+    UNTYPED   cards[].copies[].originRef is sent; the type doesn't name it
+    UNTYPED   cards[].copies[].seriesCode is sent; the type doesn't name it
+    UNTYPED   cards[].copies[].seriesKind is sent; the type doesn't name it
+    UNTYPED   cards[].copies[].stamp is sent; the type doesn't name it
+    UNTYPED   promos is sent; the type doesn't name it
 fits  PUT /api/board  (SiteApi.saveBoard)
 fits (with untyped fields)  PUT /api/play/active-deck  (SiteApi.setActiveDeck)
     UNTYPED   activeDeck.list is sent; the type doesn't name it
@@ -228,10 +235,63 @@ fits  PUT /api/agents/:id/loadout/coin  (SiteApi.setLoadout)
 fits  POST /api/play/rebuild  (SiteApi.rebuild)
 fits (with untyped fields)  GET /api/play/rebuild (finished)  (SiteApi.rebuildJob)
     UNTYPED   result.rule is sent; the type doesn't name it
+fits (with untyped fields)  PUT /api/play/auto-play {on, minutes:15} (two)  (SiteApi.setAutoPlay)
+    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/live (a match with its last move out)  (SiteApi.live)
+    UNTYPED   featured is sent; the type doesn't name it
+    UNTYPED   matches[].boast is sent; the type doesn't name it
+    UNTYPED   matches[].p1.arena is sent; the type doesn't name it
+    UNTYPED   matches[].p1.coin is sent; the type doesn't name it
+    UNTYPED   matches[].p1.faction is sent; the type doesn't name it
+    UNTYPED   matches[].p2.arena is sent; the type doesn't name it
+    UNTYPED   matches[].p2.coin is sent; the type doesn't name it
+    UNTYPED   matches[].p2.faction is sent; the type doesn't name it
+    UNTYPED   matches[].viewers is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/live/:id?from=N (the last move out, the boast)  (SiteApi.liveFeed)
+    UNTYPED   boast is sent; the type doesn't name it
+    UNTYPED   openingHands is sent; the type doesn't name it
+    UNTYPED   p1.arena is sent; the type doesn't name it
+    UNTYPED   p1.coin is sent; the type doesn't name it
+    UNTYPED   p1.faction is sent; the type doesn't name it
+    UNTYPED   p2.arena is sent; the type doesn't name it
+    UNTYPED   p2.coin is sent; the type doesn't name it
+    UNTYPED   p2.faction is sent; the type doesn't name it
+    UNTYPED   steps[].events is sent; the type doesn't name it
+    UNTYPED   steps[].move is sent; the type doesn't name it
+    UNTYPED   viewers is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/play (two: the allowance finishing)  (SiteApi.play)
+    UNTYPED   activeDeck.list is sent; the type doesn't name it
+    UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
+    UNTYPED   agentDeck.list is sent; the type doesn't name it
+    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
+    UNTYPED   decks[].list is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/play (two: the allowance done, stopped timeUp)  (SiteApi.play)
+    UNTYPED   activeDeck.list is sent; the type doesn't name it
+    UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
+    UNTYPED   agentDeck.list is sent; the type doesn't name it
+    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
+    UNTYPED   decks[].list is sent; the type doesn't name it
+fits  GET /api/notifications (two: the time-up notice)  (SiteApi.notifications)
+
+Shapes reached (unions and nullable fields a plain run leaves on one side; session 91):
+    reached  a live match with its last move out
+    reached  the live feed's boast, not null (the winner's)
+    reached  autoPlay.allowance in "finishing"
+    reached  autoPlay.allowance in "done"
+    reached  autoPlay.stopped ("timeUp")
+    reached  a history row and match view: win
+    reached  a history row and match view: loss
+    reached  a history row and match view: draw
+    reached  a history row and match view: cancelled
+    reached  a history row and match view: abandonedByYou
+    reached  a history row and match view: abandonedByOpponent
+    reached  a Prototype copy (binder run, card viewer)
+    reached  a crafted secret illustration
+    reached  a cosmetic bought
 
 Not checked here:
     the site host's own calls (not the owner API): liveFrames, livePage, replayPage
-    owner API calls with no JSON answer checked: buyCosmetic, craftSecret, matchLog, signOut
+    owner API calls with no JSON answer checked: signOut
 
 The controls (broken copies of real answers; each must be a MISMATCH):
 caught   control: GET /api/me with `kind` taken out
@@ -239,6 +299,10 @@ caught   control: GET /api/me with `kind` taken out
 caught   control: GET /api/wallet with `credits` sent as text
     at credits: Type 'string' is not assignable to type 'number'.
 caught   control: GET /api/matches with `result` renamed `outcome`
-    at matches[]: Property 'result' is missing in type '{ matchId: string; endedAt: string; seat: "p2"; credits: number; rating: { before: number; after: number; change: number; }; opponent: { ownerId: string; ownerName: string; agentName: string; }; agentName: string; turns: number; hasLog: true; hasReplay: true; }' but required in type 'SiteHistoryRow'. (and 2 more like it)
+    at matches[]: Property 'result' is missing in type '{ matchId: string; endedAt: string; seat: "p1"; credits: number; rating: { before: number; after: number; change: number; }; opponent: { ownerId: string; ownerName: string; agentName: string; }; agentName: string; turns: number; hasLog: true; hasReplay: true; }' but required in type 'SiteHistoryRow'. (and 4 more like it)
+caught   control: GET /api/play with the allowance's state "ending" (not a state the site knows)
+    at autoPlay.allowance.state: Type '"ending"' is not assignable to type '"done" | "finishing" | "running"'.
+caught   control: GET /api/play with `autoPlay.stopped` sent as text
+    at autoPlay.stopped: Type 'string' is not assignable to type '{ reason: string; day: string; }'.
 
-Totals: 0 call(s) with a mismatch; 172 untyped field line(s); controls caught 3 of 3.
+Totals: 0 call(s) with a mismatch; 200 untyped field line(s); controls caught 5 of 5.
