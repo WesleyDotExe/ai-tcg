@@ -161,7 +161,10 @@ export function recommendedWidgets(rules: SiteBoardRules): SiteWidget[] {
   return rules.recommendedWidgets.map((w) => ({ ...w }));
 }
 
-export type LiveView = "board" | "scoreboard" | "list";
+/** "arena" (render session 67): Watch live at L with the live match on the
+ * real arena, embedded in the tile. One per board (each is a whole arena
+ * page); it counts as one of the two live boards. */
+export type LiveView = "arena" | "board" | "scoreboard" | "list";
 
 /** What each live widget draws (spec C: "at most 2 live boards render at
  * once; extra live widgets drop to a scoreboard with a short note"). A
@@ -173,6 +176,7 @@ export function liveViews(widgets: readonly SiteWidget[], maxBoards = 2): { view
   const views = new Map<string, LiveView>();
   const capped = new Set<string>();
   let shown = 0;
+  let arena = false;
   for (const w of widgets) {
     if (!WIDGET_INFO[w.type].live) continue;
     if (w.type === "watch" && w.size === "M") {
@@ -182,7 +186,9 @@ export function liveViews(widgets: readonly SiteWidget[], maxBoards = 2): { view
     const wants = w.size !== "S";
     if (wants && shown < maxBoards) {
       shown++;
-      views.set(w.id, "board");
+      const embed = w.type === "watch" && w.size === "L" && !arena;
+      if (embed) arena = true;
+      views.set(w.id, embed ? "arena" : "board");
     } else {
       views.set(w.id, "scoreboard");
       if (wants) capped.add(w.id);

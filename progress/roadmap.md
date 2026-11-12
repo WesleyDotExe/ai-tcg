@@ -224,15 +224,17 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      the tiles and the stops (`site-check-s64` 56 passed, `pack-bulk-check-s64` 14 PASS); a bug they found fixed
      (Skip pressed during a pack's tear ran past its stops); the claimed daily tile on the head's clock; focus kept
      on the tile after a buy or claim
-   - [~] The rest of the widgets' S/M/L pass. Done (render 65): Ladder (tier badge, rank and rating / + the tier
+   - [x] The rest of the widgets' S/M/L pass (finished render 67). Done (render 65): Ladder (tier badge, rank and rating / + the tier
      bar and four rows around you / + the tier column and the top 8), Rating & form (rating and the week's change /
      + the 30-day chart with tier floors, form pips and streak / + win-rate ring, faction bars, recent) and
      Notifications (bell and latest / + four and Mark all read / + unread by kind, eight, big pulls' cards), on
      the real API (`widgets-check-s65`). Done (render 66): Daily rewards (the ring of credits from wins / + the
      reward row: the free pack's Claim and one node per paying win / + the ticking reset clock, rewarded wins,
      next-win payout, today's wins and losses), Showcase (larger cards: 1 beside its name / 3 / 6 with names),
-     Collection (checked: already S/M/L, nothing changed), on the real API (`widgets-check-s66` 36 PASS). Left:
-     Watch live (the live match embedded at L)
+     Collection (checked: already S/M/L, nothing changed), on the real API (`widgets-check-s66` 36 PASS). Done
+     (render 67): Watch live (the score / + health bars and "Watch as" / the live match on the real arena embedded
+     in the tile, one per board, silent, kept across redraws, held for its result and boast, then the next match;
+     the compact board on a phone), on the real API (`watch-arena-check-s67`)
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so

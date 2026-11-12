@@ -9,6 +9,18 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **Watch live at L embeds the real live arena (session 67), checked against the real API, with thin spots.** The
+  frame is laid out 1180 px wide and scaled to the tile (about 0.66 on a 1440 px window), so the arena's own small
+  type (HUD numbers, hand chips, card names) is barely legible in the tile: the tile is for following the shape of
+  the match, the scoreboard beside it carries the numbers, and Full screen is one click. Each embedded arena is a
+  whole arena page (canvases, the FX loop) running while Home is open; only looked at in software rendering, its
+  cost on a real GPU and on a slow laptop is unmeasured (it loaded in under 1 s headless). One per board by rule;
+  a second Watch live at L shows the compact board. The redraw-around-the-frame (`patchAround`) is proven in the
+  browser (33 s of redraws, same frame, never reloaded) but has no Node unit test (no DOM in the render tests).
+  The 20 s hold after a match ends is a guess (the boast fits in it in the demo); a 2x match's end was not seen in
+  the tile. The tile's "Watch as" flip was not exercised by the check (the demo's first live match is always the
+  viewer's own, which has no switch); it reuses the arena's own switch, which is checked in `pov-check` (s52).
+  Reduced motion: the arena inside follows the viewer's setting itself; not checked in the tile.
 - **The pack opening ceremony is built per the brief (sessions 58, 60, 61, 62: parts 1, 2, 3a, 3b), but proven only
   headless.** Open 10 stops on every held card (Auto waits too; Skip never passes one); the debug panel forces each
   kind through real seeded openings; the brief's done-check ran in the headless browser (90 PASS). **Thin:**

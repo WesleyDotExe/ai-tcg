@@ -5654,3 +5654,76 @@ placeholder face.
 **Next render-lane slice:** after this PR the next session is game. The next render session: Watch live at L (the
 live match embedded in the tile, reusing the existing arena), which finishes the widgets' S/M/L pass; then the Stats
 page, the ladder page and the bell. Render hardening pass due at 69.
+
+## 2026-11-12 — Render session 67: Watch live at L, the live match on the real arena in the tile
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #158 "The day's wins numbered in the order they were paid
+(session 89)", is not "Render:"; the catch-up after #143 is long done). No PR from either lane was open.
+**Read first:** owner-feedback.md (the 2026-11-12 answers to render 66, all four kept; the answers to game 89, with
+the render note to drop session 66's note 2 and the standing rule to check the PR's files against its description),
+DESIGN.md, RENDER.md, `progress/season0-final-brief.md` section 1, this lane's log, debt and notes. Not a hardening
+pass (64 was; the next is 69).
+
+**The slice:** the last row of the brief's S/M/L table, Watch live: S live score, M + health bars and "Watch as",
+L "the live match embedded in the tile (reuse the existing arena)". Before this, L drew the compact board (unit
+chips). This finishes the widgets' S/M/L pass.
+
+**1. The arena's embed mode (`render/src/renderHtml.ts`).** The live arena page takes `embed=1` in its hash (framed
+only): `body.embed` hides the controls, the match feed, its own point-of-view switch and the brand; sound and music
+are never mounted (`SND.mount`/`MUS.mount` skipped), so nothing in the tile can start audio. A new message,
+`ai-tcg-set-view`, lets the website set the side near (the arena's own `setView`, which waits for Match Boot or a
+boast as its switch does).
+
+**2. Which tile embeds it (`siteBoard.ts`).** `LiveView` gains `"arena"`: the first Watch live at L that gets one of
+the two live boards gets the arena; a second one gets the compact board. One arena page per board.
+
+**3. The tile (`siteWidgets.ts` `arenaBody`).** Left: `.wl-arena`, a slot for the frame, the compact board as a
+stand-in (until the frame loads, and on a phone), and a Full screen button over the whole arena (the existing
+`watch-arena` action). Right (`.wl-info`): the match's scoreboard (stacked: the turn line on top, the sides under
+it), "Watch as" (not on the viewer's own match), the other live matches, the Watch live link. A held match that has
+left the live list shows "Match over." and stays on the arena, also between rounds when nothing else is live.
+
+**4. The page (`siteClient.ts`, `siteTileArena.ts`).** `mountTileArena` after every Home draw: makes the frame from
+the host's live page (`POST /live-page/:id`, as Full screen does) with `#view=…&switch=…&embed=1`, feeds it every 3 s
+(15 s hidden) through `feedLive`, now shared with the full-screen arena (`feedArena` is a two-line wrapper), scales it
+(`arenaFit`: laid out 1180 px wide, the arena's own width, scaled to the slot; a ResizeObserver refits). An iframe
+removed or moved in the DOM reloads, and Home redraws everything every poll, so the redraws now go around the frame:
+`patchAround(old, new, keep)` replaces every node except the path down to the frame (each element on the path keeps
+its place and takes its twin's attributes); both the page redraw (`keepTileArena`) and the 3 s live redraw
+(`patchArenaTile`) use it, and fall back to the plain redraw when the tile now shows another match. `arenaPick`
+holds the match after it ends (20 s after its feed ends, 30 s at most with no word) for the result and the boast,
+then the next live match. Taken down while customising, while a full-screen arena or replay is open (one arena at a
+time; Close brings it back), and on a phone (`max-width: 720px`).
+
+**5. Watch live at S.** It was broken (pre-existing, session 50's): the three-column small scoreboard overlapped in a
+3-column tile and its button row ran 92 px out. Now the stacked score and no button row (the header's arrow opens
+Watch live).
+
+**Tests (+7, render 990):** `siteTileArena.test.ts` (new: the pick: first match, held while live, held after its end
+for the hold then the next, held at most 30 s with no word; the fit; the embed mode in the page's script and CSS).
+`siteBoard.test.ts`: `liveViews` gives the first L the arena and the second the board; the tile at L (its slot and
+match, the Full screen label, the stacked scoreboard, no "Watch as" on one's own match, another match held with its
+"Watch as", "Match over" with Full screen off, between rounds); every widget at every size with the arena view.
+
+**Ran it:** `progress/render/evidence/watch-arena-check-s67.mjs` against the real owner API with the ladder playing
+at 8x. Run 1 33 PASS 1 FAIL (S overflow 92 px), and the end-of-match still showed the tile's arena gone; run 2, with
+a trail of the tile's states, found why (between rounds `GET /api/live` is briefly empty and the widget drew "No
+match is live" before looking at the held match, so the frame went): 33 PASS 3 FAIL. Both kept in
+`watch-arena-check-s67-first-runs.txt`. Fixed; the final run **36 PASS, 0 FAIL** (`watch-arena-check-s67.txt`): the
+tile's arena is the server's first live match, loaded (0.7 s), scaled exactly to its slot (780 x 430), embed mode on,
+sound and music not mounted, the viewer's side near; after 33 s of redraws the same frame and the same arena page,
+never reloaded, following the match (move 9 -> 89) while the scoreboard beside it followed the server; Full screen
+takes the tile's down and Close brings it back; Customise takes it down and Done brings it back; the match ends and
+the tile holds it (the boast plays in the tile, `v2-s67-watch-L-ended.jpg`), then the next match takes the tile 19 s
+later and loads; on a phone no frame, the compact board; no sideways scroll, no external requests, no page errors.
+Stills `v2-s67-watch-S/M/L.jpg`, `-L-dark`, `-L-ended`, `-fullscreen`, `-phone`. CI browser check 61 PASS; `npm
+test` (render) 990 pass; typecheck clean; `render/output/site/index.html` rebuilt. The committed replay pages under
+`render/output/` were not rebuilt (they are standalone; the embed mode only matters on the host's live pages, built
+fresh).
+
+**Not done (named, in quality-debt):** the tile's "Watch as" flip not exercised in the browser (the demo's first live
+match is always the viewer's own); the arena's small type barely legible at the tile's scale; the cost of a running
+arena on Home unmeasured on a real GPU; `patchAround` has no Node unit test (no DOM in the render tests).
+
+**Next render-lane slice:** after this PR the next session is game. The next render session: the Stats page, the
+ladder page and the notifications bell (roadmap render item 7's last row). Render hardening pass due at 69.

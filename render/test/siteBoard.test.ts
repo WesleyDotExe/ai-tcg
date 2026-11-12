@@ -164,11 +164,12 @@ describe("live boards (at most two at once)", () => {
     // Render session 57: Agent controls (the "live" id) draws no live board, so it never takes one.
     const b = [W("a", "live", "M"), W("b", "watch", "M"), W("c", "watch", "L"), W("d", "watch", "S")];
     const { views, capped } = liveViews(b);
-    expect(Object.fromEntries(views)).toEqual({ b: "list", c: "board", d: "scoreboard" });
+    // Render session 67: Watch live at L embeds the arena (one per board, one of the two boards).
+    expect(Object.fromEntries(views)).toEqual({ b: "list", c: "arena", d: "scoreboard" });
     expect([...capped]).toEqual([]);
     const three = [W("a", "watch", "L"), W("b", "watch", "L"), W("c", "watch", "L")];
     const r = liveViews(three);
-    expect(Object.fromEntries(r.views)).toEqual({ a: "board", b: "board", c: "scoreboard" });
+    expect(Object.fromEntries(r.views)).toEqual({ a: "arena", b: "board", c: "scoreboard" });
     expect([...r.capped]).toEqual(["c"]);
     expect(liveViews([W("x", "packs")]).views.size).toBe(0);
   });
@@ -295,7 +296,7 @@ describe("what the widgets show", () => {
   };
   it("every widget draws at every size, editing or not, with nothing undefined or made up", () => {
     for (const t of WIDGET_TYPES) for (const size of ["S", "M", "L"] as const) for (const editing of [false, true]) {
-      const h = widgetHtml({ id: "w1", type: t, size }, DATA, { editing, live: "board" });
+      const h = widgetHtml({ id: "w1", type: t, size }, DATA, { editing, live: size === "L" && t === "watch" ? "arena" : "board" });
       expect(h, `${t} ${size}`).not.toMatch(/undefined|NaN|\[object|>false<|>null</);
       expect(h).toContain(`data-type="${t}"`);
       expect(h).toContain(`data-size="${size}"`);
@@ -336,6 +337,38 @@ describe("what the widgets show", () => {
     // Render session 66: the Showcase draws fewer, larger cards (S 1, M 3, L 6).
     expect(at("showcase", "M").match(/class="mc /g)).toHaveLength(3);
   });
+  it("Watch live at L embeds the arena: its slot, the stand-in, Full screen, the scoreboard and the rest (render session 67)", () => {
+    const other = { ...LIVE_MATCH, matchId: "m-2", p1: { ...LIVE_MATCH.p1, ownerId: "o-3", ownerName: "Rook", agentName: "Lattice Nine" } };
+    const two = { ...DATA, live: { running: true, matches: [LIVE_MATCH, other], mine: "m-1" } };
+    const h = widgetHtml(W("w", "watch", "L"), two, { editing: false, live: "arena" });
+    expect(h).not.toMatch(/undefined|NaN|\[object|>null</);
+    // The first live match (the viewer's own) takes the arena; its frame goes in .wl-frame.
+    expect(h).toContain('<div class="wl-arena" data-match="m-1" data-ended="false"><div class="wl-frame" aria-hidden="true"></div>');
+    expect(h).toContain('data-act="watch-arena" data-match="m-1" aria-label="Watch Vector &lt;Halcyon&gt; vs Hive Courier full screen on the arena"');
+    expect(h).toMatch(/class="wl-info"><div class="sb sb-s" data-match="m-1"/);
+    // The viewer's own match: no "Watch as"; the other match is listed under "Also live".
+    expect(h).not.toContain('data-act="watch-as" data-match="m-1"');
+    expect(h).toMatch(/<h4>Also live<\/h4><ul class="lines">[\s\S]*Lattice Nine/);
+    // The page holds another match: that one is on the arena, with its "Watch as", and m-1 listed.
+    const held = widgetHtml(W("w", "watch", "L"), two, { editing: false, live: "arena", arena: { matchId: "m-2", ended: false } });
+    expect(held).toContain('data-match="m-2" data-ended="false"');
+    expect(held).toContain('data-act="watch-as" data-match="m-2" data-seat="p1"');
+    expect(held).toMatch(/Also live<\/h4><ul class="lines">[\s\S]*Vector &lt;Halcyon&gt;/);
+    // Its match recorded and gone from the list: held a moment, "Match over", no Full screen.
+    const over = widgetHtml(W("w", "watch", "L"), DATA, { editing: false, live: "arena", arena: { matchId: "m-0", ended: true } });
+    expect(over).toContain('data-match="m-0" data-ended="true"');
+    expect(over).toContain("<b>Match over.</b>");
+    expect(over).toMatch(/data-act="watch-arena" data-match="m-0"[^>]* disabled>/);
+    expect(over).toMatch(/Also live<\/h4><ul class="lines">[\s\S]*Hive Courier/);
+    // Between ladder rounds nothing else is live: the held match stays on the arena.
+    const between = widgetHtml(W("w", "watch", "L"), { ...DATA, live: { running: true, matches: [], mine: null } }, { editing: false, live: "arena", arena: { matchId: "m-1", ended: true } });
+    expect(between).toContain('data-match="m-1" data-ended="true"');
+    expect(between).toContain("No match is live right now. The next ladder round starts soon.");
+    expect(widgetHtml(W("w", "watch", "L"), { ...DATA, live: { running: true, matches: [], mine: null } }, { editing: false, live: "arena" })).not.toContain("wl-arena");
+    // M and S don't embed it, whatever view they're handed.
+    expect(widgetHtml(W("w", "watch", "M"), two, { editing: false, live: "list" })).not.toContain("wl-arena");
+    expect(widgetHtml(W("w", "watch", "S"), two, { editing: false, live: "arena" })).not.toContain("wl-arena");
+  });
   it("a widget still loading says so; one whose read failed says why", () => {
     const at = (type: WidgetType, d: WidgetData) => widgetHtml({ id: "w", type, size: "M" }, d, { editing: false });
     expect(at("daily", { ...DATA, daily: null })).toContain("Loading…");
@@ -346,6 +379,8 @@ describe("what the widgets show", () => {
     // Render session 57: Agent controls never draws the board (Watch live and the match page do).
     expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "board" })).not.toContain('class="cboard"');
     expect(widgetHtml(W("w", "watch", "L"), DATA, { editing: false, live: "board" })).toContain('class="cboard"');
+    // Render session 67: at L with the arena, the compact board is the stand-in under the frame.
+    expect(widgetHtml(W("w", "watch", "L"), DATA, { editing: false, live: "arena" })).toContain('class="cboard"');
     const none = { ...DATA, play: { ...PLAY, connectedAgent: null } };
     expect(widgetHtml(W("w", "live", "M"), none, { editing: false })).toContain('href="#/connect"');
     expect(widgetHtml(W("w", "agent", "M"), none, { editing: false })).toContain("No agent connected");

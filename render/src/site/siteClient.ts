@@ -64,6 +64,7 @@ import {
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
+import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
@@ -693,8 +694,12 @@ function drawPage(): void {
   // turns into a greyed "Owned" or "Claimed today" can't take focus back, so
   // its tile does instead of focus dropping to the page.
   const keepTile = keep ? ((document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-tile]")?.dataset.tile ?? null) : null;
-  if (page === "home") el.innerHTML = homePage(p);
-  else if (page === "settings") el.innerHTML = settingsPage(p);
+  if (page === "home") {
+    // The tile's arena frame stays where it is (render session 67): the
+    // rest of Home is redrawn around it.
+    const html = homePage(p);
+    if (!keepTileArena(el, html)) el.innerHTML = html;
+  } else if (page === "settings") el.innerHTML = settingsPage(p);
   else if (page === "connect") el.innerHTML = connectPage(p);
   else if (page === "store") el.innerHTML = storePage();
   else if (page === "collection") el.innerHTML = collectionPage();
@@ -703,6 +708,7 @@ function drawPage(): void {
   else el.innerHTML = waitsPage(page);
   applyTheme();
   if (keep) restoreFocus(el, keep, keepTile);
+  mountTileArena();
 }
 
 /** Focus back on the redrawn twin of what had it; if that twin is gone or
@@ -748,7 +754,7 @@ function homePage(p: SitePlay): string {
   }
   const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
   const { views, capped } = liveViews(widgets);
-  const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
+  const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id), arena: views.get(w.id) === "arena" ? tileArenaPick() : undefined })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
   const note = !editing && state.board.recommended ? `<p class="muted small board-note">This is the recommended layout. Customise it and it's saved to your account.</p>` : "";
   return `<div class="pg-wide">${bar}<div class="wgrid${editing ? " editing" : ""}" id="wgrid">${tiles}${addTile}</div>${note}</div>`;
@@ -1939,8 +1945,12 @@ function drawLive(): void {
       if (w.type !== "live" && w.type !== "watch") continue;
       const tile = document.querySelector<HTMLElement>(`#wgrid .wg[data-id="${CSS.escape(w.id)}"]`);
       if (!tile || tile.contains(document.activeElement)) continue;
-      tile.outerHTML = widgetHtml(w, data, { editing: false, live: views.get(w.id), capped: capped.has(w.id) });
+      const view = views.get(w.id);
+      const html = widgetHtml(w, data, { editing: false, live: view, capped: capped.has(w.id), arena: view === "arena" ? tileArenaPick() : undefined });
+      if (view === "arena" && patchArenaTile(tile, html)) continue;
+      tile.outerHTML = html;
     }
+    mountTileArena();
   }
 }
 
@@ -2097,10 +2107,16 @@ function arenaHash(matchId: string, mine: "p1" | "p2" | null, defaultView: "p1" 
   return `#view=${near}&switch=${mine ? 0 : 1}`;
 }
 function arenaView(matchId: string): string {
+  const { mine, m } = arenaSeats(matchId);
+  return arenaHash(matchId, mine, m?.defaultView);
+}
+/** A live match's seats for the viewer: their own agent's (or null) and
+ * the side the arena puts near. */
+function arenaSeats(matchId: string): { mine: "p1" | "p2" | null; near: "p1" | "p2"; m: SiteLive["matches"][number] | null } {
   const m = state.home.live?.matches.find((x) => x.matchId === matchId) ?? null;
   const me = state.me?.ownerId ?? null;
   const mine = m && me ? (m.p1.ownerId === me ? "p1" : m.p2.ownerId === me ? "p2" : null) : null;
-  return arenaHash(matchId, mine, m?.defaultView);
+  return { mine, near: nearSeat(mine, viewOf(matchId), m?.defaultView), m };
 }
 function replayView(matchId: string): string {
   // Match history is the viewer's own: their agent's seat near, no switch.
@@ -2125,6 +2141,7 @@ let arenaLive: { key: string; have: number; poll: number; ended: boolean } | nul
 async function openLiveArena(matchId: string, from: HTMLElement | null): Promise<void> {
   if (!state.session || state.replay) return;
   state.replay = matchId;
+  teardownTileArena();
   replayFrom = from;
   const el = $("#replay");
   el.innerHTML = `<div class="op-wait">Joining the match…</div><div class="rp-speed" id="rp-speed"></div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
@@ -2156,21 +2173,184 @@ async function openLiveArena(matchId: string, from: HTMLElement | null): Promise
 
 async function feedArena(): Promise<void> {
   const live = arenaLive;
-  if (!live || !state.session || !replayFrame) return;
+  if (!live) return;
+  await feedLive(live, () => (arenaLive === live ? replayFrame : null), () => document.getElementById("rp-speed")?.replaceChildren());
+}
+
+/** One live arena frame's feeding (the full-screen one, render session 51,
+ * and the Watch live tile's, 67): the new frames since the last read, every
+ * 3 s (15 s in a hidden tab), until the host says the match was recorded.
+ * `frameOf` answers null once that frame is closed or replaced. */
+interface LiveFeed { key: string; have: number; poll: number; ended: boolean }
+async function feedLive(live: LiveFeed, frameOf: () => HTMLIFrameElement | null, onEnd: () => void): Promise<void> {
+  if (!state.session || !frameOf()) return;
   clearTimeout(live.poll);
   try {
     const r = await api.liveFrames(state.session.token, live.key, live.have);
-    if (arenaLive !== live || !replayFrame?.contentWindow) return;
+    const frame = frameOf();
+    if (!frame?.contentWindow) return;
     live.have += r.frames.length;
     live.ended = r.ended;
     // `rate` (render session 56): the pace the server releases at now (the 2× vote).
-    if (r.frames.length || r.ended || r.record || r.rate) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record, rate: r.rate ?? 1 }, location.origin);
-    if (r.ended) document.getElementById("rp-speed")?.replaceChildren();
+    if (r.frames.length || r.ended || r.record || r.rate) frame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record, rate: r.rate ?? 1 }, location.origin);
+    if (r.ended) onEnd();
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
     if (err instanceof SiteApiError && err.status === 404) return; // the page expired: Close and open it again
   }
-  if (arenaLive === live && !live.ended) live.poll = window.setTimeout(() => void feedArena(), document.hidden ? 15000 : 3000);
+  if (frameOf() && !live.ended) live.poll = window.setTimeout(() => void feedLive(live, frameOf, onEnd), document.hidden ? 15000 : 3000);
+}
+
+// ---- the Watch live tile's arena (render session 67) ----------------------
+// Watch live at L embeds the live match on the real arena (the brief's
+// table): the same live page the full-screen view opens, in its embed mode
+// (renderHtml.ts: no controls, no feed, silent), laid out 1180 px wide and
+// scaled into the tile (siteTileArena.ts). One per board. Home redraws
+// around the frame (patchAround), since a removed or moved iframe reloads.
+// It isn't made on a phone (the compact board stands in), while
+// customising, or while a full-screen arena or replay is open (one arena
+// at a time; closing it brings the tile's back).
+
+/** The match the tile holds (its result is held a moment after it ends). */
+let heldArena: HeldArena | null = null;
+let tileArena: { matchId: string; frame: HTMLIFrameElement; feed: LiveFeed | null; near: "p1" | "p2"; loaded: boolean; failed: boolean } | null = null;
+let tileObserver: ResizeObserver | null = null;
+let tileSwap = 0;
+const phoneQuery = window.matchMedia ? window.matchMedia("(max-width: 720px)") : null;
+phoneQuery?.addEventListener?.("change", () => mountTileArena());
+
+/** Which match the tile shows now, remembering when the held one left the
+ * live list. */
+function tileArenaPick(): { matchId: string; ended: boolean } | null {
+  const ids = (state.home.live?.matches ?? []).map((m) => m.matchId);
+  const now = Date.now();
+  if (heldArena && !ids.includes(heldArena.matchId) && heldArena.goneAt === null) heldArena.goneAt = now;
+  const pick = arenaPick(heldArena, ids, now);
+  if (pick && heldArena?.matchId !== pick.matchId) heldArena = { matchId: pick.matchId, ended: false, endedAt: null, goneAt: null };
+  if (!pick) heldArena = null;
+  return pick;
+}
+
+/** Home redrawn around the tile's frame; false: the plain redraw (no
+ * frame, or the tile now shows another match). */
+function keepTileArena(page: HTMLElement, html: string): boolean {
+  const t = tileArena;
+  const keep = t?.frame.parentElement;
+  if (!t || !keep || !page.contains(keep)) return false;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  if (tpl.content.querySelector(".wl-arena")?.getAttribute("data-match") !== t.matchId) return false;
+  return patchAround(page, tpl.content, keep);
+}
+
+/** The Watch live tile redrawn around its frame (drawLive's 3 s redraw). */
+function patchArenaTile(tile: HTMLElement, html: string): boolean {
+  const t = tileArena;
+  const keep = t?.frame.parentElement;
+  if (!t || !keep || !tile.contains(keep)) return false;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  const next = tpl.content.firstElementChild;
+  if (!next || next.querySelector(".wl-arena")?.getAttribute("data-match") !== t.matchId) return false;
+  if (!patchAround(tile, next, keep)) return false;
+  syncAttributes(tile, next);
+  return true;
+}
+
+function teardownTileArena(): void {
+  tileObserver?.disconnect();
+  tileObserver = null;
+  const t = tileArena;
+  if (!t) return;
+  tileArena = null;
+  if (t.feed) clearTimeout(t.feed.poll);
+  const slot = t.frame.closest<HTMLElement>(".wl-arena");
+  slot?.classList.remove("on", "joining");
+  t.frame.remove();
+}
+
+/** After every Home draw: the frame made, kept, or taken down. */
+function mountTileArena(): void {
+  const slot = state.page === "home" && !state.draft && !state.replay && !phoneQuery?.matches ? document.querySelector<HTMLElement>("#wgrid .wl-arena[data-match]") : null;
+  const matchId = slot?.dataset.match ?? null;
+  if (!slot || !matchId) return teardownTileArena();
+  if (tileArena && tileArena.matchId === matchId && slot.contains(tileArena.frame)) return syncTileArena();
+  teardownTileArena();
+  // A match already over (held, its frame gone with a full redraw) isn't joined again.
+  if (slot.dataset.ended === "true") return;
+  startTileArena(slot, matchId);
+}
+
+function startTileArena(slot: HTMLElement, matchId: string): void {
+  if (!state.session) return;
+  const frame = document.createElement("iframe");
+  frame.title = "The live match on the arena";
+  frame.tabIndex = -1;
+  frame.setAttribute("aria-hidden", "true");
+  slot.querySelector(".wl-frame")!.appendChild(frame);
+  const t: NonNullable<typeof tileArena> = { matchId, frame, feed: null, near: arenaSeats(matchId).near, loaded: false, failed: false };
+  tileArena = t;
+  syncTileArena();
+  const token = state.session.token;
+  api.livePage(token, matchId).then((page) => {
+    if (tileArena !== t) return;
+    const feed: LiveFeed = { key: page.key, have: page.released + 1, poll: 0, ended: false };
+    t.feed = feed;
+    frame.addEventListener("load", () => {
+      if (tileArena !== t) return;
+      t.loaded = true;
+      syncTileArena();
+      void feedLive(feed, () => (tileArena === t ? t.frame : null), () => tileArenaEnded(matchId));
+    }, { once: true });
+    const { mine } = arenaSeats(matchId);
+    frame.src = `${page.url}#view=${t.near}&switch=${mine ? 0 : 1}&embed=1`;
+  }).catch((err: unknown) => {
+    if (tileArena !== t) return;
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    // 404: it ended between the list and the read; 409: not started yet.
+    // The compact board stays; the next match (or the next redraw) tries again.
+    t.failed = true;
+    syncTileArena();
+  });
+}
+
+/** The tile's match was recorded: its result and boast play, held a
+ * moment, then the next live match takes the tile. */
+function tileArenaEnded(matchId: string): void {
+  if (heldArena?.matchId === matchId && !heldArena.ended) {
+    heldArena.ended = true;
+    heldArena.endedAt = Date.now();
+  }
+  clearTimeout(tileSwap);
+  tileSwap = window.setTimeout(() => drawLive(), TILE_ARENA_HOLD_END_MS + 200);
+}
+
+/** The frame's state on its slot, its scale, and the side near. */
+function syncTileArena(): void {
+  const t = tileArena;
+  const slot = t?.frame.closest<HTMLElement>(".wl-arena");
+  if (!t || !slot) return;
+  slot.classList.toggle("on", t.loaded);
+  slot.classList.toggle("joining", !t.loaded && !t.failed);
+  const fit = () => {
+    const f = arenaFit(slot.clientWidth, slot.clientHeight);
+    t.frame.style.width = `${f.width}px`;
+    t.frame.style.height = `${f.height}px`;
+    t.frame.style.transform = `scale(${f.scale})`;
+  };
+  fit();
+  if (!tileObserver && typeof ResizeObserver !== "undefined") {
+    tileObserver = new ResizeObserver(() => {
+      if (tileArena === t && slot.isConnected) fit();
+    });
+    tileObserver.observe(slot);
+  }
+  // The tile's "Watch as": the arena flips (it waits for Match Boot or a boast).
+  const seats = arenaSeats(t.matchId);
+  if (seats.m && seats.near !== t.near && t.loaded) {
+    t.near = seats.near;
+    t.frame.contentWindow?.postMessage({ type: "ai-tcg-set-view", view: seats.near }, location.origin);
+  }
 }
 
 /** A replay full screen: the host rebuilds the match from the server's
@@ -2178,6 +2358,7 @@ async function feedArena(): Promise<void> {
 async function openReplay(matchId: string, from: HTMLElement | null): Promise<void> {
   if (!state.session || state.replay) return;
   state.replay = matchId;
+  teardownTileArena();
   replayFrom = from;
   const el = $("#replay");
   el.innerHTML = `<div class="op-wait">Rebuilding the match…</div><button type="button" class="rp-close" data-act="close-replay">Close replay</button>`;
