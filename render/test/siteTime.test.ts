@@ -4,7 +4,7 @@
 // (pure), then the widget over the real owner API with the game lane's ladder
 // playing real matches on a clock the test moves: 15 minutes given, the ring
 // draining, +15, time up mid-match ("Finishing match"), the match finishing,
-// "Done for today", and the new day reading clean.
+// "Time's up", and the new day reading clean.
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -41,6 +41,9 @@ describe("the time ring's allowance and the time buttons (pure)", () => {
     // Finishing and done carry no time.
     expect(allowanceOf(AUTO({ allowance: AL({ state: "finishing", secondsLeft: 0, minutesLeft: 0 }) }), T0)).toMatchObject({ state: "finishing", secondsLeft: 0 });
     expect(allowanceOf(AUTO(), T0)).toBeNull();
+    // The server's label is carried to the ring (render 69); an older server sends none.
+    expect(allowanceOf(AUTO({ allowance: AL({ state: "done", label: "Time's up", secondsLeft: 0, minutesLeft: 0 }) }), T0)).toMatchObject({ state: "done", label: "Time's up" });
+    expect(allowanceOf(AUTO({ allowance: AL() }), T0)).not.toHaveProperty("label");
     expect(allowanceOf({ ...AUTO(), allowance: undefined }, T0)).toBeNull();
     // A window cut at midnight Sydney says so.
     const late = allowanceOf(AUTO({ allowance: AL({ endsAtReset: true, totalMinutes: 20, secondsLeft: 1200, minutesLeft: 20 }) }), T0)!;
@@ -66,15 +69,15 @@ describe("the time ring's allowance and the time buttons (pure)", () => {
     const mid = v(AUTO({ allowance: AL({ endsAtReset: true }), canAddTime: false }));
     expect(mid.adds).toEqual({ enabled: false, why: "The time already runs to midnight (Sydney)." });
     expect(mid.note).toBe("The time runs to midnight (Sydney); unused time doesn't carry over.");
-    // Done for today: start again with minutes.
+    // Time's up (owner 2026-11-06, was "Done for today"): start again with minutes.
     const done = v(AUTO({ on: false, stopped: { reason: "timeUp", day: "2026-11-05" }, allowance: AL({ state: "done", secondsLeft: 0, minutesLeft: 0 }) }));
     expect(done.presets.enabled).toBe(true);
-    expect(done.adds.why).toBe("Done for today: start again with 15, 30 or 60 minutes.");
+    expect(done.adds.why).toBe("Time's up: start again with 15, 30 or 60 minutes.");
     // Rewards maxed: no time can be given.
     expect(v(AUTO({ on: false, canTurnOn: false, dailyRewardsMaxed: true })).presets.enabled).toBe(false);
     // The stop's reason is worded by what stopped it.
     expect(autoPlayView(AUTO({ on: false, stopped: { reason: "timeUp", day: "d" } }), true).stopped).toContain("Time's up");
-    expect(timeRingView(null, autoPlayView(AUTO({ on: false, stopped: { reason: "timeUp", day: "d" } }), true), false).caption).toBe("Done for today: time's up");
+    expect(timeRingView(null, autoPlayView(AUTO({ on: false, stopped: { reason: "timeUp", day: "d" } }), true), false).caption).toBe("Time's up");
   });
 });
 
@@ -85,7 +88,7 @@ afterEach(async () => {
 });
 
 describe("the time ring over the real owner API, with the ladder playing", () => {
-  it("15 minutes given, the ring drains, +15, time up mid-match finishes the match, then Done for today; midnight Sydney clears it", async () => {
+  it("15 minutes given, the ring drains, +15, time up mid-match finishes the match, then Time's up; midnight Sydney clears it", async () => {
     const clock = { t: T0 };
     const store = EconomyStore.open(":memory:", { now: () => new Date(clock.t) });
     const owners = [
@@ -157,21 +160,29 @@ describe("the time ring over the real owner API, with the ladder playing", () =>
       if (ap.allowance?.state === "done") break;
     }
     expect(finishing).toBe(true);
-    ({ html } = await draw("M"));
+    const f = await draw("M");
+    html = f.html;
+    expect(f.play.autoPlay.allowance?.label).toBe("Finishing match");
     expect(centre(html)).toBe("Finishing match");
     expect(html).toContain("Time&#39;s up: your agent is finishing its last match.");
     expect(html).toContain('href="#/match">Go to match');
 
-    // The match plays out; no new one starts: "Done for today".
+    // The match plays out; no new one starts: "Time's up", the server's own
+    // words (`allowance.label`, render 69).
     for (let i = 0; i < 4000 && store.autoPlay(owners[0]!.ownerId).allowance?.state !== "done"; i++) {
       clock.t += 1000;
       await live.tick();
     }
     let d = await draw("L");
     expect(d.play.autoPlay.on).toBe(false);
-    expect(centre(d.html)).toBe("Done for today");
-    expect(d.html).toContain("Time&#39;s up: your agent is done for today.");
-    expect(d.html).toMatch(/data-min="30" data-add="1" disabled title="Done for today: start again with 15, 30 or 60 minutes."/);
+    expect(d.play.autoPlay.allowance?.label).toBe("Time's up");
+    expect(centre(d.html)).toBe("Time&#39;s up");
+    expect(d.html).toContain("Time&#39;s up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney).");
+    // Said once: the caption, not the caption and the stop's line (render 69).
+    expect(d.html.match(/Time&#39;s up/g)!.length).toBe(5); // the centre and its label, the caption, +15 and +30 saying why
+    expect(d.html).not.toContain("Give your agent more minutes");
+    expect(d.html).not.toMatch(/done for today/i);
+    expect(d.html).toMatch(/data-min="30" data-add="1" disabled title="Time&#39;s up: start again with 15, 30 or 60 minutes."/);
     // No match for Ada starts after.
     await step(3 * 60_000);
     expect((await client.play(ada)).liveMatch).toBeNull();

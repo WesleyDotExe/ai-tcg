@@ -37,7 +37,7 @@ import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
-import { allowanceOf, dialKeyTarget, ringOfPlay, ringParts, ringTicks, statusPollMs, type SiteRating } from "./siteAgent.js";
+import { allowanceOf, DIAL_SAVE_MS, dialChoose, dialKeyTarget, dialView, ringOfPlay, ringParts, ringTicks, statusPollMs, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, clockLeft, type ShopArt } from "./siteShop.js";
@@ -2474,19 +2474,77 @@ document.addEventListener("keydown", (e) => {
 });
 
 // The personality dial's arrow keys (render session 59): the notches are a
-// radio group with one tab stop; an arrow chooses the next style, as a
-// click on it would (saved, applies from the next match).
+// radio group with one tab stop; an arrow chooses the next style. Since
+// render 69 (a hardening pass) the choice shows at once and is saved once
+// the keys stop (DIAL_SAVE_MS), on Enter or Space, or when focus leaves the
+// dial: arrowing across three styles had made three saves and three toasts
+// (and an arrow during a save was dropped).
+let dialPending: { agent: string; style: string; timer: ReturnType<typeof setTimeout> | null } | null = null;
+
+/** The dial's look moved to `style` in place, before it is saved. */
+function previewDial(knob: Element, style: string): void {
+  const v = state.play ? dialView(state.play, null) : null;
+  if (!v) return;
+  const c = dialChoose(v, style);
+  for (const b of knob.querySelectorAll<HTMLElement>('[data-act="play-style"]')) {
+    const on = b.dataset.style === style;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-checked", String(on));
+    b.tabIndex = on ? 0 : -1;
+  }
+  const face = knob.querySelector<HTMLElement>(".dn-face i");
+  if (face) face.style.transform = `rotate(${c.angle}deg)`;
+  const txt = knob.parentElement?.querySelector(".dn-txt");
+  const name = txt?.querySelector("b");
+  if (name) name.textContent = c.current.name;
+  const sum = txt?.querySelector("span.small:not(.muted)");
+  if (sum) sum.textContent = c.current.summary;
+}
+
+/** Saves the dial's pending choice now (if it differs from the saved one). */
+function flushDial(): void {
+  const p = dialPending;
+  if (!p) return;
+  if (p.timer) clearTimeout(p.timer);
+  if (state.busy) {
+    p.timer = setTimeout(flushDial, 250);
+    return;
+  }
+  dialPending = null;
+  if (p.style !== state.play?.connectedAgent?.playStyle) void saveStyle(p.agent, p.style);
+}
+
+function saveStyle(agent: string, style: string): Promise<void> {
+  const name = state.play?.playStyles.find((x) => x.id === style)?.name ?? style;
+  return savePlay((tok) => api.setPlayStyle(tok, agent, style), `${name} from the next match.`).then(() => focusAct("play-style", "style", style));
+}
+
 document.addEventListener("keydown", (e) => {
   const stop = (e.target as HTMLElement).closest?.('[data-act="play-style"]') as HTMLElement | null;
   if (!stop || !state.play || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (dialPending && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    flushDial();
+    return;
+  }
   const ids = state.play.playStyles.map((x) => x.id);
-  const next = dialKeyTarget(ids, stop.dataset.style ?? "", e.key);
+  const from = dialPending?.style ?? stop.dataset.style ?? "";
+  const next = dialKeyTarget(ids, from, e.key);
   if (!next) return;
   e.preventDefault();
-  if (state.busy) return;
-  const target = stop.closest(".dn-knob")?.querySelector<HTMLElement>(`[data-act="play-style"][data-style="${CSS.escape(next)}"]`);
-  target?.focus();
-  target?.click();
+  const knob = stop.closest(".dn-knob");
+  if (!knob || !stop.dataset.agent) return;
+  previewDial(knob, next);
+  knob.querySelector<HTMLElement>(`[data-act="play-style"][data-style="${CSS.escape(next)}"]`)?.focus();
+  if (dialPending?.timer) clearTimeout(dialPending.timer);
+  dialPending = { agent: stop.dataset.agent, style: next, timer: setTimeout(flushDial, DIAL_SAVE_MS) };
+});
+// Focus leaving the dial saves what it shows (a Tab away, a click elsewhere).
+document.addEventListener("focusout", (e) => {
+  if (!dialPending) return;
+  const knob = (e.target as HTMLElement).closest?.(".dn-knob");
+  const to = e.relatedTarget as HTMLElement | null;
+  if (knob && !(to && knob.contains(to))) flushDial();
 });
 
 // ---- actions ----------------------------------------------------------------
@@ -2577,9 +2635,15 @@ document.addEventListener("click", (e) => {
     if (act === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });
     // Render session 57: Agent controls' personality dial and deck switcher.
     if (act === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
-      if (actEl.getAttribute("aria-checked") === "true") return;
-      const name = state.play?.playStyles.find((x) => x.id === actEl.dataset.style)?.name ?? actEl.dataset.style;
-      return void savePlay((tok) => api.setPlayStyle(tok, actEl.dataset.agent!, actEl.dataset.style!), `${name} from the next match.`).then(() => focusAct("play-style", "style", actEl.dataset.style!));
+      // A click saves at once; it takes over any arrow-key choice still waiting.
+      if (dialPending?.timer) clearTimeout(dialPending.timer);
+      dialPending = null;
+      if (actEl.dataset.style === state.play?.connectedAgent?.playStyle) {
+        const knob = actEl.closest(".dn-knob");
+        if (knob) previewDial(knob, actEl.dataset.style);
+        return;
+      }
+      return void saveStyle(actEl.dataset.agent, actEl.dataset.style);
     }
     if (act === "ctl-deck" && actEl.dataset.deck) {
       if (actEl.getAttribute("aria-pressed") === "true") return;

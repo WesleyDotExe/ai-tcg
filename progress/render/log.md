@@ -5793,3 +5793,67 @@ hardening pass (every 5th: 59, 64, 69): work down `progress/render/quality-debt.
 `autoPlay.allowance.label` ("Time's up", owner 2026-11-12, item 2). Then the notifications bell in the top bar, then
 Top rated and the viewer count on Watch live (owner 2026-11-12, item 1).
 
+
+## 2026-11-13 — Render session 69: the render hardening pass ("Time's up", the dial's one save, `patchAround`'s test)
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #162 "The site contract check reaches the rarer shapes
+(hardening pass, session 91)", is not "Render:"). No PR from either lane was open. **Read first:** owner-feedback.md
+(the 2026-11-13 answers to render 68, all five kept, nothing to change; the owner's plan to the launch: render 69 the
+hardening pass with "Time's up", then game 92, render 70 the bell, game 93 the dry run, render 71 Top rated and
+viewers), DESIGN.md, RENDER.md, this lane's log, debt and notes. **A hardening pass** (every 5th: 59, 64, 69): no
+new features.
+
+**1. Agent controls take the server's words (owner 2026-11-06 and 2026-11-12).** `SiteAllowance.label` typed
+(`siteApi.ts`); `allowanceOf` carries it; `timeRingView` shows it as the ring's centre for the state it came with
+("Finishing match", "Time's up"), with the ring's own same words when an older server sends none or when the page's
+count reaches zero before the server says finishing. Every "Done for today" on the site is now "Time's up": the done
+caption ("Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney)."), the +15 /
++30 reason, the off-ring caption with a timeUp stop, the stop's line in `autoPlayView` (it said "done for today",
+wrong since the owner can start again the same day). At M and L the stop's line is left out when the ring's caption
+already says the same news (it repeated in the first still).
+
+**2. The dial's arrow keys make one save (debt: "arrowing across three styles makes three saves and three
+toasts").** `dialChoose` (pure) moves the chosen notch, pointer and name; the page shows each arrow's choice at once
+(`previewDial`) and saves once the keys stop for `DIAL_SAVE_MS` (700 ms), or at once on Enter, Space or focus leaving
+the dial; an arrow during a save is no longer dropped (the save waits). A click saves at once and takes over a
+waiting choice. One save path (`saveStyle`) for both.
+
+**3. `patchAround` (debt: "no Node unit test").** `sitePatchAround.test.ts` on a small stand-in DOM (insert takes a
+node out of its old parent, as the real DOM does): the kept slot and its frame are the same nodes, never removed or
+moved, and the rest is the redraw's; path attributes synced and dropped; no twin = false with nothing changed (L to
+compact, the widget gone); `syncAttributes`. Writing it found a latent flaw: a twin was the first sibling with the
+same key, so of two keyless same-class siblings the frame's second would be matched to the redraw's first (and its
+contents lost). Now twins are matched by place among same-key siblings (`twinOf`). Not reachable in today's markup
+(every element on the path has a unique key); the test fails on the old code.
+
+**4. Stale debt cleared:** "Watch live at L doesn't embed the live arena yet" (done in 67), "Pages are still missing:
+Stats" (done in 68) and "the 2× vote has no endpoint" (it has since 56) removed; the ring, dial and `patchAround`
+entries rewritten to what stands now.
+
+**Tests (+5, render 1009):** `siteAgent.test.ts` (the
+label wins only for its own state; `dialChoose`), `siteTime.test.ts` (the label carried; on the real owner API the
+server's "Finishing match" and "Time's up" in the drawn widget, "Time's up" said once in the caption, no "done for
+today"), `sitePatchAround.test.ts` (new, 5).
+
+**Ran it:** `progress/render/evidence/site-check-s69.mjs` against the real owner API with the ladder at 8x, nothing
+rewritten. Run 1 36 PASS; run 2 (after the stop-line change) **34 PASS, 2 FAIL**: the check's own 8 s wait for
+"Finishing match" was too short at 8x (the server's clock outruns the page's count of the time left, so the page's
+5 s reads near the end never start and the next 15 s read brings the word); widened to one read (20 s). Both kept in
+`site-check-s69-first-runs.txt`. Final run **36 PASS, 0 FAIL** (`site-check-s69.txt`): 15 minutes given, the
+server's "Running"; finishing after 112 s with the ring's centre the server's "Finishing match"; done after 147 s, auto-play off with
+`timeUp`, the ring's centre, accessible name, caption and +15 / +30 reason all "Time's up", no "Done for today" on the
+page, 15 / 30 / 60 open; three quick ArrowRights shown at once on each style (pointer 60 -> 120 -> 180 deg) with no
+save while moving, then ONE save about 0.5 s after the last key and one toast; ArrowRight then Tab and ArrowLeft then
+Enter saved at once, once, focus kept; a click at once; no external requests, no page errors. **The same check on the
+old code** (a worktree at main): **24 PASS, 12 FAIL** (`site-check-s69-old-code.txt`: "Done for today" in five
+places, three saves for three keys, the dial not moving before each save). Stills `v2-s69-time-finishing.jpg`,
+`v2-s69-time-up.jpg` (from the final run: "Time's up" said once), `v2-s69-dial-one-save.jpg`. CI browser check 61 PASS (`ci-browser-check-s69.txt`); the site contract check 0
+mismatches, controls 5 of 5, `allowance.label` no longer untyped (`site-contract-s69.txt`); typecheck clean;
+`render/output/site/index.html` rebuilt.
+
+**Not done (named, in quality-debt):** the run to "Time's up" was at 8x, not the real pace; a poll redraw inside the
+dial's 700 ms could draw the saved style back for a moment (never seen); the stand-in DOM is the test's own.
+
+**Next render-lane slice:** after this PR the next session is game (92, the hardening pass for the 7-day unattended
+run). The next render session (70): the notifications bell in the top bar (owner 2026-11-13, item 3). Then render
+71: Top rated and viewer counts on Watch live, which completes the Season 0 feature list.

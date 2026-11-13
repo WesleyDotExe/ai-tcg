@@ -1,0 +1,97 @@
+# site-check-s69.mjs, the earlier runs on this branch
+
+## Run 1 (before the stop-line change): 36 PASS, 0 FAIL
+
+[A] the allowance to its end, in the server's words
+PASS  A. the server runs a 15-minute allowance
+PASS  A. the server's label while running: "Running"
+PASS  A. the ring runs, in minutes
+      finishing after 111 s (label "Finishing match")
+PASS  A. finishing: the ring's centre is the server's label, "Finishing match"
+PASS  A. finishing: the caption "Time's up: your agent is finishing its last match."
+PASS  A. the server says done after 145 s
+PASS  A. the server's label when done: "Time's up"
+PASS  A. auto-play is off, stopped for timeUp
+PASS  A. done: the ring's centre is the server's label
+PASS  A. done: tone done (tring t-done)
+PASS  A. done: the caption "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney)."
+PASS  A. done: +15 / +30 say why: "Time's up: start again with 15, 30 or 60 minutes."
+PASS  A. done: the ring's accessible name "Vector Halcyon: Time's up"
+PASS  A. no "Done for today" anywhere on the page
+PASS  A. done: 15 / 30 / 60 can start it again
+
+[B] the dial by keyboard: one save per choice
+PASS  B. ArrowRight 1: shown at once on rusher (checked, focus, tab stop; name "Rusher")
+PASS  B. ArrowRight 2: shown at once on controller (checked, focus, tab stop; name "Controller")
+PASS  B. ArrowRight 3: shown at once on tempo (checked, focus, tab stop; name "Tempo")
+PASS  B. the pointer turned with each key: rotate(60deg) -> rotate(120deg) -> rotate(180deg)
+PASS  B. no save while the keys are moving (0)
+PASS  B. then the server's style is tempo, three along
+PASS  B. ONE save for three keys (1: {"style":"tempo"})
+PASS  B. it went 509 ms after the last key
+      toasts: ["Tempo from the next match."]
+PASS  B. one style toast for the three keys
+PASS  B. after the save: checked tempo, focus tempo
+PASS  B. ArrowRight then Tab: saved
+PASS  B. ...at once (5 ms)
+PASS  B. ...as fortress
+PASS  B. ArrowLeft then Enter: saved at once (2 ms)
+PASS  B. ...as tempo
+PASS  B. ...once (1)
+PASS  B. focus stays on the dial (tempo)
+PASS  B. a click saves at once
+PASS  B. ...back to calculator
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+36 PASS, 0 FAIL
+
+## Run 2 (after it): 34 PASS, 2 FAIL — the check's 8 s wait for "Finishing match" was too short at 8x (the server's clock outruns the page's own count, so the page's 5 s reads near the end never start; the next 15 s read brings it). Widened to 20 s.
+
+[A] the allowance to its end, in the server's words
+PASS  A. the server runs a 15-minute allowance
+PASS  A. the server's label while running: "Running"
+PASS  A. the ring runs, in minutes
+      finishing after 112 s (label "Finishing match")
+FAIL  A. finishing: the ring's centre is the server's label, "1min"
+FAIL  A. finishing: the caption "1 min left today"
+PASS  A. the server says done after 147 s
+PASS  A. the server's label when done: "Time's up"
+PASS  A. auto-play is off, stopped for timeUp
+PASS  A. done: the ring's centre is the server's label
+PASS  A. done: tone done (tring t-done)
+PASS  A. done: the caption "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney)."
+PASS  A. done: +15 / +30 say why: "Time's up: start again with 15, 30 or 60 minutes."
+PASS  A. done: the ring's accessible name "Vector Halcyon: Time's up"
+PASS  A. no "Done for today" anywhere on the page
+PASS  A. done: 15 / 30 / 60 can start it again
+
+[B] the dial by keyboard: one save per choice
+PASS  B. ArrowRight 1: shown at once on rusher (checked, focus, tab stop; name "Rusher")
+PASS  B. ArrowRight 2: shown at once on controller (checked, focus, tab stop; name "Controller")
+PASS  B. ArrowRight 3: shown at once on tempo (checked, focus, tab stop; name "Tempo")
+PASS  B. the pointer turned with each key: rotate(60deg) -> rotate(120deg) -> rotate(180deg)
+PASS  B. no save while the keys are moving (0)
+PASS  B. then the server's style is tempo, three along
+PASS  B. ONE save for three keys (1: {"style":"tempo"})
+PASS  B. it went 526 ms after the last key
+      toasts: ["Tempo from the next match."]
+PASS  B. one style toast for the three keys
+PASS  B. after the save: checked tempo, focus tempo
+PASS  B. ArrowRight then Tab: saved
+PASS  B. ...at once (3 ms)
+PASS  B. ...as fortress
+PASS  B. ArrowLeft then Enter: saved at once (2 ms)
+PASS  B. ...as tempo
+PASS  B. ...once (1)
+PASS  B. focus stays on the dial (tempo)
+PASS  B. a click saves at once
+PASS  B. ...back to calculator
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+34 PASS, 2 FAIL

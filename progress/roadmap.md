@@ -130,7 +130,8 @@ new ideas go to `progress/season-1-ideas.md`.
    step in `.github/workflows/test.yml`; a rule, card or schema change fails the PR until its demos are regenerated.
 2-3. [x] (owner 2026-11-06, on session 76) "Done for today" reads "Time's up" (session 78): `allowance.label` in
    `GET /api/play` ("Running" / "Finishing match" / "Time's up"); the state value stays `done`. The render lane's
-   Agent controls take the words when it next touches them.
+   Agent controls take the words when it next touches them. (Render half done, render session 69: the ring's centre
+   is `allowance.label`; no "Done for today" left on the site.)
 2g. [x] (owner 2026-11-06) The play-time allowance on auto-play (session 76, schema v22): 15 / 30 / 60 minutes
    (`PUT /api/play/auto-play` `minutes`), +15 / +30 while running or finishing (`POST /api/play/auto-play/time`);
    time up: not queued, the live match finishes, then off with `timeUp`; windows cut at midnight Sydney; no minutes is
@@ -246,6 +247,10 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      page on `GET /api/stats` (the agent filter, 7/30/90 days, the rating chart with day columns, totals, factions,
      today's earnings from `today`, recent results with Replay) with the season ladder inside it, on the real API
      (`stats-check-s68` 44 PASS). Left: the bell
+   - [x] Render hardening pass, session 69: Agent controls take the server's words (`allowance.label`: "Finishing
+     match", "Time's up"; "Done for today" gone from the site), seen on a real 15-minute run to its end at 8x; the
+     dial's arrow keys save once when they stop (three arrows: one save, one toast, was three); `patchAround` given a
+     Node test and twins matched by place; stale debt entries cleared (`site-check-s69` 36 PASS; 24/12 on the old code)
    - [ ] (owner 2026-11-12) Top rated and the viewer count on Watch live (page and widget as fits), from
      `GET /api/live`'s `featured.topRated` and each match's `viewers` (served since game session 74); a small slice
      after the bell, before 1 December. If the midpoint check (~22 Nov) finds render behind, it moves to

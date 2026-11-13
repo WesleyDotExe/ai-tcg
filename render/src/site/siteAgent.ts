@@ -142,6 +142,9 @@ export interface TimeAllowance {
   /** running: time left, playing or queued; finishing: time is up, the
    * current match plays out; done: stopped for today. */
   state: "running" | "finishing" | "done";
+  /** The server's words for the state ("Finishing match", "Time's up");
+   * the ring shows them in place of its own when they are there. */
+  label?: string;
 }
 
 /** The ring's allowance from `GET /api/play`'s `autoPlay` (render 58).
@@ -158,7 +161,7 @@ export function allowanceOf(a: SiteAutoPlay, now: number): TimeAllowance | null 
     const end = Date.parse(al.endsAt);
     if (Number.isFinite(end)) secs = Math.max(0, Math.min(secs, Math.ceil((end - now) / 1000)));
   } else secs = 0;
-  return { minutesTotal: al.totalMinutes, minutesLeft: Math.ceil(secs / 60), secondsLeft: secs, endsAtReset: al.endsAtReset, state: al.state };
+  return { minutesTotal: al.totalMinutes, minutesLeft: Math.ceil(secs / 60), secondsLeft: secs, endsAtReset: al.endsAtReset, state: al.state, ...(al.label ? { label: al.label } : {}) };
 }
 
 export interface TimeRingView {
@@ -177,9 +180,14 @@ export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, 
   if (allowance) {
     const total = Math.max(1, allowance.minutesTotal);
     const left = Math.max(0, Math.min(total, Math.round(allowance.minutesLeft)));
-    if (allowance.state === "done") return { pct: 0, centre: "Done for today", unit: null, caption: "Done for today. The time resets at midnight (Sydney).", tone: "done" };
+    // The server's own words for the state (`allowance.label`, owner
+    // 2026-11-06: "Time's up", not "Done for today", since the owner can
+    // start again the same day); the ring's own when an older server sends
+    // none, or when the page's count reached zero first.
+    const said = (s: TimeAllowance["state"], own: string) => (allowance.state === s && allowance.label) || own;
+    if (allowance.state === "done") return { pct: 0, centre: said("done", "Time's up"), unit: null, caption: "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney).", tone: "done" };
     if (allowance.state === "finishing" || left === 0)
-      return { pct: 0, centre: "Finishing match", unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
+      return { pct: 0, centre: said("finishing", "Finishing match"), unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
     const share = allowance.secondsLeft !== undefined ? Math.min(1, allowance.secondsLeft / (total * 60)) : left / total;
     const tail = allowance.endsAtReset ? " · runs to midnight (Sydney)" : "";
     // One decimal (render session 59): whole percents stepped a 15-minute ring
@@ -189,7 +197,7 @@ export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, 
   // No allowance: auto-play as it is today.
   if (!ap.shown) return { pct: 100, centre: "Always", unit: null, caption: "A house agent always plays.", tone: "open" };
   if (ap.on) return { pct: 100, centre: "On", unit: null, caption: inMatch ? "Playing · no time limit set" : "Auto-play on · no time limit set", tone: "open" };
-  return { pct: 0, centre: "Off", unit: null, caption: ap.stoppedReason === "timeUp" ? "Done for today: time's up" : ap.stopped ? "Stopped: today's rewards are maxed" : inMatch ? "Stopped · the match live finishes" : "Stopped", tone: "off" };
+  return { pct: 0, centre: "Off", unit: null, caption: ap.stoppedReason === "timeUp" ? "Time's up" : ap.stopped ? "Stopped: today's rewards are maxed" : inMatch ? "Stopped · the match live finishes" : "Stopped", tone: "off" };
 }
 
 /** The agent's portrait inside the ring. The ring is an SVG arc (a stroke
@@ -234,7 +242,7 @@ export function ringTicks(p: SitePlay | null): boolean {
 /** How long until the page reads the agent's status again (carried over
  * from closed PR #137 in render session 59): 1.5 s while a rebuild runs;
  * 5 s while the agent finishes its last match or in the last 30 s of its
- * time, so "Finishing match" and "Done for today" are the server's word
+ * time, so "Finishing match" and "Time's up" are the server's word
  * within seconds; else 15 s. */
 export function statusPollMs(p: SitePlay | null, now: number): number {
   if (!p) return 15000;
@@ -296,11 +304,27 @@ export function dialHtml(v: DialView, opts: { busy?: boolean; size?: number; sum
     + `<div class="dn-txt"><span class="muted small">Personality</span><b>${esc(v.current.name)}</b>${v.current.summary && opts.summary !== false ? `<span class="small">${esc(v.current.summary)}</span>` : ""}<span class="muted small">${esc(v.note)}</span></div></div>`;
 }
 
+/** The dial with `styleId` chosen but not yet saved (render 69): what the
+ * arrow keys show while the owner is still moving. The pointer, the lit
+ * notch and the name follow at once; the save waits until the keys stop for
+ * `DIAL_SAVE_MS` (or Enter, Space, or focus leaving the dial), so arrowing
+ * across three styles makes one save and one toast, not three. Unknown
+ * styles leave the view as it is. */
+export function dialChoose(v: DialView, styleId: string): DialView {
+  const to = v.stops.find((s) => s.id === styleId);
+  if (!to) return v;
+  return { ...v, stops: v.stops.map((s) => ({ ...s, on: s.id === styleId })), current: { id: to.id, name: to.name, summary: to.summary }, angle: to.angle };
+}
+
+/** How long the dial waits after the last arrow key before it saves. */
+export const DIAL_SAVE_MS = 700;
+
 /** The dial's arrow keys (render session 59: the notches are a radio
  * group, one tab stop, as a screen reader and a keyboard expect). Right and
  * Down go clockwise, Left and Up back, wrapping; Home and End go to the first
- * and last style. The style it lands on is chosen (a radio group's rule), so
- * the change applies from the next match like a click. Null: not a dial key,
+ * and last style. The style it lands on is chosen (a radio group's rule):
+ * shown at once, saved once the keys stop (`dialChoose`, render 69), and it
+ * applies from the next match like a click. Null: not a dial key,
  * or nowhere to move. */
 export function dialKeyTarget(styleIds: readonly string[], current: string, key: string): string | null {
   const n = styleIds.length;
@@ -458,7 +482,7 @@ export function timeButtonsView(a: SiteAutoPlay, ap: AutoPlayView, busy: boolean
   const al = a.allowance;
   const adds = a.canAddTime
     ? { enabled: !busy, why: "" }
-    : { enabled: false, why: !al ? (a.on ? "Auto-play is on with no time limit." : "Start with 15, 30 or 60 minutes first.") : al.state === "done" ? "Done for today: start again with 15, 30 or 60 minutes." : "The time already runs to midnight (Sydney)." };
+    : { enabled: false, why: !al ? (a.on ? "Auto-play is on with no time limit." : "Start with 15, 30 or 60 minutes first.") : al.state === "done" ? "Time's up: start again with 15, 30 or 60 minutes." : "The time already runs to midnight (Sydney)." };
   const note = al?.endsAtReset && al.state !== "done" ? "The time runs to midnight (Sydney); unused time doesn't carry over." : "";
   return { presets, adds, note };
 }
@@ -497,7 +521,9 @@ export function agentControlsHtml(size: "S" | "M" | "L", d: AgentWidgetData): st
   const dial = dv ? dialHtml(dv, { busy: d.busy, size: size === "M" ? 92 : 112, summary: size === "L" }) : `<p class="muted small">No play styles on this server.</p>`;
   const deck = `<div class="small">${ftag(fac)} ${esc(deckLine(p))}</div>`;
   const idle = inMatch ? "" : `<span class="muted small">No match live${ap.on ? ": joins the next ladder round" : ""}</span>`;
-  const stopped = ap.stopped ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
+  // The stop's line, unless the ring's caption already says it (render 69:
+  // a done allowance's caption is the "Time's up" line, word for word the same news).
+  const stopped = ap.stopped && !(ap.stoppedReason === "timeUp" && ring.tone === "done") ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
   const tb = timeButtonsView(p.autoPlay, ap, !!d.busy);
   const waits = tb.note ? `<span class="muted small">${esc(tb.note)}</span>` : "";
   const time = `<div class="wcol tight tgrp"><span class="muted small">Give your agent</span>${timeButtons(TIME_PRESETS, false, tb.presets)}</div>`;
