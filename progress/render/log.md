@@ -6037,3 +6037,62 @@ phone after the end not looked at; `season` not in the contract check (game lane
 **Next render-lane slice:** after this PR the next session is game (95). The next render session (73) carries on
 with plan item 6 if the owner's answers or the game lane's dry-run re-run on v29 find more; else the hardening pass
 can come forward from 74.
+
+## 2026-11-14 — Render session 73: the season's end on the Store, Packs, Daily rewards and the card viewer
+
+**Lane:** render. The last merged PR (#171, "Game lane: auto-play refused once the season has ended, and the season
+in the site contract check (session 95)") is game, so this session is render; no render PR was open. Read first:
+owner-feedback.md (the 2026-11-14 entries are game-lane: the Season 0 analysis report after the season, and the
+pack-only booster cards proposal; nothing unhandled for this lane; the 2026-11-13 plan item 6 still governs:
+fix what the dry run broke, no new features), DESIGN.md, RENDER.md, current.md (game 95's note: the server now
+answers 409 to auto-play on after the end; the site could show the server's words if a stale page sends it), this
+lane's log, debt and notes, OWNER_API.md "The season's end". Not a hardening pass (the next is 74).
+
+**Why this slice:** the top item of this lane's own quality debt after session 72. Once a season has ENDED its file
+is the archive: the store refuses buying and claiming packs, opening packs, crafting, salvage and cosmetics (the
+store's `refuseIfEnded` and the schema). Session 72 drew only Agent controls closed; everything else still offered
+its buttons and each press ended in an error toast. That is the dry run's season-end path finished on the site, not
+new width.
+
+**Built (render/ only; the server unchanged):**
+- `siteSeason.ts`: `seasonFrozen` (only the server's "ended"; "ending" still pays and opens) with the words for
+  each place; `isSeasonEndedRefusal` (a 409 whose words say the season has ended); `frozenNoteHtml`.
+- `siteShop.ts`: `freezeTiles` (every button "Closed", off, "Season ended" under it, no data a stray click could
+  send; an owned cosmetic keeps "Owned"; the daily tile loses its clock, price and ribbon); a closed tile is greyed
+  and never drawn as a primary button.
+- The Store page: the line at the top, the reset clock gone, "The pity counters stand where the season left them.",
+  Open, Open 10 and every "Open one" off with "Unopened packs carry over to the next season and open as its packs."
+  (the owner's 2026-11-10 rule, as the owner asked any season-end wording to say it).
+- Home: the Store widget (S "Store closed"; M and L the line and closed tiles), Packs (Open and Open 10 off with the
+  reason on hover and under them at M; the pity chips gone), Daily rewards (the free pack's node "Closed", "Season 0
+  has ended: no more matches pay." in place of "Next win", no reset clock). The top bar's Open is off, its hover
+  "11 packs waiting. Season 0 has ended: ...".
+- The card viewer: Craft off (its price still shown) with "the collection is kept as it stands, so nothing is
+  crafted or salvaged."; no Salvage control.
+- `siteClient.ts`: `fail()` sees a season-ended refusal and reads the season at once (skipping the minute's wait),
+  then redraws the top bar, Agent controls, the page and an open viewer: game 95's note (a stale page sends auto-play
+  on, or a Buy) now ends with the page closing itself, not just a toast.
+
+**Ran it:** `progress/render/evidence/frozen-check-s73.mjs`, headless on the real owner API, the ladder at 8x, the
+season's end 3 server minutes ahead so the server ends it with the page open: **40 PASS**
+(`frozen-check-s73.txt`). Before the end the Store sells (10 live buttons); the server says ended while the Store
+page is still drawn open; a Buy press is refused 409 "season S0 has ended: no pack is bought; the file is the
+season's archive", the toast says it, and the page redrew the Store closed 2 ms later without a reload; the closed
+Store (7 of 7 tiles greyed, nothing live, no clock); Home at S, M and L (no live buy/claim/open button, the reasons,
+nothing runs out of a widget); the top bar's Open; the card viewer; a 390 px phone (no sideways scroll); no external
+requests and no page errors but the one 409 asked for. **The first run** (`frozen-check-s73-first-run.txt`, 38 PASS,
+2 FAIL) found a real bug: the top bar's Open stayed live after a sign-in on an ended season, because the wallet's
+read drew it before the season's read landed; the season's read now redraws it. The other fail was the browser's own
+console line for the one expected 409 (the check counts it now). A look at the stills then found the featured tile's
+"Closed" and the Packs widget's "Open" still drawn as purple primary buttons and the free pack's gold glow not greyed;
+fixed, re-run 40 PASS. Unit tests: `render/test/siteSeasonFrozen.test.ts` (8), one on the real owner API over a
+real ended store: buy, claim, open, auto-play on, craft, salvage and a cosmetic are each refused with words
+`isSeasonEndedRefusal` knows, and the wallet doesn't move. Render suite 1044 pass; typecheck clean (all
+workspaces); the site contract check 0 mismatches, controls 7 of 7 (`site-contract-s73.txt`);
+`render/output/site/index.html` rebuilt.
+
+**Not done (named, in quality-debt):** the Daily rewards row's "next" win slot after the end; the loadout picker's
+own Buy; a season-end screen (open owner question); closed Home widgets not looked at on a phone.
+
+**Next render-lane slice:** after this PR the next session is game (96, the booster-card proposal). Render 74 is
+the render hardening pass.

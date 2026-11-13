@@ -1,0 +1,57 @@
+
+[A] before the end: the Store sells
+PASS  A. the server says open
+PASS  A. the Store's buttons live (10: claim-daily:Claim, buy-packs:Buy, buy-cosmetic:Buy, buy-cosmetic:Buy)
+PASS  A. no closed line
+
+[B] the season ends on the server; the page is still drawn open
+PASS  B. the ladder ended the season on its end time (GET /api/season: ended)
+PASS  B. the Store page is still drawn open (the page reads the season once a minute)
+PASS  B. a live Buy button on the stale page
+PASS  B. the server refuses it: 409 "season S0 has ended: no pack is bought; the file is the season's archive"
+PASS  B. the toast says the server's words ("Season S0 has ended: no pack is bought; the file is the season's archive.")
+PASS  B. the page read the season at once and redrew the Store closed (3 ms after the toast, no reload)
+
+[C] the Store page closed
+PASS  C. the line: "Season ended Season 0 has ended, so the Store is closed: nothing is bought, claimed or opened in its archive. Your credits, pack points and cards stay as they are."
+PASS  C. every tile greyed (7 of 7)
+PASS  C. no buy, claim or open button is live
+PASS  C. no reset clock (no next free pack this season)
+PASS  C. the packs' line: "The pity counters stand where the season left them."
+PASS  C. the packs waiting: "Season 0 has ended: no pack opens now. Unopened packs carry over to the next season and open as its packs."
+PASS  C. Open, Open 10 and Open one off (4)
+      (the wallet as the season left it: 451 credits, 65 pack points, 11 unopened packs)
+
+[D] Home at S, M and L
+PASS  D. S: no live buy, claim or open button on Home
+PASS  D. S: the Store widget says it is closed
+PASS  D. S: Packs' Open is off, its hover "Season 0 has ended: no pack opens now. Unopened packs carry …"
+PASS  D. S: Daily rewards says no more matches pay
+PASS  D. S: nothing runs out of its widget sideways
+PASS  D. M: no live buy, claim or open button on Home
+PASS  D. M: the Store widget says it is closed
+PASS  D. M: Packs' Open is off, its hover "Season 0 has ended: no pack opens now. Unopened packs carry …"
+PASS  D. M: Daily rewards says no more matches pay
+PASS  D. M: nothing runs out of its widget sideways
+PASS  D. L: no live buy, claim or open button on Home
+PASS  D. L: the Store widget says it is closed
+PASS  D. L: Packs' Open is off, its hover "Season 0 has ended: no pack opens now. Unopened packs carry …"
+PASS  D. L: Daily rewards says no more matches pay
+PASS  D. L: nothing runs out of its widget sideways
+PASS  D. the top bar's Open is off: "11 packs waiting. Season 0 has ended: no pack opens now. Unopened packs carry over to the next season and open as its packs."
+
+[E] the card viewer
+PASS  E. Craft is off
+PASS  E. the reason: "Season 0 has ended: the collection is kept as it stands, so nothing is crafted or salvaged."
+PASS  E. no Salvage button
+
+[F] a 390 px phone
+PASS  F. no sideways scroll (390 px)
+PASS  F. nothing to press
+
+[G] the page
+PASS  G. only the one 409 B asks for (1; its console line 1)
+PASS  G. no external requests
+PASS  G. no other page errors
+
+40 PASS, 0 FAIL

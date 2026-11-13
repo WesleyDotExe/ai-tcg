@@ -5,6 +5,7 @@
 // function, built from the same source.
 
 import { amount } from "./siteLook.js";
+import type { SeasonFrozen } from "./siteSeason.js";
 import { FACTION_HEX, esc } from "./siteModel.js";
 import { FINISH_NAMES, type SiteCollection } from "./siteBoard.js";
 import {
@@ -103,7 +104,7 @@ export interface ViewerState {
 
 /** The card viewer: the card (tilts under the pointer), and beside it what
  * you hold, the decks that use it, craft and salvage. */
-export function viewerHtml(s: BinderSlot, b: SiteBinder, c: SiteCollection, v: ViewerState, packPoints: number, nav: { prev: string | null; next: string | null }, face: FaceRenderer): string {
+export function viewerHtml(s: BinderSlot, b: SiteBinder, c: SiteCollection, v: ViewerState, packPoints: number, nav: { prev: string | null; next: string | null }, face: FaceRenderer, frozen: SeasonFrozen | null = null): string {
   const copies = copiesOfSlot(s, copiesByCard(c));
   const allOfCard = copiesByCard(c).get(s.cardId) ?? [];
   const lines = copyLines(copies);
@@ -116,13 +117,18 @@ export function viewerHtml(s: BinderSlot, b: SiteBinder, c: SiteCollection, v: V
     : "";
   // Craft.
   const cv = craftView(s, { cardCopies: allOfCard.length }, packPoints);
-  const craft = cv.cost === null
+  // Render session 73: once the season has ended the collection is its
+  // archive: the price still shows, the button is off, the reason under it.
+  const craft = frozen && cv.cost !== null
+    ? `<div class="cv-act closed"><button type="button" class="btn" id="craft-btn" data-act="craft" disabled>Craft · ${amount(cv.cost)} pp</button><small class="muted cv-craft-why">${esc(frozen.collection)}</small></div>`
+    : cv.cost === null
     ? `<p class="muted small cv-craft-why">${esc(cv.why)}</p>`
     : `<div class="cv-act"><button type="button" class="btn pri" id="craft-btn" data-act="craft"${cv.can && !v.busy ? "" : " disabled"}>Craft · ${amount(cv.cost)} pp</button><small class="muted cv-craft-why">${esc(cv.why)}</small></div>`;
   // Salvage: base slots only (per card; takes unbound standard pack copies).
   let salvage = "";
   if (s.section === "base") {
-    if (!h) salvage = `<p class="muted small">${v.holdingsError ? `Couldn't read what can be salvaged: ${esc(v.holdingsError)}` : "Reading what can be salvaged…"}</p>`;
+    if (frozen) salvage = `<p class="muted small cv-closed">${esc(frozen.collection)}</p>`;
+    else if (!h) salvage = `<p class="muted small">${v.holdingsError ? `Couldn't read what can be salvaged: ${esc(v.holdingsError)}` : "Reading what can be salvaged…"}</p>`;
     else {
       const sv = salvageView(h, v.quantity);
       const why = sv.why.length ? `<ul class="muted small cv-why">${sv.why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : "";

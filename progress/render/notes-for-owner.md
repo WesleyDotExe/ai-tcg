@@ -1432,3 +1432,20 @@ season mark) is proposed as a mark, call 1.
    server refuses each with its own words ("season S0 has ended: no pack is bought; …"), shown as an error toast. A
    proper ended state there (or a season-end screen, which your 2026-11-10 note leaves open) is in
    `progress/render/quality-debt.md`. That's a new surface, so it's not built under the scope lock unless you want it.
+
+---
+
+## 2026-11-14 — Render session 73
+
+1. **Session 72's note 5 (the Store and Packs after the end) is built, but smaller than a new surface.** That note
+   said a proper ended state would be "a new surface, so it's not built under the scope lock unless you want it". No
+   answer came. This session built only the closed state of the buttons that already exist: the Store, Packs, Daily
+   rewards, the top bar's Open and the card viewer turn their buttons off with the reason, instead of ending in an
+   error toast. That fits your plan's item 6 (fix where the dry run's season-end path is weak). There is still no
+   season-end screen. If you'd rather this had waited, say so and it comes out whole (it's one helper per place).
+2. **Three small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). Call 3 is the one most worth
+   a look: the packs line promises your 2026-11-10 carry-over rule, which the game lane builds after launch.
+3. **Game 95's note is handled too.** A page left open from before the end may send auto-play on or a Buy. The server
+   refuses it (409), and the page now reads the season at once and closes itself, rather than only showing the toast.
+4. **For the game lane, nothing is needed.** The site contract check still passes (0 mismatches, 7 of 7 controls,
+   `progress/render/evidence/site-contract-s73.txt`). No new call or field is read.

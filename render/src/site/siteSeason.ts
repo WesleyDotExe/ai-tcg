@@ -110,3 +110,52 @@ export function seasonClosed(s: SiteSeason | null, now: number): SeasonClosed | 
   const name = seasonName(s.season);
   return v.tone === "ended" ? { ended: true, why: `${name} has ended: no new match starts.` } : { ended: false, why: `${name} is ending: no new round starts.` };
 }
+
+/** The season has ended (render session 73): its file is the archive, so the
+ * server refuses buying, claiming and opening packs, crafting, salvage and
+ * buying cosmetics (OWNER_API.md "The season's end"; the store's
+ * `refuseIfEnded` and the schema). Only "ended" freezes them: while the
+ * season is "ending" the last matches still pay, and packs still open. */
+export interface SeasonFrozen {
+  /** "Season 0". */
+  name: string;
+  /** The Store's line: why every button there is off. */
+  store: string;
+  /** Under a greyed button: "Season ended". */
+  short: string;
+  /** The packs waiting (the owner's 2026-11-10 rule: unopened packs carry
+   * over and open as the next season's packs). */
+  packs: string;
+  /** The free daily pack. */
+  daily: string;
+  /** The card viewer's craft and salvage. */
+  collection: string;
+  /** Daily rewards: no win pays any more. */
+  wins: string;
+}
+
+export function seasonFrozen(s: SiteSeason | null): SeasonFrozen | null {
+  if (!s || s.state !== "ended") return null;
+  const name = seasonName(s.season);
+  return {
+    name,
+    store: `${name} has ended, so the Store is closed: nothing is bought, claimed or opened in its archive. Your credits, pack points and cards stay as they are.`,
+    short: "Season ended",
+    packs: `${name} has ended: no pack opens now. Unopened packs carry over to the next season and open as its packs.`,
+    daily: `${name} has ended: no free pack to claim.`,
+    collection: `${name} has ended: the collection is kept as it stands, so nothing is crafted or salvaged.`,
+    wins: `${name} has ended: no more matches pay.`,
+  };
+}
+
+/** The server's refusal because the season has ended (409, "season S0 has
+ * ended: ..."): a page drawn before the end sent it. The page reads the
+ * season again so its buttons turn off. */
+export function isSeasonEndedRefusal(status: number, message: string): boolean {
+  return status === 409 && /\bseason\b.*\bhas ended\b/i.test(message);
+}
+
+/** The Store's line for an ended season, or "". */
+export function frozenNoteHtml(f: SeasonFrozen | null, text: string): string {
+  return f ? `<p class="sh-closed" role="note"><b>${esc(f.short)}</b> ${esc(text)}</p>` : "";
+}

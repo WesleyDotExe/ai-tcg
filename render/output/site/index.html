@@ -794,6 +794,19 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .spile .sp-c { position: relative; z-index: 1; }
 .sp-n { position: absolute; z-index: 2; right: -20%; top: 2%; font: 900 22px/1 ui-rounded, system-ui; color: #fff; padding: 6px 9px; border-radius: 12px; background: linear-gradient(135deg, #4f6bff, #8b5cff); box-shadow: 0 6px 18px rgba(80,60,255,.5); }
 
+/* ---- render session 73: the season has ended: the Store drawn closed ---- */
+.sh-closed { margin: 0; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; background: color-mix(in srgb, var(--glass) 70%, rgba(140,140,160,.18)); border: 1px dashed color-mix(in srgb, var(--muted) 55%, transparent); }
+.sh-closed b { display: inline-block; margin-right: 8px; padding: 1px 9px; border-radius: 99px; font-size: 11.5px; letter-spacing: .02em; background: rgba(140,140,160,.28); }
+.shw .sh-closed { padding: 7px 10px; font-size: 12px; margin-bottom: 8px; }
+.sh-t.closed .sh-art { filter: grayscale(.8) brightness(.8); }
+.sh-t.closed .spk-foil { animation: none; opacity: 0; }
+.sh-t.closed .sh-price { opacity: .55; }
+.pkw.closed .pkw-pile, .pkw.closed > .spk, .shw-s.closed .spk { filter: grayscale(.75) brightness(.8); }
+.pkw.closed .spk-foil, .shw-s.closed .spk-foil { animation: none; opacity: 0; }
+.pkw-x { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pkw-why, .st-closed, .cv-closed { line-height: 1.4; }
+.dr-pk.closed .dr-pki { filter: grayscale(1); opacity: .6; }
+
 /* ---- the store page's head: the balance and the countdown ---- */
 .sh-pg { display: flex; flex-direction: column; gap: 18px; }
 .sh-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -6911,8 +6924,9 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const v = Math.max(0, Math.floor(Number.isFinite(n) ? n : 0));
     return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
-  function openButton(unopened) {
+  function openButton(unopened, frozenWhy = null) {
     const count = Math.max(0, Math.floor(unopened));
+    if (frozenWhy) return { label: count ? `${count === 1 ? "1 pack" : `${count} packs`} waiting. ${frozenWhy}` : frozenWhy, count, enabled: false };
     return { label: count === 0 ? "No packs to open" : `Open ${count === 1 ? "1 pack" : `${count} packs`}`, count, enabled: count > 0 };
   }
 
@@ -8247,6 +8261,18 @@ gl_FragColor=vec4(col,1.);}`;
     const city = zoneCity(dailyPack.timeZone);
     return `<span class="sh-reset" title="The day turns at midnight ${esc(city)} time: a new free pack, and the daily rewards start again"><span class="sh-clock-ic" aria-hidden="true"></span>${opts.short ? "Resets in" : "Daily reset in"} <b class="sh-clock" data-until="${esc(dailyPack.resetsAt)}">${clockLeft(nowMs, dailyPack.resetsAt)}</b>${opts.short ? "" : `<small>midnight ${esc(city)}</small>`}</span>`;
   }
+  function freezeTiles(tiles, why) {
+    if (!why) return tiles;
+    return tiles.map((t) => ({
+      ...t,
+      closed: true,
+      until: null,
+      badge: t.owned ? t.badge : null,
+      price: t.art.kind === "daily" ? null : t.price,
+      sub: t.art.kind === "daily" ? "None to claim: the season has ended" : t.sub,
+      button: { ...t.button, label: t.owned ? "Owned" : "Closed", enabled: false, primary: false, data: {}, why: t.owned ? t.button.why : why }
+    }));
+  }
   function featuredTileId(p) {
     if (p.dailyPack.waiting > 0) return "daily";
     return p.offer.length ? "pack-10" : "daily";
@@ -8351,10 +8377,10 @@ gl_FragColor=vec4(col,1.);}`;
     const b = t.button;
     const data = Object.entries(b.data).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
     const label = b.act === "buy-cosmetic" && b.enabled ? `Buy ${t.name}` : b.act === "buy-packs" && b.enabled ? `Buy ${t.name}` : b.label;
-    const btn = `<button type="button" class="btn${b.primary || t.size === "feature" ? " pri" : ""} sh-buy" data-act="${b.act}"${data}${b.enabled ? "" : " disabled"} aria-label="${esc(label)}${t.price ? `, ${amount2(t.price)} credits` : ""}">${esc(b.label)}</button>`;
+    const btn = `<button type="button" class="btn${!t.closed && (b.primary || t.size === "feature") ? " pri" : ""} sh-buy" data-act="${b.act}"${data}${b.enabled ? "" : " disabled"} aria-label="${esc(label)}${t.price ? `, ${amount2(t.price)} credits` : ""}">${esc(b.label)}</button>`;
     const why = b.why && !b.enabled ? `<small class="sh-why">${esc(b.why)}</small>` : "";
     const style = tone.hex ? ` style="--c:${tone.hex}"` : "";
-    return `<article class="sh-t t-${t.size} ${tone.cls}${t.owned ? " owned" : ""}" data-tile="${esc(t.id)}"${style}><div class="sh-art">${artHtml(t, opts.art, !!opts.compact)}${t.badge ? `<span class="sh-badge">${esc(t.badge)}</span>` : ""}${priceHtml(t.price)}</div><div class="sh-info"><b class="sh-n">${esc(t.name)}</b>${opts.compact && t.size !== "feature" ? "" : `<small>${esc(t.sub)}${t.until ? ` <b class="sh-clock" data-until="${esc(t.until.iso)}">${esc(t.until.text)}</b>` : ""}</small>`}</div><div class="sh-act">${btn}${why}</div></article>`;
+    return `<article class="sh-t t-${t.size} ${tone.cls}${t.owned ? " owned" : ""}${t.closed ? " closed" : ""}" data-tile="${esc(t.id)}"${style}><div class="sh-art">${artHtml(t, opts.art, !!opts.compact)}${t.badge ? `<span class="sh-badge">${esc(t.badge)}</span>` : ""}${priceHtml(t.price)}</div><div class="sh-info"><b class="sh-n">${esc(t.name)}</b>${opts.compact && t.size !== "feature" ? "" : `<small>${esc(t.sub)}${t.until ? ` <b class="sh-clock" data-until="${esc(t.until.iso)}">${esc(t.until.text)}</b>` : ""}</small>`}</div><div class="sh-act">${btn}${why}</div></article>`;
   }
   function packGridHtml(tiles, opts = {}) {
     return `<div class="sh-grid${opts.compact ? " compact" : ""}">${tiles.map((t) => tileHtml(t, opts)).join("")}</div>`;
@@ -8638,7 +8664,7 @@ gl_FragColor=vec4(col,1.);}`;
     const m = /^S(\d+)$/.exec(setCode);
     return m ? `Season ${m[1]}` : setCode;
   }
-  function viewerHtml(s, b, c, v, packPoints, nav, face2) {
+  function viewerHtml(s, b, c, v, packPoints, nav, face2, frozen = null) {
     var _a4, _b, _c;
     const copies = copiesOfSlot(s, copiesByCard(c));
     const allOfCard = (_a4 = copiesByCard(c).get(s.cardId)) != null ? _a4 : [];
@@ -8647,10 +8673,11 @@ gl_FragColor=vec4(col,1.);}`;
     const h = v.holdings;
     const decks = h && h.decks.length ? `<p class="muted small">In your saved decks: ${h.decks.map((d) => `${esc(d.name)} uses ${d.uses}${d.active ? " (playing)" : ""}`).join("; ")}.</p>` : "";
     const cv = craftView(s, { cardCopies: allOfCard.length }, packPoints);
-    const craft = cv.cost === null ? `<p class="muted small cv-craft-why">${esc(cv.why)}</p>` : `<div class="cv-act"><button type="button" class="btn pri" id="craft-btn" data-act="craft"${cv.can && !v.busy ? "" : " disabled"}>Craft \xB7 ${amount(cv.cost)} pp</button><small class="muted cv-craft-why">${esc(cv.why)}</small></div>`;
+    const craft = frozen && cv.cost !== null ? `<div class="cv-act closed"><button type="button" class="btn" id="craft-btn" data-act="craft" disabled>Craft \xB7 ${amount(cv.cost)} pp</button><small class="muted cv-craft-why">${esc(frozen.collection)}</small></div>` : cv.cost === null ? `<p class="muted small cv-craft-why">${esc(cv.why)}</p>` : `<div class="cv-act"><button type="button" class="btn pri" id="craft-btn" data-act="craft"${cv.can && !v.busy ? "" : " disabled"}>Craft \xB7 ${amount(cv.cost)} pp</button><small class="muted cv-craft-why">${esc(cv.why)}</small></div>`;
     let salvage = "";
     if (s.section === "base") {
-      if (!h) salvage = `<p class="muted small">${v.holdingsError ? `Couldn't read what can be salvaged: ${esc(v.holdingsError)}` : "Reading what can be salvaged\u2026"}</p>`;
+      if (frozen) salvage = `<p class="muted small cv-closed">${esc(frozen.collection)}</p>`;
+      else if (!h) salvage = `<p class="muted small">${v.holdingsError ? `Couldn't read what can be salvaged: ${esc(v.holdingsError)}` : "Reading what can be salvaged\u2026"}</p>`;
       else {
         const sv = salvageView(h, v.quantity);
         const why = sv.why.length ? `<ul class="muted small cv-why">${sv.why.map((w2) => `<li>${esc(w2)}</li>`).join("")}</ul>` : "";
@@ -8669,6 +8696,80 @@ gl_FragColor=vec4(col,1.);}`;
     <div class="row cv-foot">${navBtns}<span class="sp"></span><button type="button" class="btn" id="cv-close" data-act="close-viewer">Close</button></div>
   </div>
 </div>`;
+  }
+
+  // src/site/siteSeason.ts
+  var SYD = "Australia/Sydney";
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var mon = (m) => {
+    var _a4, _b;
+    return (_b = (_a4 = MONTHS[Number(m) - 1]) != null ? _a4 : m) != null ? _b : "";
+  };
+  function seasonName2(code) {
+    const m = /^S(\d+)$/.exec(code);
+    return m ? `Season ${m[1]}` : code;
+  }
+  function sydneyWhen(iso) {
+    const d = new Date(iso);
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: SYD, weekday: "short", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).map((p) => [p.type, p.value]));
+    if (parts.hour === "00" && parts.minute === "00") {
+      const before = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: SYD, weekday: "short", day: "numeric", month: "numeric" }).formatToParts(new Date(d.getTime() - 6e4)).map((p) => [p.type, p.value]));
+      return `midnight at the end of ${before.weekday} ${before.day} ${mon(before.month)}`;
+    }
+    return `${parts.weekday} ${parts.day} ${mon(parts.month)}, ${parts.hour}:${parts.minute}`;
+  }
+  function untilText2(ms) {
+    if (ms < 6e4) return "in under a minute";
+    const min = Math.floor(ms / 6e4);
+    if (min < 60) return `in ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 48) return `in ${h} h`;
+    return `in ${Math.floor(h / 24)} days`;
+  }
+  function seasonEndView(s, now) {
+    if (!s) return null;
+    const name = seasonName2(s.season);
+    if (s.state === "ended") {
+      return { tone: "ended", line: `${name} has ended${s.endedAt ? ` (its last match recorded ${sydneyWhen(s.endedAt)}, Sydney time)` : ""}. The ladder is its final standings.`, chip: "Ended" };
+    }
+    if (s.state === "ending") {
+      const shown = s.liveMatches === 0 ? "it ends in a moment" : s.liveMatches === 1 ? "the match on screen finishes and counts, then it ends" : `the ${s.liveMatches} matches on screen finish and count, then it ends`;
+      return { tone: "ending", line: `${name} is ending: no new round starts; ${shown}.`, chip: "Ending now" };
+    }
+    if (!s.endsAt) return { tone: "none", line: `${name} has no end time set yet.`, chip: "No end time" };
+    const left = Date.parse(s.endsAt) - now;
+    if (left <= 0) return { tone: "ending", line: `${name}'s end time has passed: it ends once the matches on screen finish.`, chip: "Ending now" };
+    const until = untilText2(left);
+    return { tone: "open", line: `${name} ends at ${sydneyWhen(s.endsAt)} (Sydney time), ${until}. The server ends it: no new round starts from then.`, chip: `Ends ${until}` };
+  }
+  function seasonEndHtml(v) {
+    if (!v) return "";
+    return `<p class="st-season t-${v.tone}" role="note"><b>${esc(v.chip)}</b> ${esc(v.line)}</p>`;
+  }
+  function seasonClosed(s, now) {
+    const v = seasonEndView(s, now);
+    if (!v || !s || v.tone !== "ending" && v.tone !== "ended") return null;
+    const name = seasonName2(s.season);
+    return v.tone === "ended" ? { ended: true, why: `${name} has ended: no new match starts.` } : { ended: false, why: `${name} is ending: no new round starts.` };
+  }
+  function seasonFrozen(s) {
+    if (!s || s.state !== "ended") return null;
+    const name = seasonName2(s.season);
+    return {
+      name,
+      store: `${name} has ended, so the Store is closed: nothing is bought, claimed or opened in its archive. Your credits, pack points and cards stay as they are.`,
+      short: "Season ended",
+      packs: `${name} has ended: no pack opens now. Unopened packs carry over to the next season and open as its packs.`,
+      daily: `${name} has ended: no free pack to claim.`,
+      collection: `${name} has ended: the collection is kept as it stands, so nothing is crafted or salvaged.`,
+      wins: `${name} has ended: no more matches pay.`
+    };
+  }
+  function isSeasonEndedRefusal(status, message) {
+    return status === 409 && /\bseason\b.*\bhas ended\b/i.test(message);
+  }
+  function frozenNoteHtml(f, text) {
+    return f ? `<p class="sh-closed" role="note"><b>${esc(f.short)}</b> ${esc(text)}</p>` : "";
   }
 
   // src/site/siteStanding.ts
@@ -8949,7 +9050,8 @@ gl_FragColor=vec4(col,1.);}`;
     const full = pct3 >= 1 ? " full" : "";
     return `<span class="dr-ring${full}" style="--s:${px}px" role="img" aria-label="${fromWins} of ${cap} credits from wins today"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="dr-tr" cx="50" cy="50" r="${r}"/><circle class="dr-arc" cx="50" cy="50" r="${r}" style="--len:${len.toFixed(1)};--off:${(len * (1 - pct3)).toFixed(1)}"/></svg><span class="dr-rv"><b>${fromWins}</b><small>of ${cap}</small></span></span>`;
   }
-  function packNodeHtml(p, nowMs) {
+  function packNodeHtml(p, nowMs, frozen = null) {
+    if (frozen) return `<li class="dr-pk done closed"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><button type="button" class="btn sm" disabled title="${esc(frozen.daily)}">Closed</button><span class="dr-nx">${esc(frozen.short)}</span></li>`;
     if (!p) return `<li class="dr-pk wait"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><span class="muted small">Loading\u2026</span></li>`;
     const n = p.waiting;
     if (n > 0) {
@@ -8963,12 +9065,13 @@ gl_FragColor=vec4(col,1.);}`;
     const what = s.state === "paid" ? `paid ${s.credits}` : s.state === "next" ? `pays ${s.credits}, next` : `pays ${s.credits}`;
     return `<li class="dr-w ${s.state} ${tier}${first ? " band" : ""}" title="Win ${s.nth}: ${what}"><span class="dr-wn" aria-hidden="true">${s.state === "paid" ? "\u2713" : s.nth}</span><span class="dr-wc">+${s.credits}</span><span class="vh">Win ${s.nth}, ${what}</span></li>`;
   }
-  function rewardRowHtml(d, pack, nowMs) {
+  function rewardRowHtml(d, pack, nowMs, frozen = null) {
     const steps = winSteps(d);
     const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1].band !== s.band)).join("");
-    return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs)}${wins}</ol>`;
+    return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs, frozen)}${wins}</ol>`;
   }
-  function nextLine(d) {
+  function nextLine(d, frozen = null) {
+    if (frozen) return esc(frozen.wins);
     return d.nextWinPays > 0 ? `Next win <b>+${d.nextWinPays}</b>` : "Wins pay nothing more today";
   }
   function clockTime(iso) {
@@ -8977,16 +9080,16 @@ gl_FragColor=vec4(col,1.);}`;
     const x = new Date(t);
     return `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
   }
-  function dailyBody(size, d, pack, nowMs) {
+  function dailyBody(size, d, pack, nowMs, frozen = null) {
     const v = dailyView(d, nowMs);
     if (size === "S") {
-      return `<div class="dr-s">${dailyRingSvg(v.fromWins, v.winCap, 72)}<div class="dn"><b>Credits from wins</b><div class="small">${nextLine(d)}</div></div></div>`;
+      return `<div class="dr-s">${dailyRingSvg(v.fromWins, v.winCap, 72)}<div class="dn"><b>Credits from wins</b><div class="small">${nextLine(d, frozen)}</div></div></div>`;
     }
-    const head = `<div class="dr-head">${dailyRingSvg(v.fromWins, v.winCap, size === "L" ? 104 : 84)}<div class="dn"><b>Credits from wins today</b><div class="dr-next">${nextLine(d)}</div>` + (size === "M" ? `<div class="muted small">${v.rewarded} of ${v.rewardedCap} wins paid</div>` : "") + `</div></div>`;
-    const row = rewardRowHtml(d, pack, nowMs);
+    const head = `<div class="dr-head">${dailyRingSvg(v.fromWins, v.winCap, size === "L" ? 104 : 84)}<div class="dn"><b>Credits from wins today</b><div class="dr-next">${nextLine(d, frozen)}</div>` + (size === "M" ? `<div class="muted small">${v.rewarded} of ${v.rewardedCap} wins paid</div>` : "") + `</div></div>`;
+    const row = rewardRowHtml(d, pack, nowMs, frozen);
     if (size === "M") return head + row;
     const city = zoneCity(d.timeZone);
-    const reset = `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(city)}</small></div>`;
+    const reset = frozen ? "" : `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(city)}</small></div>`;
     const pct3 = v.rewardedCap > 0 ? Math.min(100, Math.round(v.rewarded / v.rewardedCap * 100)) : 0;
     const rewarded = `<div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${pct3}%"></i></div></div>`;
     const wins = d.rewardedWins.length ? `<ul class="dr-list">${d.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clockTime(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>` : `<p class="muted small">No rewarded wins yet today.</p>`;
@@ -9162,21 +9265,24 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="pkw-pile${n ? "" : " none"}">${back}<div class="pkw-front">${sealedPackHtml(setCode, px, art)}</div>${n ? `<b class="pkw-c" aria-hidden="true">${n}</b>` : ""}</div>`;
   }
   function packsBody(w2, d) {
-    var _a4, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e, _f;
     const l = loading(d, "packs");
     if (l) return l;
     const p = d.packs;
     const v = packsView(p, (_b = (_a4 = d.wallet) == null ? void 0 : _a4.credits) != null ? _b : 0);
     const set = (_c = v.setCode) != null ? _c : p.dailyPack.setCode;
-    const open = `<button type="button" class="btn pri sm" data-act="open-packs" data-count="1"${v.canOpen ? "" : " disabled"}>Open</button>`;
+    const f = (_d = d.frozen) != null ? _d : null;
+    const off = (why) => ` disabled title="${esc(why)}"`;
+    const open = `<button type="button" class="btn${f ? "" : " pri"} sm" data-act="open-packs" data-count="1"${f ? off(f.packs) : v.canOpen ? "" : " disabled"}>Open</button>`;
     const count = `<p class="pkw-n">${v.unopened}<small>unopened</small></p>`;
-    if (w2.size === "S") return `<div class="pkw">${packStackHtml(set, 44, v.unopened, d.art)}<div class="dn">${count}<div class="row">${open}</div></div></div><span class="vh">${esc(v.head)}</span>`;
-    const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
-    const m = `<div class="pkw">${packStackHtml(set, 84, v.unopened, d.art)}<div class="dn"><p class="pkw-n">${v.unopened}<small>unopened pack${v.unopened === 1 ? "" : "s"}</small></p><div class="muted small">${esc(v.setName || set)} \xB7 5 cards a pack</div>${pityChips(p.pity)}<div class="row">${open}${open10}</div>${v.unopened && !v.canOpenBulk ? `<div class="muted small">Open ${v.bulk} needs ${v.bulk} waiting.</div>` : ""}</div></div>`;
+    if (w2.size === "S") return `<div class="pkw${f ? " closed" : ""}">${packStackHtml(set, 44, v.unopened, d.art)}<div class="dn">${count}<div class="row">${open}</div>${f ? `<div class="pkw-x">${esc(f.short)}</div>` : ""}</div></div><span class="vh">${esc(f ? f.packs : v.head)}</span>`;
+    const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${f ? off(f.packs) : v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
+    const under = f ? `<div class="muted small pkw-why">${esc(f.packs)}</div>` : v.unopened && !v.canOpenBulk ? `<div class="muted small">Open ${v.bulk} needs ${v.bulk} waiting.</div>` : "";
+    const m = `<div class="pkw${f ? " closed" : ""}">${packStackHtml(set, 84, v.unopened, d.art)}<div class="dn"><p class="pkw-n">${v.unopened}<small>unopened pack${v.unopened === 1 ? "" : "s"}</small></p><div class="muted small">${esc(v.setName || set)} \xB7 5 cards a pack</div>${f ? "" : pityChips(p.pity)}<div class="row">${open}${open10}</div>${under}</div></div>`;
     if (w2.size === "M") return m;
     const c = d.collection;
-    const factionOf2 = new Map(((_d = c == null ? void 0 : c.cards) != null ? _d : []).map((x) => [x.cardId, x.faction]));
-    const pulls = ((_e = c == null ? void 0 : c.recentPulls) != null ? _e : []).slice(0, 2);
+    const factionOf2 = new Map(((_e = c == null ? void 0 : c.cards) != null ? _e : []).map((x) => [x.cardId, x.faction]));
+    const pulls = ((_f = c == null ? void 0 : c.recentPulls) != null ? _f : []).slice(0, 2);
     const strip = pulls.length ? pulls.map((o) => `<div class="muted small">${esc(clock(o.openedAt))} \xB7 ${esc(o.setCode)}${o.jackpot ? " \xB7 Jackpot pack" : ""}</div><div class="mrow">${o.cards.map((k) => {
       var _a5;
       return miniCard({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a5 = factionOf2.get(k.cardId)) != null ? _a5 : null, finish: k.finish, serial: k.serial });
@@ -9184,8 +9290,8 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="wsplit wide-l">${m}<div class="wcol pkw-pulls"><h4>Your last pulls</h4>${strip}</div></div>`;
   }
   function dailyWidget(w2, d) {
-    var _a4, _b, _c;
-    return (_c = loading(d, "daily")) != null ? _c : dailyBody(w2.size, d.daily, (_b = (_a4 = d.packs) == null ? void 0 : _a4.dailyPack) != null ? _b : null, d.now);
+    var _a4, _b, _c, _d;
+    return (_d = loading(d, "daily")) != null ? _d : dailyBody(w2.size, d.daily, (_b = (_a4 = d.packs) == null ? void 0 : _a4.dailyPack) != null ? _b : null, d.now, (_c = d.frozen) != null ? _c : null);
   }
   var FACTION_FILTERS2 = ["All", "Cortex", "Aegis", "Swarm", "Null", "Neutral"];
   function collectionBody(w2, d) {
@@ -9220,20 +9326,25 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="sc-row">${cards.map((k) => showcaseCard(k, z.scale, true)).join("")}</div>${w2.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
   }
   function storeBody(w2, d) {
-    var _a4, _b, _c;
+    var _a4, _b, _c, _d, _e, _f, _g;
     const l = (_a4 = loading(d, "packs")) != null ? _a4 : w2.size === "L" ? loading(d, "store") : null;
     if (l) return l;
     const p = d.packs;
     const credits = (_c = (_b = d.wallet) == null ? void 0 : _b.credits) != null ? _c : 0;
+    const f = (_d = d.frozen) != null ? _d : null;
+    if (w2.size === "S" && f) {
+      return `<div class="shw-s closed">${sealedPackHtml(p.dailyPack.setCode, 40, d.art)}<div class="dn"><b>Store closed</b><div class="row"><button type="button" class="btn sm" data-act="claim-daily" disabled title="${esc(f.daily)}">Closed</button></div><div class="muted small">${esc(f.short)}</div></div></div><span class="vh">${esc(f.store)}</span>`;
+    }
     if (w2.size === "S") {
       const daily = dailyPackView(p.dailyPack, d.now);
       const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.canClaim ? daily.waiting > 1 ? `Claim (${daily.waiting})` : "Claim free pack" : "Claimed today")}</button>`;
       return `<div class="shw-s">${sealedPackHtml(p.dailyPack.setCode, 40, d.art)}<div class="dn"><b>${daily.canClaim ? "Free daily pack" : "Free pack claimed"}</b><div class="row">${claim}</div>${resetCountdownHtml(p.dailyPack, d.now, { short: true })}</div></div>`;
     }
-    const tiles = packGridHtml(packTiles(p, credits, d.now), { art: d.art, compact: true });
-    if (w2.size === "M") return `<div class="shw">${tiles}</div>`;
-    const cos = cosmeticGridHtml(cosmeticTiles(d.store.cosmetics, credits), { art: d.art, compact: true });
-    return `<div class="shw"><div class="shw-head">${balanceHtml(credits)}${resetCountdownHtml(p.dailyPack, d.now)}</div>${tiles}<h4>Cosmetics</h4>${cos}</div>`;
+    const why = (_e = f == null ? void 0 : f.short) != null ? _e : null;
+    const tiles = packGridHtml(freezeTiles(packTiles(p, credits, d.now), why), { art: d.art, compact: true });
+    if (w2.size === "M") return `<div class="shw">${frozenNoteHtml(f, (_f = f == null ? void 0 : f.store) != null ? _f : "")}${tiles}</div>`;
+    const cos = cosmeticGridHtml(freezeTiles(cosmeticTiles(d.store.cosmetics, credits), why), { art: d.art, compact: true });
+    return `<div class="shw"><div class="shw-head">${balanceHtml(credits)}${f ? "" : resetCountdownHtml(p.dailyPack, d.now)}</div>${frozenNoteHtml(f, (_g = f == null ? void 0 : f.store) != null ? _g : "")}${tiles}<h4>Cosmetics</h4>${cos}</div>`;
   }
   function bodyOf(w2, d, o) {
     switch (w2.type) {
@@ -9477,61 +9588,6 @@ gl_FragColor=vec4(col,1.);}`;
       }
     }
     return true;
-  }
-
-  // src/site/siteSeason.ts
-  var SYD = "Australia/Sydney";
-  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  var mon = (m) => {
-    var _a4, _b;
-    return (_b = (_a4 = MONTHS[Number(m) - 1]) != null ? _a4 : m) != null ? _b : "";
-  };
-  function seasonName2(code) {
-    const m = /^S(\d+)$/.exec(code);
-    return m ? `Season ${m[1]}` : code;
-  }
-  function sydneyWhen(iso) {
-    const d = new Date(iso);
-    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: SYD, weekday: "short", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).map((p) => [p.type, p.value]));
-    if (parts.hour === "00" && parts.minute === "00") {
-      const before = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: SYD, weekday: "short", day: "numeric", month: "numeric" }).formatToParts(new Date(d.getTime() - 6e4)).map((p) => [p.type, p.value]));
-      return `midnight at the end of ${before.weekday} ${before.day} ${mon(before.month)}`;
-    }
-    return `${parts.weekday} ${parts.day} ${mon(parts.month)}, ${parts.hour}:${parts.minute}`;
-  }
-  function untilText2(ms) {
-    if (ms < 6e4) return "in under a minute";
-    const min = Math.floor(ms / 6e4);
-    if (min < 60) return `in ${min} min`;
-    const h = Math.floor(min / 60);
-    if (h < 48) return `in ${h} h`;
-    return `in ${Math.floor(h / 24)} days`;
-  }
-  function seasonEndView(s, now) {
-    if (!s) return null;
-    const name = seasonName2(s.season);
-    if (s.state === "ended") {
-      return { tone: "ended", line: `${name} has ended${s.endedAt ? ` (its last match recorded ${sydneyWhen(s.endedAt)}, Sydney time)` : ""}. The ladder is its final standings.`, chip: "Ended" };
-    }
-    if (s.state === "ending") {
-      const shown = s.liveMatches === 0 ? "it ends in a moment" : s.liveMatches === 1 ? "the match on screen finishes and counts, then it ends" : `the ${s.liveMatches} matches on screen finish and count, then it ends`;
-      return { tone: "ending", line: `${name} is ending: no new round starts; ${shown}.`, chip: "Ending now" };
-    }
-    if (!s.endsAt) return { tone: "none", line: `${name} has no end time set yet.`, chip: "No end time" };
-    const left = Date.parse(s.endsAt) - now;
-    if (left <= 0) return { tone: "ending", line: `${name}'s end time has passed: it ends once the matches on screen finish.`, chip: "Ending now" };
-    const until = untilText2(left);
-    return { tone: "open", line: `${name} ends at ${sydneyWhen(s.endsAt)} (Sydney time), ${until}. The server ends it: no new round starts from then.`, chip: `Ends ${until}` };
-  }
-  function seasonEndHtml(v) {
-    if (!v) return "";
-    return `<p class="st-season t-${v.tone}" role="note"><b>${esc(v.chip)}</b> ${esc(v.line)}</p>`;
-  }
-  function seasonClosed(s, now) {
-    const v = seasonEndView(s, now);
-    if (!v || !s || v.tone !== "ending" && v.tone !== "ended") return null;
-    const name = seasonName2(s.season);
-    return v.tone === "ended" ? { ended: true, why: `${name} has ended: no new match starts.` } : { ended: false, why: `${name} is ending: no new round starts.` };
   }
 
   // src/site/siteStats.ts
@@ -9873,6 +9929,7 @@ gl_FragColor=vec4(col,1.);}`;
         return;
       }
       toast(errorText(err.status, err.message), "error");
+      if (isSeasonEndedRefusal(err.status, err.message)) seasonRefused();
     } else toast("Something went wrong. Try again.", "error");
   }
   function confirmDialog(title, body, confirm) {
@@ -10011,6 +10068,7 @@ gl_FragColor=vec4(col,1.);}`;
     void loadHome();
     void pollBell().catch((err) => fail(err));
     void readSeason().then(() => {
+      drawWallet();
       if (closedNow() && !state.busy && !dragging) drawPage();
     }).catch(() => void 0);
   }
@@ -10120,6 +10178,16 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   var closedNow = () => seasonClosed(state.season, Date.now());
+  var frozenNow = () => seasonFrozen(state.season);
+  function seasonRefused() {
+    state.seasonReadAt = 0;
+    void readSeason().then(() => {
+      drawWallet();
+      drawAgentCard();
+      if (!state.busy && !dragging) drawPage();
+      if (state.col.viewer) drawViewer();
+    }).catch(() => void 0);
+  }
   async function refresh() {
     var _a4, _b, _c, _d, _e, _f, _g;
     if (!state.session || document.hidden) return schedulePoll();
@@ -10170,17 +10238,17 @@ gl_FragColor=vec4(col,1.);}`;
     applyTheme();
   }
   function drawWallet() {
-    var _a4, _b;
+    var _a4, _b, _c, _d;
     const el = $("#wallet");
     const w2 = state.wallet;
     if (!w2) {
       el.innerHTML = "";
       return;
     }
-    const open = openButton(w2.unopenedPacks.length);
-    const hadFocus = ((_a4 = document.activeElement) == null ? void 0 : _a4.id) === "open-btn";
+    const open = openButton(w2.unopenedPacks.length, (_b = (_a4 = frozenNow()) == null ? void 0 : _a4.packs) != null ? _b : null);
+    const hadFocus = ((_c = document.activeElement) == null ? void 0 : _c.id) === "open-btn";
     el.innerHTML = `<span class="cur" title="Credits"><i class="coin" aria-hidden="true"></i><b>${amount(w2.credits)}</b><span class="vh"> credits</span></span><span class="cur" title="Pack points"><i class="pp" aria-hidden="true"></i><b>${amount(w2.packPoints)}</b><span class="vh"> pack points</span></span><button type="button" class="obtn${open.enabled ? "" : " none"}" id="open-btn" data-act="open-packs" data-count="1"${open.enabled ? "" : " disabled"} aria-label="${esc(open.label)}" title="${esc(open.label)}">${icon("store", 16)}<span>Open</span>${open.enabled ? `<b class="ocount">${open.count}</b>` : ""}</button>`;
-    if (hadFocus) (_b = document.getElementById("open-btn")) == null ? void 0 : _b.focus();
+    if (hadFocus) (_d = document.getElementById("open-btn")) == null ? void 0 : _d.focus();
   }
   function avatar2(name, faction, size) {
     const c = faction && FACTION_HEX[faction] || "#8f8cff";
@@ -10283,7 +10351,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (!widgets.length) {
       return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
     }
-    const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
+    const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow(), frozen: frozenNow() };
     const { views, capped } = liveViews(widgets);
     const tiles = widgets.map((w2) => widgetHtml(w2, data, { editing, live: views.get(w2.id), capped: capped.has(w2.id), arena: views.get(w2.id) === "arena" ? tileArenaPick() : void 0 })).join("");
     const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -10618,7 +10686,7 @@ gl_FragColor=vec4(col,1.);}`;
     await Promise.all(reads);
   }
   function storePage() {
-    var _a4, _b, _c, _d;
+    var _a4, _b, _c, _d, _e, _f;
     const sh = state.shop;
     if (!sh.packs || !sh.store) {
       return `<div class="pg-wide"><div class="wempty glass"><h3>${sh.error ? "The Store couldn't be read" : "Loading the Store\u2026"}</h3>${sh.error ? `<p class="muted">${esc(sh.error)}</p><button type="button" class="btn pri" data-act="retry-shop">Try again</button>` : ""}</div></div>`;
@@ -10626,14 +10694,16 @@ gl_FragColor=vec4(col,1.);}`;
     const credits = (_b = (_a4 = state.wallet) == null ? void 0 : _a4.credits) != null ? _b : sh.packs.wallet.credits;
     const now = Date.now();
     const art = shopArt();
-    const head = `<div class="sh-head">${balanceHtml(credits)}${resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">Every pack also pays 5 pack points.</span></div>`;
-    const packs = `<section class="sh-sec" aria-labelledby="sh-packs"><h3 id="sh-packs">Packs</h3><p class="sh-sub">${esc(pityText(sh.packs))}</p>${packGridHtml(packTiles(sh.packs, credits, now), { art })}</section>`;
-    const cosmetics = `<section class="sh-sec" aria-labelledby="sh-cos"><h3 id="sh-cos">Cosmetics</h3><p class="sh-sub">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p>${cosmeticGridHtml(cosmeticTiles(sh.store.cosmetics, credits), { art })}</section>`;
+    const f = frozenNow();
+    const why = (_c = f == null ? void 0 : f.short) != null ? _c : null;
+    const head = `<div class="sh-head">${balanceHtml(credits)}${f ? "" : resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">${f ? "Equipping what you own still works, under Your agents' loadouts." : "Every pack also pays 5 pack points."}</span></div>${frozenNoteHtml(f, (_d = f == null ? void 0 : f.store) != null ? _d : "")}`;
+    const packs = `<section class="sh-sec" aria-labelledby="sh-packs"><h3 id="sh-packs">Packs</h3><p class="sh-sub">${esc(f ? "The pity counters stand where the season left them." : pityText(sh.packs))}</p>${packGridHtml(freezeTiles(packTiles(sh.packs, credits, now), why), { art })}</section>`;
+    const cosmetics = `<section class="sh-sec" aria-labelledby="sh-cos"><h3 id="sh-cos">Cosmetics</h3><p class="sh-sub">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p>${cosmeticGridHtml(freezeTiles(cosmeticTiles(sh.store.cosmetics, credits), why), { art })}</section>`;
     const n = sh.packs.unopened.length;
     const bulk = sh.packs.bulkOpenCount;
     const groups = unopenedGroups(sh.packs.unopened);
-    const rows = groups.map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting \xB7 ${esc(g.setCode)} \xB7 the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}">Open one</button></div>`).join("");
-    const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><div class="pkw">${sealedPackHtml((_d = (_c = sh.packs.offer[0]) == null ? void 0 : _c.setCode) != null ? _d : sh.packs.dailyPack.setCode, 58, art)}<div class="dn"><p class="pkw-n">${n}<small>pack${n === 1 ? "" : "s"}</small></p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div></div></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
+    const rows = groups.map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting \xB7 ${esc(g.setCode)} \xB7 the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}"${f ? " disabled" : ""}>Open one</button></div>`).join("");
+    const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><div class="pkw${f ? " closed" : ""}">${sealedPackHtml((_f = (_e = sh.packs.offer[0]) == null ? void 0 : _e.setCode) != null ? _f : sh.packs.dailyPack.setCode, 58, art)}<div class="dn"><p class="pkw-n">${n}<small>pack${n === 1 ? "" : "s"}</small></p><div class="row"><button type="button" class="btn${f ? "" : " pri"}" id="open1-btn" data-act="open-packs" data-count="1"${n && !f ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk && !f ? "" : " disabled"}>Open ${bulk}</button></div></div></div>${f ? `<p class="muted small st-closed">${esc(f.packs)}</p>` : n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
     const rec = sh.recent ? recentOpenings(sh.recent, 6) : [];
     const recent = `<section class="panel glass st-recent"><h3>Recent openings</h3>${rec.length ? rec.map((o) => `<div class="st-rec"><div class="dn"><b>${esc(shortWhen(o.openedAt))}</b><small>${esc(o.setCode)}${o.best ? ` \xB7 best: ${esc(o.best)}` : ""}${o.jackpot ? " \xB7 Jackpot pack" : ""}</small></div><div class="mrow">${o.cards.map((c) => miniCard(c)).join("")}</div></div>`).join("") : '<p class="muted small">No packs opened yet.</p>'}</section>`;
     return `<div class="pg-wide sh-pg">${head}${packs}${cosmetics}<div class="st-grid"><div class="st-col">${waiting}${agentsPanel()}</div>${recent}</div></div>`;
@@ -11024,7 +11094,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
     const hadFocus = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id || document.activeElement.dataset.act || null : null;
     const blocks = binderBlocks(c.binder, c.collection, { ...c.filters, tab: c.filters.tab === "promos" ? "set" : c.filters.tab });
-    el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, (_b = (_a4 = state.wallet) == null ? void 0 : _a4.packPoints) != null ? _b : 0, neighbours(blocks, s.key), face())}</div>`;
+    el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, (_b = (_a4 = state.wallet) == null ? void 0 : _a4.packPoints) != null ? _b : 0, neighbours(blocks, s.key), face(), frozenNow())}</div>`;
     const wasHidden = el.hidden;
     el.hidden = false;
     const faceEl = el.querySelector(".cv-card .face");
@@ -11535,7 +11605,7 @@ gl_FragColor=vec4(col,1.);}`;
       const p = state.play;
       if (!p) return;
       const widgets = state.board.widgets;
-      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
+      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow(), frozen: frozenNow() };
       const { views, capped } = liveViews(widgets);
       for (const w2 of widgets) {
         if (w2.type !== "live" && w2.type !== "watch") continue;

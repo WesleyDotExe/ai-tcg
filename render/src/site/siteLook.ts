@@ -162,7 +162,10 @@ export function amount(n: number): string {
 }
 
 /** The Open button's label and whether it has anything to open. */
-export function openButton(unopened: number): { label: string; count: number; enabled: boolean } {
+export function openButton(unopened: number, frozenWhy: string | null = null): { label: string; count: number; enabled: boolean } {
   const count = Math.max(0, Math.floor(unopened));
+  // Render session 73: the season has ended: the packs wait (they carry
+  // over), none opens; the hover says why.
+  if (frozenWhy) return { label: count ? `${count === 1 ? "1 pack" : `${count} packs`} waiting. ${frozenWhy}` : frozenWhy, count, enabled: false };
   return { label: count === 0 ? "No packs to open" : `Open ${count === 1 ? "1 pack" : `${count} packs`}`, count, enabled: count > 0 };
 }

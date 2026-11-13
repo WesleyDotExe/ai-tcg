@@ -7,6 +7,45 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — The season's end on the Store, Packs, Daily rewards and the card viewer (session 73) — AWAITING FEEDBACK (three small calls)
+
+Your plan's item 6, render side, finished for the season's end. Once Season 0 has ended, the server keeps its file
+as the archive and refuses buying, claiming and opening packs, crafting, salvage and cosmetics. Until now only
+Agent controls knew that. Everything else still offered its buttons, and each press ended in an error toast.
+Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --speed 8 --ends-in 3`, sign in as nova, open the Store,
+and wait about half a minute for the server to end the season.
+
+**What you'll see once the season has ended:**
+- **The Store page** opens with a line: "Season 0 has ended, so the Store is closed: nothing is bought, claimed or
+  opened in its archive. Your credits, pack points and cards stay as they are." Every tile is greyed, with "Closed"
+  and "Season ended" under it. The free pack's clock is gone. The packs waiting say "Unopened packs carry over to the
+  next season and open as its packs." (your 2026-11-10 rule).
+- **Home:** the Store widget says it's closed, the Packs widget's Open and Open 10 are off with the same reason,
+  and Daily rewards says "Season 0 has ended: no more matches pay." The top bar's Open is off. Its hover reads "11
+  packs waiting. Season 0 has ended: ...".
+- **The card viewer:** Craft is off, still showing its price, with "the collection is kept as it stands, so nothing
+  is crafted or salvaged."
+- **A page left open from before the end:** a press there is still refused by the server, as before. But the page
+  now reads the season at once and closes itself (2 ms after the toast in the check, no reload).
+
+Evidence: `progress/render/evidence/frozen-check-s73.txt`. 40 PASS on the real owner API, with the server ending the
+season itself while the page was open. The first run (`frozen-check-s73-first-run.txt`) found the top bar's Open
+still live after a sign-in, now fixed. Stills: `v2-s73-store-closed`, `-stale-redrawn`, `-home-S/M/L`, `-viewer`,
+`-store-phone`. Unit tests: `render/test/siteSeasonFrozen.test.ts`. One test runs on the real owner API: every
+button the page turns off is one the server refuses.
+
+**Small calls (kept as built unless you say otherwise):**
+1. **Only "ended" closes the Store, not "ending".** While the last matches finish, packs can still be bought and
+   opened, as the server allows.
+2. **The closed tiles keep their prices** (100, 1,000, 300), greyed, so the Store still shows what things cost. An
+   owned cosmetic keeps "Owned".
+3. **The packs line promises the carry-over** ("carry over to the next season and open as its packs"). This is your
+   2026-11-10 rule, which the game lane builds after launch. If that build changes, this sentence changes with it.
+
+**Next:** game 96 (the booster-card proposal). The render hardening pass is at 74.
+
+---
+
 ## 2026-11-13 — The dry run's fixes on the site: the waiting ring and the season's end (session 72) — AWAITING FEEDBACK (four small calls)
 
 Your plan's item 6, render side. Game session 94 changed two things the site shows, and the site needed fixing for both.

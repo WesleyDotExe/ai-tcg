@@ -8,7 +8,7 @@
 // data waits on match running says what it waits on (siteBoard.WIDGET_WAITS)
 // and draws nothing made up.
 
-import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, type ShopArt } from "./siteShop.js";
+import { balanceHtml, cosmeticGridHtml, cosmeticTiles, freezeTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, type ShopArt } from "./siteShop.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import type { SiteHistory, SiteLive, SiteLiveMatch, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
 import { compactBoard, historyRowHtml, historyRowView, liveGroups, liveLineHtml, liveOrder, recordOf, scoreboardHtml, scoreboardOf, topRatedHtml, viewersHtml, watchAsHtml, type Scoreboard } from "./siteMatches.js";
@@ -30,7 +30,7 @@ import {
   type WidgetType,
 } from "./siteBoard.js";
 import { agentControlsHtml, myAgentHtml, type SiteRating, type TimeAllowance } from "./siteAgent.js";
-import type { SeasonClosed } from "./siteSeason.js";
+import { frozenNoteHtml, type SeasonClosed, type SeasonFrozen } from "./siteSeason.js";
 import { amount } from "./siteLook.js";
 import { formBody, ladderBody, notifBody, type SiteLadder, type SiteNotifications, type SiteStats } from "./siteStanding.js";
 import { dailyPackView } from "./siteStore.js";
@@ -107,6 +107,9 @@ export interface WidgetData {
   /** Render session 72: the season has ended or is ending; Agent controls
    * stops offering Start and time. */
   closed?: SeasonClosed | null;
+  /** Render session 73: the season has ended (not just ending): packs,
+   * the free pack and the store are off, with the reason. */
+  frozen?: SeasonFrozen | null;
   /** The viewer (to mark their own side on a scoreboard). */
   ownerId: string | null;
   /** The side the viewer chose to watch a match as (render session 52; kept
@@ -316,11 +319,16 @@ function packsBody(w: SiteWidget, d: WidgetData): string {
   // Session 47: Open opens the oldest pack, Open 10 the ten oldest, full screen.
   // Render session 63 (the brief's table): S the pack, the count and Open;
   // M a bigger pack, Open and Open 10, the pity counters; L the last pulls too.
-  const open = `<button type="button" class="btn pri sm" data-act="open-packs" data-count="1"${v.canOpen ? "" : " disabled"}>Open</button>`;
+  // Render session 73: once the season has ended no pack opens; the
+  // buttons stay (where they were) but are off, with the reason.
+  const f = d.frozen ?? null;
+  const off = (why: string) => ` disabled title="${esc(why)}"`;
+  const open = `<button type="button" class="btn${f ? "" : " pri"} sm" data-act="open-packs" data-count="1"${f ? off(f.packs) : v.canOpen ? "" : " disabled"}>Open</button>`;
   const count = `<p class="pkw-n">${v.unopened}<small>unopened</small></p>`;
-  if (w.size === "S") return `<div class="pkw">${packStackHtml(set, 44, v.unopened, d.art)}<div class="dn">${count}<div class="row">${open}</div></div></div><span class="vh">${esc(v.head)}</span>`;
-  const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
-  const m = `<div class="pkw">${packStackHtml(set, 84, v.unopened, d.art)}<div class="dn"><p class="pkw-n">${v.unopened}<small>unopened pack${v.unopened === 1 ? "" : "s"}</small></p><div class="muted small">${esc(v.setName || set)} · 5 cards a pack</div>${pityChips(p.pity)}<div class="row">${open}${open10}</div>${v.unopened && !v.canOpenBulk ? `<div class="muted small">Open ${v.bulk} needs ${v.bulk} waiting.</div>` : ""}</div></div>`;
+  if (w.size === "S") return `<div class="pkw${f ? " closed" : ""}">${packStackHtml(set, 44, v.unopened, d.art)}<div class="dn">${count}<div class="row">${open}</div>${f ? `<div class="pkw-x">${esc(f.short)}</div>` : ""}</div></div><span class="vh">${esc(f ? f.packs : v.head)}</span>`;
+  const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${f ? off(f.packs) : v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
+  const under = f ? `<div class="muted small pkw-why">${esc(f.packs)}</div>` : v.unopened && !v.canOpenBulk ? `<div class="muted small">Open ${v.bulk} needs ${v.bulk} waiting.</div>` : "";
+  const m = `<div class="pkw${f ? " closed" : ""}">${packStackHtml(set, 84, v.unopened, d.art)}<div class="dn"><p class="pkw-n">${v.unopened}<small>unopened pack${v.unopened === 1 ? "" : "s"}</small></p><div class="muted small">${esc(v.setName || set)} · 5 cards a pack</div>${f ? "" : pityChips(p.pity)}<div class="row">${open}${open10}</div>${under}</div></div>`;
   if (w.size === "M") return m;
   const c = d.collection;
   const factionOf = new Map((c?.cards ?? []).map((x) => [x.cardId, x.faction]));
@@ -334,7 +342,7 @@ function packsBody(w: SiteWidget, d: WidgetData): string {
 function dailyWidget(w: SiteWidget, d: WidgetData): string {
   // Render session 66: the free pack's node (M and L) is a garnish on the
   // row: a packs read still out draws the node as loading, not the widget.
-  return loading(d, "daily") ?? dailyBody(w.size, d.daily!, d.packs?.dailyPack ?? null, d.now);
+  return loading(d, "daily") ?? dailyBody(w.size, d.daily!, d.packs?.dailyPack ?? null, d.now, d.frozen ?? null);
 }
 
 const FACTION_FILTERS = ["All", "Cortex", "Aegis", "Swarm", "Null", "Neutral"];
@@ -376,15 +384,20 @@ function storeBody(w: SiteWidget, d: WidgetData): string {
   // Render session 63 (the brief's table): S claims the free pack; M the
   // product tiles with their buy buttons underneath; L the store's layout
   // (packs and cosmetics) with the balance and the countdown.
+  const f = d.frozen ?? null;
+  if (w.size === "S" && f) {
+    return `<div class="shw-s closed">${sealedPackHtml(p.dailyPack.setCode, 40, d.art)}<div class="dn"><b>Store closed</b><div class="row"><button type="button" class="btn sm" data-act="claim-daily" disabled title="${esc(f.daily)}">Closed</button></div><div class="muted small">${esc(f.short)}</div></div></div><span class="vh">${esc(f.store)}</span>`;
+  }
   if (w.size === "S") {
     const daily = dailyPackView(p.dailyPack, d.now);
     const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.canClaim ? (daily.waiting > 1 ? `Claim (${daily.waiting})` : "Claim free pack") : "Claimed today")}</button>`;
     return `<div class="shw-s">${sealedPackHtml(p.dailyPack.setCode, 40, d.art)}<div class="dn"><b>${daily.canClaim ? "Free daily pack" : "Free pack claimed"}</b><div class="row">${claim}</div>${resetCountdownHtml(p.dailyPack, d.now, { short: true })}</div></div>`;
   }
-  const tiles = packGridHtml(packTiles(p, credits, d.now), { art: d.art, compact: true });
-  if (w.size === "M") return `<div class="shw">${tiles}</div>`;
-  const cos = cosmeticGridHtml(cosmeticTiles(d.store!.cosmetics, credits), { art: d.art, compact: true });
-  return `<div class="shw"><div class="shw-head">${balanceHtml(credits)}${resetCountdownHtml(p.dailyPack, d.now)}</div>${tiles}<h4>Cosmetics</h4>${cos}</div>`;
+  const why = f?.short ?? null;
+  const tiles = packGridHtml(freezeTiles(packTiles(p, credits, d.now), why), { art: d.art, compact: true });
+  if (w.size === "M") return `<div class="shw">${frozenNoteHtml(f, f?.store ?? "")}${tiles}</div>`;
+  const cos = cosmeticGridHtml(freezeTiles(cosmeticTiles(d.store!.cosmetics, credits), why), { art: d.art, compact: true });
+  return `<div class="shw"><div class="shw-head">${balanceHtml(credits)}${f ? "" : resetCountdownHtml(p.dailyPack, d.now)}</div>${frozenNoteHtml(f, f?.store ?? "")}${tiles}<h4>Cosmetics</h4>${cos}</div>`;
 }
 
 function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
