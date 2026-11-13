@@ -4897,3 +4897,19 @@ Prompted by the owner's review of the Season 0 set: 89 of the set's 96 cards are
 3. **Keep:** the packs line promises the carry-over (the owner's 2026-11-10 rule).
 
 Next session by alternation: game 96 (the booster-card proposal, per the entry above).
+
+---
+
+## 2026-11-14 — Owner: answers to game session 96 (the Season 0 booster-card proposal), keep all 8 as recommended
+
+**Game session 96** (PR #173, `progress/booster-proposal-s0.md`, `progress/booster-proposal-005.txt`, `progress/notes-for-owner.md`). **Keep all 8 calls, each as recommended:**
+1. **Keep:** the list: approve the 28 cards as proposed. The build tunes numbers only (costs and stats, never a card's job), by the real balance re-run.
+2. **Keep (a):** 28 cards, 7 per faction, 2 Common / 2 Uncommon / 2 Rare / 1 Mythic (8 C, 8 U, 8 R, 4 M); no neutral booster cards.
+3. **Keep:** the upgrade target: a faction's whole booster package lifts its starter deck by about +8 to +12 points against the field, and the four factions land within about 4 points of each other (Null's package comes down about 5 points and Aegis's about 1 at the build).
+4. **Keep:** the 25% removal/debuff cap as it is.
+5. **Keep:** the starter decks stay fixed for Season 0; note for Season 1 that they hold cards weaker than a plain body (`progress/season-1-ideas.md`).
+6. **Keep (a):** one Season 0 set: the 96 cards keep 001 to 096, the booster cards follow as 097 to 124 (by faction, then rarity, then name); the total becomes /124, the Gold numbers 125 to 248, the secrets above them.
+7. **Keep:** packs as recommended: the plain slots (2 Commons, the Uncommon, the Rare/Mythic slot) and the shine slot's Standard and Foil roll booster cards only; Full Art, Alt Art, Gold, Glitch and the secret illustrations roll from all cards, so starter cards appear only in those chase versions; the Zero-Day cards are unchanged; the 15 Prototype runs stay on the cards they are on; the odds become a new version (S0-odds-3), and a logged opening still rolls again from its own version.
+8. **Keep:** if the balance re-run fails: tune the booster cards only (costs and stats, never a starter card), up to two rounds; if still outside the target, bring it back to the owner with the numbers rather than ship it. Launch stays 5 December either way; the fallback is packs as they are today.
+
+Next: the build (the proposal's build order: cards and registry, set numbering and pack table, the deck builder's collections, the balance re-run). Next session by alternation: render 74, then game 97 (the build).
