@@ -191,6 +191,41 @@ describe("the season's end: the owner API", () => {
   });
 });
 
+describe("auto-play once the season has ended (session 95; owner 2026-11-14)", () => {
+  it("PUT /api/play/auto-play on is refused (409), as packs are, and so is more time; off still works", async () => {
+    const { store } = setup();
+    const { call, signIn } = await api(store);
+    const admin = await signIn("house0");
+    const ada = await signIn("ada");
+    // While the season is open: on with 15 minutes, then off, then on again.
+    expect((await call("PUT", "/api/play/auto-play", { token: ada, body: { on: true, minutes: 15 } })).status).toBe(200);
+    expect((await call("PUT", "/api/play/auto-play", { token: ada, body: { on: false } })).status).toBe(200);
+    const again = await call("PUT", "/api/play/auto-play", { token: ada, body: { on: true, minutes: 15 } });
+    expect(again.status).toBe(200);
+    expect(again.body.autoPlay.on).toBe(true);
+    expect((await call("POST", "/api/admin/season/end", { token: admin, body: { season: "S0" } })).status).toBe(200);
+
+    // Ended: more time and turning it on are both refused with the archive's reason.
+    const more = await call("POST", "/api/play/auto-play/time", { token: ada, body: { minutes: 15 } });
+    expect(more.status).toBe(409);
+    expect(more.body.error).toMatch(/^season S0 has ended: no play time is added; the file is the season's archive$/);
+    const off = await call("PUT", "/api/play/auto-play", { token: ada, body: { on: false } });
+    expect(off.status).toBe(200);
+    expect(off.body.autoPlay.on).toBe(false);
+    for (const body of [{ on: true }, { on: true, minutes: 30 }]) {
+      const on = await call("PUT", "/api/play/auto-play", { token: ada, body });
+      expect(on.status).toBe(409);
+      expect(on.body.error).toMatch(/^season S0 has ended: auto-play doesn't go on; the file is the season's archive$/);
+    }
+    // The same refusal a pack buy gets, and the switch is still off.
+    const buy = await call("POST", "/api/packs/buy", { token: ada, body: { setCode: "S0", count: 1 } });
+    expect(buy.status).toBe(409);
+    expect((await call("GET", "/api/play", { token: ada })).body.autoPlay.on).toBe(false);
+    // A bad request is still a 400, not hidden behind the season's 409.
+    expect((await call("PUT", "/api/play/auto-play", { token: ada, body: { on: "yes" } })).status).toBe(400);
+  });
+});
+
 describe("the next season's file over HTTP (v27)", () => {
   it("the archive refuses packs over the API; the new file's GET /api/season names where it came from and the caller's seed", async () => {
     const dir = mkdtempSync(join(tmpdir(), "season-next-"));

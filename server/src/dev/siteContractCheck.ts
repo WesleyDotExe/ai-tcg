@@ -158,6 +158,8 @@ const answers: Answer[] = [];
  * and whether this run reached each (the report lists them). */
 const shapes: Record<string, boolean> = {};
 const refusals: string[] = [];
+/** (session 95) The refusals the run asks for (the season has ended). */
+const seasonRefusals: string[] = [];
 const client = siteApi((url: string, init?: RequestInit) => demoFetch(url, init), `http://localhost:${api.port}`);
 async function ask(method: string, call: string, ...args: unknown[]): Promise<unknown> {
   try {
@@ -205,6 +207,13 @@ try {
   await ask("ladder", "GET /api/ladder?limit=10", t, 10);
   await ask("stats", "GET /api/stats", t);
   await ask("notifications", "GET /api/notifications?limit=10", t, 10);
+  // (session 95; owner 2026-11-14, render 72's ask) The season: open with no
+  // end time, then open with Season 0's (set as season:setup sets it).
+  const noEnd = (await ask("season", "GET /api/season (open, no end time)", t)) as { state: string; endsAt?: string | null } | undefined;
+  store.setSeasonEndTime("2026-12-26T13:00:00.000Z");
+  const withEnd = (await ask("season", "GET /api/season (open, the end time set)", t)) as { state: string; endsAt?: string | null } | undefined;
+  shapes["season \"open\", endsAt null"] = noEnd?.state === "open" && noEnd.endsAt === null;
+  shapes["season \"open\", endsAt set"] = withEnd?.state === "open" && typeof withEnd.endsAt === "string";
   const liveNow = (await ask("live", "GET /api/live", t)) as { matches: { matchId: string; released: number; p1: { ownerId: string }; p2: { ownerId: string } }[] };
   const shown = liveNow?.matches[0];
   if (shown) await ask("liveFeed", "GET /api/live/:id?from=N (the last two moves)", t, shown.matchId, Math.max(0, shown.released - 2));
@@ -346,6 +355,38 @@ try {
   const clearedAll = (await ask("clearNotifications", "POST /api/notifications/clear {all}", t2, { all: true })) as { cleared: number; unread: number } | undefined;
   const after = (await client.notifications!(t2, 10)) as { notifications: unknown[] };
   shapes["clearNotifications: one by id, then all (the feed empty after)"] = clearedOne?.cleared === 1 && clearedAll !== undefined && clearedAll.unread === 0 && after.notifications.length === 0;
+
+  // (session 95) The season's end, last: with a match on screen the end time
+  // is brought forward to 10 s from now, so the season reads "ending" (the
+  // match finishes and counts), then "ended" with its final standings. Then
+  // auto-play on and more time must be refused (409), as a pack buy is.
+  for (let i = 0; i < 120 && live.showing().length === 0; i++) await tick(5000);
+  store.setSeasonEndTime(new Date(clock.t + 10_000).toISOString());
+  await tick(10_000);
+  const ending = (await ask("season", "GET /api/season (ending: the end time passed, a match still on screen)", t)) as { state: string; liveMatches: number } | undefined;
+  for (let i = 0; i < 400 && !store.seasonEnded(); i++) await tick(5000);
+  const ended = (await ask("season", "GET /api/season (ended: the final standings)", t)) as { state: string; standings: unknown[] | null; you: unknown } | undefined;
+  shapes["season \"ending\" (a match on screen)"] = ending?.state === "ending" && ending.liveMatches > 0;
+  shapes["season \"ended\" (standings and the caller's line)"] = ended?.state === "ended" && (ended.standings?.length ?? 0) > 0 && ended.you !== null;
+  const refusedWith = async (f: () => Promise<unknown>): Promise<{ status: number; message: string } | null> => {
+    try {
+      await f();
+      return null;
+    } catch (err) {
+      const e = err as { status?: number; message: string };
+      return { status: e.status ?? 0, message: e.message };
+    }
+  };
+  const onRefused = await refusedWith(() => client.setAutoPlay!(t, true, 15));
+  const plainRefused = await refusedWith(() => client.setAutoPlay!(t, true));
+  const timeRefused = await refusedWith(() => client.addPlayTime!(t, 15));
+  for (const [what, r] of [["PUT /api/play/auto-play {on, minutes:15}", onRefused], ["PUT /api/play/auto-play {on}", plainRefused], ["POST /api/play/auto-play/time", timeRefused]] as const) {
+    seasonRefusals.push(`${what}: ${r === null ? "ANSWERED (not refused)" : `${r.status} ${r.message}`}`);
+  }
+  shapes["auto-play on refused once the season has ended (409)"] =
+    onRefused?.status === 409 && plainRefused?.status === 409 && /has ended: auto-play doesn't go on/.test(onRefused.message) && timeRefused?.status === 409;
+  const offAfter = (await ask("setAutoPlay", "PUT /api/play/auto-play {on:false} (after the end: still answered)", t, false)) as { autoPlay: { on: boolean } } | undefined;
+  shapes["auto-play off still answered after the end"] = offAfter?.autoPlay.on === false;
 } finally {
   await api.close();
   await live.stop();
@@ -479,6 +520,9 @@ if (finishing) finishing.autoPlay.allowance.state = "ending";
 // (session 94) The clear answer with its count sent as text.
 const clearText = structuredClone(items.find((x) => x.method === "clearNotifications")?.value ?? null) as { cleared: Json } | null;
 if (clearText) clearText.cleared = String(clearText.cleared);
+// (session 95) The season's state as a word the site doesn't know.
+const seasonClosed = structuredClone(items.find((x) => x.method === "season" && x.label.includes("(ended"))?.value ?? null) as { state: Json } | null;
+if (seasonClosed) seasonClosed.state = "closed";
 const stoppedText = structuredClone(items.find((x) => x.label.includes("stopped timeUp"))?.value ?? null) as { autoPlay: { stopped: Json } } | null;
 if (stoppedText) stoppedText.autoPlay.stopped = "timeUp";
 const controls: Checked[] = [
@@ -487,11 +531,12 @@ const controls: Checked[] = [
   { label: "control: GET /api/matches with `result` renamed `outcome`", method: "matches", value: historyRenamed },
   ...(finishing ? [{ label: "control: GET /api/play with the allowance's state \"ending\" (not a state the site knows)", method: "play", value: finishing as unknown as Json }] : []),
   ...(stoppedText ? [{ label: "control: GET /api/play with `autoPlay.stopped` sent as text", method: "play", value: stoppedText as unknown as Json }] : []),
+  ...(seasonClosed ? [{ label: "control: GET /api/season with its state \"closed\" (not a state the site knows)", method: "season", value: seasonClosed as unknown as Json }] : []),
   ...(clearText ? [{ label: "control: POST /api/notifications/clear with `cleared` sent as text", method: "clearNotifications", value: clearText as unknown as Json }] : []),
 ];
 const results = typeCheck([...items, ...controls]);
 
-say("# The site contract check: the render's site types against the served answers (game sessions 90-91, 94)");
+say("# The site contract check: the render's site types against the served answers (game sessions 90-91, 94-95)");
 say();
 say("The website's own client (render/src/site/siteApi.ts, unchanged) called the real owner API over a real");
 say("season file with the live ladder playing (5 owners, a fixed clock and seeds). Each answer it parsed was");
@@ -526,6 +571,9 @@ say();
 say("Not checked here:");
 say(`    the site host's own calls (not the owner API): ${notRun.filter((m) => HOST_ONLY.has(m)).join(", ") || "none"}`);
 say(`    owner API calls with no JSON answer checked: ${notRun.filter((m) => !HOST_ONLY.has(m)).join(", ") || "none"}`);
+say();
+say("Refused on purpose once the season had ended (session 95; each must be a 409):");
+for (const r of seasonRefusals) say(`    ${r}`);
 if (refusals.length) {
   say();
   say("Refused (an HTTP error, so no answer to check):");

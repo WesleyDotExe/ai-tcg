@@ -1,5 +1,25 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 95 (game lane; render 72's two asks, your yes to both).** Nothing is blocking. Lane:
+the last merged PR, #170, was "Render:", so this is a game session; no game PR was open.
+
+**What I did:**
+1. **Once the season has ended, auto-play can't go on** (409, the same refusal a pack buy gets: "season S0 has ended:
+   auto-play doesn't go on; the file is the season's archive"). Turning it off still works.
+2. **The site contract check now reads the season** (`GET /api/season`): open with no end time, open with Season 0's,
+   ending (a match still on screen) and ended (the final standings), and checks the refusals above are 409s.
+   `progress/site-contract-001.txt`: 0 mismatches, 7 of 7 controls.
+
+**Calls for you:**
+1. **+15 / +30 is refused too once the season has ended** ("no play time is added"), not only switching on. It is
+   the same kind of write and the site already hides those buttons then. Keep (recommended), or allow it?
+2. **During "ending"** (the end time has passed, the last matches are still playing, up to ~7 minutes) switching
+   auto-play on is still accepted; it does nothing, as no new round starts, and the site already turns Start off.
+   Options: **(a, recommended)** keep: the refusal comes once the season has really ended, as for packs; **(b)**
+   refuse from the end time too.
+
+---
+
 **Updated 2026-11-13, session 94 (game lane; your answers to session 93: fixing what the dry run broke).** Nothing is
 blocking. Lane: the last merged PR, #168, was "Render:", so this is a game session; no game PR was open.
 

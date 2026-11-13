@@ -5405,3 +5405,26 @@ batch ladder and the hand-started matches all get it with no ladder change.
 **Thin:** in quality-debt.md (the render change not browser-checked; the season's `endedAt` is the last match's
 recording, not 00:00; the dry run not re-run on v29; no way to change an existing file's end time but code).
 **Blocked:** nothing.
+
+**2026-11-14 — Session 95 (game lane; render 72's two asks, the owner's yes to both; no schema change).**
+Lane: the last merged PR, #170, was "Render:", so this is a game session; no game PR was open. Acted on the owner's
+2026-11-14 entry (answers to game 94 and render 72: all calls kept, nothing to build for them; yes to both asks).
+**Built:** (1) `EconomyStore.setAutoPlay(on: true)` refuses once the season has ended, with the archive's plain
+reason (`season S0 has ended: auto-play doesn't go on; the file is the season's archive`), so `PUT
+/api/play/auto-play` is 409 as a pack buy is; `addAutoPlayTime` likewise (`no play time is added`; before, it was
+refused only by luck, "isn't running on a time allowance", when the switch happened to be off); turning it off still
+works (Stop stays, render 72's call 3). `server/OWNER_API.md` says both. (2) The site contract check reads
+`GET /api/season` four ways: open with no end time, open with Season 0's (set as `season:setup` sets it), ending (the
+end time brought forward to 10 s from now with a match on screen) and ended (the final standings, the caller's
+line); then asks auto-play on (with and without minutes) and +15 and needs each to be a 409 with the reason, and
+off to be answered. Six new shapes, a 7th control (the season's state "closed", caught). It runs last, so every
+earlier answer is unchanged.
+**Ran it:** `progress/site-contract-001.txt` re-run: 70 calls, 0 mismatches, 7 of 7 controls, every shape reached,
+the same output twice. On the old store code the check fails (the refusal shape NOT REACHED; both ons answered 200)
+and the new HTTP test fails (`expected 200 to be 409`). Tests all pass (engine 372, server 222 (+1), economy 302,
+render 1,036, ...); `npm run demos`: 34 same.
+**Worked:** putting the refusal in the store, next to the pack and craft refusals, so the API, the CLI and any
+future caller get it with one line and the same words.
+**Thin:** in quality-debt.md (auto-play on still answered while the season is "ending"; a switch left on at the end
+stays on in the archive).
+**Blocked:** nothing.

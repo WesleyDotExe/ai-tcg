@@ -69,8 +69,8 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `PUT /api/agents/:agentId/play-style` | `{ style }` (a play style id) | the play settings |
 | `POST /api/play/rebuild` | none | 202 `{ job }`: the agent starts building its deck |
 | `GET /api/play/rebuild` | none | `{ job }`, the owner's latest rebuild (404 if none) |
-| `PUT /api/play/auto-play` | `{ on: boolean, minutes?: 15 \| 30 \| 60 }` | `{ autoPlay }` (below); `minutes` starts a play-time allowance (session 76), left out for no time limit; 400 for other minutes or minutes with `on: false`; 409 for a house owner, or turning it on while today's rewards are maxed |
-| `POST /api/play/auto-play/time` | `{ minutes: 15 \| 30 }` | `{ autoPlay }`: "+15 / +30" on a running allowance (session 76); 400 for other minutes; 409 with no allowance (off, time's up, or no time limit) or when it already runs to midnight Sydney |
+| `PUT /api/play/auto-play` | `{ on: boolean, minutes?: 15 \| 30 \| 60 }` | `{ autoPlay }` (below); `minutes` starts a play-time allowance (session 76), left out for no time limit; 400 for other minutes or minutes with `on: false`; 409 for a house owner, turning it on while today's rewards are maxed, or turning it on once the season has ended (session 95; off still works) |
+| `POST /api/play/auto-play/time` | `{ minutes: 15 \| 30 }` | `{ autoPlay }`: "+15 / +30" on a running allowance (session 76); 400 for other minutes; 409 with no allowance (off, time's up, or no time limit), when it already runs to midnight Sydney, or once the season has ended (session 95) |
 | `GET /api/live` | none | `{ running, matches: LiveMatchView[], mine, featured }`: every match being shown, the caller's, and Watch live's groups (below) |
 | `GET /api/live/:matchId?from=0` | none | `LiveMatchFeed`: the match now, and the moves released from `from` on (below); 404 once it ended. Reading it counts the caller as watching (`viewers`) |
 | `GET /api/matches?limit=20&before=<matchId>` | none | `{ matches: HistoryRow[], total, more }`: the caller's matches, newest first (below) |
@@ -267,7 +267,7 @@ The admin's end call stays as the fallback, for a file with no end time: `POST /
 
 A standing: `{ rank, ownerId, ownerName, agentName, rating, rd, volatility, ratedMatches, tier, wins, losses, draws, tierCoins }`. Names are as they were at the end (a later rename doesn't change the archive); `tierCoins` are the item ids the season gave, lowest tier first. A retired run: `{ runCode, setCode, cardId, runSize, found, retired, retiredAt }` (`found + retired = runSize`).
 
-**(v27, session 83) Once ended, the file is frozen completely** (owner 2026-11-07, answer 6): buying, granting, claiming or opening a pack, salvage, crafting and buying a cosmetic are all refused (`season S0 has ended: no pack is bought; the file is the season's archive`, and likewise), and the schema refuses every ledger row, pack, pack opening, card copy (but a new agent's signature copy) and salvage. Settings, the board, a free rename and reading everything still work.
+**(v27, session 83) Once ended, the file is frozen completely** (owner 2026-11-07, answer 6): buying, granting, claiming or opening a pack, salvage, crafting, buying a cosmetic, and (session 95; owner 2026-11-14) turning auto-play on or adding play time are all refused (`season S0 has ended: no pack is bought; the file is the season's archive`, and likewise), and the schema refuses every ledger row, pack, pack opening, card copy (but a new agent's signature copy) and salvage. Settings, the board, a free rename, turning auto-play off and reading everything still work.
 
 ### The next season's file (schema v27, session 83)
 

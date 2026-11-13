@@ -262,6 +262,21 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 95 (render 72's two asks: auto-play refused once ended, `season` in the contract check): what was raised, and what is still thin
+
+Raised: an ended season's file refuses auto-play on and +15/+30 (409 over the API), with the archive's reason, as it
+refuses packs; the site contract check covers `GET /api/season` in all three states (and both sides of `endsAt`)
+and the refusals, with a control. Still thin:
+- **While the season is "ending"** (its end time passed, a match still on screen; up to ~7 minutes) auto-play on is
+  still answered 200. Harmless (the ladder starts no round, and the site turns Start off), but the answer says "on"
+  for a switch that will never pair. A call for the owner.
+- **A switch left on at the end stays on in the archive** (`auto_play.is_on` 1 in an ended file). Nothing reads it
+  (no round starts; `season:next` starts auto-play off), but `GET /api/play` on the archive says on until the owner
+  turns it off.
+- The contract check reads "ending" only on a fake clock with one match on screen; the real midnight is still
+  unseen (as session 94).
+- The 45-minute dry run is still not re-run on v29.
+
 ## Session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end; schema v29): what was raised, and what is still thin
 
 Raised: the allowance's clock starts at the agent's first pairing (session 93's "15 minutes bought one match"; now
