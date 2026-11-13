@@ -4814,3 +4814,11 @@ Next session by alternation: game 93 (the Season 0 dry run and the owner's Mac m
 3. **Keep:** no pack can be bought on day one (a day's matches pay at most 110 credits; a pack costs 100). No change.
 
 Next session by alternation: render 71 (Top rated and viewer counts on Watch live), then both lanes fix what the dry run broke.
+
+---
+
+## 2026-11-13 — Owner: Season 0's length (follow-up to the answers to game session 93)
+
+Follows call 2 of game session 93 (PR #167, `progress/notes-for-owner.md`) and the entry above.
+1. **Decision:** Season 0 runs 3 weeks: 5 Dec to 26 Dec 2026, ended by the server on that schedule. Not decided: the end time on 26 Dec.
+2. **Decision:** the switch to Season 1 waits until later in Q1 2027: Season 1 is a live launch on its own server and domain (see `progress/season-1-ideas.md`, 2026-11-13).
