@@ -4922,3 +4922,22 @@ Follows the entry above (answers to game session 96, PR #173, `progress/booster-
 1. **Decision:** starter cards are Standard only. They are never in packs, and never in any special version: no Foil, Full Art, Glitch, Alt Art, secret illustration, Gold or Prototype copy of a starter card. Every special version belongs to the booster cards. This replaces call 7's line that starter cards appear in packs only in the chase versions; packs hold booster cards (plus the 3 Zero-Day cards, unchanged).
 2. **For the build:** the game lane re-points the Glitch list, the secret-illustration list and the 15 Prototype runs (including the 1/1) at booster cards, and shows the owner the new lists at its [OWNER CHECK-IN].
 3. **Not decided:** the exact new lists.
+
+---
+
+## 2026-11-14 — Owner: answers to game session 97 (the booster cards built) and render session 74 (the hardening pass): keep all, except call 6 (game 97): Standard only
+
+**Game session 97** (PR #175, `progress/notes-for-owner.md`, `progress/pack-sim-004-booster.txt`). **Keep calls 1–5; call 6 changed:**
+1. **Keep:** the Glitch list: 16 booster Units, four per faction, as listed.
+2. **Keep 16:** the secret illustrations: each faction's Mythic, both its Rares and one Common, as listed.
+3. **Keep:** the 15 Prototype runs on booster cards, the same pyramid and codes (1/1 Heat Death), as listed.
+4. **Keep:** Gold numbers only for the booster cards, 125 to 152; the secret cards 153 to 171 (the Zero-Day cards 169 to 171).
+5. **Keep (a):** the 7 starter-era neutrals in no starter deck (NT-001, 002, 003, 006, 007, 009, 010) stay out of packs; crafting (Standard) is the only way to get one.
+6. **Changed: Standard only.** A prize's tournament finish on a starter card is not allowed; a starter card as a prize is a Standard copy. No starter card exists above Standard in any version.
+
+**Render session 74** (PR #174, `progress/render/checkpoints.md`, `progress/render/evidence/season-end-check-s74.txt`). **Keep all 3 calls:**
+1. **Keep:** the picker keeps the items you don't own, greyed with their price ("Closed"), rather than hiding them.
+2. **Keep:** Daily rewards keeps the unpaid slots, dimmed, rather than cutting the row at the last paid win.
+3. **Keep:** a summary's "Open another" stays on screen, off, with the reason, rather than leaving only Done.
+
+Next session by alternation: render 75 (the booster cards' faces and set numbers), then game 98 (the balance re-run, build step 4).
