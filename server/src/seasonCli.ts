@@ -5,6 +5,7 @@ import { LiveLadder } from "./ladder/liveLadder.js";
 import { startOwnerApi } from "./ownerApi.js";
 import { seasonFileArgs, seasonFileLine, seasonFileProblem } from "./seasonFile.js";
 import { acquireSeasonLock, tookOverLine } from "./seasonLock.js";
+import { stampConsole } from "./logTime.js";
 
 // The Season 0 server in one process (session 67): the owner API and the
 // long-lived ladder over one season's database file. The ladder plays round
@@ -23,6 +24,8 @@ import { acquireSeasonLock, tookOverLine } from "./seasonLock.js";
 // (session 86) It holds `<database file>.lock` while it runs (seasonLock.ts):
 // a second server on the file, and `npm run season:next` from it, are refused
 // until it stops.
+// (session 92) Every line it prints starts with the local time (logTime.ts).
+stampConsole();
 const USAGE = "usage: npm run season -- <database file> [port] [match directory] [--new | --archive]";
 const parsed = seasonFileArgs(process.argv.slice(2));
 if ("problem" in parsed) {
@@ -58,7 +61,7 @@ const live = new LiveLadder({
   store,
   chooser: chooser.choose,
   logDir: MATCH_DIR,
-  onRound: (r) => console.log(`[ladder] round ${r.round}: ${r.pairs.length} match${r.pairs.length === 1 ? "" : "es"}${r.sitOut.length ? `, ${r.sitOut.map(name).join(", ")} sits out` : ""}`),
+  onRound: (r) => console.log(`[ladder] round ${r.round} since this start: ${r.pairs.length} match${r.pairs.length === 1 ? "" : "es"}${r.sitOut.length ? `, ${r.sitOut.map(name).join(", ")} sits out` : ""}`),
   onEvent: (e) => {
     if (e.kind === "housePacks") console.log(`[ladder] ${name(e.ownerId)} bought ${e.bought}, opened ${e.opened} packs (${e.newCards} new cards)`);
     if (e.kind === "rebuilt") console.log(`[ladder] rebuilt ${name(e.ownerId)}'s deck: ${e.faction}, ${e.cards} cards (${e.reasons.join("; ")})`);

@@ -445,14 +445,11 @@ export class Ladder {
     });
     let logPath: string | null = null;
     let replayPath: string | null = null;
-    if (this.opts.logDir && log !== null) {
-      logPath = join(this.opts.logDir, `${matchId}.txt`);
-      writeAtomic(logPath, `${log}\n`);
-    }
-    if (this.opts.logDir && replay !== null) {
-      replayPath = join(this.opts.logDir, `${matchId}.replay.json`);
-      writeAtomic(replayPath, `${JSON.stringify(replay)}\n`);
-    }
+    // (session 92) The match is recorded by now: a log or replay that can't
+    // be written (a full disk) is said and left out, as a replay that can't
+    // be made is (makeReplay), and the match still counts.
+    if (this.opts.logDir && log !== null) logPath = writeMatchFile(join(this.opts.logDir, `${matchId}.txt`), `${log}\n`, matchId, "log");
+    if (this.opts.logDir && replay !== null) replayPath = writeMatchFile(join(this.opts.logDir, `${matchId}.replay.json`), `${JSON.stringify(replay)}\n`, matchId, "replay");
     // The rewards first: maxing them drops any allowance with the switch.
     const stops: { ownerId: string; reason: AutoPlayStopReason }[] = [];
     for (const ownerId of [record.p1OwnerId, record.p2OwnerId]) {
@@ -475,6 +472,18 @@ function makeReplay(rest: Parameters<typeof makeReplayFile>[0], specs: { p1: Dec
     return makeReplayFile(rest, specs, rules);
   } catch (err) {
     console.warn(`[ladder] ${rest.matchId}: no replay: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+}
+
+/** Writes a match's log or replay, or warns and returns null when it can't
+ * (the history then says the match has no log or replay). */
+function writeMatchFile(path: string, text: string, matchId: string, what: "log" | "replay"): string | null {
+  try {
+    writeAtomic(path, text);
+    return path;
+  } catch (err) {
+    console.warn(`[ladder] ${matchId}: no ${what} file: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }

@@ -5306,3 +5306,40 @@ clock, so demo only. Told the render lane in notes-for-owner.md.
 **Worked:** controls on the new shapes, so the zero means something there too; failing on an unreached shape.
 **Thin:** in quality-debt.md (dailyRewardsMaxed, Zero-Day crafts, error bodies still unreached; the host's readers).
 **Blocked:** nothing.
+
+## 2026-11-13 — Session 92 (game lane): the hardening pass for the 7-day unattended run (no schema change)
+
+**Lane:** the last merged PR, #163, was "Render:", so this is a game session. No PR from either lane was open.
+Owner feedback: the 2026-11-13 plan's item 2 (this session) is handled; the answers to render 69 needed nothing from
+this lane.
+
+**Measured first:** `server/src/dev/unattendedRunMeasure.ts` (record `progress/unattended-run-001.txt`) drives the
+real `npm run season` as a child process on the real clock with four house owners: kill -9 mid-match, restart, a
+whole round shown and recorded, SIGTERM mid-match, restart, then a lock from before the machine's last start naming
+a live pid. Recovery already worked: the stale lock taken over (both kinds), the shown matches cancelled (no
+credits, no rating rows), a new round paired 1 s after the restart. **17 of 17 PASS, 10 minutes.** Disk: ~37 KB a
+match (log + replay), the season file 0.6 MB, the WAL checkpointed to 0. Printed output: 28 lines over 10 minutes.
+An in-process probe of a failing write and of a 3-hour forward clock jump came next.
+
+**Fixed (what was real):**
+1. **One failed record wedged the ladder until a restart.** `LiveLadder.doTick` took a finished match off the show
+   before recording it, so a write that failed once (a full disk, a busy file) left the match live in the store and
+   nothing to record it: its owners were never paired again. Probe: four house owners, 20 minutes of failing writes,
+   then 20 minutes with the fault cleared: **0 matches played.** Now the match stays shown, held at its end, and is
+   tried again after 30 s, doubling to 10 minutes; a failure after the record (which is one transaction with the live
+   row's removal, so "still live" means "not recorded") is said and the match is done with. Same probe after the
+   fix: both held matches recorded on the next try, rounds carried on.
+2. **A log or replay file that couldn't be written threw after the record** (the same path); now a warning, the
+   match counts with no log or replay (as a replay that can't be made already did).
+3. **No printed line said when.** `server/src/logTime.ts`: every season-server line starts with the local date and
+   time; rounds read "round N since this start" (each start counts from 1). The running ladder says when the clock
+   jumps ahead more than a minute (the machine slept) or goes back (`clockJumpLine`).
+Tests: `server/test/liveLadder.test.ts` (+3; the two record tests fail on the old code), `server/test/logTime.test.ts`
+(2). Docs: `server/OWNER_API.md` "Running unattended". The two demos that read the server's output strip the stamp.
+
+**Ran it:** `npm test`: engine 372, protocol 7, server 208 (+5), agents 17, economy 293, render 1009, all pass;
+typecheck clean in every workspace; `npm run demos` 32 same; the site contract check 0 mismatches, 5 of 5 controls.
+**Worked:** measuring on the real process first; the probe that found the wedge was 30 lines.
+**Thin:** in quality-debt.md (nothing restarts the server after a crash or reboot; terminal-only output; the
+disk-full case simulated, not real).
+**Blocked:** nothing.

@@ -27,6 +27,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 import { EconomyStore } from "@ai-tcg/economy";
+import { STAMP_RE } from "../logTime.js";
 import { demoFetch } from "./demoFetch.js";
 
 const say = (line = "") => console.log(line);
@@ -45,6 +46,7 @@ const tsx = join(serverDir, "../node_modules/.bin/tsx");
 const dir = mkdtempSync(join(tmpdir(), "season-switch-demo-"));
 const tidy = (text: string) =>
   text
+    .replace(STAMP_RE, "") // (session 92) the server's time on every line
     .split(dir)
     .join("<dir>")
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, "<time>")
@@ -83,7 +85,7 @@ function startSeason(args: string[]): Promise<{ port: number; out: string; stop:
         clearTimeout(timer);
         resolve({
           port: Number(m[1]),
-          out: tidy(out.split("\n").filter((l) => l.startsWith("[season]")).join("\n")),
+          out: tidy(tidy(out).split("\n").filter((l) => l.startsWith("[season]")).join("\n")),
           stop: () =>
             new Promise((done) => {
               child.once("exit", () => done());

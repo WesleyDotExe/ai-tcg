@@ -262,6 +262,36 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 92 (the game lane's hardening pass for the 7-day unattended run; no schema change): what was raised, and what is still thin
+
+Measured first: `progress/unattended-run-001.txt` drives the real `npm run season` as a child process on the real
+clock: killed outright mid-match, restarted, a full round shown and recorded, stopped by SIGTERM mid-match,
+restarted, and a pre-reboot lock with a live pid. Restart recovery already worked (lock takeover, orphan matches
+cancelled with no credits or rating, a new round at once). What was real, and fixed:
+- **A finished match that failed to record wedged the ladder for good** (until a restart). `doTick` removed it
+  from the show before recording, so one failed write (a full disk, a busy file) left the match live in the store
+  with nothing to record it: its owners were never paired again. With four house owners, 20 minutes after the fault
+  cleared the ladder had played zero matches. Now it stays shown and is retried (30 s doubling to 10 min); a
+  failure after the record (the log file, the auto-play switch) is said and the match is done with. Test fails on
+  the old code.
+- **A log or replay file that couldn't be written threw after the match was recorded** (the same wedge); now a
+  warning, and the match counts with no log or replay, as a replay that can't be made already did.
+- **No printed line said when it happened.** Every season-server line now starts with the local date and time
+  (`server/src/logTime.ts`); rounds read "round N since this start". The ladder says when the clock jumps ahead
+  (the machine slept) or goes back.
+Still thin:
+- **Nothing restarts the server after a crash or a reboot.** Recovery works when it is started again, but on the Mac
+  mini that is the owner by hand unless a service manager (launchd) runs it. A call in notes-for-owner.md; the guide
+  is session 93's.
+- **Output goes to the terminal only.** No log file and no rotation; an owner who closes the terminal loses it. The
+  guide should say to send it to a file (`>> season.log 2>&1`), ~100 KB a day by this run's rate.
+- **Disk-full was simulated** (the store's `recordMatch` throwing, a removed match directory), not produced by a
+  real full disk; SQLite's own behaviour when the disk fills mid-transaction was not measured.
+- **A tick that fails every time** (not a record) would print its stack 4 times a second; not seen in any run or
+  probe (startRound failing leaves the round to the idle retry), so not changed.
+- **A forward clock jump ends the shown matches at once** (spectators miss them); accepted, the remedy is no sleep.
+- **The real run is ~10 minutes** of real clock, not 7 days; the full dry run is session 93's.
+
 ## Session 91 (the game lane's hardening pass: the site contract check's rarer shapes; no product code or schema change): what was raised, and what is still thin
 
 Raised: session 90's check type-checked only the shapes one plain run produced, so a nullable field or a union

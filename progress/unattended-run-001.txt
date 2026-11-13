@@ -1,0 +1,90 @@
+Unattended run 001 — the real server crashed, stopped and started again mid-match (session 92, game lane)
+========================================================================
+Owner 2026-11-13 (item 2): a hardening pass aimed at the 7-day unattended run on the Mac mini: the server
+comes back after a restart, takes over its lock and carries on. Every step drives `npm run season` as a
+child process on the real clock; nothing is simulated inside the server.
+
+Made: <dir>/season-0.db, an open Season 0 with 4 house owners (House Cortex, House Swarm, House Aegis, House Null).
+
+1. The first start
+------------------------------------------------------------------------
+  2026-11-13 02:44:39 [ladder] round 1 since this start: 2 matches
+  15 s into round 1: 2 match(es) being shown
+  [PASS] round 1 is being shown (two matches live in the store)
+
+2. Killed outright mid-match (kill -9), then started again
+------------------------------------------------------------------------
+  kill -9 <pid> at +  33 s
+  [PASS] the lock is left behind (nothing could clean up)
+  [PASS] the two matches are still live in the file
+  2026-11-13 02:44:54 [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): process <pid> is no longer running
+  2026-11-13 02:44:54 [ladder] cancelled 2 match(es) left live by the last run: m-1, m-2
+  2026-11-13 02:44:54 [ladder] round 1 since this start: 2 matches  (1 s after the restart)
+  [PASS] the new start takes the stale lock over and says why
+  [PASS] it cancels exactly the two matches that were being shown
+  [PASS] recorded as cancelled, no credits
+  [PASS] no rating moved (no rating rows for them)
+  [PASS] a new round is paired at once (no wait for the old round)
+
+3. The ladder carries on: the new round shown to the end and recorded
+------------------------------------------------------------------------
+  2026-11-13 02:51:47 [ladder] m-3 House Aegis vs House Swarm: House Aegis wins in 13 turns, +30/+2
+  2026-11-13 02:53:11 [ladder] m-4 House Null vs House Cortex: House Cortex wins in 20 turns, +2/+30
+  [PASS] both of the new round's matches were recorded with a result
+  [PASS] each has its log and replay in the match directory
+  2026-11-13 02:54:12 [ladder] round 2 since this start: 2 matches
+  [PASS] and the next round starts after the gap (round 2 since this start)
+
+4. Stopped by the system (SIGTERM) mid-match, then started again
+------------------------------------------------------------------------
+  SIGTERM at + 601 s: exit 0
+  [PASS] a clean stop: exit 0 and "[season] stopping" printed
+  [PASS] the lock is removed
+  2026-11-13 02:54:22 [ladder] cancelled 2 match(es) left live by the last run: m-5, m-6
+  [PASS] the next start cancels the matches the stop cut off
+  [PASS] no lock to take over this time
+
+5. A lock from before the machine last started (a reboot), its process id alive again
+------------------------------------------------------------------------
+  wrote <dir>/season-0.db.lock naming a live process, taken an hour before this machine started
+  2026-11-13 02:54:22 [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): the machine has restarted since it was taken
+  [PASS] taken over: the machine has restarted since it was taken
+
+6. What the owner's terminal showed, every line, and the disk used
+------------------------------------------------------------------------
+  +   0 s  run 1 | 2026-11-13 02:44:21 [season] season S0 on <dir>/season-0.db
+  +   0 s  run 1 | 2026-11-13 02:44:21 [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
+  +   1 s  run 1 | 2026-11-13 02:44:22 [ladder] House Cortex bought 0, opened 3 packs (10 new cards)
+  +   1 s  run 1 | 2026-11-13 02:44:22 [ladder] House Swarm bought 0, opened 3 packs (13 new cards)
+  +   1 s  run 1 | 2026-11-13 02:44:22 [ladder] House Aegis bought 0, opened 3 packs (8 new cards)
+  +   1 s  run 1 | 2026-11-13 02:44:22 [ladder] House Null bought 0, opened 3 packs (10 new cards)
+  +  18 s  run 1 | 2026-11-13 02:44:39 [ladder] rebuilt House Cortex's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+  +  18 s  run 1 | 2026-11-13 02:44:39 [ladder] rebuilt House Swarm's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  +  18 s  run 1 | 2026-11-13 02:44:39 [ladder] rebuilt House Aegis's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+  +  18 s  run 1 | 2026-11-13 02:44:39 [ladder] rebuilt House Null's deck: Null, 40 cards (the agent hasn't built a deck yet)
+  +  18 s  run 1 | 2026-11-13 02:44:39 [ladder] round 1 since this start: 2 matches
+  +  33 s  run 2 | 2026-11-13 02:44:54 [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): process <pid> is no longer running
+  +  33 s  run 2 | 2026-11-13 02:44:54 [season] season S0 on <dir>/season-0.db
+  +  33 s  run 2 | 2026-11-13 02:44:54 [ladder] cancelled 2 match(es) left live by the last run: m-1, m-2
+  +  33 s  run 2 | 2026-11-13 02:44:54 [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
+  +  33 s  run 2 | 2026-11-13 02:44:54 [ladder] round 1 since this start: 2 matches
+  + 446 s  run 2 | 2026-11-13 02:51:47 [ladder] m-3 House Aegis vs House Swarm: House Aegis wins in 13 turns, +30/+2
+  + 530 s  run 2 | 2026-11-13 02:53:11 [ladder] m-4 House Null vs House Cortex: House Cortex wins in 20 turns, +2/+30
+  + 591 s  run 2 | 2026-11-13 02:54:12 [ladder] round 2 since this start: 2 matches
+  + 601 s  run 2 | 2026-11-13 02:54:22 [season] stopping
+  + 601 s  run 3 | 2026-11-13 02:54:22 [season] season S0 on <dir>/season-0.db
+  + 601 s  run 3 | 2026-11-13 02:54:22 [ladder] cancelled 2 match(es) left live by the last run: m-5, m-6
+  + 601 s  run 3 | 2026-11-13 02:54:22 [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
+  + 601 s  run 3 | 2026-11-13 02:54:22 [season] stopping
+  + 601 s  run 4 | 2026-11-13 02:54:22 [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): the machine has restarted since it was taken
+  + 601 s  run 4 | 2026-11-13 02:54:22 [season] season S0 on <dir>/season-0.db
+  + 601 s  run 4 | 2026-11-13 02:54:22 [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
+  + 601 s  run 4 | 2026-11-13 02:54:22 [season] stopping
+
+  season file 593920 bytes, -wal 0 bytes; match directory 4 files, 75255 bytes
+  lines printed: 28; lines that carry the time they were printed: 28
+  [PASS] every line the server printed says when (an owner reading it after a problem needs the time)
+
+========================================================================
+17 of 17 checks pass
+[timing, varies per run] 10.0 minutes

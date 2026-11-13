@@ -1,5 +1,32 @@
 # Notes for the owner
 
+**Updated 2026-11-13, session 92 (game lane; the hardening pass for the 7-day unattended run).** Nothing is
+blocking. Lane: the last merged PR, #163, was "Render:", so this is a game session; no PR was open.
+
+**What I did:**
+- **Crashed and restarted the real server mid-match, on the real clock** (`progress/unattended-run-001.txt`, 17 of 17
+  PASS): killed outright, stopped by the system, and a leftover lock from before a reboot. Each time the next start
+  took the lock over, cancelled the matches that were on screen (no credits, no rating: nobody's fault) and started
+  a new round within a second, and the ladder played on normally.
+- **Fixed a real weak spot:** if the server failed once to save a finished match (for example a full disk), those
+  two agents were stuck as "in a match" and never paired again until you restarted the server. With only house
+  agents running, the ladder stopped completely. Now it keeps the match and tries again (after 30 s, then longer, up
+  to every 10 minutes) and carries on once the save works. Also, a match whose log file can't be written still counts.
+- **The server's output now says when each thing happened:** every line starts with the date and time, e.g.
+  `2026-12-05 09:00:00 [ladder] round 1 since this start: 2 matches`. It also says when the clock jumped (the Mac
+  slept) or went back.
+- **Disk:** about 37 KB a match; the season file and its journal stay small. In line with session 88's ~150 MB for
+  the 7 days.
+
+**Call for you (the guide in session 93 will follow your answer):**
+1. **How should the server come back after a crash or a Mac restart?** Today recovery works, but only once someone
+   starts it again. Options: **(a, recommended)** a macOS launch agent (a small settings file I'd write into the guide)
+   that starts the server when you log in and restarts it if it stops, with its output going to a log file; **(b)**
+   you start it by hand in Terminal, and check it daily. With (b) a crash on day 2 means no matches until you notice.
+   Either way, set the Mac mini never to sleep (System Settings, Energy) and to log in automatically after a power cut.
+
+---
+
 **Updated 2026-11-12, session 91 (game lane; the hardening pass).** Nothing is blocking. Lane: the last merged PR,
 #161, was "Render:", so this is a game session; no PR was open. Your answers to session 90 (keep both) needed nothing
 more from this lane.
