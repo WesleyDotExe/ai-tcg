@@ -4737,3 +4737,19 @@ The widgets' S/M/L pass is done. Next session by alternation: game. Next render 
 3. **The Stats page slice:** include `GET /api/stats`'s `today` (today's earnings), and add it to the site's types so the contract check covers it. **(Render part handled, render session 68: `today: SiteDaily` on `SiteStats`; the page's Today panel draws it; the contract check now reads `GET /api/stats` as `fits` (`progress/render/evidence/site-contract-s68.txt`). Items 1 and 2 are queued as placed: the bell, then Top rated and viewer counts; the server's allowance label in the hardening pass, 69.)**
 
 Next session: once PR #160 has merged, render (the Stats page, per its plan).
+
+---
+
+## 2026-11-13 — Owner: answers to render session 68 (the Stats page, the ladder inside it) and game session 91 (the hardening pass), keep all 6
+
+**Render session 68** (PR #161, `progress/render/checkpoints.md`, `progress/render/evidence/stats-check-s68.txt`). **Keep all 5 calls:**
+1. **Keep:** the ladder lives inside the Stats page (a section at the foot, not its own sidebar page); the Ladder widget's arrow opens Stats. This settles roadmap render item 5.
+2. **Keep:** recent results show the newest 8 rows (all 20 as pips), with "Show all 20".
+3. **Keep:** Replay only where the history says the match has one; older matches say "No replay".
+4. **Keep:** the day columns under the chart count rated matches only; cancels show in the totals' void count.
+5. **Keep:** on a phone the ladder table drops the record, rated matches, last day and the tier's name, so it fits without scrolling sideways.
+
+**Game session 91** (PR #162, `progress/notes-for-owner.md`, `progress/site-contract-001.txt`). **Keep the call:**
+1. **Keep:** the site contract check writes two ledger rows directly in its own throwaway file to give the test owner credits and pack points for a cosmetic and a secret card; no rule changes.
+
+Next session by alternation: render (session 69, the render hardening pass, with Agent controls taking the server's "Time's up" words).
