@@ -4768,3 +4768,13 @@ The Season 0 feature list is nearly done (render: the hardening pass, the bell, 
 6. **Then both lanes:** fix what the dry run broke; more hardening only where the dry run found weak spots. No new features (the scope lock stands).
 
 The dry run's results should reach the owner before the midpoint check (~22 November). **The owner does the real start on the Mac mini** (including one machine restart to check recovery, and the feel check) from the guide, well before Season 0 starts on 5 December.
+
+---
+
+## 2026-11-13 — Owner: answers to render session 69 (the render hardening pass), keep both calls
+
+Owner decisions on the 2 small calls in `progress/render/checkpoints.md` (PR #163, `progress/render/evidence/site-check-s69.txt`).
+1. **Keep:** the done caption reads "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney)."; the line under the dial that repeated it is left out when the ring already says it.
+2. **Keep:** the dial saves once, 0.7 s after the last arrow key (or at once on Enter, Space or Tab; a click still saves at once).
+
+Next session by alternation: game 92 (the hardening pass for the 7-day unattended run), then render 70 (the notifications bell).
