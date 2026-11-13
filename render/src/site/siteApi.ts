@@ -97,13 +97,16 @@ export interface SiteAutoPlay {
 
 /** `autoPlay.allowance` (OWNER_API.md "The play-time allowance"). */
 export interface SiteAllowance {
-  state: "running" | "finishing" | "done";
+  /** (game session 94, schema v29) "waiting": chosen, the clock not yet
+   * started; it starts at the agent's first pairing. */
+  state: "waiting" | "running" | "finishing" | "done";
   /** The state as the owner reads it (owner 2026-11-06, game session 78):
    * "Running", "Finishing match" or "Time's up". Absent on a server older
    * than session 78. */
   label?: string;
-  startedAt: string;
-  endsAt: string;
+  /** Null while "waiting" (game session 94). */
+  startedAt: string | null;
+  endsAt: string | null;
   totalMinutes: number;
   secondsLeft: number;
   minutesLeft: number;

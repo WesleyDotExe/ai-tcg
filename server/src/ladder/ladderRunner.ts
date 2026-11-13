@@ -97,7 +97,10 @@ export type LadderEvent =
   | { kind: "excluded"; ownerId: string; reason: string }
   | { kind: "paired"; pairing: Pairing }
   | { kind: "match"; result: LadderMatch }
-  | { kind: "seasonEnded"; season: string; endedAt: string; standings: number; retiredCopies: number };
+  | { kind: "seasonEnded"; season: string; endedAt: string; standings: number; retiredCopies: number }
+  /** (session 94) The season's end time has passed: no round starts from
+   * now; `live` matches being shown finish first. */
+  | { kind: "seasonEndTime"; season: string; endsAt: string; live: number };
 
 export interface LadderMatch {
   record: MatchRecord;

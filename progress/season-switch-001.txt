@@ -4,7 +4,7 @@ The switch stays by hand (owner 2026-11-10): stop the server, make the next seas
 `npm run season:next`, start the server again on it. This checks the two easy mistakes and that the
 archive is never written.
 
-Made: <dir>/season-0.db, Season 0 with one owner, ended (schema v28).
+Made: <dir>/season-0.db, Season 0 with one owner, ended (schema v29).
 
 1. Starting the server on the wrong file (npm run season)
 ------------------------------------------------------------------------
@@ -35,20 +35,20 @@ Made: <dir>/season-0.db, Season 0 with one owner, ended (schema v28).
     [season] 0 soft-reset ratings; 0 starter grants
     [season] left in the archive: 0 card copies, 0 unopened packs, 0 decks, 0 credits, 0 pack points, 0 matches, 0 notifications
   [PASS] made (exit 0)
-  season-0.db sha256 before a4998443c9e6033b, after a4998443c9e6033b [timing, varies per run] (the file holds random ids and times)
+  season-0.db sha256 before f2f218a5267e17db, after f2f218a5267e17db [timing, varies per run] (the file holds random ids and times)
   [PASS] the archive is byte for byte the file it was
 
-  An archive at an older schema: <dir>/season-0-older.db, schema v27 (this code: v28).
+  An archive at an older schema: <dir>/season-0-older.db, schema v28 (this code: v29).
   $ npm run season:next -- <dir>/season-0-older.db <dir>/season-1-older.db S1
     exit 0: [season] S1 made from S0 (ended <time>) at <time>: <dir>/season-1-older.db
   [PASS] made (exit 0), at this code's schema
-  season-0-older.db: schema v27, sha256 before b813f80f092fae6c, after b813f80f092fae6c [timing, varies per run] (the file holds random ids and times)
-  [PASS] the older archive stays v27, byte for byte (it used to be migrated in place)
+  season-0-older.db: schema v28, sha256 before b85991501afb1a70, after b85991501afb1a70 [timing, varies per run] (the file holds random ids and times)
+  [PASS] the older archive stays v28, byte for byte (it used to be migrated in place)
   [PASS] no temporary copy is left behind
 
 4. The server on the new file
 ------------------------------------------------------------------------
-  [season] season S1 (made from S0's archive) on <dir>/season-1.db
+  [season] season S1 (made from S0's archive) on <dir>/season-1.db; no end time set: it ends only by the admin's end call
   [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-1.db (matches in <dir>/season-1.db.matches)
   GET /api/season (Ada, signed in with her Season 0 password): season S1, open, made from S0
   [PASS] it starts on Season 1 and says it was made from Season 0
@@ -59,7 +59,7 @@ Made: <dir>/season-0.db, Season 0 with one owner, ended (schema v28).
   [season] owner API on http://localhost:<port>, the archive (no ladder rounds) over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
   GET /api/season: season S0, ended
   [PASS] --archive serves the ended file and says no match will be paired
-  [season] season S0 on <dir>/season-0-fresh.db
+  [season] season S0 on <dir>/season-0-fresh.db; no end time set: it ends only by the admin's end call
   [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0-fresh.db (matches in <dir>/season-0-fresh.db.matches)
   [PASS] --new creates and starts a new Season 0 file
   $ npm run season -- <dir>/season-0-fresh.db --new

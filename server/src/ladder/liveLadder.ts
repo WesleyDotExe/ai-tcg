@@ -283,6 +283,15 @@ export class LiveLadder implements LiveSource {
         if (this.shown.size === 0) this.nextRoundAt = now + (this.opts.roundGapMs ?? 60_000);
       }
     }
+    // (session 94; owner 2026-11-13) The server ends the season at its end
+    // time: from then no round starts, the matches being shown finish and
+    // are recorded, then the season ends (as the admin's end call does). A
+    // server started after the end time ends it on its first tick.
+    if (!this.ending && this.store.seasonEndDue(new Date(now).toISOString())) {
+      this.ending = true;
+      const schedule = this.store.seasonSchedule()!;
+      this.opts.onEvent?.({ kind: "seasonEndTime", season: this.store.season, endsAt: schedule.endsAt, live: this.shown.size });
+    }
     if (this.ending && this.shown.size === 0) {
       this.finishSeason();
       return;

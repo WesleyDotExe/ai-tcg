@@ -5373,3 +5373,35 @@ done state keeps its allowance; the bell writes the daily-pack note only while a
 **Thin:** in quality-debt.md (launchd itself untested; 15 minutes bought one match; no buy on day one; no season-end
 button; the dashboard not in this run).
 **Blocked:** nothing.
+
+
+**2026-11-13 — Session 94 (game lane; the owner's answers to session 93: the dry run's fixes; schema v29).**
+Lane: the last merged PR, #168, was "Render:", so this is a game session; no game PR was open. Acted on four owner
+entries: the allowance's clock (answer 1, (a)), the season's end decided by the server (answer 2, the 3-week length
+and the end time, 00:00 27 Dec 2026 Sydney), and `clearNotifications` in the site contract check (render 70's item).
+**Built:** schema v29. (1) `auto_play.allowance_waiting_minutes`: `setAutoPlay(on, minutes)` on a v29 file holds the
+minutes with no window ("waiting", label "Waiting for the next round"); `startMatch` opens the window at the pairing
+for those minutes, cut at the next midnight Sydney as before; +15/+30 while waiting add to the minutes; off and
+the day's cap drop it. A v28 file keeps the old rule (the old tests and `play-time-001` run on v28 for that path).
+(2) `season_schedule` (one row; fixed by triggers once the season has ended), `setSeasonEndTime`,
+`seasonEndDue`, `SEASON_END_TIMES.S0`; `startMatch` refuses from the end time; `season:setup` writes the time
+(`--ends <time>` / `--ends none`); the live ladder, on the first tick at or after it, starts no round, says so
+(`seasonEndTime` event, printed by `npm run season`), lets the matches on screen finish and ends the season;
+`GET /api/season` sends `endsAt`; the server's start line says when it ends (and in Sydney time). (3) The contract
+check clears one notification by id and then all, reaches both new allowance shapes ("waiting", "running"), and has a
+sixth control. To keep the site's types matching (the check runs in CI) the game lane changed render files for the
+first time: `SiteAllowance`'s state and nullable window, the ring's "waiting" branch, the toast, and the two render
+tests that read the allowance (`siteAgent`, `siteTime`).
+**Ran it:** `progress/play-time-002.txt` (the dry run's moment replayed: pressed 10:00:30 with a round on screen,
+first paired 10:05:25, window 10:05:25-10:20:25, three matches, the last finishing past it; 9 PASS; seeds 94-97
+all keep the rule, 97 shown because its time runs out mid-match), `progress/season-end-002.txt` (a file made by
+`setUpSeason` on 4 Dec; the last half hour of Season 0: two matches on screen at midnight finish at 00:00:35 and
+00:02:35 and count, the season ends at 00:02:35; a server down over midnight ends it on its first tick at 00:20
+after cancelling the match it left; the refusals; 12 PASS), the contract check (0 mismatches, 6 of 6 controls, every
+shape reached). Tests 1,940 pass (economy 302, server 221, render 1,029, ...); typecheck clean; 34 demos same
+(14 rewritten for the schema number and the start line, each diff read; both new demos added to the CI set).
+**Worked:** starting the clock inside `startMatch`, the one place a pairing becomes real, so the live ladder, the
+batch ladder and the hand-started matches all get it with no ladder change.
+**Thin:** in quality-debt.md (the render change not browser-checked; the season's `endedAt` is the last match's
+recording, not 00:00; the dry run not re-run on v29; no way to change an existing file's end time but code).
+**Blocked:** nothing.

@@ -116,6 +116,11 @@ describe("My agent and Agent controls: the views (pure)", () => {
     // page's count took to zero says "Finishing match", not "Running".
     expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, secondsLeft: 0, state: "running", label: "Running" }, on, true).centre).toBe("Finishing match");
     expect(timeRingView({ minutesTotal: 30, minutesLeft: 12, state: "running", label: "Running" }, on, false).centre).toBe("12");
+    // (game session 94) Waiting for the first pairing: full, the server's words, not counting down.
+    const waiting = { state: "waiting" as const, label: "Waiting for the next round", startedAt: null, endsAt: null, totalMinutes: 15, secondsLeft: 900, minutesLeft: 15, endsAtReset: false };
+    const w = allowanceOf({ ...AUTO, on: true, allowance: waiting, canAddTime: true }, Date.parse("2026-12-05T00:00:00.000Z"));
+    expect(w).toMatchObject({ state: "waiting", minutesTotal: 15, minutesLeft: 15, secondsLeft: 900 });
+    expect(timeRingView(w, on, false)).toEqual({ pct: 100, centre: "Waiting for the next round", unit: null, caption: "15 min, counted from your agent's first match", tone: "run" });
     // Minutes never run past the ring.
     expect(timeRingView({ minutesTotal: 15, minutesLeft: 99, state: "running" }, on, false).pct).toBe(100);
     // No allowance: on with no limit, off, stopped at the day's cap, a house agent.

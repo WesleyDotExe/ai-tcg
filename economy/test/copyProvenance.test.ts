@@ -181,7 +181,7 @@ describe("copy provenance (v28)", () => {
     const raw = v27.grantCopy({ ownerId: ada, cardId: COMMON, origin: "pack" });
     v27.close();
     const v28 = open(path);
-    expect(v28.schemaVersion).toBe(28);
+    expect(v28.schemaVersion).toBe(29);
     expect(v28.collection(ada).map((c) => c.copyId)).toEqual([...before.map((c) => c.copyId), raw.copyId]);
     expect(v28.copyTransfers(raw.copyId)).toEqual([]);
     // A pack copy granted without a pack (tests, pre-v8 data) reads as "other", not an error.

@@ -179,6 +179,9 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       season: store.season,
       state,
       endedAt: end?.endedAt ?? null,
+      // (v29, session 94) When the server ends the season, set before it
+      // started; null: no end time (only the admin's end call ends it).
+      endsAt: store.seasonSchedule()?.endsAt ?? null,
       liveMatches: store.liveMatches().length,
       // While the season is open: the tier coins the caller's tier would
       // earn if it ended now. Once it has ended: the caller's final line.

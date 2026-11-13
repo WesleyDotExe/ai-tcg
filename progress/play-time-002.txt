@@ -1,0 +1,53 @@
+Play-time demo 002 — the allowance's clock starts at the first pairing (session 94, schema v29)
+========================================================================
+Owner 2026-11-13 (answer 1 to game session 93's dry run): the clock starts when the agent is first
+paired, not when the owner presses the button; until then the ring reads "Waiting for the next round".
+Times below are Sydney wall-clock.
+
+1. A round is on screen; Ada presses "15 min" 30 s into it
+------------------------------------------------------------------------
+  10:00:00  * round 1: Lux v Hub; Kiln sits out
+  10:00:30  Ada PUT /api/play/auto-play { on, minutes: 15 }: 200, "Waiting for the next round" (waiting), 15 of 15 min, no window yet
+  10:04:55  * m1 recorded (win): Lux v Hub
+  10:05:25  * round 2: Ada v Kiln, Lux v Hub
+  10:05:25  Ada's widget: "Running" (running), 15 of 15 min, window 10:05:25-10:20:25 [in m2]
+  10:10:35  Ada's widget: "Running" (running), 10 of 15 min, window 10:05:25-10:20:25 [in m2]
+  10:12:05  * m2 recorded (win): Ada v Kiln
+  10:12:05  * m3 recorded (win): Lux v Hub
+  10:12:35  * round 3: Ada v Hub, Kiln v Lux
+  10:15:35  Ada's widget: "Running" (running), 5 of 15 min, window 10:05:25-10:20:25 [in m4]
+  10:17:00  * m4 recorded (win): Ada v Hub
+  10:18:25  * m5 recorded (win): Kiln v Lux
+  10:18:55  * round 4: Hub v Lux, Kiln v Ada
+  10:20:35  Ada's widget: "Finishing match" (finishing), 0 of 15 min, window 10:05:25-10:20:25 [in m7]
+  10:24:45  * m6 recorded (win): Hub v Lux
+  10:26:05  * auto-play off for Ada: timeUp
+  10:26:05  * m7 recorded (win): Kiln v Ada
+  10:26:05  Ada's widget: "Time's up" (done), 0 of 15 min, window 10:05:25-10:20:25
+  10:26:35  * round 5: Lux v Hub; Kiln sits out
+
+2. Checks
+------------------------------------------------------------------------
+  Ada pressed at 10:00:30; first paired at 10:05:25; window 10:05:25-10:20:25.
+  Ada's matches: m2 10:05:25-10:12:05 (win), m4 10:12:35-10:17:00 (win), m7 10:18:55-10:26:05 (win).
+  [PASS] the widget went waiting -> running -> finishing -> done
+  [PASS] "Waiting for the next round" while the round on screen played on without her
+  [PASS] the window opened at her first pairing, for the 15 minutes chosen
+  [PASS] the wait for the round on screen cost none of the 15 minutes
+  [PASS] every match started inside the window; the last finished past it and counted
+  [PASS] then off with "timeUp", not paired again
+  Under the v28 rule (the window from the button, 10:00:30-10:15:30) she would have started 2 of these 3 match(es);
+  her paired time inside the window is 15 minutes of the 15, against 10 under v28.
+  [PASS] she got more of her 15 minutes than the v28 rule would have given
+
+3. Midnight Sydney (the store's rules, matches started by hand)
+------------------------------------------------------------------------
+  23:40:00  Ada { minutes: 60 }                  "Waiting for the next round" (waiting), 60 of 60 min, no window yet
+  23:50:00  paired at 23:50                      "Running" (running), 10 of 10 min, window 23:50:00-00:00:00
+  [PASS] paired at 23:50, 60 minutes run to midnight only (10 min) and nothing more can go on
+  23:55:00  set again at 23:54 { minutes: 60 }   "Waiting for the next round" (waiting), 60 of 60 min, no window yet
+  00:05:00  00:05 Tue, not paired yet            "Waiting for the next round" (waiting), 60 of 60 min, no window yet
+  00:05:00  paired at 00:05                      "Running" (running), 60 of 60 min, window 00:05:00-01:05:00
+  [PASS] a wait across midnight keeps the minutes chosen; paired at 00:05 they are Tuesday's full 60
+
+Schema v29. 9 PASS, 0 FAIL

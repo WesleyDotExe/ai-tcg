@@ -53,6 +53,10 @@ folder and the file with:
   connected; auto-play is off until you switch it on. Add `--agent "<name>"` to name it yourself.
 - **the house:** House Cortex, House Swarm, House Aegis and House Null, one connected agent each. They always
   play, so the ladder runs from the first minute.
+- **the season's end time:** Season 0 ends at midnight Sydney at the end of Saturday 26 December 2026 (00:00
+  Sunday 27 Dec). It prints `[setup] the season ends at 2026-12-26T13:00:00.000Z (Sun 27 Dec 2026 00:00
+  Sydney)`, and the server says it again each time it starts. The server ends the season by itself then
+  (step 8). To use another time, add `--ends <time>` (e.g. `--ends 2026-12-26T13:00:00Z`, in UTC).
 
 It refuses a file that already exists. Always give the file as a full path (`~/ai-tcg-data/...`): with
 `-w server` a bare name would land inside `~/ai-tcg/server/`.
@@ -116,6 +120,7 @@ tail -n 50 ~/ai-tcg-data/season.log
 | `[ladder] m-... House Cortex vs House Null: House Null wins in 14 turns, +2/+10` | a match recorded, with each side's credits |
 | `[ladder] rebuilt <owner>'s deck: ...` | an agent rebuilt its deck between matches |
 | `[ladder] <owner>'s auto-play is off: its play time is up` | the allowance ran out |
+| `[season] season S0's end time ... has passed: no new round; ...` | midnight 26/27 Dec: the season is ending (step 8) |
 | `[ladder] cancelled 2 match(es) left live by the last run: ...` | after a crash or restart: those matches pay nothing, nobody's fault |
 | `[lock] took over a stale lock ...` | after a crash or restart: normal |
 | `[ladder] the clock moved ahead 180 minutes ...` | the Mac slept or its clock changed |
@@ -153,7 +158,15 @@ After the restart and the automatic login, both agents start by themselves; the 
 
 ## 8. The season's end and the switch to Season 1
 
-1. **End the season** (the website has no button for it yet; two commands, with your password):
+1. **The season ends by itself** at 00:00 Sunday 27 Dec (Sydney): from then no new round starts, the matches
+   on screen play to the end and are paid (up to about 7 minutes), then the season ends. Nothing to press. In
+   the log:
+   ```
+   [season] season S0's end time 2026-12-26T13:00:00.000Z has passed: no new round; ending it once the 2 matches on screen are recorded
+   [season] season S0 ended at 2026-12-26T13:04:10.000Z: ...
+   ```
+   If the Mac was off or the server stopped over midnight, it ends the season as soon as it starts again.
+   (Only for a file made without an end time: end it by hand with two commands and your password:)
    ```
    TOKEN=$(curl -s -X POST http://127.0.0.1:8080/api/session -H 'content-type: application/json' -d '{"login":"<username>","password":"<password>"}' | sed -E 's/.*"token":"([^"]+)".*/\1/')
    curl -s -X POST http://127.0.0.1:8080/api/admin/season/end -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' -d '{"season":"S0"}'

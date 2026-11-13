@@ -16,7 +16,10 @@ const START = "2026-11-01T23:00:00.000Z";
 let clock = new Date(START);
 const at = (iso: string) => (clock = new Date(iso));
 const later = (minutes: number) => (clock = new Date(clock.getTime() + minutes * 60_000));
-const open = (path = ":memory:", migrateTo?: number) => EconomyStore.open(path, { now: () => clock, migrateTo });
+// (session 94) These are the v22-v28 rules, where the clock starts at the
+// button: a v28 file. From v29 the clock starts at the agent's first pairing
+// and then the same window rules apply (playTimeClock.test.ts).
+const open = (path = ":memory:", migrateTo: number = 28) => EconomyStore.open(path, { now: () => clock, migrateTo });
 const tmpDirs: string[] = [];
 afterEach(() => {
   clock = new Date(START);
@@ -41,7 +44,7 @@ const startLive = (s: EconomyStore, p1: { ownerId: string }, p2: { ownerId: stri
 const finish = (s: EconomyStore, matchId: string, p1: { agentId: string }, p2: { agentId: string }) =>
   s.recordMatch({ matchId, seed: n, p1AgentId: p1.agentId, p2AgentId: p2.agentId, outcome: { kind: "win", winnerAgentId: p2.agentId } });
 
-describe("the play-time allowance (schema v22)", () => {
+describe("the play-time allowance (schema v22 to v28: the clock starts at the button)", () => {
   it("starts with 15, 30 or 60 minutes and counts down on the clock; queued while time is left", () => {
     const s = open();
     const a = owner(s, "ada");

@@ -1,5 +1,5 @@
 # Generate a new agent (sessions 34-35)
-database: <temp>/season-0.db  schema v28  season S0
+database: <temp>/season-0.db  schema v29  season S0
 approved signature lines: 14, over 7 menu options (only these are ever shown)
 
 ## 1. Ada generates a first agent
@@ -91,4 +91,4 @@ Created: agent Laserferret's Turbo Champion ("A superstitious strategist that hu
   Kernelwarden's Redacted Second: Mixer of the Underpass (PR-001, sig5-3x6-rally.a0)
   Laserferret's Turbo Champion: Switchboard of the Deep Web (PR-002, sig5-3x6-restore.r1)  [connected]
   Ada's recorded matches: 2
-  schema v28; signature cards in the season: 42
+  schema v29; signature cards in the season: 42

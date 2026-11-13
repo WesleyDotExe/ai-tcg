@@ -151,7 +151,8 @@ try {
   await call("PATCH", "/api/account/settings", { token: tBram, body: { notifications: { matchResults: false } } });
   const on = await call("PUT", "/api/play/auto-play", { token: tAda, body: { on: true, minutes: 30 } });
   await call("PUT", "/api/play/auto-play", { token: tBram, body: { on: true } });
-  say(`  Ada: auto-play on, 30 minutes (ends ${clockText(on.body.autoPlay.allowance.endsAt)}). Bram: on, no time limit, match results switched off.`);
+  // (session 94, v29) The 30 minutes start at Ada's first pairing.
+  say(`  Ada: auto-play on, 30 minutes (${on.body.autoPlay.allowance.state}: they start at her first pairing). Bram: on, no time limit, match results switched off.`);
   let lastUnread = b.unread;
   for (let s = 0; s <= 50 * 60; s += 5) {
     await live.tick();

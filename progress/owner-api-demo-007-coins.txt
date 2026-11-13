@@ -5,7 +5,7 @@ Owner API demo 007 — coin skins, the game lane's half (session 69)
 ------------------------------------------------------------------------
   v19: Nova owns boast-aegis-shield-slam, boast-cortex-data-cascade, boast-null-void-collapse, boast-swarm-hive-burst
   v19: one match recorded ("before-v20")
-  reopened: schema v28
+  reopened: schema v29
 > POST /api/session  -> 201
 > GET /api/cosmetics  -> 200
   Nova now owns 5 cosmetics; the coin: coin-chrome-token (coin, source starter, acquired 2026-11-02T02:00:00.000Z)

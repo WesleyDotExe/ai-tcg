@@ -148,7 +148,7 @@ describe("the next season's file (v27)", () => {
 
     const s1 = open(join(dir, "season-1.db"));
     expect(s1.season).toBe("S1");
-    expect(s1.schemaVersion).toBe(28);
+    expect(s1.schemaVersion).toBe(29);
     expect(s1.seasonEnded()).toBe(false);
     expect(s1.currentSetCode).toBe("S0"); // no S1 set yet: the newest set
     expect(s1.seasonStart()).toEqual({ season: "S1", fromSeason: "S0", fromEndedAt: end.endedAt, startedAt: "2027-01-17T00:00:00.000Z" });

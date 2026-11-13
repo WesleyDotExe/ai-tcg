@@ -9,7 +9,7 @@ Made: <dir>/season-0.db, an open Season 0 with the house admin (Hub) and one own
 1. The server on Season 0 holds the lock
 ------------------------------------------------------------------------
   $ npm run season -- <dir>/season-0.db 0
-    [season] season S0 on <dir>/season-0.db
+    [season] season S0 on <dir>/season-0.db; no end time set: it ends only by the admin's end call
     [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
   <dir>/season-0.db.lock: {"pid":"<pid>","host":"<host>","command":"npm run season","startedAt":"<time>"}
   [PASS] the lock names the running server's process
@@ -50,13 +50,13 @@ Made: <dir>/season-0.db, an open Season 0 with the house admin (Hub) and one own
 5. A server killed outright leaves its lock; the next start takes it over
 ------------------------------------------------------------------------
   $ npm run season -- <dir>/season-1.db 0
-    [season] season S1 (made from S0's archive) on <dir>/season-1.db
+    [season] season S1 (made from S0's archive) on <dir>/season-1.db; no end time set: it ends only by the admin's end call
     [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-1.db (matches in <dir>/season-1.db.matches)
   kill -9 <pid> (the server, no clean-up)
   [PASS] its lock is left behind
   $ npm run season -- <dir>/season-1.db 0
     [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): process <pid> is no longer running
-    [season] season S1 (made from S0's archive) on <dir>/season-1.db
+    [season] season S1 (made from S0's archive) on <dir>/season-1.db; no end time set: it ends only by the admin's end call
     [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-1.db (matches in <dir>/season-1.db.matches)
   [PASS] the next start takes the stale lock over and says whose it was
   [PASS] the lock is now the new server's

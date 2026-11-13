@@ -141,7 +141,7 @@ export interface TimeAllowance {
   endsAtReset?: boolean;
   /** running: time left, playing or queued; finishing: time is up, the
    * current match plays out; done: stopped for today. */
-  state: "running" | "finishing" | "done";
+  state: "waiting" | "running" | "finishing" | "done";
   /** The server's words for the state ("Finishing match", "Time's up");
    * the ring shows them in place of its own when they are there. */
   label?: string;
@@ -158,9 +158,9 @@ export function allowanceOf(a: SiteAutoPlay, now: number): TimeAllowance | null 
   if (!al) return null;
   let secs = al.secondsLeft;
   if (al.state === "running") {
-    const end = Date.parse(al.endsAt);
+    const end = Date.parse(al.endsAt ?? "");
     if (Number.isFinite(end)) secs = Math.max(0, Math.min(secs, Math.ceil((end - now) / 1000)));
-  } else secs = 0;
+  } else if (al.state !== "waiting") secs = 0; // (game session 94) waiting: the full time, not counting down
   return { minutesTotal: al.totalMinutes, minutesLeft: Math.ceil(secs / 60), secondsLeft: secs, endsAtReset: al.endsAtReset, state: al.state, ...(al.label ? { label: al.label } : {}) };
 }
 
@@ -185,6 +185,10 @@ export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, 
     // start again the same day); the ring's own when an older server sends
     // none, or when the page's count reached zero first.
     const said = (s: TimeAllowance["state"], own: string) => (allowance.state === s && allowance.label) || own;
+    // (game session 94; owner 2026-11-13) The clock starts at the agent's
+    // first pairing: until then the ring is full and reads the server's words.
+    if (allowance.state === "waiting")
+      return { pct: 100, centre: said("waiting", "Waiting for the next round"), unit: null, caption: `${left} min, counted from your agent's first match`, tone: "run" };
     if (allowance.state === "done") return { pct: 0, centre: said("done", "Time's up"), unit: null, caption: "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney).", tone: "done" };
     if (allowance.state === "finishing" || left === 0)
       return { pct: 0, centre: said("finishing", "Finishing match"), unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };

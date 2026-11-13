@@ -2342,6 +2342,7 @@ async function setAutoPlay(on: boolean, time?: { minutes: number; add: boolean }
     state.play = { ...state.play, autoPlay: r.autoPlay };
     const al = r.autoPlay.allowance;
     toast(time?.add ? `+${time.minutes} min: ${al ? `${al.minutesLeft} min left today` : "added"}.`
+      : time && al?.state === "waiting" ? `Your agent plays for ${al.minutesLeft} min from its first match (in the next round), then finishes its match and stops.`
       : time ? `Your agent plays for ${al ? al.minutesLeft : time.minutes} min${al?.endsAtReset ? " (to midnight, Sydney)" : ""}, then finishes its match and stops.`
       : r.autoPlay.on ? "Auto-play is on: your agent joins the next ladder round." : "Auto-play is off. A match already live finishes.");
   } catch (err) {

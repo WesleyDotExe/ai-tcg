@@ -262,6 +262,29 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end; schema v29): what was raised, and what is still thin
+
+Raised: the allowance's clock starts at the agent's first pairing (session 93's "15 minutes bought one match"; now
+`progress/play-time-002.txt` gets three); the season ends by itself at its end time (session 93's "no season-end
+button" is gone for Season 0: nothing to press); `clearNotifications` is checked against the site's type.
+Still thin:
+- **The game lane changed render files** (`render/src/site/siteApi.ts`, `siteAgent.ts`, `siteClient.ts`'s toast,
+  two render tests) so the contract check stays at 0 mismatches. Only unit-tested and drawn as HTML in a test; not
+  looked at in a browser, at S, M or L. "Waiting for the next round" in the ring's centre is long for the S size.
+  The render lane should own the look.
+- **The season's `endedAt` is when the last match on screen is recorded** (up to ~7 minutes after 00:00), not 00:00;
+  the standings are frozen then, with those matches in them. A call for the owner.
+- **A waiting allowance carries across midnight**, and +15/+30 while waiting have no cap until the pairing cuts the
+  window at midnight. Both deliberate, both untested in real play.
+- **No way to set or change an existing file's end time except code** (`setSeasonEndTime`): no endpoint, no command.
+  A file made before this session (v28, by the dry run) migrates with no end time and would only end by the admin's
+  call. The owner's real file will be made with `season:setup` after this merges, so it gets the time.
+- **Season 1's file gets no end time:** `season:next` doesn't set one (S1's end isn't decided).
+- **The dry run's record predates v29** and was not re-run (45 minutes); the scheduled end is shown only on a fake
+  clock (the store's and ladder's clocks), never across a real midnight.
+- The batch ladder (`ladderRunner`'s CLI) knows the end time only through `startMatch`'s refusal (each pair is
+  "excluded" with the reason); it never ends the season itself. It isn't the Season 0 server.
+
 ## Session 93 (the Season 0 dry run and the owner's Mac mini guide; no schema change): what was raised, and what is still thin
 
 The dry run (`progress/season0-dry-run-001.txt`, `server/src/dev/seasonDryRun.ts`) follows the guide

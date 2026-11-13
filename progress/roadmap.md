@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-13, game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-13, game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -191,8 +191,11 @@ new ideas go to `progress/season-1-ideas.md`.
      at 23:30 Sydney, crossing midnight), `progress/mac-mini-guide.md`, the launch agents in `server/launchd/`.
      Found and fixed: a new season file had nobody in it (`npm run season:setup` now); the plist wouldn't load.
      Three calls in notes-for-owner.md (15 minutes bought one match; no season-end button; no buy on day one).
-   - [ ] The next game hardening pass: `clearNotifications` in the site contract check (owner 2026-11-13), and
-     whatever the owner's calls on the dry run need.
+   - [x] Game 94 (owner 2026-11-13, plan item 6: fix what the dry run broke; session 94, schema v29): the
+     allowance's clock starts at the agent's first pairing ("Waiting for the next round" until then;
+     `progress/play-time-002.txt`); the server ends the season at its end time, set by `season:setup` (Season 0:
+     00:00 27 Dec Sydney; `progress/season-end-002.txt`; the guide's step 8 has nothing to press);
+     `clearNotifications` in the site contract check (shape reached, a control caught).
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
