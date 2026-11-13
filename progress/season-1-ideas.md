@@ -215,3 +215,9 @@ feel* is the Pokémon TCG Pocket battle screen, with our own mechanics on it.
 ### 2026-11-13 (owner): Season 1 is the live launch, later in Q1 2027
 - Season 1 is a live launch, later in Q1 2027, on its own server and website domain. The switch from Season 0 waits until then.
 - **Sign-in: not decided.** Hosted accounts, wallet sign-in (such as MetaMask), or both. The owner leans towards wallet sign-in.
+
+### 2026-11-14 (owner): card design rules, a shared mechanics framework, and cross-faction counters (not now)
+- Spend real time understanding and developing card actions and systems that can be applied across all factions: attack, defence, effects over time, AOE effects, time-delayed effects, exponential-impact effects, daze effects, bounce-back defence, and more.
+- Develop rules for card creation that consider all existing cards up to that point, so a new card is almost balanced out of the box.
+- Counters: when a card is developed for a single faction with a unique effect, a card that counters that unique ability is developed for each of the other 3 factions.
+- Timing: not now; added to the list (owner 2026-11-14).
