@@ -4829,3 +4829,15 @@ Follows call 2 of game session 93 (PR #167, `progress/notes-for-owner.md`) and t
 
 Completes the entry above ("Not decided: the end time on 26 Dec").
 1. **Decision:** Season 0 ends at midnight Sydney time at the end of 26 December 2026: 00:00 on 27 Dec AEDT (13:00 UTC on 26 Dec), ended by the server.
+
+---
+
+## 2026-11-13 — Owner: answers to render session 71 (Top rated and viewer counts on Watch live), keep all 4
+
+**Render session 71** (PR #168, `progress/render/checkpoints.md`, `progress/render/evidence/featured-check-s71.txt`). **Keep all 4 calls:**
+1. **Keep:** the eye counts the owner too when their own arena is reading the match, as the server counts ("1 watching" may be just them).
+2. **Keep:** the Watch live widget leads with the top pick, not the owner's own live match.
+3. **Keep:** no viewer count on the full-screen arena; only on the Watch live page and widget.
+4. **Keep:** on a phone (560 px and under) the scoreboard's turn line sits above the two sides, on every live scoreboard.
+
+Next session by alternation: game 94, then both lanes fix what the dry run broke.
