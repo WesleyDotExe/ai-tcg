@@ -15,6 +15,8 @@ import { siteApi, type SiteAutoPlay, type SiteHistoryRow, type SitePlay } from "
 import {
   agentControlsHtml,
   allowanceOf,
+  DIAL_SAVE_MS,
+  dialChoose,
   deckOptions,
   dialHtml,
   dialView,
@@ -104,9 +106,16 @@ describe("My agent and Agent controls: the views (pure)", () => {
     const on = autoPlayView(AUTO, true);
     expect(timeRingView({ minutesTotal: 60, minutesLeft: 42, state: "running" }, on, true)).toEqual({ pct: 70, centre: "42", unit: "min", caption: "42 min left today", tone: "run" });
     expect(timeRingView({ minutesTotal: 60, minutesLeft: 9, state: "running" }, on, false).tone).toBe("low");
-    // At zero: "Finishing match", then "Done for today".
+    // At zero: "Finishing match", then "Time's up" (owner 2026-11-06).
     expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "finishing" }, on, true)).toMatchObject({ pct: 0, centre: "Finishing match", caption: "Time's up: your agent is finishing its last match." });
-    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "done" }, on, false)).toMatchObject({ pct: 0, centre: "Done for today", tone: "done" });
+    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "done" }, on, false)).toMatchObject({ pct: 0, centre: "Time's up", tone: "done" });
+    // The server's words win over the ring's own (render 69, `allowance.label`)...
+    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "done", label: "Out of time" }, on, false).centre).toBe("Out of time");
+    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "finishing", label: "Last match" }, on, true).centre).toBe("Last match");
+    // ...but only for the state they were sent with: a running allowance the
+    // page's count took to zero says "Finishing match", not "Running".
+    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, secondsLeft: 0, state: "running", label: "Running" }, on, true).centre).toBe("Finishing match");
+    expect(timeRingView({ minutesTotal: 30, minutesLeft: 12, state: "running", label: "Running" }, on, false).centre).toBe("12");
     // Minutes never run past the ring.
     expect(timeRingView({ minutesTotal: 15, minutesLeft: 99, state: "running" }, on, false).pct).toBe(100);
     // No allowance: on with no limit, off, stopped at the day's cap, a house agent.
@@ -141,6 +150,17 @@ describe("My agent and Agent controls: the views (pure)", () => {
     expect(h.match(/tabindex="-1"/g)).toHaveLength(5);
     expect(h).toContain("rotate(180deg)");
     expect(dialHtml(v, { busy: true }).match(/ disabled/g)).toHaveLength(6);
+    // An arrow's choice shown before it is saved (render 69): pointer, notch
+    // and name move; the note and the saved view stay; an unknown style is a no-op.
+    const c = dialChoose(v, "rusher");
+    expect(c.angle).toBe(v.stops.find((s) => s.id === "rusher")!.angle);
+    expect(c.current.name).toBe("Rusher");
+    expect(c.stops.filter((s) => s.on).map((s) => s.id)).toEqual(["rusher"]);
+    expect(c.note).toBe(v.note);
+    expect(v.current.name).toBe("Tempo");
+    expect(dialChoose(v, "nope")).toBe(v);
+    expect(dialHtml(c)).toContain('data-style="rusher" role="radio" aria-checked="true" tabindex="0"');
+    expect(DIAL_SAVE_MS).toBeGreaterThanOrEqual(400);
   });
 
   it("the deck switcher: your agent picks, then each deck; the server's choice is the one on; an incomplete deck can't be picked", () => {

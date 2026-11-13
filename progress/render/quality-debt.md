@@ -27,7 +27,10 @@ items are removed, with the fix in `log.md`.
   whole arena page (canvases, the FX loop) running while Home is open; only looked at in software rendering, its
   cost on a real GPU and on a slow laptop is unmeasured (it loaded in under 1 s headless). One per board by rule;
   a second Watch live at L shows the compact board. The redraw-around-the-frame (`patchAround`) is proven in the
-  browser (33 s of redraws, same frame, never reloaded) but has no Node unit test (no DOM in the render tests).
+  browser (33 s of redraws, same frame, never reloaded) and, since session 69, in Node on a small stand-in DOM
+  (`sitePatchAround.test.ts`: the kept node never removed or moved, attributes synced and dropped, no twin = nothing
+  changed, twins by place among same-key siblings). The stand-in is the test's own, not a real DOM: a browser
+  quirk it doesn't model (text nodes merging, a template's content document) would pass it.
   The 20 s hold after a match ends is a guess (the boast fits in it in the demo); a 2x match's end was not seen in
   the tile. The tile's "Watch as" flip was not exercised by the check (the demo's first live match is always the
   viewer's own, which has no switch); it reuses the arena's own switch, which is checked in `pov-check` (s52).
@@ -57,18 +60,27 @@ items are removed, with the fix in `log.md`.
   focus returns to the tile's button (or its tile, when the button greys) after a buy or a claim; the focus check
   was only seen passing, never failing on the old code. `site-check-s47.mjs` and `pack-bulk-check-s54.mjs` are
   retired (session 64), replaced by `site-check-s64.mjs` (56 passed) and `pack-bulk-check-s64.mjs` (14 PASS).
-- **Agent controls' time ring runs on the server's allowance (session 58) and ticks once a second (session 59).**
+- **Agent controls' time ring runs on the server's allowance (session 58), ticks once a second (session 59), and says
+  the server's words (session 69: `allowance.label`, "Finishing match" and "Time's up", seen from a real 15-minute
+  run to its end at 8x, `site-check-s69.txt`).** The label is shown only for the state it came with (a running
+  allowance the page's count takes to zero still says the ring's own "Finishing match" until the next read); an
+  older server's missing label falls back to the same words. The page's 5 s reads near the end start on the
+  page's own count of the time left: a page clock behind the server's (or the demo at 8x, seen in session 69's run
+  2) gets "Finishing match" only at the next 15 s read.
   Since 59 the arc, minutes, label and caption are patched in place every second from the last read on the page's
   clock (the arc to a tenth of a percent; whole percents had stepped a 15-minute ring only every 9 s), and the
   status read comes every 5 s in the allowance's last 30 s and while the agent finishes (carried over from closed
   PR #137); both seen in the browser (`site-check-s59.txt`). **Thin:** the 5 s cadence and "Finishing match" were
-  seen in the browser on a rewritten `GET /api/play` (20 s left), not on a real 15-minute run to the end; "Done
-  for today" in the browser only in the Node test; a preset pressed while time runs replaces the time left (the
+  seen in the browser on a rewritten `GET /api/play` (20 s left); the real run to the end (session 69) was at 8x on
+  the demo's clock, not the real pace; a preset pressed while time runs replaces the time left (the
   server's rule) with no confirm; the tick runs only on Home (the Agent match page shows on/off, not the ring).
 - **My agent and Agent controls, thin spots (session 57):** the rating trend is drawn from `GET /api/rating`'s last
   20 rated matches, not the Stats data (game item 2e) the brief names; the dial is a radio group with arrow keys since
-  session 59 (checked by keyboard in the browser), but an arrow saves at once (a radio group's rule), so arrowing
-  across three styles makes three saves and three toasts; the deck switcher is still mouse-checked only; at narrow widths (the one-column board) the L layouts stack but were not looked at; the demo's history
+  session 59; since session 69 an arrow shows its choice at once and saves once the keys stop for 700 ms (or on
+  Enter, Space, a Tab away), so three arrows make one save and one toast (`site-check-s69.txt`). Thin: a status
+  poll's redraw inside those 700 ms can draw the saved style back for a moment (the save still goes; the Home redraw
+  skips a focused tile, so it was never seen); a screen reader hears each arrow's style before it is saved (a radio
+  group's rule) but nothing says when it saved except the toast; the deck switcher is still mouse-checked only; at narrow widths (the one-column board) the L layouts stack but were not looked at; the demo's history
   is mostly `recordMatch` rows with no replay, so the trend's shape there comes from those made-up results, not
   real play (the numbers are still the server's).
 - **Most by-hand browser checks are never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
@@ -198,9 +210,8 @@ items are removed, with the fix in `log.md`.
   face (no stats or text, the pack page's full face needs fields the collection read doesn't send); Collection L
   scrolls its binder inside the tile (420 px over at 61 cards held; it lists every card held, as before);
   the demo pays wins out of order (see notes-for-owner, s66), so the stills' paid labels read +10 +10 +5 +30.
-- **Watch live at L doesn't embed the live arena yet** (the brief's L; cut order item 3 if the lane is behind at
-  the midpoint). Today L shows the compact board and the list.
-- **Pages are still missing:** Stats, Admin. Featured picks, viewer counts and the 2× vote have no endpoint.
+- **Pages are still missing:** Admin (not in Season 0). Featured picks and viewer counts are not drawn yet (Top rated
+  and viewers on Watch live, render 71, owner 2026-11-13).
   The Store has no "Watch again", and the Collection no craft price from the API or Promos, though the game
   lane serves all three since its session 68 (render work not done yet).
 - **The loadout picker on the site (session 49):** the deck's faction is unknown to the site unless a

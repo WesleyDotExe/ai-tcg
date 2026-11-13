@@ -1,0 +1,47 @@
+# site-check-s69.mjs run against the code before this session (a worktree at main, b804ce5): what the check catches
+
+[A] the allowance to its end, in the server's words
+PASS  A. the server runs a 15-minute allowance
+PASS  A. the server's label while running: "Running"
+PASS  A. the ring runs, in minutes
+      finishing after 112 s (label "Finishing match")
+PASS  A. finishing: the ring's centre is the server's label, "Finishing match"
+PASS  A. finishing: the caption "Time's up: your agent is finishing its last match."
+PASS  A. the server says done after 147 s
+PASS  A. the server's label when done: "Time's up"
+PASS  A. auto-play is off, stopped for timeUp
+FAIL  A. done: the ring's centre is the server's label
+PASS  A. done: tone done (tring t-done)
+FAIL  A. done: the caption "Done for today. The time resets at midnight (Sydney)."
+FAIL  A. done: +15 / +30 say why: "Done for today: start again with 15, 30 or 60 minutes."
+FAIL  A. done: the ring's accessible name "Vector Halcyon: Done for today"
+FAIL  A. no "Done for today" anywhere on the page
+PASS  A. done: 15 / 30 / 60 can start it again
+
+[B] the dial by keyboard: one save per choice
+FAIL  B. ArrowRight 1: shown at once on rusher (checked, focus, tab stop; name "Calculator")
+FAIL  B. ArrowRight 2: shown at once on controller (checked, focus, tab stop; name "Rusher")
+FAIL  B. ArrowRight 3: shown at once on tempo (checked, focus, tab stop; name "Controller")
+PASS  B. the pointer turned with each key: rotate(0deg) -> rotate(60deg) -> rotate(120deg)
+FAIL  B. no save while the keys are moving (3)
+PASS  B. then the server's style is tempo, three along
+FAIL  B. ONE save for three keys (3: {"style":"rusher"} {"style":"controller"} {"style":"tempo"})
+FAIL  B. it went -519 ms after the last key
+      toasts: ["Rusher from the next match.","Controller from the next match.","Tempo from the next match."]
+FAIL  B. one style toast for the three keys
+PASS  B. after the save: checked tempo, focus tempo
+PASS  B. ArrowRight then Tab: saved
+PASS  B. ...at once (-1 ms)
+PASS  B. ...as fortress
+PASS  B. ArrowLeft then Enter: saved at once (0 ms)
+PASS  B. ...as tempo
+PASS  B. ...once (1)
+PASS  B. focus stays on the dial (tempo)
+PASS  B. a click saves at once
+PASS  B. ...back to calculator
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+24 PASS, 12 FAIL

@@ -60,6 +60,17 @@ function keyOf(e: Element): string {
   return `${e.tagName}.${e.classList[0] ?? ""}`;
 }
 
+/** `oc`'s twin among `np`'s children: the one with its key at the same place
+ * among the siblings sharing that key (render 69, hardening: the first with
+ * the key was taken before, so of two keyless `div.wl-col`s the frame's
+ * second column would have been matched to the redraw's first). Null when
+ * the redraw has fewer of that key. */
+function twinOf(oc: Element, op: Element, np: Element | DocumentFragment): Element | null {
+  const k = keyOf(oc);
+  const nth = [...op.children].filter((c) => keyOf(c) === k).indexOf(oc);
+  return [...np.children].filter((c) => keyOf(c) === k)[nth] ?? null;
+}
+
 export function syncAttributes(to: Element, from: Element): void {
   for (const a of [...to.attributes]) if (!from.hasAttribute(a.name)) to.removeAttribute(a.name);
   for (const a of [...from.attributes]) if (to.getAttribute(a.name) !== a.value) to.setAttribute(a.name, a.value);
@@ -74,23 +85,21 @@ export function syncAttributes(to: Element, from: Element): void {
  * redraws the plain way). */
 export function patchAround(oldEl: Element, newEl: Element | DocumentFragment, keep: Element): boolean {
   // The twins along the path, checked before anything is changed.
-  const path: [Element, Element | DocumentFragment][] = [];
+  // Each step: the parent, its twin, the child on the path, the child's twin.
+  const path: [Element, Element | DocumentFragment, Element, Element][] = [];
   let o: Element = oldEl;
   let n: Element | DocumentFragment = newEl;
   while (o !== keep) {
     const oc = [...o.children].find((c) => c.contains(keep));
     if (!oc) return false;
-    const k = keyOf(oc);
-    const nc = [...n.children].find((c) => keyOf(c) === k);
+    const nc = twinOf(oc, o, n);
     if (!nc) return false;
-    path.push([o, n]);
+    path.push([o, n, oc, nc]);
     o = oc;
     n = nc;
   }
   for (let i = path.length - 1; i >= 0; i--) {
-    const [op, np] = path[i]!;
-    const oc = i + 1 < path.length ? path[i + 1]![0] : keep;
-    const nc = [...np.children].find((c) => keyOf(c) === keyOf(oc))!;
+    const [op, np, oc, nc] = path[i]!;
     if (oc !== keep) syncAttributes(oc, nc);
     for (const node of [...op.childNodes]) if (node !== oc) op.removeChild(node);
     let before = true;

@@ -6308,7 +6308,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   }
   function autoPlayView(a, hasAgent) {
     if (a.house) return { shown: false, on: true, enabled: false, label: "Always plays", note: "A house agent always plays.", stopped: null };
-    const stopped = !a.stopped ? null : a.stopped.reason === "timeUp" ? "Time's up: your agent is done for today. Give it more minutes to play again." : "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney).";
+    const stopped = !a.stopped ? null : a.stopped.reason === "timeUp" ? "Time's up. Give your agent more minutes to play again." : "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney).";
     const stoppedReason = !a.stopped ? null : a.stopped.reason === "timeUp" ? "timeUp" : "dailyRewardsMaxed";
     if (!hasAgent) return { shown: true, on: a.on, enabled: false, label: "Auto-play", note: "Connect an agent to play matches.", stopped, stoppedReason };
     if (a.on) return { shown: true, on: true, enabled: true, label: "Auto-play", note: "Your agent joins every ladder round. A match already live finishes if you turn it off.", stopped, stoppedReason };
@@ -6503,22 +6503,23 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       const end = Date.parse(al.endsAt);
       if (Number.isFinite(end)) secs = Math.max(0, Math.min(secs, Math.ceil((end - now) / 1e3)));
     } else secs = 0;
-    return { minutesTotal: al.totalMinutes, minutesLeft: Math.ceil(secs / 60), secondsLeft: secs, endsAtReset: al.endsAtReset, state: al.state };
+    return { minutesTotal: al.totalMinutes, minutesLeft: Math.ceil(secs / 60), secondsLeft: secs, endsAtReset: al.endsAtReset, state: al.state, ...al.label ? { label: al.label } : {} };
   }
   function timeRingView(allowance, ap, inMatch) {
     if (allowance) {
       const total = Math.max(1, allowance.minutesTotal);
       const left = Math.max(0, Math.min(total, Math.round(allowance.minutesLeft)));
-      if (allowance.state === "done") return { pct: 0, centre: "Done for today", unit: null, caption: "Done for today. The time resets at midnight (Sydney).", tone: "done" };
+      const said = (s, own) => allowance.state === s && allowance.label || own;
+      if (allowance.state === "done") return { pct: 0, centre: said("done", "Time's up"), unit: null, caption: "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney).", tone: "done" };
       if (allowance.state === "finishing" || left === 0)
-        return { pct: 0, centre: "Finishing match", unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
+        return { pct: 0, centre: said("finishing", "Finishing match"), unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
       const share = allowance.secondsLeft !== void 0 ? Math.min(1, allowance.secondsLeft / (total * 60)) : left / total;
       const tail = allowance.endsAtReset ? " \xB7 runs to midnight (Sydney)" : "";
       return { pct: Math.max(1, Math.round(share * 1e3) / 10), centre: String(left), unit: "min", caption: `${left} min left today${tail}`, tone: share <= 0.2 ? "low" : "run" };
     }
     if (!ap.shown) return { pct: 100, centre: "Always", unit: null, caption: "A house agent always plays.", tone: "open" };
     if (ap.on) return { pct: 100, centre: "On", unit: null, caption: inMatch ? "Playing \xB7 no time limit set" : "Auto-play on \xB7 no time limit set", tone: "open" };
-    return { pct: 0, centre: "Off", unit: null, caption: ap.stoppedReason === "timeUp" ? "Done for today: time's up" : ap.stopped ? "Stopped: today's rewards are maxed" : inMatch ? "Stopped \xB7 the match live finishes" : "Stopped", tone: "off" };
+    return { pct: 0, centre: "Off", unit: null, caption: ap.stoppedReason === "timeUp" ? "Time's up" : ap.stopped ? "Stopped: today's rewards are maxed" : inMatch ? "Stopped \xB7 the match live finishes" : "Stopped", tone: "off" };
   }
   function ringPortraitHtml(name, faction, v, size) {
     const c = faction && FACTION_HEX[faction] || "#8f8cff";
@@ -6571,6 +6572,12 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     }).join("");
     return `<div class="dial"><div class="dn-knob" style="width:${size}px;height:${size}px" role="radiogroup" aria-label="Personality dial">${notches}<span class="dn-face" aria-hidden="true"><i style="transform:rotate(${v.angle}deg)"></i></span></div><div class="dn-txt"><span class="muted small">Personality</span><b>${esc(v.current.name)}</b>${v.current.summary && opts.summary !== false ? `<span class="small">${esc(v.current.summary)}</span>` : ""}<span class="muted small">${esc(v.note)}</span></div></div>`;
   }
+  function dialChoose(v, styleId) {
+    const to = v.stops.find((s) => s.id === styleId);
+    if (!to) return v;
+    return { ...v, stops: v.stops.map((s) => ({ ...s, on: s.id === styleId })), current: { id: to.id, name: to.name, summary: to.summary }, angle: to.angle };
+  }
+  var DIAL_SAVE_MS = 700;
   function dialKeyTarget(styleIds, current, key) {
     var _a4;
     const n = styleIds.length;
@@ -6654,7 +6661,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     if (!ap.shown) return { presets: { enabled: false, why: "A house agent always plays." }, adds: { enabled: false, why: "A house agent always plays." }, note: "" };
     const presets = a.dailyRewardsMaxed || !a.canTurnOn ? { enabled: false, why: "Today's rewards are maxed; time can be given again after midnight (Sydney)." } : { enabled: !busy, why: a.allowance && a.allowance.state !== "done" ? "Starts a new allowance from now, in place of the time left." : "" };
     const al = a.allowance;
-    const adds = a.canAddTime ? { enabled: !busy, why: "" } : { enabled: false, why: !al ? a.on ? "Auto-play is on with no time limit." : "Start with 15, 30 or 60 minutes first." : al.state === "done" ? "Done for today: start again with 15, 30 or 60 minutes." : "The time already runs to midnight (Sydney)." };
+    const adds = a.canAddTime ? { enabled: !busy, why: "" } : { enabled: false, why: !al ? a.on ? "Auto-play is on with no time limit." : "Start with 15, 30 or 60 minutes first." : al.state === "done" ? "Time's up: start again with 15, 30 or 60 minutes." : "The time already runs to midnight (Sydney)." };
     const note = (al == null ? void 0 : al.endsAtReset) && al.state !== "done" ? "The time runs to midnight (Sydney); unused time doesn't carry over." : "";
     return { presets, adds, note };
   }
@@ -6683,7 +6690,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const dial = dv ? dialHtml(dv, { busy: d.busy, size: size === "M" ? 92 : 112, summary: size === "L" }) : `<p class="muted small">No play styles on this server.</p>`;
     const deck = `<div class="small">${ftag(fac)} ${esc(deckLine(p))}</div>`;
     const idle = inMatch ? "" : `<span class="muted small">No match live${ap.on ? ": joins the next ladder round" : ""}</span>`;
-    const stopped = ap.stopped ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
+    const stopped = ap.stopped && !(ap.stoppedReason === "timeUp" && ring.tone === "done") ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
     const tb = timeButtonsView(p.autoPlay, ap, !!d.busy);
     const waits = tb.note ? `<span class="muted small">${esc(tb.note)}</span>` : "";
     const time = `<div class="wcol tight tgrp"><span class="muted small">Give your agent</span>${timeButtons(TIME_PRESETS, false, tb.presets)}</div>`;
@@ -9152,6 +9159,12 @@ gl_FragColor=vec4(col,1.);}`;
     if (did !== null) return `@${did}`;
     return `${e.tagName}.${(_a4 = e.classList[0]) != null ? _a4 : ""}`;
   }
+  function twinOf(oc, op, np) {
+    var _a4;
+    const k = keyOf(oc);
+    const nth = [...op.children].filter((c) => keyOf(c) === k).indexOf(oc);
+    return (_a4 = [...np.children].filter((c) => keyOf(c) === k)[nth]) != null ? _a4 : null;
+  }
   function syncAttributes(to, from) {
     for (const a of [...to.attributes]) if (!from.hasAttribute(a.name)) to.removeAttribute(a.name);
     for (const a of [...from.attributes]) if (to.getAttribute(a.name) !== a.value) to.setAttribute(a.name, a.value);
@@ -9163,17 +9176,14 @@ gl_FragColor=vec4(col,1.);}`;
     while (o !== keep) {
       const oc = [...o.children].find((c) => c.contains(keep));
       if (!oc) return false;
-      const k = keyOf(oc);
-      const nc = [...n.children].find((c) => keyOf(c) === k);
+      const nc = twinOf(oc, o, n);
       if (!nc) return false;
-      path.push([o, n]);
+      path.push([o, n, oc, nc]);
       o = oc;
       n = nc;
     }
     for (let i = path.length - 1; i >= 0; i--) {
-      const [op, np] = path[i];
-      const oc = i + 1 < path.length ? path[i + 1][0] : keep;
-      const nc = [...np.children].find((c) => keyOf(c) === keyOf(oc));
+      const [op, np, oc, nc] = path[i];
       if (oc !== keep) syncAttributes(oc, nc);
       for (const node of [...op.childNodes]) if (node !== oc) op.removeChild(node);
       let before = true;
@@ -11350,18 +11360,70 @@ gl_FragColor=vec4(col,1.);}`;
       closeReplay();
     }
   });
+  var dialPending = null;
+  function previewDial(knob, style) {
+    var _a4;
+    const v = state.play ? dialView(state.play, null) : null;
+    if (!v) return;
+    const c = dialChoose(v, style);
+    for (const b of knob.querySelectorAll('[data-act="play-style"]')) {
+      const on = b.dataset.style === style;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-checked", String(on));
+      b.tabIndex = on ? 0 : -1;
+    }
+    const face2 = knob.querySelector(".dn-face i");
+    if (face2) face2.style.transform = `rotate(${c.angle}deg)`;
+    const txt = (_a4 = knob.parentElement) == null ? void 0 : _a4.querySelector(".dn-txt");
+    const name = txt == null ? void 0 : txt.querySelector("b");
+    if (name) name.textContent = c.current.name;
+    const sum = txt == null ? void 0 : txt.querySelector("span.small:not(.muted)");
+    if (sum) sum.textContent = c.current.summary;
+  }
+  function flushDial() {
+    var _a4, _b;
+    const p = dialPending;
+    if (!p) return;
+    if (p.timer) clearTimeout(p.timer);
+    if (state.busy) {
+      p.timer = setTimeout(flushDial, 250);
+      return;
+    }
+    dialPending = null;
+    if (p.style !== ((_b = (_a4 = state.play) == null ? void 0 : _a4.connectedAgent) == null ? void 0 : _b.playStyle)) void saveStyle(p.agent, p.style);
+  }
+  function saveStyle(agent, style) {
+    var _a4, _b, _c;
+    const name = (_c = (_b = (_a4 = state.play) == null ? void 0 : _a4.playStyles.find((x) => x.id === style)) == null ? void 0 : _b.name) != null ? _c : style;
+    return savePlay((tok) => api.setPlayStyle(tok, agent, style), `${name} from the next match.`).then(() => focusAct("play-style", "style", style));
+  }
   document.addEventListener("keydown", (e) => {
-    var _a4, _b, _c, _d;
+    var _a4, _b, _c, _d, _e;
     const stop = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, '[data-act="play-style"]');
     if (!stop || !state.play || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (dialPending && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      flushDial();
+      return;
+    }
     const ids = state.play.playStyles.map((x) => x.id);
-    const next = dialKeyTarget(ids, (_c = stop.dataset.style) != null ? _c : "", e.key);
+    const from = (_d = (_c = dialPending == null ? void 0 : dialPending.style) != null ? _c : stop.dataset.style) != null ? _d : "";
+    const next = dialKeyTarget(ids, from, e.key);
     if (!next) return;
     e.preventDefault();
-    if (state.busy) return;
-    const target = (_d = stop.closest(".dn-knob")) == null ? void 0 : _d.querySelector(`[data-act="play-style"][data-style="${CSS.escape(next)}"]`);
-    target == null ? void 0 : target.focus();
-    target == null ? void 0 : target.click();
+    const knob = stop.closest(".dn-knob");
+    if (!knob || !stop.dataset.agent) return;
+    previewDial(knob, next);
+    (_e = knob.querySelector(`[data-act="play-style"][data-style="${CSS.escape(next)}"]`)) == null ? void 0 : _e.focus();
+    if (dialPending == null ? void 0 : dialPending.timer) clearTimeout(dialPending.timer);
+    dialPending = { agent: stop.dataset.agent, style: next, timer: setTimeout(flushDial, DIAL_SAVE_MS) };
+  });
+  document.addEventListener("focusout", (e) => {
+    var _a4, _b;
+    if (!dialPending) return;
+    const knob = (_b = (_a4 = e.target).closest) == null ? void 0 : _b.call(_a4, ".dn-knob");
+    const to = e.relatedTarget;
+    if (knob && !(to && knob.contains(to))) flushDial();
   });
   function savePlay(fn, ok) {
     return act(fn, ok);
@@ -11401,7 +11463,7 @@ gl_FragColor=vec4(col,1.);}`;
     schedulePoll();
   }
   document.addEventListener("click", (e) => {
-    var _a4, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+    var _a4, _b, _c, _d, _e, _f, _g, _h, _i, _j;
     const t = e.target;
     const off = t.closest('a[aria-disabled="true"]');
     if (off && !off.classList.contains("navb")) {
@@ -11443,9 +11505,14 @@ gl_FragColor=vec4(col,1.);}`;
       if (act2 === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
       if (act2 === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });
       if (act2 === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
-        if (actEl.getAttribute("aria-checked") === "true") return;
-        const name = (_e = (_d = (_c = state.play) == null ? void 0 : _c.playStyles.find((x) => x.id === actEl.dataset.style)) == null ? void 0 : _d.name) != null ? _e : actEl.dataset.style;
-        return void savePlay((tok) => api.setPlayStyle(tok, actEl.dataset.agent, actEl.dataset.style), `${name} from the next match.`).then(() => focusAct("play-style", "style", actEl.dataset.style));
+        if (dialPending == null ? void 0 : dialPending.timer) clearTimeout(dialPending.timer);
+        dialPending = null;
+        if (actEl.dataset.style === ((_d = (_c = state.play) == null ? void 0 : _c.connectedAgent) == null ? void 0 : _d.playStyle)) {
+          const knob = actEl.closest(".dn-knob");
+          if (knob) previewDial(knob, actEl.dataset.style);
+          return;
+        }
+        return void saveStyle(actEl.dataset.agent, actEl.dataset.style);
       }
       if (act2 === "ctl-deck" && actEl.dataset.deck) {
         if (actEl.getAttribute("aria-pressed") === "true") return;
@@ -11461,7 +11528,7 @@ gl_FragColor=vec4(col,1.);}`;
         const focusId = actEl.id;
         actEl.blur();
         drawLive();
-        if (focusId) (_f = document.getElementById(focusId)) == null ? void 0 : _f.focus();
+        if (focusId) (_e = document.getElementById(focusId)) == null ? void 0 : _e.focus();
         return;
       }
       if (act2 === "close-replay") return closeReplay();
@@ -11482,18 +11549,18 @@ gl_FragColor=vec4(col,1.);}`;
         return void loadStats();
       }
       if (act2 === "col-tab" || act2 === "col-faction" || act2 === "col-show") {
-        const v = (_g = actEl.dataset.v) != null ? _g : "";
+        const v = (_f = actEl.dataset.v) != null ? _f : "";
         const f = state.col.filters;
         state.col.filters = act2 === "col-tab" ? { ...f, tab: v } : act2 === "col-faction" ? { ...f, faction: v } : { ...f, show: v };
         drawPage();
-        (_h = document.querySelector(`[data-act="${act2}"][data-v="${CSS.escape(v)}"]`)) == null ? void 0 : _h.focus();
+        (_g = document.querySelector(`[data-act="${act2}"][data-v="${CSS.escape(v)}"]`)) == null ? void 0 : _g.focus();
         return;
       }
       if (act2 === "view-slot" && actEl.dataset.slot) return void openViewer(actEl.dataset.slot, actEl.closest("#viewer") ? null : actEl);
       if (act2 === "close-viewer") return closeViewer(true);
       if (act2 === "craft") return void craftSlot();
       if (act2 === "salvage") return void salvageSlot();
-      if (act2 === "salv-step" && ((_i = state.col.viewer) == null ? void 0 : _i.holdings)) {
+      if (act2 === "salv-step" && ((_h = state.col.viewer) == null ? void 0 : _h.holdings)) {
         const v = state.col.viewer;
         v.quantity = salvageView(v.holdings, v.quantity + Number(actEl.dataset.d)).quantity;
         drawViewer();
@@ -11504,7 +11571,7 @@ gl_FragColor=vec4(col,1.);}`;
     const segBtn = t.closest(".seg button");
     if (segBtn) {
       const group = segBtn.parentElement.id;
-      const v = (_j = segBtn.dataset.v) != null ? _j : "";
+      const v = (_i = segBtn.dataset.v) != null ? _i : "";
       if (segBtn.getAttribute("aria-pressed") === "true") return;
       if (group === "deck-choice") void act((tok) => api.setDeckChoice(tok, v));
       else if (group === "faction-lock")
@@ -11528,7 +11595,7 @@ gl_FragColor=vec4(col,1.);}`;
     const deck = t.closest(".deckrow");
     if (deck) {
       if (deck.getAttribute("aria-disabled") === "true") return toast("That deck is incomplete: you don't hold every card it uses.", "error");
-      if (deck.classList.contains("on") && ((_k = state.play) == null ? void 0 : _k.deckChoice) === "forced") return;
+      if (deck.classList.contains("on") && ((_j = state.play) == null ? void 0 : _j.deckChoice) === "forced") return;
       void act((tok) => api.setActiveDeck(tok, deck.dataset.deck), "Your agent will play that deck.");
       return;
     }

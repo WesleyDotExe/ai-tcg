@@ -98,6 +98,10 @@ export interface SiteAutoPlay {
 /** `autoPlay.allowance` (OWNER_API.md "The play-time allowance"). */
 export interface SiteAllowance {
   state: "running" | "finishing" | "done";
+  /** The state as the owner reads it (owner 2026-11-06, game session 78):
+   * "Running", "Finishing match" or "Time's up". Absent on a server older
+   * than session 78. */
+  label?: string;
   startedAt: string;
   endsAt: string;
   totalMinutes: number;

@@ -1366,3 +1366,15 @@ season mark) is proposed as a mark, call 1.
    whenever the game lane next writes it. `SiteApi.stats` also takes `agent` now (the filter); the check calls it
    without one.
 
+
+## 2026-11-13 — Render session 69 (the render hardening pass)
+
+1. **Two small calls** are in `progress/render/checkpoints.md` (the newest checkpoint): the done caption's words,
+   and the dial's 0.7 s wait before an arrow-key choice is saved.
+2. **For the game lane's roadmap upkeep:** game item 2-3's render half ("Time's up" in Agent controls) is done, and
+   item 7 has a ticked line for this hardening pass. Both in `progress/roadmap.md`.
+3. **The site contract record** `progress/site-contract-001.txt` (game lane's) still lists "UNTYPED
+   autoPlay.allowance.label is sent" for `GET /api/play`: the site types it now, and this session's run says no
+   untyped line for it (`progress/render/evidence/site-contract-s69.txt`, 0 mismatches, controls 5 of 5). The record
+   refreshes when the game lane next writes it.
+4. **Nothing needed from the game lane.** No new server fields.

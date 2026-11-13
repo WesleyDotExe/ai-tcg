@@ -7,6 +7,34 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-13 — Render hardening pass (session 69) — AWAITING FEEDBACK (two small calls)
+
+No new features. Agent controls now say the server's words for the play-time allowance, the personality dial's arrow
+keys stop saving on every step, and Watch live's redraw-around-the-arena got its missing unit test.
+
+**"Time's up", from the server (your 2026-11-06 call).** When an agent's minutes run out, the ring in Agent controls
+says what the server sends (`allowance.label`): "Finishing match" while it plays its last match, then **"Time's up"**.
+"Done for today" is gone from the site. It was checked on a real 15-minute run to its end, with the ladder playing on
+the demo's 8x clock and no answer rewritten (`progress/render/evidence/site-check-s69.txt`, stills
+`v2-s69-time-finishing.jpg`, `v2-s69-time-up.jpg`).
+
+**The dial by keyboard.** Before, each arrow key saved a play style, so moving three styles along made three saves
+and three toasts, and an arrow pressed during a save was dropped. Now the pointer and the name follow each key at once,
+and the dial saves once, 0.7 s after the last key, or straight away on Enter, Space or Tab. A click still saves at
+once. Checked in the browser: three arrows made one save and one toast (`v2-s69-dial-one-save.jpg`). The same check
+run on the old code fails 12 of its 36 lines (`site-check-s69-old-code.txt`).
+
+**Small calls (kept as built unless you say otherwise):**
+1. **The done caption** reads "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight
+   (Sydney)." The line under the dial that used to repeat the same news ("Time's up. Give your agent more minutes to
+   play again.") is left out when the ring already says it.
+2. **The dial waits 0.7 s** after the last arrow key before it saves. Shorter and a quick run of keys could still
+   save twice; longer and the save feels late.
+
+**Next:** game 92 (the hardening pass for the 7-day unattended run), then render 70 (the notifications bell).
+
+---
+
 ## 2026-11-12 — The Stats page, with the season ladder inside it (session 68) — AWAITING FEEDBACK (five small calls)
 
 The sidebar's Stats no longer says "waiting on the server". Try it: `npm run site-demo -w @ai-tcg/render --

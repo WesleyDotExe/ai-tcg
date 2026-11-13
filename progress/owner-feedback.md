@@ -4733,14 +4733,14 @@ The widgets' S/M/L pass is done. Next session by alternation: game. Next render 
 
 **Render lane: the three findings from session 90's notes (in `progress/notes-for-owner.md`), placed as follows:**
 1. **Top rated and viewer counts on Watch live** (`GET /api/live` `featured: { tournament, topRated }`, and each live match's `viewers`, served since game session 74 on the owner's approved rules): **a small render slice after the notifications bell**, inside the Season 0 scope and before the 1 December feature deadline. Show Top rated and the viewer count on Watch live (page and widget as fits). Add it to the render list in `progress/roadmap.md`. If the midpoint check (~22 November) finds render behind, it moves to `progress/season-1-ideas.md` instead.
-2. **`autoPlay.allowance.label`** ("Running" / "Finishing match" / "Time's up"): use the server's words in Agent controls **in the render hardening pass (session 69)**, as the owner's 2026-11-06 entry already said ("the render lane's Agent controls take the words when it next touches them").
+2. **`autoPlay.allowance.label`** ("Running" / "Finishing match" / "Time's up"): use the server's words in Agent controls **in the render hardening pass (session 69)**, as the owner's 2026-11-06 entry already said ("the render lane's Agent controls take the words when it next touches them"). **(HANDLED, render session 69.)**
 3. **The Stats page slice:** include `GET /api/stats`'s `today` (today's earnings), and add it to the site's types so the contract check covers it. **(Render part handled, render session 68: `today: SiteDaily` on `SiteStats`; the page's Today panel draws it; the contract check now reads `GET /api/stats` as `fits` (`progress/render/evidence/site-contract-s68.txt`). Items 1 and 2 are queued as placed: the bell, then Top rated and viewer counts; the server's allowance label in the hardening pass, 69.)**
 
 Next session: once PR #160 has merged, render (the Stats page, per its plan).
 
 ---
 
-## 2026-11-13 — Owner: answers to render session 68 (the Stats page, the ladder inside it) and game session 91 (the hardening pass), keep all 6
+## 2026-11-13 — Owner: answers to render session 68 (the Stats page, the ladder inside it) and game session 91 (the hardening pass), keep all 6 (render part HANDLED 2026-11-13, render session 69: all 5 kept, nothing changed)
 
 **Render session 68** (PR #161, `progress/render/checkpoints.md`, `progress/render/evidence/stats-check-s68.txt`). **Keep all 5 calls:**
 1. **Keep:** the ladder lives inside the Stats page (a section at the foot, not its own sidebar page); the Ladder widget's arrow opens Stats. This settles roadmap render item 5.
@@ -4760,7 +4760,7 @@ Next session by alternation: render (session 69, the render hardening pass, with
 
 The Season 0 feature list is nearly done (render: the hardening pass, the bell, Top rated and viewers; game: done, spare sessions). The owner's order from here, by alternation:
 
-1. **Render 69:** the render hardening pass, as planned (Agent controls take the server's "Time's up" words).
+1. **Render 69:** the render hardening pass, as planned (Agent controls take the server's "Time's up" words). **(HANDLED, render session 69: the ring says `allowance.label`, "Done for today" is gone from the site, checked on a real 15-minute run at 8x; plus the dial's one-save arrow keys and `patchAround`'s unit test. `progress/render/log.md`, `progress/render/evidence/site-check-s69.txt`.)**
 2. **Game 92:** a hardening pass aimed at the 7-day unattended run on the Mac mini: crash and restart recovery (the server comes back after a restart, takes over its lock and carries on), disk use, the clock, and the logs an owner would read after a problem. Measure first; fix only what is real and small.
 3. **Render 70:** the notifications bell.
 4. **Game 93: start clean-up early.** Run the full Season 0 dry run in `progress/season0-final-brief.md` in the session's own environment, and write the owner's step-by-step guide for the Mac mini: first start (`--new`), running unattended, stopping (Ctrl-C), a restart, checking the clock before a restart, ending the season and the switch (`season:next`). Report what broke at an [OWNER CHECK-IN].

@@ -120,7 +120,7 @@ export function autoPlayView(a: SiteAutoPlay, hasAgent: boolean): AutoPlayView {
   // (render 58) Two reasons the server stops it: the day's rewards maxed, or
   // the play-time allowance's time up (game session 76).
   const stopped = !a.stopped ? null
-    : a.stopped.reason === "timeUp" ? "Time's up: your agent is done for today. Give it more minutes to play again."
+    : a.stopped.reason === "timeUp" ? "Time's up. Give your agent more minutes to play again."
     : "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney).";
   const stoppedReason = !a.stopped ? null : a.stopped.reason === "timeUp" ? "timeUp" : "dailyRewardsMaxed";
   if (!hasAgent) return { shown: true, on: a.on, enabled: false, label: "Auto-play", note: "Connect an agent to play matches.", stopped, stoppedReason };
