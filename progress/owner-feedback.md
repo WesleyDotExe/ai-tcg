@@ -4882,3 +4882,18 @@ Prompted by the owner's review of the Season 0 set: 89 of the set's 96 cards are
 4. **First step:** the game lane proposes the card list at an [OWNER CHECK-IN] for the owner's approval before building it. Then: the set list and numbering, the pack table, the agents' deck builder, and a balance re-run against the starter decks.
 5. **Decision:** launch stays 5 December 2026.
 6. **Not decided:** the exact card count (within about 24–30) and the rarity split (for the proposal); what happens if the balance re-run fails.
+
+---
+
+## 2026-11-14 — Owner: answers to game session 95 and render session 73 (the season's end), keep all 5
+
+**Game session 95** (PR #171, `progress/notes-for-owner.md`, `progress/site-contract-001.txt`). **Keep both calls:**
+1. **Keep:** +15/+30 is refused too after the season has ended, not just switching auto-play on.
+2. **Keep:** while the season is "ending", switching auto-play on is still accepted; it has no effect because no new round starts.
+
+**Render session 73** (PR #172, `progress/render/checkpoints.md`, `progress/render/evidence/frozen-check-s73.txt`). **Keep all 3 calls:**
+1. **Keep:** only "ended" closes the Store, not "ending"; while the last matches finish, packs can still be bought and opened, as the server allows.
+2. **Keep:** the closed tiles keep their prices, greyed; an owned cosmetic keeps "Owned".
+3. **Keep:** the packs line promises the carry-over (the owner's 2026-11-10 rule).
+
+Next session by alternation: game 96 (the booster-card proposal, per the entry above).
