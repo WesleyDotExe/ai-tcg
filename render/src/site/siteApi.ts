@@ -162,6 +162,10 @@ export interface SiteLiveMatch {
   recentLines: string[];
   /** (game session 73) The 2× vote. Optional: an older server leaves it out. */
   speed?: SiteSpeed;
+  /** (game session 74) Signed-in owners who read this match's feed in the
+   * last 30 s, once each however many tabs; the players' own owners count.
+   * Reading the list isn't watching (OWNER_API.md "Featured and viewers"). */
+  viewers: number;
 }
 
 /** The 2× vote on a live match (OWNER_API.md SpeedView, game session 73). */
@@ -190,6 +194,16 @@ export interface SiteLive {
   running: boolean;
   matches: SiteLiveMatch[];
   mine: string | null;
+  /** (game session 74) Watch live's groups, as match ids in display order.
+   * `topRated`: at most 3, both sides out of placement, by the weaker side's
+   * rating at the start; `tournament`: empty until tournaments exist. */
+  featured: SiteFeatured;
+}
+
+/** `GET /api/live`'s `featured` (OWNER_API.md "Featured and viewers"). */
+export interface SiteFeatured {
+  tournament: string[];
+  topRated: string[];
 }
 
 export type SiteHistoryResult = "win" | "loss" | "draw" | "cancelled" | "abandonedByYou" | "abandonedByOpponent";

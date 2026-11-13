@@ -9,6 +9,16 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **Top rated and viewer counts on Watch live (session 71) are built and checked on the real API with the ladder
+  playing (39 PASS), with thin spots.** The demo has four owners, so a round has two matches and the browser saw
+  only "no Top rated" (houses in placement) and "every match featured"; a mixed round (some featured, the rest under
+  "Also live") and a Tournament group are only unit-tested (the server's own demo round, m21-m25). The viewer count
+  is as fresh as the list poll (3 s on screen) and the server's 30 s window: a closed arena still counts for up to
+  30 s. The count includes the viewer when their own arena (the Home tile at L, a full-screen arena or the match
+  page) is reading the feed; the page says so in one line, but "1 watching" can be just you. The arena itself
+  (the full-screen view) shows neither the rank nor the count. The phone scoreboard fix (the turn line above the two
+  sides at 560 px and under, which had squeezed a side to a few px) touches every scoreboard on a phone: looked at
+  on Watch live and its widget only, not on Agent match. Phones emulated only.
 - **The notifications bell (session 70) is built and checked against the real API with the ladder playing (60
   PASS), with thin spots.** The badge follows the 15 s status poll (`limit=1`), so a new notification can take up to
   15 s to show (the server has no push; OWNER_API.md says so). A big pull's cards in the panel are only unit-tested:
@@ -223,8 +233,7 @@ items are removed, with the fix in `log.md`.
   face (no stats or text, the pack page's full face needs fields the collection read doesn't send); Collection L
   scrolls its binder inside the tile (420 px over at 61 cards held; it lists every card held, as before);
   the demo pays wins out of order (see notes-for-owner, s66), so the stills' paid labels read +10 +10 +5 +30.
-- **Pages are still missing:** Admin (not in Season 0). Featured picks and viewer counts are not drawn yet (Top rated
-  and viewers on Watch live, render 71, owner 2026-11-13).
+- **Pages are still missing:** Admin (not in Season 0).
   The Store has no "Watch again", and the Collection no craft price from the API or Promos, though the game
   lane serves all three since its session 68 (render work not done yet).
 - **The loadout picker on the site (session 49):** the deck's faction is unknown to the site unless a

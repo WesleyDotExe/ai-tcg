@@ -5928,3 +5928,55 @@ panel's days are the viewer's, not Sydney's; phones emulated only; no old-code c
 **Next render-lane slice:** after this PR the next session is game (93: the Season 0 dry run and the Mac mini
 guide). The next render session (71): Top rated and viewer counts on Watch live (`GET /api/live`'s
 `featured.topRated` and each match's `viewers`), which completes the Season 0 feature list.
+
+## 2026-11-13 — Render session 71: Top rated and viewer counts on Watch live
+
+**Lane:** render. The last merged PR (#167, "The Season 0 dry run and the owner's Mac mini guide (session 93)") is
+game, so this session is render; no render PR was open. Read first: owner-feedback.md (the 2026-11-13 plan, item 5:
+"Render 71: Top rated and viewer counts on Watch live. That completes the Season 0 feature list."; the 2026-11-12
+placement of item 1: page and widget as fits), DESIGN.md, RENDER.md, this lane's log, debt and notes, OWNER_API.md
+"Featured and viewers" and `progress/featured-viewers-001.txt`. Not a hardening pass (the next is 74).
+
+**Built (render/ only; the server unchanged):**
+- `siteApi.ts`: `SiteLive.featured: SiteFeatured` (`{ tournament, topRated }`) and `SiteLiveMatch.viewers`, typed so
+  the site contract check now covers them.
+- `siteMatches.ts` (pure, tested): `liveGroups` (the server's ids to its matches, in its order; tournament first, a
+  match in one group only, an id no longer live skipped, a server without `featured` puts everything in the rest),
+  `liveOrder`, `topRatedRank`, `topRatedWhy` ("Weaker side 1786 Platinum", the server's rule worded from the two
+  sides' ratings and tiers as the match started), `viewersText` / `viewersHtml` (an eye and the number; "No one
+  watching", "1 watching"; nothing when the server sent none), `topRatedHtml` (the chip, the rule on hover);
+  `liveLineHtml` takes tags.
+- Watch live page: groups — Tournament (only when there is one), **Top rated** (count, the rule in one line), then
+  "Also live" (or "Live now" when nothing is featured, with "No Top rated match right now: every live match has a
+  side still in placement."). Each card: the chip, "Your agent", 2×, why, and the eye on the right; a featured card
+  has a gold edge. The page's lead line says what the eye counts (an arena or match page open in the last 30 s; the
+  list alone doesn't count), which is the server's rule.
+- Watch live widget: Watch live's order (the top pick first) at S, M and L; at M and L the top pick wears its chip
+  and eye, the other lines "#k" and their eye; the foot "5 live · 3 top rated" replaces "featured picks come later".
+  The L tile's arena takes the top pick when nothing is held (`arenaMatchOf`, `tileArenaPick`).
+- Phone: the scoreboard's turn line above the two sides at 560 px and under (the sides had been squeezed to a few px
+  on Watch live; pre-existing, seen in the first phone still).
+- `siteDemo.ts`: `--warm N` (the browser check uses 4, so the first round has house sides in placement and the next
+  is featured).
+
+**Ran it:** `progress/render/evidence/featured-check-s71.mjs`, a headless browser against the real owner API with the
+ladder at 8x, Nova and Rook in two browsers: **39 PASS** (`featured-check-s71.txt`). A placement round: no Top rated
+group, the reason said, the eye the server's 0. The next round: Top rated first, its cards in `featured.topRated`'s
+order, "Top rated #1/#2", the weaker side as the server's numbers (1455 Silver, 1330 Bronze). Viewers: 0 with Rook
+only reading the list; Nova opens the arena -> the server counts 1 and Rook's card shows 1 within a poll; Rook opens
+it too -> 2; both close -> 0 (here in 4 s: the host's feed reads stop, the server's window is 30 s) and "No one
+watching". Home at M, L, S: the top pick leads; at L the tile's arena embeds it and the server counts Nova watching
+(1). Phone fits 390 px; no external requests, no page errors. The first run's 3 FAILs were the check's own
+(a hash-only goto doesn't reload, so the board stayed at M; `featured-check-s71-first-run.txt`). Stills
+`v2-s71-live-top`, `-live-none`, `-live-viewers`, `-widget-M`, `-widget-L`, `-live-phone`, `-live-phone-dark`,
+`-live-dark`. Unit tests `render/test/siteFeatured.test.ts` (10, on the server's own demo round m21-m25: mixed
+round, a tournament id, a stale id, an old server); render suite 1029 pass; typecheck clean (all workspaces); the
+site contract check 0 mismatches, controls 5 of 5, `featured` and `viewers` fit (`site-contract-s71.txt`);
+`render/output/site/index.html` rebuilt.
+
+**Not done (named, in quality-debt):** a mixed round in the browser (the demo's 4 owners make 2-match rounds);
+the full-screen arena shows neither rank nor count; "1 watching" can be just you; phones emulated only.
+
+**Next render-lane slice:** the Season 0 feature list is complete. Next render session (72, after game 94): per
+the owner's plan item 6, fix what the dry run broke on the site side, hardening only where it found weak spots; the
+render hardening pass is due at 74.

@@ -1,0 +1,56 @@
+      first read: 2 live, featured {"tournament":[],"topRated":[]}
+        demo-live-009: Vector Halcyon 1755 Platinum v Static Widow 1402 Placement, viewers 0
+        demo-live-010: Rook's agent 1245 Bronze v Hive Courier 1598 Placement, viewers 0
+
+[A] a round with a side in placement
+PASS  A. the ladder has a live match
+PASS  A. no Top rated group while the server's is empty ([])
+PASS  A. the page says why: "No Top rated match right now: every live match has a side still in placement."
+PASS  A. every match under "Live now", in the server's order (demo-live-009, demo-live-010)
+PASS  A. each card's eye is the server's viewers (demo-live-009 0, demo-live-010 0)
+PASS  A. (the server agrees: a live match has a side in placement)
+
+[B] a round with Top rated matches
+PASS  B. the server features a round (both sides out of placement)
+PASS  B. the Top rated group is drawn
+PASS  B. it comes first (groups: Top rated)
+PASS  B. its cards are featured.topRated in order (demo-live-011, demo-live-012 / demo-live-011, demo-live-012)
+PASS  B. the heading counts them (2)
+PASS  B. each says "Top rated #k" and is marked (Top rated #1, Top rated #2)
+PASS  B. each says the weaker side's rating and tier as it started (Weaker side 1455 Silver; Weaker side 1330 Bronze)
+PASS  B. (the server agrees: no featured side is in placement)
+PASS  B. the rest under "Also live" (none: every live match is featured)
+PASS  B. the chip's hover says the rule: "Top rated #1: both sides out of placement; weaker side 1455 silver as the match started"
+
+[C] viewers
+PASS  C. before anyone opens it, the top pick has no viewers (0); Rook reading the list doesn't count
+PASS  C. Nova opens it on the arena: the server counts her
+PASS  C. Rook's card shows the server's count within a list poll (1 / server 1)
+PASS  C. Rook opens it too: the server counts 2 (2)
+PASS  C. both closed: the count falls to 0 within 4 s (the server's window is 30 s)
+PASS  C. and Rook's card says "No one watching"
+
+[D] Home: Watch live at S, M and L
+PASS  D. M: the first scoreboard is the top pick (demo-live-011 / demo-live-011)
+PASS  D. M: it wears "Top rated #1" (Top rated #1)
+PASS  D. M: its eye (No one watching; the server now 0)
+PASS  D. M: the others as lines with their rank and eye (#2 No one watching)
+PASS  D. M: "2 live · 2 top rated"
+PASS  D. M: "featured picks come later" is gone
+FAIL  D. L: the tile's arena embeds the top pick (null / demo-live-011)
+PASS  D. L: it wears "Top rated #1" (Top rated #1)
+PASS  D. L: its eye (No one watching; the server now 0)
+PASS  D. L: the others as lines with their rank and eye (#2 No one watching)
+PASS  D. L: "2 live · 2 top rated"
+PASS  D. L: "featured picks come later" is gone
+FAIL  D. L: the tile's arena reads the feed, so the server counts Nova watching
+FAIL  D. S: the score alone, of the top pick (demo-live-012)
+
+[E] a phone, and dark
+PASS  E. Watch live fits a 390 px phone (page 390 wide of 390)
+
+[F] the page
+PASS  F. no external requests
+PASS  F. no page errors
+
+36 PASS, 3 FAIL

@@ -10,8 +10,8 @@
 
 import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, type ShopArt } from "./siteShop.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
-import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
-import { compactBoard, historyRowHtml, historyRowView, liveLineHtml, recordOf, scoreboardHtml, scoreboardOf, watchAsHtml, type Scoreboard } from "./siteMatches.js";
+import type { SiteHistory, SiteLive, SiteLiveMatch, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
+import { compactBoard, historyRowHtml, historyRowView, liveGroups, liveLineHtml, liveOrder, recordOf, scoreboardHtml, scoreboardOf, topRatedHtml, viewersHtml, watchAsHtml, type Scoreboard } from "./siteMatches.js";
 import {
   FINISH_NAMES,
   WIDGET_INFO,
@@ -196,34 +196,54 @@ function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   const note = o.capped ? `<p class="muted small wcap">Scoreboard only: two live boards are already showing.</p>` : "";
   const l = loading(d, "live");
   if (l) return l + note;
-  {
-    const live = d.live!;
-    if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
-    // The tile's arena holds its match a moment after it ends (its result
-    // and boast), also when the round is over and nothing else is live yet.
-    if (w.size === "L" && view === "arena" && o.arena) return arenaBody(w, live, live.matches.map((m) => scoreboardOf(m, d.ownerId, d.viewOf?.(m.matchId) ?? null)), o) + note;
-    if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
-    // S: the first match's scoreboard; M: its scoreboard and the others as
-    // one line each; L: the first on the compact board, the list alongside.
-    const sbs = live.matches.map((m) => scoreboardOf(m, d.ownerId, d.viewOf?.(m.matchId) ?? null));
-    if (w.size === "L" && view === "arena") return arenaBody(w, live, sbs, o) + note;
-    // The point of view (owner 2026-11-02): the "Watch as" switch on the
-    // first match at M and L (S has no room); never on the viewer's own match.
-    const first = scoreboardHtml(sbs[0]!, { small: w.size !== "L" }) + (w.size === "L" && view === "board" ? compactBoard(live.matches[0]!, sbs[0]!.near) : "") + (w.size === "S" ? "" : watchAsHtml(sbs[0]!, `wa-${w.id}`));
-    const rest = sbs.slice(1);
-    const list = w.size === "S" || !rest.length ? "" : `<ul class="lines">${rest.map(liveLineHtml).join("")}</ul>`;
-    const boards = w.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
-    // S is the score alone (render session 67): the header's arrow opens Watch live.
-    const more = w.size === "S" ? "" : `<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live · featured picks come later</span></div>`;
-    return `${boards}${more}${note}`;
-  }
+  const live = d.live!;
+  if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
+  // Render session 71: the featured matches first (Top rated, in the
+  // server's order), then the rest; the first is the one shown big.
+  const ordered = liveOrder(live);
+  const sbs = ordered.map((m) => scoreboardOf(m, d.ownerId, d.viewOf?.(m.matchId) ?? null));
+  // The tile's arena holds its match a moment after it ends (its result
+  // and boast), also when the round is over and nothing else is live yet.
+  if (w.size === "L" && view === "arena" && o.arena) return arenaBody(w, live, ordered, sbs, o) + note;
+  if (!ordered.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
+  if (w.size === "L" && view === "arena") return arenaBody(w, live, ordered, sbs, o) + note;
+  // S: the first match's scoreboard; M: its scoreboard and the others as
+  // one line each; L: the first on the compact board, the list alongside.
+  // The point of view (owner 2026-11-02): the "Watch as" switch on the
+  // first match at M and L (S has no room); never on the viewer's own match.
+  const first = (w.size === "S" ? "" : matchTagsHtml(live, ordered[0]!)) + scoreboardHtml(sbs[0]!, { small: w.size !== "L" }) + (w.size === "L" && view === "board" ? compactBoard(ordered[0]!, sbs[0]!.near) : "") + (w.size === "S" ? "" : watchAsHtml(sbs[0]!, `wa-${w.id}`));
+  const rest = sbs.slice(1);
+  const list = w.size === "S" || !rest.length ? "" : linesHtml(live, ordered.slice(1), rest);
+  const boards = w.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
+  // S is the score alone (render session 67): the header's arrow opens Watch live.
+  const more = w.size === "S" ? "" : `<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${liveCountText(live)}</span></div>`;
+  return `${boards}${more}${note}`;
+}
+
+/** "5 live · 3 top rated" (render session 71). */
+function liveCountText(live: SiteLive): string {
+  const top = liveGroups(live).topRated.length;
+  return `${live.matches.length} live${top ? ` · ${top} top rated` : ""}`;
+}
+
+/** Over the first match: its Top rated chip and viewer count. */
+function matchTagsHtml(live: SiteLive, m: SiteLiveMatch): string {
+  const tags = topRatedHtml(live, m) + viewersHtml(m.viewers);
+  return tags ? `<div class="mtags">${tags}</div>` : "";
+}
+
+/** The other live matches, one line each, with their rank and viewers. */
+function linesHtml(live: SiteLive, ms: readonly SiteLiveMatch[], sbs: readonly Scoreboard[]): string {
+  return `<ul class="lines">${sbs.map((sb, i) => liveLineHtml(sb, topRatedHtml(live, ms[i]!, { short: true }) + viewersHtml(ms[i]!.viewers))).join("")}</ul>`;
 }
 
 /** The arena the tile embeds: its match, or null when that match has
- * left the live list (ended, held for its result). */
+ * left the live list (ended, held for its result). With nothing held, the
+ * first in Watch live's order (the top pick, render session 71). */
 export function arenaMatchOf(live: SiteLive, o: Pick<WidgetOpts, "arena">): { matchId: string; index: number } {
-  const id = o.arena?.matchId ?? live.matches[0]?.matchId ?? "";
-  return { matchId: id, index: live.matches.findIndex((m) => m.matchId === id) };
+  const ordered = liveOrder(live);
+  const id = o.arena?.matchId ?? ordered[0]?.matchId ?? "";
+  return { matchId: id, index: ordered.findIndex((m) => m.matchId === id) };
 }
 
 /** Watch live at L (the brief's table, render session 67): the live match
@@ -232,22 +252,23 @@ export function arenaMatchOf(live: SiteLive, o: Pick<WidgetOpts, "arena">): { ma
  * arena's frame into `.wl-frame` and keeps it across redraws (only
  * `.wl-info` is redrawn while the match is the same). Under 720 px, or
  * before the frame has loaded, the compact board stands in. Clicking the
- * arena opens it full screen. */
-function arenaBody(w: SiteWidget, live: SiteLive, sbs: Scoreboard[], o: WidgetOpts): string {
+ * arena opens it full screen. `ordered` and `sbs` are in Watch live's order. */
+function arenaBody(w: SiteWidget, live: SiteLive, ordered: readonly SiteLiveMatch[], sbs: Scoreboard[], o: WidgetOpts): string {
   const { matchId, index } = arenaMatchOf(live, o);
   const sb = index >= 0 ? sbs[index]! : null;
   const ended = !sb || !!o.arena?.ended;
   const label = sb ? `${sb.p1.agentName} vs ${sb.p2.agentName}` : "the match";
+  const othersM = ordered.filter((_, i) => i !== index);
   const others = sbs.filter((_, i) => i !== index);
   const stage = sb
-    ? `<div class="wl-fallback">${compactBoard(live.matches[index]!, sb.near)}</div>`
+    ? `<div class="wl-fallback">${compactBoard(ordered[index]!, sb.near)}</div>`
     : `<div class="wl-fallback"><p class="muted small">The match is over.</p></div>`;
   const arena = `<div class="wl-arena" data-match="${esc(matchId)}" data-ended="${ended}"><div class="wl-frame" aria-hidden="true"></div><div class="wl-wait" aria-hidden="true">Joining the match…</div>${stage}<button type="button" class="wl-open" data-act="watch-arena" data-match="${esc(matchId)}" aria-label="${esc(`Watch ${label} full screen on the arena`)}"${sb ? "" : " disabled"}><span>${icon("arrow", 12)} Full screen</span></button></div>`;
   const head = sb
-    ? scoreboardHtml(sb, { small: true }) + watchAsHtml(sb, `wa-${w.id}`)
+    ? matchTagsHtml(live, ordered[index]!) + scoreboardHtml(sb, { small: true }) + watchAsHtml(sb, `wa-${w.id}`)
     : `<p class="small"><b>Match over.</b> <span class="muted">Its result and replay are in your match history. The next live match takes this tile in a moment.</span></p>`;
-  const list = others.length ? `<ul class="lines">${others.map(liveLineHtml).join("")}</ul>` : `<p class="muted small">${sb ? "No other match is live." : "No match is live right now. The next ladder round starts soon."}</p>`;
-  const info = `<div class="wl-info">${head}<h4>Also live</h4>${list}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live</span></div></div>`;
+  const list = others.length ? linesHtml(live, othersM, others) : `<p class="muted small">${sb ? "No other match is live." : "No match is live right now. The next ladder round starts soon."}</p>`;
+  const info = `<div class="wl-info">${head}<h4>Also live</h4>${list}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${liveCountText(live)}</span></div></div>`;
   return `<div class="wl-l">${arena}${info}</div>`;
 }
 

@@ -645,6 +645,20 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .rp-speed .speed-ctl { margin: 0; background: rgba(10,12,30,.86); color: #fff; }
 @media (max-width: 560px) { .rp-speed { right: 12px; left: 12px; bottom: 58px; max-width: none; } }
 .pill.fast { background: #ffb43c; color: #1a1205; margin-left: 6px; }
+/* ---- featured picks and viewers (render session 71): Watch live's groups, the Top rated chip, the eye ---- */
+.pill.top { background: linear-gradient(135deg, #ffe08a, #ffb43c); color: #2a1a00; white-space: nowrap; }
+.vw { display: inline-flex; align-items: center; gap: 4px; font: 700 12px system-ui; font-variant-numeric: tabular-nums; padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, currentColor 12%, transparent); white-space: nowrap; }
+.vw.none { opacity: .62; }
+.lc-tags, .mtags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.lc-tags .pill.fast { margin-left: 0; } .lc-sp { flex: 1; } .lc-why { white-space: nowrap; }
+.mtags { margin-bottom: 4px; }
+.ltags { display: inline-flex; gap: 4px; margin-left: auto; flex: none; } .ltags .pill { padding: 2px 7px; font-size: 11px; } .ltags .vw { padding: 2px 6px; font-size: 11px; }
+.lgroup { margin-bottom: 20px; } .lg-h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 4px 10px; } .lg-h h3 { margin: 0; font-size: 17px; } .lg-h p { margin: 0; flex: 1 1 20em; }
+.lg-none { margin: 0 4px 16px; }
+.live-card.top { border-color: rgba(255,207,92,.55); box-shadow: 0 0 0 1px rgba(255,207,92,.25), 0 10px 28px -14px rgba(255,180,60,.55); }
+@media (max-width: 560px) { .lc-why { white-space: normal; flex-basis: 100%; order: 5; } }
+/* A phone (render session 71): the turn line above the two sides, which split the width (it had squeezed them to a few px). */
+@media (max-width: 560px) { .sb { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; } .sb-mid { grid-row: 1; grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; flex-direction: row; max-width: none; min-width: 0; } .sb-hp b { font-size: 18px; } }
 @media (max-width: 760px) { .m-live-grid { grid-template-columns: 1fr; } .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .hrow .hr-act { grid-column: 2 / 4; } .sb-meta { display: none; } }
 /* ---- the Stats page (render session 68): the filter, the rating and its chart, the totals, today, factions, recent, the ladder ---- */
 .st-filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; } .st-filter .sp { flex: 1; }

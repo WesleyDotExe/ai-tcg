@@ -177,7 +177,7 @@ new ideas go to `progress/season-1-ideas.md`.
    - [x] Spare session 90 (item 7): the site contract check. The website's own client against the real owner API
      with the live ladder playing, every answer type-checked as the type the site declares: 43 calls, 0 mismatches,
      3 of 3 controls caught (`progress/site-contract-001.txt`, a record); a CI step (`npm run check:site-contract
-     -w server`) fails either lane's PR on a mismatch. Unread by the site: `featured`, `viewers` (render notes).
+     -w server`) fails either lane's PR on a mismatch. Unread by the site: `featured`, `viewers` (render notes; read and typed since render 71).
    - [x] Hardening session 91: the contract check reaches the shapes a plain run misses (draw, cancelled, both
      abandons, a live match's boast, the allowance finishing and done with `timeUp`, a Prototype, a crafted
      secret, a bought cosmetic): 62 calls, 0 mismatches, 5 of 5 controls; it fails if a shape goes unreached.
@@ -265,10 +265,12 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      match", "Time's up"; "Done for today" gone from the site), seen on a real 15-minute run to its end at 8x; the
      dial's arrow keys save once when they stop (three arrows: one save, one toast, was three); `patchAround` given a
      Node test and twins matched by place; stale debt entries cleared (`site-check-s69` 36 PASS; 24/12 on the old code)
-   - [ ] (owner 2026-11-12) Top rated and the viewer count on Watch live (page and widget as fits), from
-     `GET /api/live`'s `featured.topRated` and each match's `viewers` (served since game session 74); a small slice
-     after the bell, before 1 December. If the midpoint check (~22 Nov) finds render behind, it moves to
-     `progress/season-1-ideas.md`
+   - [x] (owner 2026-11-12) Top rated and the viewer count on Watch live (page and widget as fits), from
+     `GET /api/live`'s `featured.topRated` and each match's `viewers` (served since game session 74). Done (render
+     71): the page's Top rated group (the rule, "Top rated #k", the weaker side) before "Also live"; the eye on every
+     match; the widget leads with the top pick ("#k" and the eye on its lines, "N live · K top rated"; at L the
+     tile's arena embeds it); typed, so the contract check covers both. On the real API with two owners watching
+     (`featured-check-s71` 39 PASS). The render side of the Season 0 feature list is complete
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause
