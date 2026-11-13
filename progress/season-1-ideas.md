@@ -78,7 +78,8 @@ feel* is the Pokémon TCG Pocket battle screen, with our own mechanics on it.
 - **The POV follows "Watch as"** (built in render session 52). Whoever you watch as sits at the bottom. On your own
   match that is your agent; switching sides swaps the board.
 - **[owner] True 3D** (a WebGL scene with a real camera, lights and shadows), chosen by the owner from two test examples
-  (a 2.5D tilt and true 3D; layout and feel tests with placeholder art, made outside the repo). Every existing effect is rebuilt in 3D. The owner's modifications (2026-11-13):
+  (a 2.5D tilt and true 3D; layout and feel tests with placeholder art; the chosen one is kept at
+  `render/reference/season1-arena-3d-test.html`). Every existing effect is rebuilt in 3D. The owner's modifications (2026-11-13):
   1. **The arena floor is round:** a raised circular platform (the playmat circle from the 2026-11-08 design) with a
      glowing rim, not a rectangular table.
   2. **The far side holds its hand in the scene:** the opponent's cards are held up behind their side of the arena,
