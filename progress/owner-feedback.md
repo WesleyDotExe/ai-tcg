@@ -4778,3 +4778,12 @@ Owner decisions on the 2 small calls in `progress/render/checkpoints.md` (PR #16
 2. **Keep:** the dial saves once, 0.7 s after the last arrow key (or at once on Enter, Space or Tab; a click still saves at once).
 
 Next session by alternation: game 92 (the hardening pass for the 7-day unattended run), then render 70 (the notifications bell).
+
+---
+
+## 2026-11-13 — Owner: answer to game session 92 (the hardening pass for the 7-day unattended run): (a), a launch agent
+
+Owner decision on the call in `progress/notes-for-owner.md` (PR #164, `progress/unattended-run-001.txt`).
+1. **(a) A macOS launch agent.** The server comes back by itself: a launchd launch agent starts `npm run season` on the Mac mini when the owner logs in and restarts it if it stops, with its output written to a log file the owner can read. Not a start by hand.
+
+**For game session 93 (the dry run and the owner's Mac mini guide):** include the launch agent in the guide, ready to copy (the settings file, where it goes, how to load, check, stop and unload it, and where its log file is), and prove it as far as the session's environment allows. Keep the guide's other steps: set the Mac mini never to sleep and to log in automatically after a power cut; stop with Ctrl-C (or unload the agent) before a switch; check the clock before a restart; `--new` for a first start; the season end and `season:next`. Make sure a restart by the launch agent stops cleanly and takes over the lock as session 92 measured, and that the log file doesn't grow without limit over a season (or say how big it gets).
