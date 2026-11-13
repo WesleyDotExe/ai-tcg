@@ -115,7 +115,7 @@ export interface AutoPlayView {
   stoppedReason?: "dailyRewardsMaxed" | "timeUp" | null;
 }
 
-export function autoPlayView(a: SiteAutoPlay, hasAgent: boolean): AutoPlayView {
+export function autoPlayView(a: SiteAutoPlay, hasAgent: boolean, closed: string | null = null): AutoPlayView {
   if (a.house) return { shown: false, on: true, enabled: false, label: "Always plays", note: "A house agent always plays.", stopped: null };
   // (render 58) Two reasons the server stops it: the day's rewards maxed, or
   // the play-time allowance's time up (game session 76).
@@ -124,6 +124,10 @@ export function autoPlayView(a: SiteAutoPlay, hasAgent: boolean): AutoPlayView {
     : "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney).";
   const stoppedReason = !a.stopped ? null : a.stopped.reason === "timeUp" ? "timeUp" : "dailyRewardsMaxed";
   if (!hasAgent) return { shown: true, on: a.on, enabled: false, label: "Auto-play", note: "Connect an agent to play matches.", stopped, stoppedReason };
+  // Render session 72: once the season ends (or is ending) no match starts,
+  // though the server still takes auto-play on: Start would promise a match
+  // that never comes. Stop stays (it harms nothing).
+  if (closed) return { shown: true, on: a.on, enabled: a.on, label: "Auto-play", note: closed, stopped, stoppedReason };
   if (a.on) return { shown: true, on: true, enabled: true, label: "Auto-play", note: "Your agent joins every ladder round. A match already live finishes if you turn it off.", stopped, stoppedReason };
   if (!a.canTurnOn) return { shown: true, on: false, enabled: false, label: "Auto-play", note: "Today's rewards are maxed; auto-play can go on again after midnight (Sydney).", stopped, stoppedReason };
   return { shown: true, on: false, enabled: true, label: "Auto-play", note: "Off: your agent sits out the ladder rounds.", stopped, stoppedReason };

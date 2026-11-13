@@ -22,6 +22,7 @@ import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } f
 import type { SiteCosmeticItem, SiteLoadout, SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { SiteRating } from "./siteAgent.js";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
+import type { SiteSeason } from "./siteSeason.js";
 
 /** A faction the owner can lock the agent to (OWNER_API.md, the play settings). */
 export type SiteFaction = "Cortex" | "Swarm" | "Aegis" | "Null";
@@ -428,6 +429,9 @@ export interface SiteApi {
   /** `POST /api/notifications/clear` (game 77; the bell, render session 70):
    * they leave the feed for good. */
   clearNotifications(token: string, what: { all: true } | { ids: number[] }): Promise<{ cleared: number; unread: number }>;
+  /** `GET /api/season` (game session 82; `endsAt` v29, game session 94):
+   * the season's state and when the server ends it (render session 72). */
+  season(token: string): Promise<SiteSeason>;
   live(token: string): Promise<SiteLive>;
   /** `GET /api/live/:matchId?from=N`: the match now and the moves released from N on. */
   liveFeed(token: string, matchId: string, from: number): Promise<SiteLiveFeed>;
@@ -564,6 +568,7 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     },
     markNotificationsRead: (token, what) => call("POST", "/api/notifications/read", { token, body: what }),
     clearNotifications: (token, what) => call("POST", "/api/notifications/clear", { token, body: what }),
+    season: (token) => call("GET", "/api/season", { token }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
     setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),

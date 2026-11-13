@@ -19,18 +19,17 @@ Nothing is blocking.**
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. This session's PR is game, so **the next session is
-render** (plan item 6, render side: fix what the dry run broke).
+with "Render:", this is a game session; otherwise render. The latest PR (render session 72) is render, so **the next session is
+game**.
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says. Check the last merged PR so a slice isn't built twice. Read owner-feedback.md.
 
-Render lane, next: this game session touched render files to keep the site's types matching the server (the
-contract check runs in CI): `SiteAllowance` gained the "waiting" state with null `startedAt`/`endsAt`, the time ring
-shows "Waiting for the next round" full and not draining, and the "15 min" toast says the time counts from the first
-match. Look at it at S, M and L in a browser (the centre text is long at S) and restyle as you see fit;
-`GET /api/season` now also sends `endsAt` (untyped on the site; a "Season ends Sun 27 Dec, 00:00" line is yours to
-place or not).
+Render lane: render session 72 (PR "Render: the dry run's fixes on the site") did plan item 6's render side: the
+waiting ring restyled at S/M/L, the season's end time on the Stats page, and Agent controls / Agent match stop
+offering Start and time once the season is ending or ended (`progress/render/evidence/season-check-s72.txt`, 60 PASS).
+So the next session is **game**. Two small asks for it are in `progress/render/notes-for-owner.md` (session 72): the
+site contract check could call `season`, and should auto-play on be refused once the season has ended.
 
 Game lane, when its turn comes: act on the owner's answers to session 94's calls (notes-for-owner.md). Then
 hardening only where the dry run found weak spots; still unreached by any check (quality-debt.md): a real full disk;

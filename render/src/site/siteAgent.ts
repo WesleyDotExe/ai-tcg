@@ -22,6 +22,7 @@ import type { SiteAutoPlay, SiteHistory, SiteHistoryRow, SiteLive, SitePlay } fr
 import type { SiteDaily } from "./siteBoard.js";
 import { autoPlayView, historyRowHtml, historyRowView, myLiveMatch, type AutoPlayView } from "./siteMatches.js";
 import { FACTION_HEX, agentStatus, deckLine, esc, styleName } from "./siteModel.js";
+import type { SeasonClosed } from "./siteSeason.js";
 
 // ---- the rating (GET /api/rating) ---------------------------------------------
 
@@ -172,11 +173,21 @@ export interface TimeRingView {
   unit: string | null;
   /** The line beside it (M and L): "42 min left today". */
   caption: string;
-  tone: "run" | "low" | "finish" | "done" | "open" | "off";
+  tone: "wait" | "run" | "low" | "finish" | "done" | "open" | "off";
+  /** (render session 72) The server's words when they don't fit the ring's
+   * centre ("Waiting for the next round"): the line beside the ring at every
+   * size, and part of the ring's accessible name. */
+  note?: string;
 }
 
-/** The ring's state. `inMatch`: the agent has a match live now. */
-export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, inMatch: boolean): TimeRingView {
+/** The ring's state. `inMatch`: the agent has a match live now. `closed`
+ * (render session 72): the season has ended or is ending, so no match
+ * starts whatever the allowance says. */
+export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, inMatch: boolean, closed: SeasonClosed | null = null): TimeRingView {
+  if (closed && ap.shown) {
+    const caption = closed.ended ? `${closed.why} Its ladder is the final standings.` : `${closed.why} ${inMatch ? "Your agent's match finishes and counts." : "The matches on screen finish, then it ends."}`;
+    return { pct: 0, centre: closed.ended ? "Ended" : "Ending", unit: null, caption, tone: closed.ended ? "done" : "finish", note: closed.ended ? "Season over" : "Season ending" };
+  }
   if (allowance) {
     const total = Math.max(1, allowance.minutesTotal);
     const left = Math.max(0, Math.min(total, Math.round(allowance.minutesLeft)));
@@ -186,9 +197,15 @@ export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, 
     // none, or when the page's count reached zero first.
     const said = (s: TimeAllowance["state"], own: string) => (allowance.state === s && allowance.label) || own;
     // (game session 94; owner 2026-11-13) The clock starts at the agent's
-    // first pairing: until then the ring is full and reads the server's words.
-    if (allowance.state === "waiting")
-      return { pct: 100, centre: said("waiting", "Waiting for the next round"), unit: null, caption: `${left} min, counted from your agent's first match`, tone: "run" };
+    // first pairing: until then the ring is full and still. Render session 72:
+    // the server's words are too long for the centre's pill (at S it ran out
+    // of the widget, over Stop), so the centre keeps the minutes chosen and the
+    // words go on the line beside the ring, at every size.
+    if (allowance.state === "waiting") {
+      const words = said("waiting", "Waiting for the next round");
+      const why = inMatch ? `the ${left} min start when your agent is next paired (this match isn't timed)` : `the ${left} min start when your agent is paired`;
+      return { pct: 100, centre: String(left), unit: "min", caption: `${words}: ${why}.`, tone: "wait", note: words };
+    }
     if (allowance.state === "done") return { pct: 0, centre: said("done", "Time's up"), unit: null, caption: "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney).", tone: "done" };
     if (allowance.state === "finishing" || left === 0)
       return { pct: 0, centre: said("finishing", "Finishing match"), unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
@@ -226,21 +243,21 @@ export function ringParts(name: string, v: TimeRingView, size: number): { dash: 
   const r = size / 2 - 4;
   const circ = 2 * Math.PI * r;
   const lit = (circ * v.pct) / 100;
-  const label = `${name}: ${v.unit ? `${v.centre} ${v.unit} left` : v.centre}`;
+  const label = `${name}: ${v.note ? `${v.note}, ${v.centre}${v.unit ? ` ${v.unit}` : ""}` : v.unit ? `${v.centre} ${v.unit} left` : v.centre}`;
   return { dash: `${lit.toFixed(1)} ${circ.toFixed(1)}`, label, centreHtml: `${esc(v.centre)}${v.unit ? `<small>${esc(v.unit)}</small>` : ""}`, word: !v.unit, tone: v.tone };
 }
 
 /** Agent controls' ring from `GET /api/play` alone at the page's clock: what
  * the widget draws, and what the once-a-second tick redraws in place. */
-export function ringOfPlay(p: SitePlay, now: number): TimeRingView {
-  return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent), !!p.liveMatch);
+export function ringOfPlay(p: SitePlay, now: number, closed: SeasonClosed | null = null): TimeRingView {
+  return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent, closed?.why ?? null), !!p.liveMatch, closed);
 }
 
 /** Whether the ring needs the once-a-second tick: only while time runs
  * down (a number of minutes on the page's clock). Finishing, done, no limit
  * and off change only on the server's word, at its next read. */
-export function ringTicks(p: SitePlay | null): boolean {
-  return !!p?.connectedAgent && p.autoPlay.allowance?.state === "running";
+export function ringTicks(p: SitePlay | null, closed: SeasonClosed | null = null): boolean {
+  return !closed && !!p?.connectedAgent && p.autoPlay.allowance?.state === "running";
 }
 
 /** How long until the page reads the agent's status again (carried over
@@ -252,7 +269,9 @@ export function statusPollMs(p: SitePlay | null, now: number): number {
   if (!p) return 15000;
   if (p.rebuild.job?.state === "running") return 1500;
   const a = allowanceOf(p.autoPlay, now);
-  if (a && (a.state === "finishing" || (a.state === "running" && a.secondsLeft !== undefined && a.secondsLeft < 30))) return 5000;
+  // Render session 72: also while waiting for the first pairing, so the ring
+  // starts draining within seconds of the match that starts the clock.
+  if (a && (a.state === "waiting" || a.state === "finishing" || (a.state === "running" && a.secondsLeft !== undefined && a.secondsLeft < 30))) return 5000;
   return 15000;
 }
 
@@ -398,6 +417,8 @@ export interface AgentWidgetData {
   errors: Partial<Record<"rating" | "daily" | "history" | "live", string>>;
   now: number;
   busy?: boolean;
+  /** Render session 72: the season has ended or is ending (`GET /api/season`). */
+  closed?: SeasonClosed | null;
 }
 
 function factionOf(p: SitePlay): string | null {
@@ -477,9 +498,11 @@ export interface TimeButtonsView {
   note: string;
 }
 
-export function timeButtonsView(a: SiteAutoPlay, ap: AutoPlayView, busy: boolean): TimeButtonsView {
+export function timeButtonsView(a: SiteAutoPlay, ap: AutoPlayView, busy: boolean, closed: SeasonClosed | null = null): TimeButtonsView {
   if (a.allowance === undefined) return { presets: { enabled: false, why: TIME_WAITS }, adds: { enabled: false, why: TIME_WAITS }, note: TIME_WAITS };
   if (!ap.shown) return { presets: { enabled: false, why: "A house agent always plays." }, adds: { enabled: false, why: "A house agent always plays." }, note: "" };
+  // Render session 72: no time can buy a match once the season stops starting them.
+  if (closed) return { presets: { enabled: false, why: closed.why }, adds: { enabled: false, why: closed.why }, note: "" };
   const presets = a.dailyRewardsMaxed || !a.canTurnOn
     ? { enabled: false, why: "Today's rewards are maxed; time can be given again after midnight (Sydney)." }
     : { enabled: !busy, why: a.allowance && a.allowance.state !== "done" ? "Starts a new allowance from now, in place of the time left." : "" };
@@ -511,12 +534,13 @@ export function agentControlsHtml(size: "S" | "M" | "L", d: AgentWidgetData): st
   const a = p.connectedAgent;
   if (!a) return noAgent();
   const fac = factionOf(p);
-  const ap = autoPlayView(p.autoPlay, true);
+  const closed = d.closed ?? null;
+  const ap = autoPlayView(p.autoPlay, true, closed?.why ?? null);
   const inMatch = !!p.liveMatch;
-  const ring = timeRingView(d.allowance, ap, inMatch);
+  const ring = timeRingView(d.allowance, ap, inMatch, closed);
   // "Go to match" sits beside Start / Stop from M up (S has no room).
   const go = inMatch ? `<a class="btn pri sm" href="#/match">Go to match</a>` : "";
-  const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small ac-cap">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
+  const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? (ring.note ? `<span class="small ac-cap ac-note" title="${esc(ring.caption)}">${esc(ring.note)}</span>` : "") : `<span class="small ac-cap">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
   if (size === "S") return top;
   const mine = myLiveMatch(d.live);
   const liveStyle = mine ? (mine.p1.agentId === a.agentId ? mine.p1.playStyle : mine.p2.agentId === a.agentId ? mine.p2.playStyle : null) : null;
@@ -524,11 +548,11 @@ export function agentControlsHtml(size: "S" | "M" | "L", d: AgentWidgetData): st
   // At M the dial is smaller and its style's summary is the notches' titles.
   const dial = dv ? dialHtml(dv, { busy: d.busy, size: size === "M" ? 92 : 112, summary: size === "L" }) : `<p class="muted small">No play styles on this server.</p>`;
   const deck = `<div class="small">${ftag(fac)} ${esc(deckLine(p))}</div>`;
-  const idle = inMatch ? "" : `<span class="muted small">No match live${ap.on ? ": joins the next ladder round" : ""}</span>`;
+  const idle = inMatch ? "" : `<span class="muted small">No match live${closed ? "" : ap.on ? ": joins the next ladder round" : ""}</span>`;
   // The stop's line, unless the ring's caption already says it (render 69:
   // a done allowance's caption is the "Time's up" line, word for word the same news).
-  const stopped = ap.stopped && !(ap.stoppedReason === "timeUp" && ring.tone === "done") ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
-  const tb = timeButtonsView(p.autoPlay, ap, !!d.busy);
+  const stopped = ap.stopped && !closed && !(ap.stoppedReason === "timeUp" && ring.tone === "done") ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
+  const tb = timeButtonsView(p.autoPlay, ap, !!d.busy, closed);
   const waits = tb.note ? `<span class="muted small">${esc(tb.note)}</span>` : "";
   const time = `<div class="wcol tight tgrp"><span class="muted small">Give your agent</span>${timeButtons(TIME_PRESETS, false, tb.presets)}</div>`;
   if (size === "M") return top + `<div class="ac-mid">${dial}<div class="wcol tight">${deck}${idle}${time}</div></div>${waits}` + stopped;

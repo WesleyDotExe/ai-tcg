@@ -131,7 +131,10 @@ describe("the time ring over the real owner API, with the ladder playing", () =>
     let r = await client.setAutoPlay(ada, true, 15);
     expect(r.autoPlay.allowance).toMatchObject({ state: "waiting", label: "Waiting for the next round", endsAt: null, totalMinutes: 15, minutesLeft: 15 });
     ({ html } = await draw("S"));
-    expect(centre(html)).toBe("Waiting for the next round");
+    // Render session 72: the centre keeps the minutes; the words sit under the name.
+    expect(centre(html)).toBe("15");
+    expect(html).toContain('class="tring t-wait"');
+    expect(html).toContain(">Waiting for the next round</span>");
     // The ladder's round pairs Ada now: the 15 minutes start.
     await live.tick();
     expect(store.liveMatchOf(owners[0]!.ownerId)).not.toBeNull();

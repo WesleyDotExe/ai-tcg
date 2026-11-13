@@ -9,6 +9,22 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **The season's end on the site (session 72) is checked on the real API through open, ending and ended (60 PASS),
+  with thin spots.** Only Agent controls and the Agent match page know the season is over. The Store, the Packs
+  widget, the free daily pack's Claim and Open still offer their buttons; the server refuses each with its own words,
+  shown as an error toast, which is legible but not a designed ended state. There is no season-end screen (the
+  owner's 2026-11-10 note leaves one open). The end time shows only on the Stats page. The season is read at sign-in,
+  with the status poll at most once a minute, and on every poll once the page's clock passes the end time. So the
+  page can say "ending" up to a minute after the server does, and "ended" up to one poll (15 s) after. The Stats
+  line's countdown is drawn when the page draws, not ticked. The browser check ran the server's clock at 8x, so the
+  "Ends in 39 min" it saw counted on the page's clock while the server's ran ahead (a demo artefact; the real server
+  runs at 1x). A phone wasn't looked at after the end. `GET /api/season` isn't in the site contract check yet (a
+  game-lane item).
+- **The waiting ring (session 72):** checked at S, M, L and a 390 px phone with the server waiting, then paired. The
+  S line is one line at 11 px with an ellipsis and the full caption on hover; a longer server label (another
+  language, a renamed state) would be cut at S. Turning auto-play on again with new minutes while waiting replaces
+  the minutes (the server's rule); the widget doesn't say so beyond the presets' existing hover. The breathing was
+  seen as a class, not watched as motion.
 - **Top rated and viewer counts on Watch live (session 71) are built and checked on the real API with the ladder
   playing (39 PASS), with thin spots.** The demo has four owners, so a round has two matches and the browser saw
   only "no Top rated" (houses in placement) and "every match featured"; a mixed round (some featured, the rest under

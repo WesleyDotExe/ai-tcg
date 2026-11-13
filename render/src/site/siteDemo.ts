@@ -33,7 +33,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EconomyStore } from "@ai-tcg/economy";
+import { EconomyStore, SEASON_END_TIMES } from "@ai-tcg/economy";
 // The game lane's server, read-only (RENDER.md: consume it as a fixed upstream).
 import { workerChooser } from "../../../server/src/deckBuild/workerChooser.js";
 import { startOwnerApi } from "../../../server/src/ownerApi.js";
@@ -61,6 +61,12 @@ export interface DemoOptions {
   speed?: number;
   /** Matches the ladder records before the site opens (default 4). */
   warmMatches?: number;
+  /** Render session 72: the season's end time, as `npm run season:setup`
+   * writes it (game session 94): by default the season's own (Season 0:
+   * midnight Sydney at the end of 26 Dec 2026); a number puts it that many
+   * minutes ahead on the demo's clock (after the warm-up), so the ladder
+   * ends the season while the site is open; null sets none. */
+  endsInMinutes?: number | null;
 }
 
 /** The demo's clock with the ladder: two hours behind at the start (the
@@ -210,6 +216,10 @@ export async function startSiteDemo(options: DemoOptions = {}): Promise<RunningD
     }
     clock.setBehind(0);
   }
+  // The season's end time (render session 72), as season:setup sets it.
+  const endsIn = options.endsInMinutes;
+  const endsAt = typeof endsIn === "number" ? new Date(clock.now() + endsIn * 60_000).toISOString() : endsIn === null ? null : (SEASON_END_TIMES[store.season] ?? null);
+  if (endsAt) store.setSeasonEndTime(endsAt);
   const api = await startOwnerApi({ store, port: 0, chooser: chooser.choose, ...(options.full ? {} : { build: DEMO_BUILD }), ...(live ? { live, matchFiles: matchDir } : {}) });
   live?.start();
   const site = await startSiteHost({ api: `http://localhost:${api.port}`, port: options.port ?? 0 });
@@ -236,7 +246,10 @@ if (isMain) {
   // Render session 71: --warm N, the matches Nova's agent records before the
   // site opens (default 4; the house agents leave placement at 5).
   const wm = process.argv.indexOf("--warm");
-  const demo = await startSiteDemo({ port: i >= 0 ? Number(process.argv[i + 1]) : 8080, full: process.argv.includes("--full"), ladder: process.argv.includes("--ladder"), speed: sp >= 0 ? Number(process.argv[sp + 1]) : 1, ...(wm >= 0 ? { warmMatches: Number(process.argv[wm + 1]) } : {}) });
+  // Render session 72: --ends-in N (minutes on the demo's clock) or --no-end.
+  const ei = process.argv.indexOf("--ends-in");
+  const ends = ei >= 0 ? { endsInMinutes: Number(process.argv[ei + 1]) } : process.argv.includes("--no-end") ? { endsInMinutes: null } : {};
+  const demo = await startSiteDemo({ port: i >= 0 ? Number(process.argv[i + 1]) : 8080, full: process.argv.includes("--full"), ladder: process.argv.includes("--ladder"), speed: sp >= 0 ? Number(process.argv[sp + 1]) : 1, ...(wm >= 0 ? { warmMatches: Number(process.argv[wm + 1]) } : {}), ...ends });
   console.log(`[site-demo] ${demo.url}  sign in as "${DEMO_LOGIN}" / "${DEMO_PASSWORD}"  (owner API on port ${demo.apiPort})`);
   const stop = async () => {
     await demo.close();

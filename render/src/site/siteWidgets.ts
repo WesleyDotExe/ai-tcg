@@ -30,6 +30,7 @@ import {
   type WidgetType,
 } from "./siteBoard.js";
 import { agentControlsHtml, myAgentHtml, type SiteRating, type TimeAllowance } from "./siteAgent.js";
+import type { SeasonClosed } from "./siteSeason.js";
 import { amount } from "./siteLook.js";
 import { formBody, ladderBody, notifBody, type SiteLadder, type SiteNotifications, type SiteStats } from "./siteStanding.js";
 import { dailyPackView } from "./siteStore.js";
@@ -103,6 +104,9 @@ export interface WidgetData {
   allowance?: TimeAllowance | null;
   /** A play setting being saved (the dial, the deck switcher). */
   busy?: boolean;
+  /** Render session 72: the season has ended or is ending; Agent controls
+   * stops offering Start and time. */
+  closed?: SeasonClosed | null;
   /** The viewer (to mark their own side on a scoreboard). */
   ownerId: string | null;
   /** The side the viewer chose to watch a match as (render session 52; kept
@@ -416,7 +420,7 @@ function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
 
 function agentData(d: WidgetData): Parameters<typeof myAgentHtml>[1] {
   const { rating, daily, history, live } = d.errors;
-  return { play: d.play, rating: d.rating ?? null, daily: d.daily, history: d.history, live: d.live, allowance: d.allowance ?? null, errors: { rating, daily, history, live }, now: d.now, busy: d.busy };
+  return { play: d.play, rating: d.rating ?? null, daily: d.daily, history: d.history, live: d.live, allowance: d.allowance ?? null, errors: { rating, daily, history, live }, now: d.now, busy: d.busy, closed: d.closed ?? null };
 }
 
 /** One widget: the glass tile, its icon and title, the open button (or in
