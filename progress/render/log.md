@@ -5857,3 +5857,74 @@ dial's 700 ms could draw the saved style back for a moment (never seen); the sta
 **Next render-lane slice:** after this PR the next session is game (92, the hardening pass for the 7-day unattended
 run). The next render session (70): the notifications bell in the top bar (owner 2026-11-13, item 3). Then render
 71: Top rated and viewer counts on Watch live, which completes the Season 0 feature list.
+
+
+## 2026-11-13 — Render session 70: the notifications bell
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #165 "Game lane: a second firing found PR #164 open, waited,
+it merged; stopped", is not "Render:"; the catch-up after #143 is long done). No PR from either lane was open.
+**Read first:** owner-feedback.md (the 2026-11-13 plan: render 70 is the bell; the 2026-11-12 allowance "the bell
+may mark what its panel shows when it is opened"; the answers to render 69 and game 92 needed nothing here),
+DESIGN.md, RENDER.md, this lane's log, debt and notes, server/OWNER_API.md's notifications section. Not a hardening
+pass (69 was; next is 74).
+
+**Built (`render/src/site/siteBell.ts`, new; wired in `siteClient.ts`):**
+- **The bell button** in the top bar: the server's unread count ("99+" past 99) and an accessible name that says
+  it ("Notifications, 6 unread"). The count is read with `GET /api/notifications?limit=1` on the existing status
+  poll (15 s) and kept in step with the Notifications widget's own read either way (`withCounts`). A new unread
+  notification since the last read swings the bell once (not with reduced motion).
+- **The panel** (`bellPanelHtml`, pure): the newest 20, grouped Today / Yesterday / Earlier (`dayGroup`, local day,
+  23-hour days handled); five filter chips with each kind's unread count, the server's `kind`; Show older (the
+  server's `before`; pages merged, deduplicated, newest first: `withPage`); a × on each line (`POST
+  /api/notifications/clear` by id; focus to the next line); Clear all behind a confirmation; Mark all read (only while
+  some unread are past what's shown); loading rows, the empty words per filter, an error with Try again.
+- **Marking:** what the panel shows is marked read by id (`unreadShown`, at most 100 per call) as it is shown: on
+  opening, on a filter, on Show older, and when a new one arrives while the panel is open (the panel reads its
+  newest again). They keep "New" until it closes (`fresh`). The widget's own rule is unchanged (showing marks
+  nothing; its Mark all read does).
+- **Behaviour:** Escape closes and returns focus to the bell; a click outside, tabbing out or the bell again closes;
+  Tab from the bell goes into the panel, Shift+Tab from its heading back. Stale answers are dropped (a read number).
+  The Notifications widget's arrow (it had none: no page) opens the panel.
+- **The API client:** `notifications(token, limit, { before, kind })`, `clearNotifications`, and
+  `markNotificationsRead` typed `{ marked, unread }`.
+- **Two layout fixes found on the way:** the panel first sat inside the top bar, whose own backdrop filter meant
+  the panel blurred only the bar (the page showed through, sharp) and its `position: fixed` was pinned to the bar;
+  it now sits after the top bar with a near-opaque glass of its own. And a phone rule hid every `.nbadge`, the
+  Notifications widget's bell count too (meant for the sidebar's "Soon"): scoped to `.navb .nbadge`. At phone width
+  the bar's buttons are 34 px and the theme button leaves the bar (in Settings), so the account button stays on a
+  390 or 320 px screen (measured: the bar 314/314 and 244/244 wide).
+
+**Tests (+10, render 1019):** `siteBell.test.ts` (new): the badge words and name; the swing only for a new unread
+one; pages appended, deduplicated, newest first; read by id lowers only those and the per-kind counts, keeps them
+new; clear; closing keeps the counts; a filtered page doesn't move the newest mark; the panel's HTML (day groups,
+chips with counts, escaping, every control, loading, empty per filter, error); `dayGroup`; and on the real owner API
+over a real store with 25 recorded matches: two pages by `before`, nothing twice, a `kind` filter, read by the shown
+ids, clear one, clear all. `siteBoard.test.ts`: the widget arrow rule now includes Notifications' bell arrow.
+
+**Ran it:** `progress/render/evidence/bell-check-s70.mjs` against the real owner API with the ladder at 8x, nothing
+rewritten. **First run 49 PASS, 3 FAIL** (`bell-check-s70-first-run.txt`): the check named the heading wrong; the
+check looked for Mark all read where nothing unread was left (moved to B, where it is offered); and **a real bug**:
+Cancel in the Clear all confirmation closed the panel (the confirmation empties itself before the page's click
+listener runs, so its button read as a click outside; now a click on a node no longer in the page is ignored). The
+stills of the next run showed the see-through panel and the phone's top bar overflowing (above, fixed), then chips on
+two rows on a desktop once counts show (a coloured dot in place of each chip's icon and short names; a line in the
+check now). **Final run 60 PASS, 0 FAIL** (`bell-check-s70.txt`): the bell on every page; the badge the server's 25;
+opening shows the server's newest 20 in order, grouped by day, focus on the heading, marks exactly the 20 shown ids
+(26 -> 6 unread on the server), keeps them New, the badge and the widget follow; Mark all read to 0; filters
+(Matches: the server's 20 of that kind; Daily pack: its 1); Show older appends the server's next 6, in order, none
+twice; clear one by keyboard (gone on the server, focus to the next one's ×); Escape, click outside, tab out, the bell
+again; a new match recorded: the badge rose to the server's count within a poll and the bell swung; another with the
+panel open: it read its newest again, marked it, showed it New; the widget's arrow opens it; Clear all: Cancel keeps
+them, Clear all empties the server's feed; on a 390 px phone the top bar fits and the panel fits with no sideways
+scroll, and the widget's bell count shows; no external requests, no page errors. Stills `v2-s70-bell-open.jpg`,
+`-filter`, `-empty`, `-closed`, `-phone`, `-phone-dark`. CI browser check 61 PASS (`ci-browser-check-s70.txt`);
+the site contract check 0 mismatches, controls 5 of 5, `markNotificationsRead` fits its new type
+(`site-contract-s70.txt`); typecheck clean (all workspaces); `render/output/site/index.html` rebuilt.
+
+**Not done (named, in quality-debt):** a big pull drawn in the panel in the browser (the demo's ladder opens none;
+unit-tested); a 404 while marking (cleared elsewhere) not exercised; the swing seen as a class, not watched; the
+panel's days are the viewer's, not Sydney's; phones emulated only; no old-code comparison (nothing existed).
+
+**Next render-lane slice:** after this PR the next session is game (93: the Season 0 dry run and the Mac mini
+guide). The next render session (71): Top rated and viewer counts on Watch live (`GET /api/live`'s
+`featured.topRated` and each match's `viewers`), which completes the Season 0 feature list.

@@ -15,6 +15,7 @@
 
 import { FACE_CSS, FACE_SCRIPT, boastGlyphSymbols, faceSymbols } from "./siteFaces.js";
 import { SHOP_CSS } from "./siteShopCss.js";
+import { BELL_CSS } from "./siteBell.js";
 import { COIN_SCRIPT } from "./siteCoins.js";
 import { buildSync } from "esbuild";
 import { renderPackOpeningHtml } from "../packPage.js";
@@ -356,7 +357,7 @@ body:has(#replay:not([hidden])) .toast { z-index: 46; }
    queue), then one column. */
 @media (max-width: 1100px) { .wgrid { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-flow: row; } .sz-Lw { grid-column: span 6; } .wsplit, .wsplit.wide-l { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 1000px) { .cur { padding: 0 10px 0 8px; font-size: 13.5px; } .obtn span { display: none; } .obtn { padding: 0 11px; } }
-@media (max-width: 760px) { #wallet .cur:nth-child(2) { display: none; } .bgsw { grid-template-columns: repeat(2, minmax(0, 1fr)); } #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
+@media (max-width: 760px) { #wallet .cur:nth-child(2) { display: none; } .bgsw { grid-template-columns: repeat(2, minmax(0, 1fr)); } #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .navb .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
   .brand { font-size: 13px; padding: 0 0 12px; text-align: center; } #agent-card { padding: 8px; background: none; border: 0; box-shadow: none; } .ac-top { margin: 0; justify-content: center; }
   .topbar, #page { padding-left: 16px; padding-right: 16px; } .field { flex-direction: column; align-items: flex-start; }
   .wgrid { grid-template-columns: minmax(0, 1fr); } .wg, .addtile { grid-column: span 1 !important; } .wlib { grid-template-columns: 1fr; } }
@@ -716,6 +717,7 @@ export function renderSitePage(): string {
 <style>${SITE_CSS}</style>
 <style>${FACE_CSS}</style>
 <style>${SHOP_CSS}</style>
+<style>${BELL_CSS}</style>
 </head>
 <body data-theme="light">
 <div id="bg" aria-hidden="true"></div>
@@ -751,6 +753,7 @@ export function renderSitePage(): string {
       <h1 id="title">Home</h1><span class="sp"></span>
       <div id="wallet" aria-label="Wallet"></div>
       <button id="theme-btn" class="tbtn" type="button"></button>
+      <button id="bell-btn" class="tbtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="bell-panel" aria-label="Notifications"></button>
       <button id="acct-btn" class="tbtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
       <div id="acct-menu" class="glass" role="menu" hidden>
         <div class="who"><b id="acct-name"></b><small id="acct-kind">Owner account</small></div>
@@ -758,6 +761,8 @@ export function renderSitePage(): string {
         <button id="sign-out" class="mitem" role="menuitem" type="button">Sign out</button>
       </div>
     </header>
+    <!-- Render session 70: the bell's panel, outside the top bar so its blur reaches the page (a backdrop filter inside another sees only its parent). -->
+    <div id="bell-panel" class="glass" role="dialog" aria-modal="false" aria-labelledby="bell-title" hidden></div>
     <div id="page" tabindex="-1"></div>
   </main>
 </div>

@@ -1378,3 +1378,20 @@ season mark) is proposed as a mark, call 1.
    untyped line for it (`progress/render/evidence/site-contract-s69.txt`, 0 mismatches, controls 5 of 5). The record
    refreshes when the game lane next writes it.
 4. **Nothing needed from the game lane.** No new server fields.
+
+## 2026-11-13 — Render session 70 (the notifications bell)
+
+1. **Six small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
+   call 1 (opening the panel marks what it shows read; they stay "New" until it closes). Call 3 is a layout change
+   outside the bell: on a phone the theme button leaves the top bar.
+2. **For the game lane's roadmap upkeep:** render item 1 (site layout and pages) is now [x] with the bell; item 7's
+   "Stats page, ladder page and the bell" line is [x]. Ticked in `progress/roadmap.md`. Left on the render list:
+   Top rated and viewer counts on Watch live (render 71).
+3. **For the game lane (the site contract check):** the site's client now has `clearNotifications` (`POST
+   /api/notifications/clear`), which the check doesn't call yet: it is listed under "owner API calls with no JSON
+   answer checked". `markNotificationsRead` is typed now (`{ marked, unread }`, was `unknown`) and fits; and
+   `notifications` takes `before` and `kind`. This session's run: 0 mismatches, controls 5 of 5
+   (`progress/render/evidence/site-contract-s70.txt`). Adding a `clearNotifications` call to the check is the game
+   lane's call; nothing blocks.
+4. **Nothing else needed from the game lane.** No new server fields; the bell uses `GET /api/notifications`
+   (`limit`, `before`, `kind`), `/read` and `/clear` as served since game session 77.

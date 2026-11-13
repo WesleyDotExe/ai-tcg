@@ -304,7 +304,7 @@ body:has(#replay:not([hidden])) .toast { z-index: 46; }
    queue), then one column. */
 @media (max-width: 1100px) { .wgrid { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-flow: row; } .sz-Lw { grid-column: span 6; } .wsplit, .wsplit.wide-l { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 1000px) { .cur { padding: 0 10px 0 8px; font-size: 13.5px; } .obtn span { display: none; } .obtn { padding: 0 11px; } }
-@media (max-width: 760px) { #wallet .cur:nth-child(2) { display: none; } .bgsw { grid-template-columns: repeat(2, minmax(0, 1fr)); } #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
+@media (max-width: 760px) { #wallet .cur:nth-child(2) { display: none; } .bgsw { grid-template-columns: repeat(2, minmax(0, 1fr)); } #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .navb .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
   .brand { font-size: 13px; padding: 0 0 12px; text-align: center; } #agent-card { padding: 8px; background: none; border: 0; box-shadow: none; } .ac-top { margin: 0; justify-content: center; }
   .topbar, #page { padding-left: 16px; padding-right: 16px; } .field { flex-direction: column; align-items: flex-start; }
   .wgrid { grid-template-columns: minmax(0, 1fr); } .wg, .addtile { grid-column: span 1 !important; } .wlib { grid-template-columns: 1fr; } }
@@ -880,6 +880,54 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 @media (prefers-reduced-motion: reduce) { .spk-foil, .sh-t.t-feature .sh-art .spk { animation: none; } .sh-t, .sh-t .spk, .sh-t .spile { transition: none; } .sh-t:hover, .sh-t:hover .spk, .sh-t:hover .spile { transform: none; } }
 @media (prefers-reduced-transparency: reduce) { .sh-t, .sh-bal, .sh-reset, .sh-price { backdrop-filter: none; -webkit-backdrop-filter: none; } .sh-t, .sh-bal, .sh-reset { background: var(--solid); } }
 </style>
+<style>
+/* Render session 70: the notifications bell (siteBell.ts). */
+#bell-btn { color: var(--ink); }
+button.wopen { border: 0; padding: 0; background: none; color: inherit; cursor: pointer; }
+#bell-btn .bl-badge { position: absolute; top: -4px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; display: grid; place-items: center; background: linear-gradient(135deg, #ff4d6d, #ff7a59); color: #fff; font: 800 10.5px ui-rounded, system-ui; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--solid); animation: wg-pop .45s cubic-bezier(.3,1.6,.5,1) both; }
+#bell-btn[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 24%, var(--solid)); color: var(--accent); }
+#bell-btn.ring .bl-svg { transform-origin: 50% 8%; animation: bl-ring .9s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes bl-ring { 0%,100% { transform: rotate(0); } 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); } }
+#bell-panel { position: fixed; right: var(--br, 84px); top: 64px; width: min(460px, calc(100vw - 32px)); max-height: min(640px, calc(100vh - 84px)); display: flex; flex-direction: column; padding: 14px 14px 10px; border-radius: 20px; z-index: 12;
+  background: rgba(246,248,255,.86); box-shadow: 0 18px 50px rgba(40,30,120,.22), inset 0 1px 0 rgba(255,255,255,.8); }
+body[data-theme="dark"] #bell-panel { background: rgba(20,24,56,.88); box-shadow: 0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12); }
+#bell-panel[hidden] { display: none; }
+.bl-head { display: flex; align-items: baseline; gap: 10px; padding: 0 4px 10px; } .bl-head h2 { margin: 0; font: 800 18px system-ui; outline: none; } .bl-head .sp, .bl-foot .sp { flex: 1; }
+.bl-chips { display: flex; gap: 5px; flex-wrap: wrap; padding: 0 2px 10px; border-bottom: 1px solid var(--line); }
+.bl-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 4px; white-space: nowrap; border: 0; border-radius: 99px; background: var(--soft); color: inherit; font: 600 12px system-ui; cursor: pointer; box-shadow: var(--soft-edge); }
+.bl-chip { padding-left: 9px; } .bl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--k); box-shadow: 0 0 0 2px color-mix(in srgb, var(--k) 28%, transparent); } .bl-chip b { font-variant-numeric: tabular-nums; color: #e0405f; }
+.bl-chip[aria-pressed="true"] { background: color-mix(in srgb, var(--k, var(--accent)) 26%, var(--solid)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--k, var(--accent)) 75%, transparent); }
+.bl-chip:focus-visible, .bl-x:focus-visible, .bl-m:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bl-scroll { flex: 1; min-height: 0; overflow: auto; margin: 0 -6px; padding: 4px 6px 6px; overscroll-behavior: contain; }
+.bl-day { margin: 10px 4px 4px; font: 700 11px system-ui; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.bl-n { position: relative; display: grid; grid-template-columns: 32px minmax(0,1fr) auto; gap: 10px; align-items: start; padding: 8px; border-radius: 13px; }
+.bl-n:hover { background: var(--soft); }
+.bl-n.new { background: color-mix(in srgb, var(--accent) 13%, transparent); } .bl-n.new::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
+.bl-m { display: flex; flex-direction: column; gap: 1px; min-width: 0; color: inherit; text-decoration: none; border-radius: 6px; }
+.bl-m b { font-size: 13.5px; line-height: 1.25; } .bl-m small { font-size: 12px; line-height: 1.3; } .bl-m:hover b { text-decoration: underline; }
+.bl-n.t-gold .bl-m b { color: #d9a21f; } body[data-theme="dark"] .bl-n.t-gold .bl-m b { color: #f6c445; }
+.bl-n.t-w .nk { box-shadow: inset 0 0 0 1.2px #3cc47c; } .bl-n.t-l .nk { box-shadow: inset 0 0 0 1.2px #ff6b81; }
+.bl-cards { margin-top: 6px; display: flex; gap: 4px; }
+.bl-w { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; } .bl-wr { display: flex; align-items: center; gap: 4px; min-height: 22px; }
+.bl-new { font: 800 10px system-ui; font-style: normal; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+.bl-x { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font: 600 16px/1 system-ui; cursor: pointer; opacity: 0; }
+.bl-n:hover .bl-x, .bl-n:focus-within .bl-x { opacity: .7; } .bl-x:hover, .bl-x:focus-visible { opacity: 1 !important; background: var(--soft); color: var(--ink); }
+@media (hover: none) { .bl-x { opacity: .6; } }
+.bl-msg { padding: 18px 8px; text-align: center; } .bl-msg p { margin: 0 0 10px; }
+.bl-err { color: #e0405f; font-size: 12.5px; margin: 8px 4px; }
+.bl-older { display: block; margin: 8px auto 2px; }
+.bl-sk { display: grid; grid-template-columns: 32px 1fr; gap: 10px; padding: 8px; } .bl-sk i, .bl-sk b, .bl-sk small { display: block; border-radius: 8px; background: var(--soft); animation: pulse 1.4s ease-in-out infinite; }
+.bl-sk i { width: 32px; height: 32px; border-radius: 30%; } .bl-sk span { display: flex; flex-direction: column; gap: 6px; padding-top: 3px; } .bl-sk b { height: 12px; width: 70%; } .bl-sk small { height: 10px; width: 45%; }
+.bl-foot { display: flex; align-items: center; gap: 10px; padding: 10px 4px 2px; border-top: 1px solid var(--line); font-size: 12.5px; } .bl-foot a { color: var(--accent); font-weight: 600; }
+/* A phone: the bell is one more button in the top bar, so the bar's buttons and title get smaller to keep it in one line, and the
+   theme button leaves the bar (Settings -> Theme has the same three choices). */
+@media (max-width: 760px) { .topbar { gap: 6px; } #theme-btn { display: none; } .topbar h1 { font-size: 18px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .topbar .tbtn { width: 34px; height: 34px; flex: none; } #acct-btn { font-size: 14px; }
+  #bell-btn .bl-svg { width: 17px; height: 17px; } #bell-btn .bl-badge { min-width: 17px; height: 17px; font-size: 10px; } }
+@media (max-width: 760px) { #bell-panel { left: 12px; right: 12px; top: 66px; width: auto; max-height: calc(100vh - 80px); } }
+@media (prefers-reduced-motion: reduce) { #bell-btn .bl-badge, #bell-btn.ring .bl-svg, .bl-sk i, .bl-sk b, .bl-sk small { animation: none; } }
+@media (prefers-reduced-transparency: reduce) { #bell-panel, body[data-theme="dark"] #bell-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--solid); } }
+</style>
 </head>
 <body data-theme="light">
 <div id="bg" aria-hidden="true"></div>
@@ -915,6 +963,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
       <h1 id="title">Home</h1><span class="sp"></span>
       <div id="wallet" aria-label="Wallet"></div>
       <button id="theme-btn" class="tbtn" type="button"></button>
+      <button id="bell-btn" class="tbtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="bell-panel" aria-label="Notifications"></button>
       <button id="acct-btn" class="tbtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
       <div id="acct-menu" class="glass" role="menu" hidden>
         <div class="who"><b id="acct-name"></b><small id="acct-kind">Owner account</small></div>
@@ -922,6 +971,8 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
         <button id="sign-out" class="mitem" role="menuitem" type="button">Sign out</button>
       </div>
     </header>
+    <!-- Render session 70: the bell's panel, outside the top bar so its blur reaches the page (a backdrop filter inside another sees only its parent). -->
+    <div id="bell-panel" class="glass" role="dialog" aria-modal="false" aria-labelledby="bell-title" hidden></div>
     <div id="page" tabindex="-1"></div>
   </main>
 </div>
@@ -6645,13 +6696,13 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     if (size === "S") return head;
     const today = d.daily ? todayLine(d.daily) : null;
     const streak = d.history ? streakOf(d.history.matches) : null;
-    const chips = `<div class="ma-chips">` + (today ? `<span class="chip"><b class="w">${today.wins}W</b> <b class="l">${today.losses}L</b> <small>today</small></span>` : pending(d, "daily", "Today")) + (streak ? `<span class="chip ${streak.kind === "W" ? "hot" : "cold"}">${esc(streak.line)}</span>` : d.history ? `<span class="chip"><small>No streak</small></span>` : pending(d, "history", "Streak")) + (fac ? `<span class="chip">${ftag(fac)}<small>deck</small></span>` : `<span class="chip"><small>No deck yet</small></span>`) + `</div>`;
+    const chips2 = `<div class="ma-chips">` + (today ? `<span class="chip"><b class="w">${today.wins}W</b> <b class="l">${today.losses}L</b> <small>today</small></span>` : pending(d, "daily", "Today")) + (streak ? `<span class="chip ${streak.kind === "W" ? "hot" : "cold"}">${esc(streak.line)}</span>` : d.history ? `<span class="chip"><small>No streak</small></span>` : pending(d, "history", "Streak")) + (fac ? `<span class="chip">${ftag(fac)}<small>deck</small></span>` : `<span class="chip"><small>No deck yet</small></span>`) + `</div>`;
     const rd = rl ? `<div class="muted small">${esc(rl.line)} ${esc(rl.rd)} \xB7 ${esc(styleName(p, a.playStyle))} play style</div>` : "";
-    if (size === "M") return head + chips + rd;
+    if (size === "M") return head + chips2 + rd;
     const trend = d.rating ? ratingTrend(d.rating) : null;
     const trendHtml = trend ? `<div class="ma-trend"><div class="row between"><h4>Rating trend</h4><span class="rt ${trend.tone}"><b>${esc(trend.change)}</b> <small class="muted">${esc(trend.over)}</small></span></div>${trendSvg(trend, 300, 64)}</div>` : d.rating ? `<p class="muted small">The rating trend draws after two rated matches.</p>` : pending(d, "rating", "Rating trend");
     const recent = d.history ? d.history.matches.length ? `<ul class="hlist">${d.history.matches.slice(0, 4).map((r) => historyRowHtml(historyRowView(r, d.now), { compact: true })).join("")}</ul>` : `<p class="muted small">No matches yet.</p>` : pending(d, "history", "Recent matches");
-    return `<div class="wsplit wide-l"><div class="wcol">${head}${chips}${rd}${trendHtml}</div><div class="wcol"><h4>Recent matches</h4>${recent}</div></div>`;
+    return `<div class="wsplit wide-l"><div class="wcol">${head}${chips2}${rd}${trendHtml}</div><div class="wcol"><h4>Recent matches</h4>${recent}</div></div>`;
   }
   var TIME_PRESETS = [15, 30, 60];
   var TIME_ADDS = [15, 30];
@@ -7067,8 +7118,12 @@ gl_FragColor=vec4(col,1.);}`;
         const q = [opts.agent ? `agent=${encodeURIComponent(opts.agent)}` : "", opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
         return call("GET", `/api/stats${q ? `?${q}` : ""}`, { token });
       },
-      notifications: (token, limit) => call("GET", `/api/notifications${limit ? `?limit=${limit}` : ""}`, { token }),
+      notifications: (token, limit, opts = {}) => {
+        const q = [limit ? `limit=${limit}` : "", opts.before ? `before=${opts.before}` : "", opts.kind ? `kind=${encodeURIComponent(opts.kind)}` : ""].filter(Boolean).join("&");
+        return call("GET", `/api/notifications${q ? `?${q}` : ""}`, { token });
+      },
       markNotificationsRead: (token, what) => call("POST", "/api/notifications/read", { token, body: what }),
+      clearNotifications: (token, what) => call("POST", "/api/notifications/clear", { token, body: what }),
       live: (token) => call("GET", "/api/live", { token }),
       liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
       setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),
@@ -8686,8 +8741,8 @@ gl_FragColor=vec4(col,1.);}`;
     const head = `<div class="fm-head">${tierBadge(s.rating.now.tier, size === "S" ? 34 : 42)}<div class="fm-v"><b>${esc(placed ? t.value : "\u2014")}</b><small class="muted">${esc(s.rating.now.tier)}${placed ? ` \xB1${Math.round(s.rating.now.rd)}` : ` \xB7 ${s.rating.now.ratedMatches} rated`}</small></div><div class="fm-w rt ${t.tone}"><b>${esc(t.change)}</b><small>this week</small></div></div>`;
     if (size === "S") return head;
     const tot = s.totals;
-    const chips = `<div class="ma-chips">${streakChip(tot.currentStreak)}<span class="chip"><b class="w">${tot.wins}W</b> <b class="l">${tot.losses}L</b>${tot.draws ? ` <b>${tot.draws}D</b>` : ""}</span><span class="chip"><small>Best streak</small> <b>${tot.bestWinStreak}</b></span></div>`;
-    const mid = head + ratingChartSvg(s.rating.chart, tiers, 300, 64) + `<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(10, s.recent.length)}</span></div>` + formPips(s.recent, 10) + chips;
+    const chips2 = `<div class="ma-chips">${streakChip(tot.currentStreak)}<span class="chip"><b class="w">${tot.wins}W</b> <b class="l">${tot.losses}L</b>${tot.draws ? ` <b>${tot.draws}D</b>` : ""}</span><span class="chip"><small>Best streak</small> <b>${tot.bestWinStreak}</b></span></div>`;
+    const mid = head + ratingChartSvg(s.rating.chart, tiers, 300, 64) + `<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(10, s.recent.length)}</span></div>` + formPips(s.recent, 10) + chips2;
     if (size === "M") return mid;
     const recent = s.recent.length ? `<ul class="fm-rec">${s.recent.slice(0, 4).map((r) => {
       var _a4;
@@ -8696,7 +8751,7 @@ gl_FragColor=vec4(col,1.);}`;
       return `<li><span class="wl ${p.tone}">${esc(p.letter)}</span><span class="fr-n"><b>vs ${esc(r.opponent.agentName)}</b> ${fc}<small class="muted">${esc(r.opponent.ownerName)} \xB7 ${esc(whenText(r.endedAt, now))}</small></span><span class="rt ${r.rating ? r.rating.change > 0 ? "up" : r.rating.change < 0 ? "down" : "flat" : "none"} small">${r.rating ? esc(signed(r.rating.change)) : "unrated"}</span></li>`;
     }).join("")}</ul>` : `<p class="muted small">No results yet.</p>`;
     const notRec = s.factionNotRecorded.matches ? `<p class="muted small">${s.factionNotRecorded.matches} older match${s.factionNotRecorded.matches === 1 ? "" : "es"} kept no faction.</p>` : "";
-    const left = `<div class="wcol">${head}<div class="fm-chart">${ratingChartSvg(s.rating.chart, tiers, 440, 128, { labels: true })}</div>${chips}<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(20, s.recent.length)}</span></div>${formPips(s.recent, 20)}</div>`;
+    const left = `<div class="wcol">${head}<div class="fm-chart">${ratingChartSvg(s.rating.chart, tiers, 440, 128, { labels: true })}</div>${chips2}<div class="row between nowrap"><h4>Form</h4><span class="muted small">last ${Math.min(20, s.recent.length)}</span></div>${formPips(s.recent, 20)}</div>`;
     const right = `<div class="wcol"><div class="fm-tot">${winRing(tot, 72)}<div><b class="wbig-s">${tot.matches}</b> <span class="muted small">matches</span><div class="small">${amount0(tot.creditsFromMatches)} credits from matches</div>${tot.void ? `<div class="muted small">${tot.void} void (cancelled or abandoned)</div>` : ""}</div></div><h4>Win rate by deck faction</h4>${factionBars(s.byFaction)}${notRec}<h4>Recent</h4>${recent}</div>`;
     return `<div class="wsplit wide-l fm-l">${left}${right}</div>`;
   }
@@ -9123,7 +9178,7 @@ gl_FragColor=vec4(col,1.);}`;
     const hero = (w2.type === "agent" || w2.type === "live") && d.play.connectedAgent ? " hero" : "";
     const fac = hero ? agentFaction(d.play) : null;
     const style = hero ? ` style="--c:${fac && FACTION_HEX[fac] || "#8f8cff"}"` : "";
-    const head = o.editing ? `<span class="wic" style="--g:${info.grad}">${icon(info.icon, 12)}</span><span class="wtt">${esc(info.name)}</span><span class="sizes" role="group" aria-label="Size of ${esc(info.name)}">${["S", "M", "L"].map((s) => `<button type="button" data-act="resize" data-size="${s}" aria-pressed="${w2.size === s}">${s}</button>`).join("")}</span><button type="button" class="wminus" data-act="remove" aria-label="Remove ${esc(info.name)}">\u2212</button>` : `<span class="wic" style="--g:${info.grad}">${icon(info.icon, 12)}</span><span class="wtt">${esc(info.name)}</span>${info.page ? `<a class="wopen" href="${hashOf(info.page)}" aria-label="Open ${esc(PAGE_TITLES[info.page])}" title="Open ${esc(PAGE_TITLES[info.page])}">${icon("arrow", 14)}</a>` : ""}`;
+    const head = o.editing ? `<span class="wic" style="--g:${info.grad}">${icon(info.icon, 12)}</span><span class="wtt">${esc(info.name)}</span><span class="sizes" role="group" aria-label="Size of ${esc(info.name)}">${["S", "M", "L"].map((s) => `<button type="button" data-act="resize" data-size="${s}" aria-pressed="${w2.size === s}">${s}</button>`).join("")}</span><button type="button" class="wminus" data-act="remove" aria-label="Remove ${esc(info.name)}">\u2212</button>` : `<span class="wic" style="--g:${info.grad}">${icon(info.icon, 12)}</span><span class="wtt">${esc(info.name)}</span>${info.page ? `<a class="wopen" href="${hashOf(info.page)}" aria-label="Open ${esc(PAGE_TITLES[info.page])}" title="Open ${esc(PAGE_TITLES[info.page])}">${icon("arrow", 14)}</a>` : w2.type === "notif" ? `<button type="button" class="wopen" data-act="bell-open" aria-label="Open the notifications" title="Open the notifications">${icon("arrow", 14)}</button>` : ""}`;
     const edit = o.editing ? ` draggable="true" tabindex="0" aria-roledescription="widget" aria-label="${esc(info.name)}, ${w2.size === "S" ? "small" : w2.size === "M" ? "medium" : "large"}. Arrow keys move it."` : "";
     return `<section class="wg ${sizeClass(w2)}${dark}${hero}" data-id="${esc(w2.id)}" data-type="${w2.type}" data-size="${w2.size}"${style}${edit}><div class="wgh">${head}</div><div class="wgb">${bodyOf(w2, d, o)}</div></section>`;
   }
@@ -9132,6 +9187,133 @@ gl_FragColor=vec4(col,1.);}`;
     if (isNaN(t)) return iso;
     const d = new Date(t);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  // src/site/siteBell.ts
+  var BELL_PAGE = 20;
+  var BELL_MAX_IDS = 100;
+  var BELL_KINDS = Object.keys(KIND_INFO);
+  var CHIP_NAMES = { matchResult: "Matches", bigPull: "Big pulls", dailyPack: "Daily pack", autoPlayStopped: "Auto-play" };
+  function emptyBell() {
+    return { open: false, filter: null, items: [], more: false, unread: 0, unreadByKind: zeroKinds(), loading: false, loadingMore: false, busy: false, error: null, fresh: [], latestId: null, rings: 0 };
+  }
+  function zeroKinds() {
+    return Object.fromEntries(BELL_KINDS.map((k) => [k, 0]));
+  }
+  function badgeText(unread) {
+    return unread > 99 ? "99+" : String(Math.max(0, Math.floor(unread)));
+  }
+  function withCounts(s, page) {
+    var _a4, _b;
+    const newest = (_a4 = page.notifications[0]) != null ? _a4 : null;
+    const top = newest ? newest.notificationId : null;
+    const arrived = s.latestId !== null && newest !== null && newest.notificationId > s.latestId && newest.readAt === null;
+    return {
+      ...s,
+      unread: page.unread,
+      unreadByKind: { ...zeroKinds(), ...page.unreadByKind },
+      latestId: top === null ? s.latestId : Math.max(top, (_b = s.latestId) != null ? _b : 0),
+      rings: arrived ? s.rings + 1 : s.rings
+    };
+  }
+  function withPage(s, page, append) {
+    const seen = /* @__PURE__ */ new Set();
+    const items = (append ? [...s.items, ...page.notifications] : [...page.notifications]).filter((n) => seen.has(n.notificationId) ? false : (seen.add(n.notificationId), true)).sort((a, b) => b.notificationId - a.notificationId);
+    const fresh = new Set(s.fresh);
+    for (const n of items) if (n.readAt === null) fresh.add(n.notificationId);
+    const counted = s.filter === null ? withCounts(s, page) : { ...s, unread: page.unread, unreadByKind: { ...zeroKinds(), ...page.unreadByKind } };
+    return { ...counted, items, more: page.more, fresh: [...fresh].sort((a, b) => b - a), loading: false, loadingMore: false, error: null };
+  }
+  function unreadShown(s) {
+    return s.items.filter((n) => n.readAt === null).map((n) => n.notificationId).slice(0, BELL_MAX_IDS);
+  }
+  function withRead(s, ids, unread, at) {
+    const marks = ids === "all" ? null : new Set(ids);
+    const byKind = { ...s.unreadByKind };
+    const items = s.items.map((n) => {
+      var _a4;
+      if (n.readAt !== null || marks && !marks.has(n.notificationId)) return n;
+      byKind[n.kind] = Math.max(0, ((_a4 = byKind[n.kind]) != null ? _a4 : 0) - 1);
+      return { ...n, readAt: at };
+    });
+    return { ...s, items, unread, unreadByKind: ids === "all" ? zeroKinds() : byKind, busy: false };
+  }
+  function withCleared(s, ids, unread) {
+    var _a4;
+    if (ids === "all") return { ...s, items: [], more: false, unread, unreadByKind: zeroKinds(), fresh: [], busy: false };
+    const gone = new Set(ids);
+    const byKind = { ...s.unreadByKind };
+    for (const n of s.items) if (gone.has(n.notificationId) && n.readAt === null) byKind[n.kind] = Math.max(0, ((_a4 = byKind[n.kind]) != null ? _a4 : 0) - 1);
+    return { ...s, items: s.items.filter((n) => !gone.has(n.notificationId)), unread, unreadByKind: byKind, fresh: s.fresh.filter((id) => !gone.has(id)), busy: false };
+  }
+  function closed(s) {
+    return { ...s, open: false, fresh: [], items: [], more: false, loading: false, loadingMore: false, error: null, filter: null };
+  }
+  function localDay(ms) {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+  function dayGroup(createdAt, now, dayOf = localDay) {
+    const t = Date.parse(createdAt);
+    if (isNaN(t)) return "Earlier";
+    const d = dayOf(t);
+    if (d === dayOf(now)) return "Today";
+    const yesterday = [dayOf(now - 864e5), dayOf(now - 828e5)].filter((y) => y !== dayOf(now));
+    if (yesterday.includes(d)) return "Yesterday";
+    return "Earlier";
+  }
+  var BELL_PATH = '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>';
+  function bellButton(s) {
+    const label = s.unread ? `Notifications, ${s.unread} unread` : "Notifications, nothing unread";
+    const badge = s.unread ? `<b class="bl-badge" aria-hidden="true">${badgeText(s.unread)}</b>` : "";
+    return { html: `<svg class="bl-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${BELL_PATH}</svg>${badge}`, label };
+  }
+  function chips(s) {
+    const all = `<button type="button" class="bl-chip" data-act="bell-filter" data-kind="" aria-pressed="${s.filter === null}" aria-label="All${s.unread ? `, ${s.unread} unread` : ""}">All${s.unread ? ` <b>${badgeText(s.unread)}</b>` : ""}</button>`;
+    const kinds = BELL_KINDS.map((k) => {
+      var _a4;
+      const n = (_a4 = s.unreadByKind[k]) != null ? _a4 : 0;
+      return `<button type="button" class="bl-chip" data-act="bell-filter" data-kind="${k}" aria-pressed="${s.filter === k}" style="--k:${KIND_INFO[k].hue}" aria-label="${esc(KIND_INFO[k].name)}${n ? `, ${n} unread` : ""}"><i class="bl-dot" aria-hidden="true"></i><span>${esc(CHIP_NAMES[k])}</span>${n ? ` <b>${badgeText(n)}</b>` : ""}</button>`;
+    }).join("");
+    return `<div class="bl-chips" role="group" aria-label="Show">${all}${kinds}</div>`;
+  }
+  function emptyText(filter) {
+    if (filter === null) return "Nothing yet. Match results, big pulls, the free daily pack and auto-play stops show here.";
+    return `No ${KIND_INFO[filter].name.toLowerCase()} yet.`;
+  }
+  function bellPanelHtml(s, o) {
+    const fresh = new Set(s.fresh);
+    const allRead = s.unread === 0;
+    const head = `<div class="bl-head"><h2 id="bell-title" tabindex="-1">Notifications</h2><small class="muted" aria-live="polite">${allRead ? "All read" : `${s.unread} unread`}</small><span class="sp"></span>${allRead ? "" : `<button type="button" class="btn sm" data-act="bell-read-all"${s.busy ? " disabled" : ""}>Mark all read</button>`}</div>`;
+    let body;
+    if (s.error && !s.items.length) {
+      body = `<div class="bl-msg"><p>Couldn't read your notifications: ${esc(s.error)}.</p><button type="button" class="btn sm" data-act="bell-retry">Try again</button></div>`;
+    } else if (s.loading && !s.items.length) {
+      body = `<ul class="bl-list" aria-busy="true">${[0, 1, 2].map(() => `<li class="bl-sk"><i></i><span><b></b><small></small></span></li>`).join("")}</ul>`;
+    } else if (!s.items.length) {
+      body = `<div class="bl-msg"><p class="muted">${esc(emptyText(s.filter))}</p></div>`;
+    } else {
+      let group = "";
+      const rows = [];
+      for (const n of s.items) {
+        const g = dayGroup(n.createdAt, o.now, o.dayOf);
+        if (g !== group) {
+          if (group) rows.push("</ul>");
+          rows.push(`<h3 class="bl-day">${g}</h3><ul class="bl-list">`);
+          group = g;
+        }
+        const v = noticeView(n, o.now, o.factionOf);
+        const isNew = fresh.has(v.id);
+        const cards = v.cards.length ? `<span class="mrow bl-cards">${v.cards.slice(0, 5).map(o.miniCard).join("")}</span>` : "";
+        rows.push(`<li class="bl-n t-${v.tone}${isNew ? " new" : ""}" data-nid="${v.id}">${kindGlyph(v.kind, 32)}<a class="bl-m" href="${v.href}" data-act="bell-go"><b>${esc(v.title)}</b><small class="muted">${esc(v.line)}</small>${cards}</a><span class="bl-w"><small class="muted">${esc(v.when)}</small><span class="bl-wr">${isNew ? `<i class="bl-new">New</i>` : ""}<button type="button" class="bl-x" data-act="bell-clear" data-nid="${v.id}" aria-label="Clear: ${esc(v.title)}" title="Clear">\xD7</button></span></span></li>`);
+      }
+      rows.push("</ul>");
+      const older = s.more ? `<button type="button" class="btn sm bl-older" data-act="bell-older"${s.loadingMore ? " disabled" : ""}>${s.loadingMore ? "Reading\u2026" : "Show older"}</button>` : "";
+      const err = s.error ? `<p class="bl-err" role="alert">${esc(s.error)}</p>` : "";
+      body = `<div class="bl-feed">${rows.join("")}</div>${err}${older}`;
+    }
+    const foot = `<div class="bl-foot"><a href="#/settings" data-act="bell-go">Choose which in Settings</a><span class="sp"></span>${s.items.length ? `<button type="button" class="btn sm ghost" data-act="bell-clear-all"${s.busy ? " disabled" : ""}>Clear all</button>` : ""}</div>`;
+    return head + chips(s) + `<div class="bl-scroll">${body}</div>` + foot;
   }
 
   // src/site/siteTileArena.ts
@@ -9586,6 +9768,9 @@ gl_FragColor=vec4(col,1.);}`;
     state.draft = null;
     state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} };
     state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
+    bellSeq++;
+    bell2 = emptyBell();
+    drawBell();
     closeReplay();
     clearTimeout(livePoll);
     state.shop = { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null };
@@ -9667,6 +9852,7 @@ gl_FragColor=vec4(col,1.);}`;
     route();
     schedulePoll();
     void loadHome();
+    void pollBell().catch((err) => fail(err));
   }
   async function loadHome(only) {
     var _a4, _b, _c;
@@ -9702,6 +9888,7 @@ gl_FragColor=vec4(col,1.);}`;
       })
     );
     if (signedOutNow) return signedOut("Your session ended. Sign in again.");
+    if (need.includes("notif") && state.home.notif) bellCounts(state.home.notif);
     if (state.page === "home" && !dragging) drawPage();
     if (need.includes("live") && state.page === "home") {
       clearTimeout(livePoll);
@@ -9767,7 +9954,7 @@ gl_FragColor=vec4(col,1.);}`;
       const [play2, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err) => {
         if (err instanceof SiteApiError && err.signedOut) throw err;
         return state.wallet;
-      })]);
+      }), pollBell()]);
       state.play = play2;
       state.wallet = wallet;
       drawWallet();
@@ -10318,6 +10505,210 @@ gl_FragColor=vec4(col,1.);}`;
     await loadHome(["notif"]);
     (_a4 = document.querySelector('#wgrid .wg[data-type="notif"] .ntl a')) == null ? void 0 : _a4.focus();
   }
+  var bell2 = emptyBell();
+  var bellRungAt = 0;
+  var bellSeq = 0;
+  function drawBell(focusAfter) {
+    var _a4, _b, _c, _d, _e, _f;
+    const btn = document.getElementById("bell-btn");
+    const panel = document.getElementById("bell-panel");
+    if (!btn || !panel) return;
+    const b = bellButton(bell2);
+    if (btn.innerHTML !== b.html) btn.innerHTML = b.html;
+    btn.setAttribute("aria-label", b.label);
+    btn.title = b.label;
+    btn.setAttribute("aria-expanded", String(bell2.open));
+    if (bell2.rings > bellRungAt) {
+      bellRungAt = bell2.rings;
+      btn.classList.remove("ring");
+      void btn.offsetWidth;
+      btn.classList.add("ring");
+      window.setTimeout(() => btn.classList.remove("ring"), 1e3);
+    }
+    if (!bell2.open) {
+      panel.hidden = true;
+      panel.innerHTML = "";
+      return;
+    }
+    const r = btn.getBoundingClientRect();
+    panel.style.setProperty("--br", `${Math.max(12, Math.round(window.innerWidth - r.right - 8))}px`);
+    const active = document.activeElement;
+    const keyOf2 = (el) => {
+      var _a5, _b2, _c2, _d2, _e2;
+      return `${(_a5 = el.dataset.act) != null ? _a5 : ""}|${(_b2 = el.dataset.nid) != null ? _b2 : ""}|${(_c2 = el.dataset.kind) != null ? _c2 : ""}|${(_e2 = (_d2 = el.closest("[data-nid]")) == null ? void 0 : _d2.getAttribute("data-nid")) != null ? _e2 : ""}`;
+    };
+    const had = active && panel.contains(active) ? keyOf2(active) : null;
+    const scroll = (_b = (_a4 = panel.querySelector(".bl-scroll")) == null ? void 0 : _a4.scrollTop) != null ? _b : 0;
+    const fac = new Map(((_d = (_c = state.home.collection) == null ? void 0 : _c.cards) != null ? _d : []).map((x) => [x.cardId, x.faction]));
+    panel.innerHTML = bellPanelHtml(bell2, { now: Date.now(), miniCard: (c) => miniCard(c), factionOf: (id) => {
+      var _a5;
+      return (_a5 = fac.get(id)) != null ? _a5 : null;
+    } });
+    panel.hidden = false;
+    const sc = panel.querySelector(".bl-scroll");
+    if (sc) sc.scrollTop = scroll;
+    const want = focusAfter ? panel.querySelector(focusAfter) : had !== null ? (_e = [...panel.querySelectorAll("button, a, h2")].find((el) => keyOf2(el) === had)) != null ? _e : null : null;
+    if (want) want.focus({ preventScroll: true });
+    else if (had !== null || focusAfter) (_f = panel.querySelector("#bell-title")) == null ? void 0 : _f.focus({ preventScroll: true });
+  }
+  function bellCounts(page) {
+    const before = bell2.latestId;
+    bell2 = withCounts(bell2, page);
+    drawBell();
+    if (bell2.open && !bell2.loading && bell2.latestId !== null && bell2.latestId !== before && before !== null) void bellRead(false, true);
+  }
+  async function pollBell() {
+    if (!state.session) return;
+    try {
+      bellCounts(await api.notifications(state.session.token, 1));
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) throw err;
+    }
+  }
+  async function bellRead(append, merge = false) {
+    var _a4, _b;
+    if (!state.session || !bell2.open) return;
+    const seq = ++bellSeq;
+    const before = append ? (_b = (_a4 = bell2.items[bell2.items.length - 1]) == null ? void 0 : _a4.notificationId) != null ? _b : null : null;
+    if (append) bell2 = { ...bell2, loadingMore: true };
+    else if (!merge) bell2 = { ...bell2, loading: true, error: null };
+    drawBell();
+    try {
+      const page = await api.notifications(state.session.token, BELL_PAGE, { before, kind: bell2.filter });
+      if (seq !== bellSeq || !bell2.open) return;
+      bell2 = withPage(bell2, page, append || merge);
+    } catch (err) {
+      if (seq !== bellSeq || !bell2.open) return;
+      if (err instanceof SiteApiError && err.signedOut) return fail(err);
+      bell2 = { ...bell2, loading: false, loadingMore: false, error: err instanceof SiteApiError ? errorText(err.status, err.message) : "something went wrong" };
+      drawBell();
+      return;
+    }
+    drawBell();
+    await bellMarkShown();
+  }
+  async function bellMarkShown() {
+    const ids = unreadShown(bell2);
+    if (!ids.length || !state.session) return;
+    try {
+      const r = await api.markNotificationsRead(state.session.token, { ids });
+      bell2 = withRead(bell2, ids, r.unread, (/* @__PURE__ */ new Date()).toISOString());
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) return fail(err);
+    }
+    drawBell();
+    if (state.page === "home") void loadHome(["notif"]);
+  }
+  function openBell() {
+    var _a4;
+    if (bell2.open) return;
+    const menu = document.getElementById("acct-menu");
+    if (menu) menu.hidden = true;
+    (_a4 = document.getElementById("acct-btn")) == null ? void 0 : _a4.setAttribute("aria-expanded", "false");
+    bell2 = { ...bell2, open: true };
+    drawBell("#bell-title");
+    void bellRead(false);
+  }
+  function closeBell(refocus) {
+    var _a4;
+    if (!bell2.open) return;
+    bellSeq++;
+    bell2 = closed(bell2);
+    drawBell();
+    if (refocus) (_a4 = document.getElementById("bell-btn")) == null ? void 0 : _a4.focus();
+  }
+  async function bellClear(ids) {
+    var _a4;
+    if (!state.session || bell2.busy) return;
+    if (ids === "all" && !await confirmDialog("Clear every notification?", "They leave the bell and the Notifications widget for good. Your matches, packs and cards stay as they are.", "Clear all")) return;
+    let focusAfter = "#bell-title";
+    if (ids !== "all") {
+      const i = bell2.items.findIndex((n) => n.notificationId === ids[0]);
+      const next = (_a4 = bell2.items[i + 1]) != null ? _a4 : bell2.items[i - 1];
+      if (next) focusAfter = `.bl-x[data-nid="${next.notificationId}"]`;
+    }
+    bell2 = { ...bell2, busy: true };
+    drawBell();
+    try {
+      const r = await api.clearNotifications(state.session.token, ids === "all" ? { all: true } : { ids });
+      bell2 = withCleared(bell2, ids, r.unread);
+      toast(ids === "all" ? "Notifications cleared." : "Cleared.");
+    } catch (err) {
+      bell2 = { ...bell2, busy: false };
+      fail(err);
+    }
+    drawBell(focusAfter);
+    if (state.page === "home") void loadHome(["notif"]);
+    if (bell2.open && !bell2.items.length && bell2.more) void bellRead(false);
+  }
+  async function bellReadAll() {
+    if (!state.session || bell2.busy) return;
+    bell2 = { ...bell2, busy: true };
+    drawBell();
+    try {
+      const r = await api.markNotificationsRead(state.session.token, { all: true });
+      bell2 = withRead(bell2, "all", r.unread, (/* @__PURE__ */ new Date()).toISOString());
+    } catch (err) {
+      bell2 = { ...bell2, busy: false };
+      fail(err);
+    }
+    drawBell("#bell-title");
+    if (state.page === "home") void loadHome(["notif"]);
+  }
+  document.addEventListener("click", (e) => {
+    var _a4;
+    const t = e.target;
+    if (t.closest("#bell-btn")) {
+      e.stopImmediatePropagation();
+      return bell2.open ? closeBell(false) : openBell();
+    }
+    const a = t.closest("[data-act]");
+    const act2 = (_a4 = a == null ? void 0 : a.dataset.act) != null ? _a4 : "";
+    if (act2 === "bell-open") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return openBell();
+    }
+    if (act2.startsWith("bell-") && t.closest("#bell-panel")) {
+      if (act2 === "bell-go") return closeBell(false);
+      e.stopImmediatePropagation();
+      if (a.disabled) return;
+      if (act2 === "bell-filter") {
+        const k = a.dataset.kind || null;
+        if (k === bell2.filter) return;
+        bell2 = { ...bell2, filter: k, items: [], more: false };
+        return void bellRead(false);
+      }
+      if (act2 === "bell-older") return void bellRead(true);
+      if (act2 === "bell-retry") return void bellRead(false);
+      if (act2 === "bell-read-all") return void bellReadAll();
+      if (act2 === "bell-clear") return void bellClear([Number(a.dataset.nid)]);
+      if (act2 === "bell-clear-all") return void bellClear("all");
+      return;
+    }
+    if (bell2.open && t.isConnected && !t.closest("#bell-panel") && !t.closest("#dialog")) closeBell(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    var _a4, _b;
+    if (!bell2.open || e.defaultPrevented) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      return closeBell(true);
+    }
+    if (e.key !== "Tab") return;
+    const t = e.target;
+    if (t.id === "bell-btn" && !e.shiftKey) {
+      e.preventDefault();
+      (_a4 = document.querySelector("#bell-title")) == null ? void 0 : _a4.focus();
+    } else if (t.id === "bell-title" && e.shiftKey) {
+      e.preventDefault();
+      (_b = document.getElementById("bell-btn")) == null ? void 0 : _b.focus();
+    }
+  });
+  document.addEventListener("focusin", (e) => {
+    const t = e.target;
+    if (bell2.open && !t.closest("#bell-panel") && !t.closest("#bell-btn") && !t.closest("#dialog")) closeBell(false);
+  });
   async function claimDaily() {
     if (!state.session) return;
     try {

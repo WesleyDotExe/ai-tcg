@@ -305,7 +305,11 @@ describe("what the widgets show", () => {
         expect(h).toMatch(new RegExp(`data-size="${size}" aria-pressed="true"`));
         expect(h).toContain('draggable="true"');
         expect(h).not.toContain('class="wopen"');
-      } else expect(h.includes('class="wopen"')).toBe(WIDGET_INFO[t].page !== null);
+      } else {
+        // An open arrow where the widget has a page; Notifications' opens the bell (render session 70).
+        expect(h.includes('class="wopen"')).toBe(WIDGET_INFO[t].page !== null || t === "notif");
+        if (t === "notif") expect(h).toContain('data-act="bell-open"');
+      }
       if (WIDGET_WAITS[t]) expect(h, t).toContain(`Waits on the server for ${WIDGET_WAITS[t]!.needs}`);
     }
   });

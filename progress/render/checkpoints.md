@@ -7,6 +7,51 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-13 — The notifications bell (session 70) — AWAITING FEEDBACK (six small calls)
+
+The top bar has its bell. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder`, sign in as nova, and wait a
+minute for the ladder to record a few matches.
+
+**What you'll see:**
+- **The bell** between the theme button and your account, with a red count of unread notifications (the server's
+  number; "99+" past 99). It is checked on the same 15 s status poll as everything else, so a new one shows within
+  15 s, and the bell gives one short swing when it does (no swing with reduced motion).
+- **Pressed, a panel opens under it:** "Notifications" and the unread count, five filters (All, Matches, Big pulls,
+  Daily pack, Auto-play, each with its own unread count; the server filters), then the newest 20 grouped **Today /
+  Yesterday / Earlier**. Each line is the same words as the widget (who you beat or lost to, the credits and the
+  rating change; the pulled cards for a big pull) and links to its page. At the foot: "Choose which in Settings",
+  **Show older** (the next 20) and **Clear all**.
+- **What the panel shows is marked read** (your 2026-11-12 allowance), by id: only those, nothing it hasn't shown.
+  They keep a "New" mark and a blue edge until you close it, so you still see what was new. The badge and the Home
+  widget drop at once. **Mark all read** appears only while some unread ones are past what's shown.
+- **Clear:** a × on each line (on hover or focus; always on a touch screen) clears that one for good; Clear all asks
+  first. Focus moves to the next line.
+- **Closing:** Escape (focus back on the bell), a click anywhere else, tabbing out, or the bell again. The
+  Notifications widget's ↗ now opens the same panel.
+
+Evidence: `progress/render/evidence/bell-check-s70.txt`, 60 PASS on the real owner API with the ladder at 8x, every
+number checked against the server's own answer (the first run's 3 failures, two in the check and one real bug, are
+in `bell-check-s70-first-run.txt`); stills `v2-s70-bell-open.jpg`, `-filter`, `-empty`, `-closed`, `-phone`,
+`-phone-dark`.
+
+**Small calls (kept as built unless you say otherwise):**
+1. **Opening marks what it shows read**, and those stay "New" until the panel closes. The alternative is marking only
+   on a click or on "Mark all read" (as the widget does), which leaves the badge up after you've looked.
+2. **The newest 20 per page**, grouped by **the viewer's own calendar day** (not Sydney's, which is the game's day
+   for the daily reset). Near midnight the two can disagree.
+3. **On a phone the theme button leaves the top bar** to make room for the bell (Settings -> Theme has the same three
+   choices); the bar's buttons are 34 px there. Without this the account button was pushed off a 390 px screen.
+4. **Clear one has no confirmation; Clear all does** ("They leave the bell and the Notifications widget for good").
+5. **The swing:** one 0.9 s swing of the bell for each poll that brings a new unread one; no sound (the site's sound
+   is the pack opening's and the arena's).
+6. **The filter chips use short names** (Matches, not Match results) and a coloured dot, so all five fit one row on a
+   desktop window with their counts; on a phone they take two rows.
+
+**Next:** game 93 (the Season 0 dry run and the owner's Mac mini guide), then render 71 (Top rated and viewer counts
+on Watch live), which completes the Season 0 feature list.
+
+---
+
 ## 2026-11-13 — Render hardening pass (session 69) — AWAITING FEEDBACK (two small calls)
 
 No new features. Agent controls now say the server's words for the play-time allowance, the personality dial's arrow
