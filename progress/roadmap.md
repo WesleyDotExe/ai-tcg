@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-14, game session 95 (render 72's two asks: auto-play on refused once the season has ended, `season` in the site contract check); before that render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-14, render session 73 (the season's end on the Store, Packs, Daily rewards and the card viewer); before that game session 95 (render 72's two asks: auto-play on refused once the season has ended, `season` in the site contract check); before that render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -284,6 +284,12 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      Stats page (open / ending / ended, Sydney time); Agent controls and Agent match stop offering Start and time once
      the season is ending or ended (the check found them inviting play after the end). On the real API with the
      server's own end (`season-check-s72` 60 PASS)
+   - [x] (same item, render 73) The rest of the season's end on the site: once the season has ENDED (its archive
+     refuses packs, the free pack, crafting, salvage and cosmetics) the Store page, the Store, Packs and Daily rewards
+     widgets at S/M/L, the top bar's Open and the card viewer are drawn closed with the reason (unopened packs carry
+     over, the owner's 2026-11-10 rule), instead of offering buttons that end in an error toast; a page drawn before
+     the end that sends one reads the season at once and redraws closed. On the real API with the server's own end
+     (`frozen-check-s73` 40 PASS)
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause

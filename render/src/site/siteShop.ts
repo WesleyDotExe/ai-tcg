@@ -119,6 +119,24 @@ export interface ShopTile {
   badge: string | null;
   owned: boolean;
   button: TileButton;
+  /** (render session 73) The season has ended: the tile is drawn closed. */
+  closed?: boolean;
+}
+
+/** The season has ended (render session 73): every tile's button off, with
+ * the short reason under it; an owned cosmetic keeps "Owned". The daily
+ * tile loses its clock and ribbon (no next pack comes in this season). */
+export function freezeTiles(tiles: ShopTile[], why: string | null): ShopTile[] {
+  if (!why) return tiles;
+  return tiles.map((t) => ({
+    ...t,
+    closed: true,
+    until: null,
+    badge: t.owned ? t.badge : null,
+    price: t.art.kind === "daily" ? null : t.price,
+    sub: t.art.kind === "daily" ? "None to claim: the season has ended" : t.sub,
+    button: { ...t.button, label: t.owned ? "Owned" : "Closed", enabled: false, primary: false, data: {}, why: t.owned ? t.button.why : why },
+  }));
 }
 
 /** The featured tile: the free daily pack while one can be claimed, else
@@ -248,10 +266,10 @@ export function tileHtml(t: ShopTile, opts: { art?: ShopArt | null; compact?: bo
   const b = t.button;
   const data = Object.entries(b.data).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
   const label = b.act === "buy-cosmetic" && b.enabled ? `Buy ${t.name}` : b.act === "buy-packs" && b.enabled ? `Buy ${t.name}` : b.label;
-  const btn = `<button type="button" class="btn${b.primary || t.size === "feature" ? " pri" : ""} sh-buy" data-act="${b.act}"${data}${b.enabled ? "" : " disabled"} aria-label="${esc(label)}${t.price ? `, ${amount(t.price)} credits` : ""}">${esc(b.label)}</button>`;
+  const btn = `<button type="button" class="btn${!t.closed && (b.primary || t.size === "feature") ? " pri" : ""} sh-buy" data-act="${b.act}"${data}${b.enabled ? "" : " disabled"} aria-label="${esc(label)}${t.price ? `, ${amount(t.price)} credits` : ""}">${esc(b.label)}</button>`;
   const why = b.why && !b.enabled ? `<small class="sh-why">${esc(b.why)}</small>` : "";
   const style = tone.hex ? ` style="--c:${tone.hex}"` : "";
-  return `<article class="sh-t t-${t.size} ${tone.cls}${t.owned ? " owned" : ""}" data-tile="${esc(t.id)}"${style}>`
+  return `<article class="sh-t t-${t.size} ${tone.cls}${t.owned ? " owned" : ""}${t.closed ? " closed" : ""}" data-tile="${esc(t.id)}"${style}>`
     + `<div class="sh-art">${artHtml(t, opts.art, !!opts.compact)}${t.badge ? `<span class="sh-badge">${esc(t.badge)}</span>` : ""}${priceHtml(t.price)}</div>`
     + `<div class="sh-info"><b class="sh-n">${esc(t.name)}</b>${opts.compact && t.size !== "feature" ? "" : `<small>${esc(t.sub)}${t.until ? ` <b class="sh-clock" data-until="${esc(t.until.iso)}">${esc(t.until.text)}</b>` : ""}</small>`}</div>`
     + `<div class="sh-act">${btn}${why}</div></article>`;

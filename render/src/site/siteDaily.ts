@@ -24,6 +24,7 @@ import { clockLeft } from "./siteShop.js";
 import { zoneCity } from "./siteStore.js";
 import { amount } from "./siteLook.js";
 import { esc } from "./siteModel.js";
+import type { SeasonFrozen } from "./siteSeason.js";
 
 /** One paying win of the day, as the reward row draws it. */
 export interface WinStep {
@@ -75,7 +76,9 @@ export function dailyRingSvg(fromWins: number, cap: number, px: number): string 
 
 /** The free daily pack's node: Claim while one waits (with how many), else
  * "Claimed" and the ticking clock to the next (the server's `nextPackAt`). */
-export function packNodeHtml(p: SiteDailyPack | null, nowMs: number): string {
+export function packNodeHtml(p: SiteDailyPack | null, nowMs: number, frozen: SeasonFrozen | null = null): string {
+  // Render session 73: the season has ended: nothing to claim, no next one.
+  if (frozen) return `<li class="dr-pk done closed"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><button type="button" class="btn sm" disabled title="${esc(frozen.daily)}">Closed</button><span class="dr-nx">${esc(frozen.short)}</span></li>`;
   if (!p) return `<li class="dr-pk wait"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><span class="muted small">Loading…</span></li>`;
   const n = p.waiting;
   if (n > 0) {
@@ -94,13 +97,14 @@ function winNodeHtml(s: WinStep, first: boolean): string {
 }
 
 /** The row of the day's rewards: the free pack, then each paying win. */
-export function rewardRowHtml(d: SiteDaily, pack: SiteDailyPack | null, nowMs: number): string {
+export function rewardRowHtml(d: SiteDaily, pack: SiteDailyPack | null, nowMs: number, frozen: SeasonFrozen | null = null): string {
   const steps = winSteps(d);
   const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1]!.band !== s.band)).join("");
-  return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs)}${wins}</ol>`;
+  return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs, frozen)}${wins}</ol>`;
 }
 
-function nextLine(d: SiteDaily): string {
+function nextLine(d: SiteDaily, frozen: SeasonFrozen | null = null): string {
+  if (frozen) return esc(frozen.wins);
   return d.nextWinPays > 0 ? `Next win <b>+${d.nextWinPays}</b>` : "Wins pay nothing more today";
 }
 
@@ -113,18 +117,18 @@ function clockTime(iso: string): string {
 
 /** The Daily rewards widget's body at its size. `pack` is the free daily
  * pack from `GET /api/packs` (M and L; null while that read is out). */
-export function dailyBody(size: "S" | "M" | "L", d: SiteDaily, pack: SiteDailyPack | null, nowMs: number): string {
+export function dailyBody(size: "S" | "M" | "L", d: SiteDaily, pack: SiteDailyPack | null, nowMs: number, frozen: SeasonFrozen | null = null): string {
   const v = dailyView(d, nowMs);
   if (size === "S") {
-    return `<div class="dr-s">${dailyRingSvg(v.fromWins, v.winCap, 72)}<div class="dn"><b>Credits from wins</b><div class="small">${nextLine(d)}</div></div></div>`;
+    return `<div class="dr-s">${dailyRingSvg(v.fromWins, v.winCap, 72)}<div class="dn"><b>Credits from wins</b><div class="small">${nextLine(d, frozen)}</div></div></div>`;
   }
-  const head = `<div class="dr-head">${dailyRingSvg(v.fromWins, v.winCap, size === "L" ? 104 : 84)}<div class="dn"><b>Credits from wins today</b><div class="dr-next">${nextLine(d)}</div>`
+  const head = `<div class="dr-head">${dailyRingSvg(v.fromWins, v.winCap, size === "L" ? 104 : 84)}<div class="dn"><b>Credits from wins today</b><div class="dr-next">${nextLine(d, frozen)}</div>`
     + (size === "M" ? `<div class="muted small">${v.rewarded} of ${v.rewardedCap} wins paid</div>` : "")
     + `</div></div>`;
-  const row = rewardRowHtml(d, pack, nowMs);
+  const row = rewardRowHtml(d, pack, nowMs, frozen);
   if (size === "M") return head + row;
   const city = zoneCity(d.timeZone);
-  const reset = `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(city)}</small></div>`;
+  const reset = frozen ? "" : `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(city)}</small></div>`;
   const pct = v.rewardedCap > 0 ? Math.min(100, Math.round((v.rewarded / v.rewardedCap) * 100)) : 0;
   const rewarded = `<div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`;
   const wins = d.rewardedWins.length

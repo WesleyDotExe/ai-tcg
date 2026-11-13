@@ -40,7 +40,7 @@ import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
 import { allowanceOf, DIAL_SAVE_MS, dialChoose, dialKeyTarget, dialView, ringOfPlay, ringParts, ringTicks, statusPollMs, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
-import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, clockLeft, type ShopArt } from "./siteShop.js";
+import { balanceHtml, cosmeticGridHtml, cosmeticTiles, freezeTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, clockLeft, type ShopArt } from "./siteShop.js";
 import { recentOpenings, revealOf, shortWhen, withSiteSetBar, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
@@ -68,7 +68,7 @@ import { BELL_PAGE, bellButton, bellPanelHtml, closed as bellClosed, emptyBell, 
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
-import { seasonClosed, type SiteSeason } from "./siteSeason.js";
+import { frozenNoteHtml, isSeasonEndedRefusal, seasonClosed, seasonFrozen, type SiteSeason } from "./siteSeason.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveGroups, liveOrder, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, topRatedHtml, topRatedRank, topRatedWhy, viewersHtml, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -325,6 +325,10 @@ function fail(err: unknown): void {
       return;
     }
     toast(errorText(err.status, err.message), "error");
+    // Render session 73: a page drawn before the season ended sent
+    // something the archive refuses (auto-play on, a pack, a craft): read
+    // the season now, so the buttons turn off with the reason.
+    if (isSeasonEndedRefusal(err.status, err.message)) seasonRefused();
   } else toast("Something went wrong. Try again.", "error");
 }
 
@@ -476,7 +480,9 @@ async function enter(): Promise<void> {
   void loadHome();
   void pollBell().catch((err) => fail(err));
   // Render session 72: the season's state, so a season already over shows at once.
-  void readSeason().then(() => { if (closedNow() && !state.busy && !dragging) drawPage(); }).catch(() => undefined);
+  // Render session 73: and the top bar's Open (drawn by the wallet's read,
+  // which can land first), so an ended season's Open is off at once.
+  void readSeason().then(() => { drawWallet(); if (closedNow() && !state.busy && !dragging) drawPage(); }).catch(() => undefined);
 }
 
 /** Reads what the widgets on the board show (only what they need), then
@@ -607,6 +613,22 @@ async function readSeason(): Promise<void> {
 }
 /** The season no longer starts matches, on the page's clock. */
 const closedNow = () => seasonClosed(state.season, Date.now());
+/** The season has ended (the server's word, not the page's clock): the
+ * archive refuses packs, the free pack, crafting and salvage. */
+const frozenNow = () => seasonFrozen(state.season);
+/** The server refused because the season has ended: read it again at once
+ * (the minute's wait skipped) and redraw. */
+function seasonRefused(): void {
+  state.seasonReadAt = 0;
+  void readSeason()
+    .then(() => {
+      drawWallet();
+      drawAgentCard();
+      if (!state.busy && !dragging) drawPage();
+      if (state.col.viewer) drawViewer();
+    })
+    .catch(() => undefined);
+}
 
 async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
@@ -670,7 +692,7 @@ function drawWallet(): void {
     el.innerHTML = "";
     return;
   }
-  const open = openButton(w.unopenedPacks.length);
+  const open = openButton(w.unopenedPacks.length, frozenNow()?.packs ?? null);
   // A redraw (the poll, a purchase, an opening) keeps focus on the Open
   // button if it had it.
   const hadFocus = document.activeElement?.id === "open-btn";
@@ -806,7 +828,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow(), frozen: frozenNow() };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id), arena: views.get(w.id) === "arena" ? tileArenaPick() : undefined })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1203,17 +1225,21 @@ function storePage(): string {
   // products as tiles of different sizes, the featured one larger, the art
   // as the hero, the price on the tile, the button underneath; the balance
   // and the countdown to the daily reset at the top.
-  const head = `<div class="sh-head">${balanceHtml(credits)}${resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">Every pack also pays 5 pack points.</span></div>`;
-  const packs = `<section class="sh-sec" aria-labelledby="sh-packs"><h3 id="sh-packs">Packs</h3><p class="sh-sub">${esc(pityText(sh.packs))}</p>${packGridHtml(packTiles(sh.packs, credits, now), { art })}</section>`;
-  const cosmetics = `<section class="sh-sec" aria-labelledby="sh-cos"><h3 id="sh-cos">Cosmetics</h3><p class="sh-sub">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p>${cosmeticGridHtml(cosmeticTiles(sh.store.cosmetics, credits), { art })}</section>`;
+  // Render session 73: once the season has ended the Store is drawn
+  // closed: the line at the top says why, every button is off.
+  const f = frozenNow();
+  const why = f?.short ?? null;
+  const head = `<div class="sh-head">${balanceHtml(credits)}${f ? "" : resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">${f ? "Equipping what you own still works, under Your agents' loadouts." : "Every pack also pays 5 pack points."}</span></div>${frozenNoteHtml(f, f?.store ?? "")}`;
+  const packs = `<section class="sh-sec" aria-labelledby="sh-packs"><h3 id="sh-packs">Packs</h3><p class="sh-sub">${esc(f ? "The pity counters stand where the season left them." : pityText(sh.packs))}</p>${packGridHtml(freezeTiles(packTiles(sh.packs, credits, now), why), { art })}</section>`;
+  const cosmetics = `<section class="sh-sec" aria-labelledby="sh-cos"><h3 id="sh-cos">Cosmetics</h3><p class="sh-sub">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p>${cosmeticGridHtml(freezeTiles(cosmeticTiles(sh.store.cosmetics, credits), why), { art })}</section>`;
   // The packs waiting, by where they came from.
   const n = sh.packs.unopened.length;
   const bulk = sh.packs.bulkOpenCount;
   const groups = unopenedGroups(sh.packs.unopened);
   const rows = groups
-    .map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting · ${esc(g.setCode)} · the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}">Open one</button></div>`)
+    .map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting · ${esc(g.setCode)} · the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}"${f ? " disabled" : ""}>Open one</button></div>`)
     .join("");
-  const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><div class="pkw">${sealedPackHtml(sh.packs.offer[0]?.setCode ?? sh.packs.dailyPack.setCode, 58, art)}<div class="dn"><p class="pkw-n">${n}<small>pack${n === 1 ? "" : "s"}</small></p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div></div></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
+  const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><div class="pkw${f ? " closed" : ""}">${sealedPackHtml(sh.packs.offer[0]?.setCode ?? sh.packs.dailyPack.setCode, 58, art)}<div class="dn"><p class="pkw-n">${n}<small>pack${n === 1 ? "" : "s"}</small></p><div class="row"><button type="button" class="btn${f ? "" : " pri"}" id="open1-btn" data-act="open-packs" data-count="1"${n && !f ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk && !f ? "" : " disabled"}>Open ${bulk}</button></div></div></div>${f ? `<p class="muted small st-closed">${esc(f.packs)}</p>` : n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
   // Recent openings: when, the best finish, the cards.
   const rec = sh.recent ? recentOpenings(sh.recent, 6) : [];
   const recent = `<section class="panel glass st-recent"><h3>Recent openings</h3>${rec.length ? rec.map((o) => `<div class="st-rec"><div class="dn"><b>${esc(shortWhen(o.openedAt))}</b><small>${esc(o.setCode)}${o.best ? ` · best: ${esc(o.best)}` : ""}${o.jackpot ? " · Jackpot pack" : ""}</small></div><div class="mrow">${o.cards.map((c) => miniCard(c)).join("")}</div></div>`).join("") : '<p class="muted small">No packs opened yet.</p>'}</section>`;
@@ -1667,7 +1693,7 @@ function drawViewer(): void {
   }
   const hadFocus = document.activeElement && el.contains(document.activeElement) ? (document.activeElement as HTMLElement).id || (document.activeElement as HTMLElement).dataset.act || null : null;
   const blocks = binderBlocks(c.binder, c.collection, { ...c.filters, tab: c.filters.tab === "promos" ? "set" : c.filters.tab });
-  el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, state.wallet?.packPoints ?? 0, neighbours(blocks, s.key), face())}</div>`;
+  el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, state.wallet?.packPoints ?? 0, neighbours(blocks, s.key), face(), frozenNow())}</div>`;
   const wasHidden = el.hidden;
   el.hidden = false;
   const faceEl = el.querySelector(".cv-card .face");
@@ -2276,7 +2302,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow(), frozen: frozenNow() };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;

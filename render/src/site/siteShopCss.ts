@@ -19,6 +19,19 @@ export const SHOP_CSS = `${SEALED_PACK_CSS}
 .spile .sp-c { position: relative; z-index: 1; }
 .sp-n { position: absolute; z-index: 2; right: -20%; top: 2%; font: 900 22px/1 ui-rounded, system-ui; color: #fff; padding: 6px 9px; border-radius: 12px; background: linear-gradient(135deg, #4f6bff, #8b5cff); box-shadow: 0 6px 18px rgba(80,60,255,.5); }
 
+/* ---- render session 73: the season has ended: the Store drawn closed ---- */
+.sh-closed { margin: 0; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; background: color-mix(in srgb, var(--glass) 70%, rgba(140,140,160,.18)); border: 1px dashed color-mix(in srgb, var(--muted) 55%, transparent); }
+.sh-closed b { display: inline-block; margin-right: 8px; padding: 1px 9px; border-radius: 99px; font-size: 11.5px; letter-spacing: .02em; background: rgba(140,140,160,.28); }
+.shw .sh-closed { padding: 7px 10px; font-size: 12px; margin-bottom: 8px; }
+.sh-t.closed .sh-art { filter: grayscale(.8) brightness(.8); }
+.sh-t.closed .spk-foil { animation: none; opacity: 0; }
+.sh-t.closed .sh-price { opacity: .55; }
+.pkw.closed .pkw-pile, .pkw.closed > .spk, .shw-s.closed .spk { filter: grayscale(.75) brightness(.8); }
+.pkw.closed .spk-foil, .shw-s.closed .spk-foil { animation: none; opacity: 0; }
+.pkw-x { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pkw-why, .st-closed, .cv-closed { line-height: 1.4; }
+.dr-pk.closed .dr-pki { filter: grayscale(1); opacity: .6; }
+
 /* ---- the store page's head: the balance and the countdown ---- */
 .sh-pg { display: flex; flex-direction: column; gap: 18px; }
 .sh-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
