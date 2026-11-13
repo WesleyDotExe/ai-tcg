@@ -1,5 +1,53 @@
 # Notes for the owner
 
+**Updated 2026-11-13, session 93 (game lane; start clean-up early: the Season 0 dry run and your Mac mini guide).
+[OWNER CHECK-IN].** Nothing is blocking. Lane: the last merged PR, #166, was "Render:", so this is a game session; no
+PR was open. Your launch-agent answer (a) is in the guide.
+
+**Your guide:** `progress/mac-mini-guide.md`, step by step: the Mac's settings (no sleep, start after a power cut,
+log in automatically, the clock), the code, making the season file, the two launch agents (ready to copy:
+`server/launchd/`, with `install.sh` filling in your paths), the website, reading the log, stopping/starting/
+restarting, checking the clock before a restart, the season's end and the switch to S1, and what to do when
+something's wrong.
+
+**The dry run** (`progress/season0-dry-run-001.txt`, **49 of 49 PASS**, 45 minutes): the guide's own commands, run
+for real, with the machine's clock set to 23:30 Sydney so it crossed midnight. A new season file; both launch
+agents' commands run exactly as launchd runs them; signing in through the website; the daily pack, open 1, buy 1
+and 10, open 10; auto-play with 15 minutes running out mid-match ("Finishing match", the match played out, then
+"Time's up"); Watch live on the agent's match; midnight: today's earnings clean, a new daily pack, the allowance
+reset; a crash (kill -9) mid-match: started again in 1 second by the KeepAlive rule, the matches on screen
+cancelled, you still signed in, the website up throughout; ending S0 as the admin, the switch, S1 running with the
+same password. Logs: ~150 KB a day (under 5 MB a season, no rotating needed); match files ~11 MB a day.
+
+**What broke, and is fixed:**
+1. **A first start had nobody in it.** `npm run season -- <file> --new` made an empty file: nothing (no endpoint,
+   no command) made your login, your agent or the house. You couldn't have signed in, and no match would ever
+   have played. Every earlier demo set its people up in code. Now **`npm run season:setup`** makes the file with
+   your admin account (your faction's starter deck and packs, a generated agent with its signature card,
+   connected) and the four house owners (House Cortex, Swarm, Aegis, Null). The guide's step 3.
+2. **The launch agent's settings file wouldn't have loaded** (a "--" inside a comment makes macOS reject the whole
+   file). Caught by the dry run; a test now checks it.
+
+**What I couldn't test here:** launchd itself (this machine is Linux). Your first start is the real test of
+`launchctl bootstrap`, the start at login, the "Background Items Added" prompt, and the folder rule (keep the code
+and data out of Documents/Desktop/Downloads/iCloud, or macOS blocks the agent). The dashboard at every size and the
+pack ceremony in a browser are the render lane's checks, not part of this run.
+
+**Calls for you:**
+1. **15 minutes of auto-play bought one match** (both runs). Switched on while a round is being shown, the agent
+   waits for that round's slowest match to finish (about 11 minutes here), then plays one match, and the time is
+   up. Options: **(a, recommended)** the allowance's clock starts when the agent is first paired, not when you
+   press the button (a small server change; the ring would read "Waiting for the next round" until then); **(b)**
+   keep it for Season 0 (the rolling queue, already planned after Season 0, shortens the wait).
+2. **Ending the season has no button on the website.** The guide uses two `curl` commands (step 8.1). Keep that
+   for Season 0 (recommended: it's once a season), or ask the render lane for a button in Settings -> Admin.
+3. **Day one, you can't buy a pack or open ten.** A day's matches pay at most 110 credits (90 from wins, 20 from
+   losses) and a pack costs 100, so the first buy is day 2 at the earliest, and holding ten packs to open at once
+   takes about a week. The dry run gave itself 1,100 test credits (stated in the record) to run the buys. Just so
+   you know before the feel check; no change suggested.
+
+---
+
 **Updated 2026-11-13, a second game-lane firing (no work done).** Lane: the last merged PR at the start, #163, was
 "Render:", so this was a game session, but game session 92's PR #164 was still open, with its checks running
 (TASKS.md step 0: one session per lane at a time). Its checks then passed (`test` and `auto-merge` both success) and

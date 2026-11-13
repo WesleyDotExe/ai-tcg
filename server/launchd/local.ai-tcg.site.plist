@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The website (the render lane's site host: the page at / and every /api
+  request passed to the season server on port 8081) as a macOS launch agent,
+  beside local.ai-tcg.season. install.sh fills in the @...@ paths. It runs the
+  same host as npm run site (render workspace), on http://127.0.0.1:8080/.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.ai-tcg.site</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@NODE@</string>
+    <string>--import</string>
+    <string>tsx</string>
+    <string>src/site/siteHost.ts</string>
+    <string>--api</string>
+    <string>http://localhost:8081</string>
+    <string>--port</string>
+    <string>8080</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>@REPO@/render</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NODE_NO_WARNINGS</key>
+    <string>1</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>ThrottleInterval</key>
+  <integer>60</integer>
+  <key>StandardOutPath</key>
+  <string>@LOG_DIR@/site.log</string>
+  <key>StandardErrorPath</key>
+  <string>@LOG_DIR@/site.log</string>
+</dict>
+</plist>

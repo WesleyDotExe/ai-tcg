@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The season server as a macOS launch agent (owner 2026-11-13, answer to game
+  session 92: "a launchd launch agent starts npm run season when the owner logs
+  in and restarts it if it stops"). install.sh fills in the four @...@ paths
+  and copies it to ~/Library/LaunchAgents; progress/mac-mini-guide.md has the
+  steps. It runs the same server as npm run season (server workspace), as
+  one node process (node with tsx loaded), so launchd's stop signal reaches the
+  server itself: SIGTERM is a clean stop (the lock removed, exit 0).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.ai-tcg.season</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@NODE@</string>
+    <string>--import</string>
+    <string>tsx</string>
+    <string>src/seasonCli.ts</string>
+    <string>@SEASON_FILE@</string>
+    <string>8081</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>@REPO@/server</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NODE_NO_WARNINGS</key>
+    <string>1</string>
+  </dict>
+  <!-- Started when the owner logs in. -->
+  <key>RunAtLoad</key>
+  <true/>
+  <!-- Started again if it stops on its own with a failure or is killed (a
+       crash). A clean stop (exit 0: launchctl kill TERM, or bootout) stays stopped. -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <!-- At most one start a minute, so a start that keeps failing (the file
+       in use by a server started by hand) writes one line a minute, not more. -->
+  <key>ThrottleInterval</key>
+  <integer>60</integer>
+  <!-- Time for the clean stop before launchd kills it outright. -->
+  <key>ExitTimeOut</key>
+  <integer>30</integer>
+  <key>StandardOutPath</key>
+  <string>@LOG_DIR@/season.log</string>
+  <key>StandardErrorPath</key>
+  <string>@LOG_DIR@/season.log</string>
+</dict>
+</plist>

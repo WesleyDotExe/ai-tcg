@@ -284,6 +284,14 @@ It refuses a season that hasn't ended, a new name equal to the old one, and a ne
 
 On start it prints which season it is on: `[season] season S1 (made from S0's archive) on <file>`, or `[season] serving season S0's archive (ended <time>) from <file>: no match will be paired`.
 
+**(session 93) A new season file with people in it: `npm run season:setup`.** `--new` makes an empty file: nobody can sign in (no endpoint makes a login) and no house owner queues, so the ladder never pairs. The Season 0 dry run found it. The owner's first step is instead:
+
+```
+npm run season:setup -w server -- <new season file> --name "<shown name>" --login <username> --faction <Cortex|Swarm|Aegis|Null> [--agent "<name>"] [--email <address>]
+```
+
+It asks for the password twice (hidden; piped in, one line from standard input), makes the file's folder and the file, and puts in it (`server/src/seasonSetup.ts`): the owner's account, a player owner with the admin login, its faction's starter collection and 3 starter packs, and its first agent, generated as "Generate a new agent" does (its signature card, bound), connected, auto-play off; and the house, House Cortex, Swarm, Aegis and Null, each with its starter collection and a connected agent with a play style. It refuses a file that exists and leaves nothing behind when it refuses. Then `npm run season -w server -- <the same file>` (no `--new`). Tests: `server/test/seasonSetup.test.ts`. The owner's whole run book, with the macOS launch agents (`server/launchd/`), is `progress/mac-mini-guide.md`; evidence `progress/season0-dry-run-001.txt`.
+
 **(session 86) One process per season file: the lock.** Each of `npm run season`, `owner-api` and `ladder` holds `<file>.lock` while it runs (a small JSON file naming its process, machine, command and start time), and removes it when it stops (Ctrl-C, or the process exiting). `npm run season:next` takes the ended file's lock for as long as it reads it. So:
 - **`season:next` refuses while a server is still running on the old file:** `not made: "<file>" is in use by npm run season (process <pid> on <machine>, since <time>). Stop that first. If you are sure nothing is running on it, delete <file>.lock.` No new file is made. (The old server still writes sign-ins, settings and renames to its file; anything written after the new file was made would never reach it.)
 - **A second server on the same file is refused** with the same message (two ladders would pair the same owners).

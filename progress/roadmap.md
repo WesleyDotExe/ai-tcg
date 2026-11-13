@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-13, game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-13, game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -186,8 +186,13 @@ new ideas go to `progress/season-1-ideas.md`.
      lock taken over, shown matches cancelled, a new round at once, the ladder carries on. Fixed: a match that
      failed to record (full disk) wedged the ladder until a restart (now retried, 30 s doubling to 10 min); a log
      file that can't be written no longer throws; every printed line carries the local time; clock jumps are said.
-   - [ ] Game 93 (owner 2026-11-13, item 4): the full Season 0 dry run and the owner's Mac mini guide, at an
-     [OWNER CHECK-IN].
+   - [x] Game 93 (owner 2026-11-13, item 4): the full Season 0 dry run and the owner's Mac mini guide, at an
+     [OWNER CHECK-IN] (session 93): `progress/season0-dry-run-001.txt` (49 PASS; the guide's own commands, the clock
+     at 23:30 Sydney, crossing midnight), `progress/mac-mini-guide.md`, the launch agents in `server/launchd/`.
+     Found and fixed: a new season file had nobody in it (`npm run season:setup` now); the plist wouldn't load.
+     Three calls in notes-for-owner.md (15 minutes bought one match; no season-end button; no buy on day one).
+   - [ ] The next game hardening pass: `clearNotifications` in the site contract check (owner 2026-11-13), and
+     whatever the owner's calls on the dry run need.
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
