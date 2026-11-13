@@ -7,6 +7,45 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — Render hardening pass (session 74): the season's end, the last gaps — AWAITING FEEDBACK (three small calls)
+
+A hardening pass (no new features): the season's-end gaps session 73 left in the debt list. After Season 0 ends,
+four places still promised something the server refuses or said something untrue. Try it:
+`npm run site-demo -w @ai-tcg/render -- --ladder --speed 8 --ends-in 6`, sign in as nova, open Store -> Change on an
+agent (the loadout picker) and leave it open; in another tab open a pack to its summary; wait about 40 s.
+
+**What changed once the season has ended:**
+- **The loadout picker:** a "Store closed" line at the top ("Season 0 has ended, so the Store is closed: nothing
+  more is bought. What you own still equips."). Items you don't own show a greyed "Closed · 300" with "Season ended"
+  under it. Equip still works (the server allows it; checked). A picker left open across the end redraws itself on
+  the same slot.
+- **A pack summary left on screen:** "Open another" turns off with "Season 0 has ended: no pack opens now. Unopened
+  packs carry over to the next season and open as its packs." Done leads.
+- **Daily rewards:** no win slot is marked "next" any more. The unpaid slots are dimmed, and their hover says no
+  match is left to win them. At L, "(next pays 2)" is gone from the losses line.
+- **Stats:** the season line now counts down by itself ("Ends in 6 min" ... "Ends in 1 min"), and turns "Ending now"
+  when the page's clock passes the end time, without a reload.
+- **Phones:** the closed Home widgets (Store, Packs, Daily rewards at S and M) checked at 390 px: nothing to press,
+  nothing runs sideways.
+
+Evidence: `progress/render/evidence/season-end-check-s74.txt`, 36 PASS on the real owner API with the server ending
+the season itself while three tabs were open. Stills: `v2-s74-picker-closed`, `-summary-closed`, `-daily-M/L`,
+`-home-phone-S/M`, `-stats-ending-tick`. Unit tests: `render/test/siteSeasonEnd74.test.ts` (6 of its 8 fail on the
+old code).
+
+**Small calls (kept as built unless you say otherwise):**
+1. **The picker keeps the items you don't own, greyed with their price** ("Closed · 300"), like the closed Store's
+   tiles (your render 73 call 2), rather than hiding them.
+2. **Daily rewards keeps the unpaid slots, dimmed,** so the day's row keeps its shape and the paid ones read
+   against it, rather than cutting the row at the last paid win.
+3. **A summary's "Open another" stays on screen, off, with the reason,** as every greyed button on the site does,
+   rather than leaving only Done.
+
+**Next:** game 97 (the booster-card build). Render 75: the booster cards' faces and set numbers once they are
+registered; until then the debt list.
+
+---
+
 ## 2026-11-14 — The season's end on the Store, Packs, Daily rewards and the card viewer (session 73) — AWAITING FEEDBACK (three small calls)
 
 Your plan's item 6, render side, finished for the season's end. Once Season 0 has ended, the server keeps its file

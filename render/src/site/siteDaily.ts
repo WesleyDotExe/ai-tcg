@@ -90,17 +90,19 @@ export function packNodeHtml(p: SiteDailyPack | null, nowMs: number, frozen: Sea
     + `<button type="button" class="btn sm" disabled>Claimed</button>${next ? `<span class="dr-nx">next in ${next}</span>` : ""}</li>`;
 }
 
-function winNodeHtml(s: WinStep, first: boolean): string {
+function winNodeHtml(s: WinStep, first: boolean, ended = false): string {
   const tier = s.slot >= 30 ? "t3" : s.slot >= 10 ? "t2" : "t1";
-  const what = s.state === "paid" ? `paid ${s.credits}` : s.state === "next" ? `pays ${s.credits}, next` : `pays ${s.credits}`;
+  const what = s.state === "paid" ? `paid ${s.credits}` : ended ? "no match is left to win it, the season has ended" : s.state === "next" ? `pays ${s.credits}, next` : `pays ${s.credits}`;
   return `<li class="dr-w ${s.state} ${tier}${first ? " band" : ""}" title="Win ${s.nth}: ${what}"><span class="dr-wn" aria-hidden="true">${s.state === "paid" ? "✓" : s.nth}</span><span class="dr-wc">+${s.credits}</span><span class="vh">Win ${s.nth}, ${what}</span></li>`;
 }
 
 /** The row of the day's rewards: the free pack, then each paying win. */
 export function rewardRowHtml(d: SiteDaily, pack: SiteDailyPack | null, nowMs: number, frozen: SeasonFrozen | null = null): string {
-  const steps = winSteps(d);
-  const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1]!.band !== s.band)).join("");
-  return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs, frozen)}${wins}</ol>`;
+  // Render session 74: once the season has ended no win comes, so no slot
+  // is marked as the next one (the paid ones stay ticked).
+  const steps = frozen ? winSteps(d).map((s) => (s.state === "next" ? { ...s, state: "ahead" as const } : s)) : winSteps(d);
+  const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1]!.band !== s.band, !!frozen)).join("");
+  return `<ol class="dr-row${frozen ? " closed" : ""}" aria-label="Today's rewards">${packNodeHtml(pack, nowMs, frozen)}${wins}</ol>`;
 }
 
 function nextLine(d: SiteDaily, frozen: SeasonFrozen | null = null): string {
@@ -135,6 +137,6 @@ export function dailyBody(size: "S" | "M" | "L", d: SiteDaily, pack: SiteDailyPa
     ? `<ul class="dr-list">${d.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clockTime(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>`
     : `<p class="muted small">No rewarded wins yet today.</p>`;
   const paidLosses = Math.min(d.losses, d.maxPaidLosses);
-  const losses = `<div class="small">Losses and draws: <b>${d.losses}</b> · ${paidLosses} of ${d.maxPaidLosses} paid · +${d.creditsFromLosses}${d.nextLossPays > 0 ? ` <span class="muted">(next pays ${d.nextLossPays})</span>` : ""}</div>`;
+  const losses = `<div class="small">Losses and draws: <b>${d.losses}</b> · ${paidLosses} of ${d.maxPaidLosses} paid · +${d.creditsFromLosses}${d.nextLossPays > 0 && !frozen ? ` <span class="muted">(next pays ${d.nextLossPays})</span>` : ""}</div>`;
   return head + row + reset + rewarded + `<h4>Today's wins</h4>${wins}${losses}<div class="dr-tot"><span>In all today</span><b>${amount(d.credits)}</b><small>credits</small></div><p class="muted small dr-nq">No quests, weekly challenge or streak in Season 0.</p>`;
 }

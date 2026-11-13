@@ -1449,3 +1449,18 @@ season mark) is proposed as a mark, call 1.
    refuses it (409), and the page now reads the season at once and closes itself, rather than only showing the toast.
 4. **For the game lane, nothing is needed.** The site contract check still passes (0 mismatches, 7 of 7 controls,
    `progress/render/evidence/site-contract-s73.txt`). No new call or field is read.
+
+---
+
+## 2026-11-14 — Render session 74 (the render hardening pass)
+
+1. **Three small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). All three keep a greyed
+   control on screen with its reason rather than hiding it, as the site already does elsewhere.
+2. **Nothing new was built.** The pass finished the season's-end gaps from the debt list: the loadout picker's Buy,
+   a pack summary left open, the Daily rewards "next" slot and the Stats countdown. The closed Home widgets were
+   also checked on a phone. Evidence: `progress/render/evidence/season-end-check-s74.txt` (36 PASS).
+3. **For the game lane, nothing is needed.** No new call or field is read. The site contract check still passes (0
+   mismatches, 7 of 7 controls, `progress/render/evidence/site-contract-s74.txt`). The site already takes the set's
+   size from the server (the set bar reads "63/96" from the binder). So when the booster cards land as 097-124, the
+   bar should read /124 with no site change. The render lane will check that, and the new cards' faces, once game 97
+   has registered them.

@@ -6096,3 +6096,56 @@ own Buy; a season-end screen (open owner question); closed Home widgets not look
 
 **Next render-lane slice:** after this PR the next session is game (96, the booster-card proposal). Render 74 is
 the render hardening pass.
+
+## 2026-11-14 — Render session 74: the render hardening pass (the season's end, the thin spots left)
+
+**Lane:** render. The last merged PR (#173, "Game lane: the Season 0 booster-card proposal, checked by the engine
+(session 96)") is game, so this session is render; no render PR was open. Read first: owner-feedback.md (the
+2026-11-14 entries: render 73's three calls kept; the booster cards, the starter cards Standard-only rule and the
+Season 0 report are game-lane; nothing unhandled for this lane), DESIGN.md, RENDER.md, current.md, this lane's log,
+debt, notes and checkpoints. **A hardening pass** (due at 74): no new features, only the debt list.
+
+**Why this slice:** the top entry of this lane's quality debt after session 73 named the season's end's thin spots:
+the Daily rewards row still marked a win slot as "next" after the end; the loadout picker's own Buy wasn't frozen;
+a pack summary's "Open another" wasn't either; the Stats line's countdown was drawn, not ticked; the closed Home
+widgets were never looked at on a phone. Each one either promised something the server refuses or said something
+untrue after the end.
+
+**Fixed (render/ only; the server unchanged):**
+- `siteDaily.ts`: once ended, no win slot is "next" (the paid ones stay ticked); the row is `closed`, its unpaid
+  slots dimmed with the hover "no match is left to win it, the season has ended"; at L the losses line drops
+  "(next pays N)".
+- `siteStore.ts` `summaryButtons(..., frozenWhy)`: once ended, Open another / Open 10 more / Open one are off with
+  the packs' reason (the carry-over line), Done leads. `siteClient.ts` remembers the summary on screen, and the
+  season read that first says "ended" redraws it, so a summary left open across the end closes itself (19 s in the
+  check, the next status poll).
+- The loadout picker: `SeasonFrozen.cosmetics` ("... nothing more is bought. What you own still equips."); the
+  site hands it to the picker as `scenario.storeClosed`; `loadoutLockAction` gives `closed` (site mode only), drawn
+  as a greyed "Closed · 300" with "Season ended" under it and the reason on hover, plus a "Store closed" banner where
+  the live-match lock goes. Equip stays live (the server equips after the end; checked). The season read that says
+  "ended" hands an open picker its state again on the owner's slot; a stale Buy refused 409 does the same at once.
+- `siteClient.ts` `tickClocks`: the Stats page's season line is redrawn when its words change, so "Ends in 6 min"
+  counts down and turns "Ending now" when the page's clock passes the end time, without a reload.
+
+**Ran it:** `progress/render/evidence/season-end-check-s74.mjs`, headless on the real owner API, the ladder at 8x,
+the end 6 server minutes ahead, three signed-in tabs: **36 PASS** (`season-end-check-s74.txt`). A: Playwright's
+clock jumped to 90 s before the end ("Ends in 1 min") and past it ("Ending now"), same page. B: the picker open on
+the coin slot across the end; a stale Buy refused 409 "season S0 has ended: no cosmetic is bought; ...", the picker
+redrew closed 1 s later on the same slot; both store coins "Closed · 300"; Equip after the end saved (200). C: a
+single pack's summary on screen across the end: Open another off with the reason, Done leads, by itself. D: Daily
+rewards at M and L: 10 slots, 5 paid, none next, the hover. E: a 390 px phone, Home's Store, Packs and Daily
+rewards at S and M: nothing to press, nothing sideways (the debt item). F: one 409, nothing external, no other
+error. **The first full run** was 36 PASS too, but its still showed the picker's "Closed" with the Buy's green
+border; the class was dropped and the check re-run. Unit tests: `render/test/siteSeasonEnd74.test.ts` (8; 6 fail on
+the old code, the other 2 pin the open season's summary and the countdown words), one on the real owner API over an ended store:
+the cosmetic buy refused, Equip saving, the picker's data closed. Render suite 1052 pass; typecheck clean (all
+workspaces); demos 34 same; the CI browser check 61 pass; the site contract check 0 mismatches, controls 7 of 7
+(`site-contract-s74.txt`); `render/output/site/index.html` rebuilt.
+
+**Not done (named, in quality-debt):** a season-end screen (still the owner's open question); the stale picker's
+toast text wasn't read by the check (its toast selector); the Stats tick was proved with a fake page clock, not a
+real 6-minute wait.
+
+**Next render-lane slice:** after this PR the next session is game (97, the booster-card build). Render 75: the
+booster cards will need card faces and set numbers (097-124) once the game lane registers them; until then, the
+debt list.

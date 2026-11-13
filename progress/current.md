@@ -20,14 +20,14 @@ schema v29, no product code changed. Nothing is blocking.**
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (game session 96) is game, so **the next
-session is render** (74).
+with "Render:", this is a game session; otherwise render. The latest PR (render session 74, the render hardening
+pass: the season's end's last gaps on the site) is render, so **the next session is game** (97).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says. Check the last merged PR so a slice isn't built twice. Read owner-feedback.md.
 
-Render lane (74): whatever the owner's answers to render 73 and the plan say. Nothing from session 96 needs the site
-yet. The booster cards will need card faces and set numbers once they are built.
+Render lane (75): the booster cards' faces and set numbers (097-124) on the site once game 97 registers them;
+until then the render debt list (`progress/render/quality-debt.md`). Render 74 needed nothing from the game lane.
 
 Game lane, when its turn comes: if the owner has answered `progress/booster-proposal-s0.md`, build it in the
 proposal's order: (1) the cards into the faction files (literal style) and the registry, with a new `CARDS_VERSIONS`

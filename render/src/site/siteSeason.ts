@@ -132,6 +132,9 @@ export interface SeasonFrozen {
   collection: string;
   /** Daily rewards: no win pays any more. */
   wins: string;
+  /** (render session 74) The loadout picker: nothing more is bought, what
+   * the owner holds still equips (the server equips after the end). */
+  cosmetics: string;
 }
 
 export function seasonFrozen(s: SiteSeason | null): SeasonFrozen | null {
@@ -145,6 +148,7 @@ export function seasonFrozen(s: SiteSeason | null): SeasonFrozen | null {
     daily: `${name} has ended: no free pack to claim.`,
     collection: `${name} has ended: the collection is kept as it stands, so nothing is crafted or salvaged.`,
     wins: `${name} has ended: no more matches pay.`,
+    cosmetics: `${name} has ended, so the Store is closed: nothing more is bought. What you own still equips.`,
   };
 }
 

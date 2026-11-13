@@ -68,7 +68,7 @@ import { BELL_PAGE, bellButton, bellPanelHtml, closed as bellClosed, emptyBell, 
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
-import { frozenNoteHtml, isSeasonEndedRefusal, seasonClosed, seasonFrozen, type SiteSeason } from "./siteSeason.js";
+import { frozenNoteHtml, isSeasonEndedRefusal, seasonClosed, seasonEndHtml, seasonEndView, seasonFrozen, type SiteSeason } from "./siteSeason.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveGroups, liveOrder, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, topRatedHtml, topRatedRank, topRatedWhy, viewersHtml, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -328,7 +328,7 @@ function fail(err: unknown): void {
     // Render session 73: a page drawn before the season ended sent
     // something the archive refuses (auto-play on, a pack, a craft): read
     // the season now, so the buttons turn off with the reason.
-    if (isSeasonEndedRefusal(err.status, err.message)) seasonRefused();
+    if (isSeasonEndedRefusal(err.status, err.message)) void seasonRefused();
   } else toast("Something went wrong. Try again.", "error");
 }
 
@@ -583,6 +583,14 @@ function tickClocks(): void {
     if (el.textContent !== t) el.textContent = t;
     if (Date.parse(until) <= now) passed = until;
   });
+  // Render session 74: the Stats page's season line ticks ("Ends in 12 min"
+  // counts down, and turns "Ending now" when the page's clock passes the
+  // end time), redrawn only when its words change.
+  const line = state.page === "stats" ? document.querySelector<HTMLElement>(".st-season") : null;
+  if (line) {
+    const v = seasonEndView(state.season, now);
+    if (v && line.textContent !== `${v.chip} ${v.line}`) line.outerHTML = seasonEndHtml(v);
+  }
   if (passed && clockReloadFor !== passed) {
     clockReloadFor = passed;
     if (state.page === "store" && !state.opening) void loadShop();
@@ -607,6 +615,11 @@ async function readSeason(): Promise<void> {
     state.season = await api.season(state.session.token);
     state.seasonReadAt = now;
     state.stats.season = state.season;
+    // Render session 74: a pack summary on screen turns its open buttons off.
+    if (frozenNow() && shownSummary?.btns.isConnected) summaryHere(shownSummary.btns, shownSummary.kind);
+    // And an open loadout picker is handed its state again (Buy off, the
+    // reason), on the slot the owner is on.
+    if (frozenNow()) void dressFrozen();
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) throw err;
   }
@@ -618,9 +631,9 @@ const closedNow = () => seasonClosed(state.season, Date.now());
 const frozenNow = () => seasonFrozen(state.season);
 /** The server refused because the season has ended: read it again at once
  * (the minute's wait skipped) and redraw. */
-function seasonRefused(): void {
+function seasonRefused(): Promise<void> {
   state.seasonReadAt = 0;
-  void readSeason()
+  return readSeason()
     .then(() => {
       drawWallet();
       drawAgentCard();
@@ -1985,12 +1998,14 @@ function play(P: PackApi, r: SiteReveal): void {
   frame?.contentWindow?.focus();
 }
 
+/** The summary on screen (its buttons' box), so a season read can redraw it. */
+let shownSummary: { btns: HTMLElement; kind: SiteReveal["kind"] } | null = null;
 /** The summary's buttons: the website's own (siteStore.summaryButtons),
  * from the packs still waiting. */
 function summaryHere(btns: HTMLElement, kind: SiteReveal["kind"]): void {
   const n = state.wallet?.unopenedPacks.length ?? 0;
   const bulk = (state.shop.packs ?? state.home.packs)?.bulkOpenCount ?? 10;
-  const list = summaryButtons(kind, n, bulk);
+  const list = summaryButtons(kind, n, bulk, frozenNow()?.packs ?? null);
   btns.innerHTML = list.map((b) => `<button type="button"${b.primary ? ' class="pri"' : ""} data-site="${b.act}"${b.enabled ? "" : " disabled"}>${esc(b.label)}</button>`).join("");
   const why = summaryWhy(list);
   btns.parentElement?.querySelector(".why")?.remove();
@@ -2003,6 +2018,13 @@ function summaryHere(btns: HTMLElement, kind: SiteReveal["kind"]): void {
     btns.querySelectorAll("button").forEach((x) => ((x as HTMLButtonElement).disabled = true));
     void openPacks({ count: act === "ten" ? 10 : 1 });
   };
+  // Render session 74: an opening can finish after the season's end (the
+  // server opened it while "ending"): read the season if it's due, and turn
+  // the open buttons off if it has ended, before a press is refused.
+  // readSeason redraws this summary once it reads "ended", so one left on
+  // screen across the end closes too.
+  shownSummary = { btns, kind };
+  if (!frozenNow()) void readSeason().catch(() => undefined);
   // Focus the main button for the keyboard, without scrolling the summary
   // (a ten-pack summary is taller than the window: the cards come first).
   (btns.querySelector("button.pri:not([disabled])") as HTMLElement | null)?.focus({ preventScroll: true });
@@ -2061,7 +2083,7 @@ async function dressPayload(token: string, agentId: string): Promise<PickerSiteP
   drawWallet();
   const agent = play.agents.find((a) => a.agentId === agentId);
   if (!agent) throw new SiteApiError(404, "that agent isn't one of yours");
-  return loadoutPayload({ agent, loadout, owned: owned.owned, onSale: store.cosmetics, play, collection, credits: store.wallet.credits });
+  return loadoutPayload({ agent, loadout, owned: owned.owned, onSale: store.cosmetics, play, collection, credits: store.wallet.credits, storeClosed: frozenNow()?.cosmetics ?? null });
 }
 
 /** The page's answer to a refused or failed call: the server's words. */
@@ -2088,7 +2110,7 @@ function answerOf(err: unknown): { ok: false; error: string } {
   },
   // Buy from inside the picker: the Store's own confirm, then the server's
   // buy, then the page is handed the agent's state read again.
-  buy: async (itemId: string): Promise<{ ok: true; payload: PickerSitePayload } | { ok: true; cancelled: true } | { ok: false; error: string }> => {
+  buy: async (itemId: string): Promise<{ ok: true; payload: PickerSitePayload } | { ok: true; cancelled: true } | { ok: false; error: string; payload?: PickerSitePayload }> => {
     if (!state.session || !dressAgent) return { ok: false, error: "not signed in" };
     const c = state.shop.store?.cosmetics.find((x) => x.itemId === itemId);
     const name = c?.name ?? "this";
@@ -2103,6 +2125,16 @@ function answerOf(err: unknown): { ok: false; error: string } {
       drawWallet();
       return { ok: true, payload: await dressPayload(state.session.token, dressAgent) };
     } catch (err) {
+      // Render session 74: the picker was drawn before the season ended and
+      // the archive refused the buy: read the season at once, redraw the
+      // site behind the frame, and hand the picker its state again, so its
+      // Buy buttons turn off with the reason (the toast keeps the server's
+      // words).
+      if (err instanceof SiteApiError && isSeasonEndedRefusal(err.status, err.message) && state.session && dressAgent) {
+        await seasonRefused();
+        const payload = await dressPayload(state.session.token, dressAgent).catch(() => null);
+        return { ...answerOf(err), ...(payload ? { payload } : {}) };
+      }
       return answerOf(err);
     }
   },
@@ -2153,6 +2185,22 @@ async function openDress(agentId: string, from?: HTMLElement): Promise<void> {
   } catch (err) {
     closeDress();
     fail(err);
+  }
+}
+
+/** The season ended while the loadout picker is open (render session 74):
+ * the picker is handed its state again, so its Buy buttons turn off with
+ * the reason, staying on the owner's slot. Equip still works. */
+async function dressFrozen(): Promise<void> {
+  const agentId = dressAgent;
+  if (!agentId || !state.session || !dressReady || document.getElementById("dress")?.hidden !== false) return;
+  try {
+    const [payload, L] = await Promise.all([dressPayload(state.session.token, agentId), dressReady]);
+    if (dressAgent !== agentId) return;
+    const cur = (dressFrame?.contentWindow as unknown as { __loadout?: { state(): { slot: string; preview: unknown } | null } } | null)?.__loadout?.state();
+    L.show(payload, cur ? { slot: cur.slot, preview: cur.preview } : null);
+  } catch {
+    // The next press is refused by the server and redraws it then.
   }
 }
 

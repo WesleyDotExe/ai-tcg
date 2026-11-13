@@ -9,21 +9,21 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **The season's end on the site (sessions 72-73) is checked on the real API through open, ending and ended (60 +
-  40 PASS), with thin spots.** Session 73 drew the Store page, the Store, Packs and Daily rewards widgets, the top
-  bar's Open and the card viewer closed once the server says "ended" (the page's clock doesn't freeze them: the
-  archive only refuses once ended). Still thin: the Daily rewards row still marks the next win slot ("6") as next
-  after the end (only the line above it says no more matches pay). The loadout picker's own Buy (inside the dress
-  frame) isn't frozen: after the end it is refused with the server's words in the picker. The pack page's summary
-  buttons ("Open another") aren't frozen either, but no opening can start after the end, so they can't be reached
-  then. There is still no season-end screen (the owner's 2026-11-10 note leaves one open), and the end time shows
-  only on Stats. The season is read at sign-in, with the status poll at most once a minute, and at once after any
-  refusal that says the season has ended (session 73: measured 2-8 ms from the toast to the closed Store, no
-  reload). So a stale page can still offer one press before it closes; that press is refused by the server, as
-  before. The Stats line's countdown is drawn when the page draws, not ticked. The browser checks ran the server's
-  clock at 8x. Phones emulated only (390 px: the closed Store checked; the closed Home widgets on a phone not).
-  `isSeasonEndedRefusal` matches the words "season ... has ended" with a 409: if the server's wording changes, a
-  stale page falls back to the minute's read (the unit test pins today's words from the real store).
+- **The season's end on the site (sessions 72-74) is checked on the real API through open, ending and ended (60 +
+  40 + 36 PASS), with thin spots.** Session 73 drew the Store page, the Store, Packs and Daily rewards widgets, the
+  top bar's Open and the card viewer closed once the server says "ended"; session 74 (hardening) finished the rest:
+  the Daily rewards row marks no win next, a pack summary on screen and an open loadout picker close themselves at
+  the season read that says "ended" (Equip stays live, as the server allows), and the Stats line ticks. Still thin:
+  there is no season-end screen (the owner's 2026-11-10 note leaves one open), and the end time shows only on Stats.
+  The season is read at sign-in, with the status poll at most once a minute (every poll while "ending"), and at once
+  after any refusal that says the season has ended. So a stale page can still offer one press before it closes;
+  that press is refused by the server and the page closes at once (measured: the Store 2-8 ms after the toast, the
+  picker 1 s). The Stats tick was proved with Playwright's fake page clock, not a real wait; the ten-pack summary's
+  closed state is unit-tested only (the browser played a single pack). The picker's own toast on a refused buy was
+  not read by the check (its selector). The browser checks ran the server's clock at 8x. Phones emulated only (390
+  px: the closed Store and, since 74, the closed Home widgets at S and M). `isSeasonEndedRefusal` matches the words
+  "season ... has ended" with a 409: if the server's wording changes, a stale page falls back to the minute's read
+  (unit tests pin today's words from the real store).
 - **The waiting ring (session 72):** checked at S, M, L and a 390 px phone with the server waiting, then paired. The
   S line is one line at 11 px with an ellipsis and the full caption on hover; a longer server label (another
   language, a renamed state) would be cut at S. Turning auto-play on again with new minutes while waiting replaces
