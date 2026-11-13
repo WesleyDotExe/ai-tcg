@@ -1,0 +1,413 @@
+<!doctype html>
+<!--
+  Season 1 arena reference: the true-3D test example the owner chose on 2026-11-13.
+  Spec: progress/season-1-ideas.md, "2026-11-13 (owner): the Season 1 arena redesign (true 3D)".
+  A layout and feel test only: placeholder art, a scripted 22-second turn, none of the real effects, wards or finishes.
+  It loads three.js r128 from a CDN for viewing only; the real build must bundle its 3D library (no outside services).
+-->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arena test 3D</title><style>:root{
+  --bg0:#07060f; --bg1:#0e0b22; --bg2:#151033; --line:#2a2560; --ink:#e8ecff; --dim:#8f93c4;
+  --teal:#2de2e6; --mag:#ff3caa; --amber:#ffb000; --violet:#9b6bff; --red:#ff4b5c; --green:#3dffa0;
+  --you:var(--teal); --opp:var(--mag);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg0);color:var(--ink);font-family:"Rajdhani","Segoe UI",system-ui,sans-serif;overflow:hidden}
+body{background:radial-gradient(1200px 700px at 35% 30%,#1b1450 0%,var(--bg1) 45%,var(--bg0) 100%)}
+.app{display:grid;grid-template-columns:1fr 360px;grid-template-rows:46px 1fr;height:100vh}
+.topbar{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#120e2e,#0b0920)}
+.live{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.12em;font-size:13px}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.35}}
+.tag{margin-left:auto;font-size:12px;letter-spacing:.14em;color:var(--amber);border:1px solid #5a4410;padding:4px 10px;border-radius:4px;background:#1d1606}
+.btn{background:#1a1640;border:1px solid var(--line);color:var(--ink);padding:6px 12px;border-radius:6px;font:inherit;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--teal)}
+.main{position:relative;display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+/* HUDs */
+.hud{display:flex;align-items:center;gap:16px;padding:8px 18px;position:relative;z-index:5}
+.hud.opp{background:linear-gradient(180deg,rgba(255,60,170,.12),transparent)}
+.hud.you{background:linear-gradient(0deg,rgba(45,226,230,.12),transparent)}
+.port{width:68px;height:68px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:26px;color:#0a0a16;flex:none;box-shadow:0 0 22px var(--c);border:2px solid rgba(255,255,255,.55)}
+.who b{display:block;font-size:17px;letter-spacing:.05em}
+.who span{font-size:12px;color:var(--dim)}
+.hp{flex:1;max-width:330px}
+.hpbar{height:14px;border-radius:7px;background:#1a1638;border:1px solid #2f2a66;overflow:hidden;position:relative}
+.hpbar div{height:100%;background:linear-gradient(90deg,var(--c),#fff);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.hpnum{font-size:13px;color:var(--dim);margin-top:3px}
+.hpnum b{color:var(--ink);font-size:16px}
+.en{display:flex;gap:4px}
+.en i{width:14px;height:14px;transform:rotate(45deg);border:1px solid var(--amber);background:transparent;transition:background .3s}
+.en i.on{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.counts{display:flex;gap:12px;font-size:12px;color:var(--dim)}
+.counts b{color:var(--ink);font-size:15px;margin-left:3px}
+.sig{font-size:11px;letter-spacing:.1em;padding:3px 8px;border-radius:4px;border:1px solid var(--c);color:var(--c)}
+.flashred{animation:flashred .6s}
+@keyframes flashred{30%{background:rgba(255,75,92,.45)}}
+.shake{animation:shake .5s}
+@keyframes shake{20%{transform:translate(-8px,3px)}40%{transform:translate(7px,-4px)}60%{transform:translate(-5px,2px)}80%{transform:translate(3px,-1px)}}
+/* stage */
+.stage{position:relative;overflow:hidden;min-height:0}
+.turnline{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;font-size:12px;letter-spacing:.3em;color:var(--dim);background:rgba(7,6,15,.75);border:1px solid var(--line);padding:4px 14px;border-radius:20px;pointer-events:none}
+.turnline b{color:var(--you)}
+.hand{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);display:flex;z-index:6;pointer-events:none}
+.hand .hc{width:86px;height:120px;margin:0 -12px;border-radius:9px;transform-origin:50% 140%;}
+.ohand{position:absolute;left:50%;top:-58px;transform:translateX(-50%) rotate(180deg);display:flex;z-index:6;opacity:.9}
+.ohand .hc{width:58px;height:82px;margin:0 -9px;border-radius:7px;transform-origin:50% 150%}
+.back{background:repeating-linear-gradient(45deg,#1d1747 0 6px,#251d5c 6px 12px);border:2px solid #4b3fa6;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.dmg{position:absolute;z-index:20;font-weight:900;font-size:34px;color:#fff;text-shadow:0 0 8px var(--red),0 0 18px var(--red),0 2px 0 #000;pointer-events:none;animation:dmg 1.1s ease-out forwards}
+@keyframes dmg{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}15%{transform:translate(-50%,-60%) scale(1.25);opacity:1}100%{transform:translate(-50%,-160%) scale(1);opacity:0}}
+.bigflash{position:absolute;inset:0;z-index:15;pointer-events:none;background:radial-gradient(circle at 50% 40%,rgba(255,60,170,.55),transparent 60%);animation:bf 1s ease-out forwards}
+@keyframes bf{from{opacity:1}to{opacity:0}}
+.bigcall{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);z-index:16;font-size:46px;font-weight:900;letter-spacing:.06em;color:#fff;text-shadow:0 0 14px var(--mag),0 0 34px var(--mag);pointer-events:none;white-space:nowrap;animation:bc 2.2s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes bc{0%{transform:translate(-50%,-50%) scale(2.2);opacity:0}12%{transform:translate(-50%,-50%) scale(1);opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(.95)}}
+/* card face (shared look) */
+.card{position:absolute;inset:0;border-radius:9px;background:linear-gradient(160deg,#20194d,#0f0c28 70%);border:2px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 55%,transparent),0 8px 16px rgba(0,0,0,.6);overflow:hidden;font-size:11px}
+.card .art{position:absolute;left:7%;right:7%;top:16%;height:46%;border-radius:5px;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--c) 70%,#fff) 0 8%,transparent 9%),repeating-radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--c) 40%,transparent) 0 3px,transparent 3px 9px),linear-gradient(180deg,#120f30,#2a1f63)}
+.card .nm{position:absolute;left:6%;right:6%;top:4%;font-weight:700;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+.card .cost{position:absolute;right:4%;top:3%;width:18px;height:18px;border-radius:50%;background:var(--amber);color:#111;font-weight:900;display:grid;place-items:center;font-size:11px}
+.card .tx{position:absolute;left:7%;right:7%;top:66%;font-size:8.5px;color:var(--dim);line-height:1.15}
+.card .st{position:absolute;bottom:4%;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:13px;color:#0b0b16}
+.card .atk{left:5%;background:var(--amber)}
+.card .def{right:5%;background:var(--green)}
+.card.guard{outline:2px dashed color-mix(in srgb,var(--c) 70%,#fff);outline-offset:3px}
+.card.hurt .def{background:var(--red);color:#fff}
+/* side panel */
+.panel{border-left:1px solid var(--line);background:linear-gradient(180deg,#0d0a24,#09071a);display:flex;flex-direction:column;min-height:0}
+.booth{padding:12px 14px;border-bottom:1px solid var(--line)}
+.booth h4{margin:0 0 8px;font-size:11px;letter-spacing:.25em;color:var(--dim);display:flex;align-items:center;gap:8px}
+.booth h4 i{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red)}
+.caster{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;transition:background .3s}
+.caster.talk{background:rgba(255,255,255,.06)}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#0a0a16;flex:none}
+.caster b{font-size:14px;display:block}
+.caster span{font-size:11px;color:var(--dim)}
+.wave{margin-left:auto;display:flex;gap:2px;align-items:center;height:22px;opacity:.15;transition:opacity .2s}
+.caster.talk .wave{opacity:1}
+.wave i{width:3px;background:var(--c);border-radius:2px;height:20%;animation:wv .5s infinite ease-in-out}
+.wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.05s}.wave i:nth-child(5){animation-delay:.15s}
+@keyframes wv{50%{height:100%}}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;color:var(--dim);font:inherit;font-size:13px;letter-spacing:.12em;padding:10px 0;cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--teal)}
+.feed{flex:1;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.ev{display:flex;gap:8px;align-items:flex-start;animation:evin .35s ease-out}
+@keyframes evin{from{opacity:0;transform:translateY(8px)}}
+.ev .av{width:26px;height:26px;font-size:10px}
+.ev .bub{background:#151135;border:1px solid #251f55;border-radius:8px;padding:6px 9px;font-size:13px;line-height:1.3}
+.ev .bub small{display:block;font-size:10px;color:var(--dim);letter-spacing:.08em;margin-bottom:2px}
+.ev.hot .bub{border-color:var(--mag);background:linear-gradient(90deg,rgba(255,60,170,.22),#151135);font-weight:700;font-size:15px}
+.ev.sys{justify-content:center}
+.ev.sys .bub{background:none;border:0;color:var(--dim);font-size:11px;letter-spacing:.2em}
+.chat{flex:1;display:none;flex-direction:column;min-height:0}
+.chat .msgs{flex:1;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:7px;font-size:13px}
+.chat .msgs p{margin:0}.chat .msgs b{margin-right:6px}
+.chat .guest{border-top:1px solid var(--line);padding:10px 12px;font-size:12px;color:var(--dim)}
+.chat .guest input{width:100%;margin:6px 0;padding:8px;border-radius:6px;border:1px solid var(--line);background:#0b0920;color:var(--dim);font:inherit}
+.chat .guest .btn{width:100%;border-color:var(--teal);color:var(--teal)}
+.note{position:absolute;left:12px;bottom:10px;z-index:30;font-size:11px;color:var(--dim);max-width:280px;background:rgba(7,6,15,.8);border:1px solid var(--line);padding:6px 9px;border-radius:6px}
+@media (max-width:900px){.app{grid-template-columns:1fr}.panel{display:none}}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script></head><body><div class="app">
+ <div class="topbar"><div class="live"><i></i>LIVE · LADDER</div><span style="color:var(--dim);font-size:13px">VANTA-7 vs HIVEMIND//K · placeholder art</span><button class="btn" id="watchAs">Watch as: VANTA-7</button><span class="tag">TEST EXAMPLE · TRUE 3D</span></div>
+ <div class="main"><div class="hud opp" id="hudOpp"></div><div class="stage" id="stage"><div class="ohand" id="ohand"></div><div class="turnline" id="turnline"></div><div class="hand" id="hand"></div><div class="note">True 3D v2: round arena · the opponent holds their hand · cards face their owner (hover any card to read it) · each side's card back on its deck and hand.</div></div><div class="hud you" id="hudYou"></div></div>
+ <div class="panel"><div class="booth"><h4><i></i>ON AIR · THE BOOTH</h4><div class="caster" id="castP"></div><div class="caster" id="castC"></div></div>
+  <div class="tabs"><button data-t="pbp" class="on">PLAY-BY-PLAY</button><button data-t="chat">CHAT</button></div>
+  <div class="feed" id="feed"></div>
+  <div class="chat" id="chat"><div class="msgs" id="msgs"></div><div class="guest">Watching as a guest: you can read the chat.<input disabled placeholder="Create an account to chat"><button class="btn">Create an account to chat</button></div></div></div>
+</div>
+<script>// Shared match script, HUDs, side panel and commentary booth. The board is pluggable: window.BOARD.
+const C_YOU = '#2de2e6', C_OPP = '#ff3caa';
+const u = (name, atk, def, cost, extra) => Object.assign({ name, atk, def, max: def, cost, tx: '' }, extra || {});
+function initial() {
+  return {
+    turn: 7,
+    A: { agent: 'VANTA-7', owner: 'Wes', faction: 'Cortex', c: C_YOU, init: 'V7', hp: 24, max: 30, en: 5, enMax: 7, deck: 18,
+      sig: 'Recursive Mind', sigOut: false,
+      hand: [u('Recursive Construct', 4, 5, 4, { tx: 'When played: copy the last command you cast.' }), u('Overclock', 0, 0, 2, { tx: 'A unit gets +2 attack this turn.', spell: 1 }),
+        u('Cache Burst', 3, 2, 3, { tx: 'Haste.' }), u('Ping Flood', 1, 1, 1, { tx: 'Deal 1 to every enemy unit.' })],
+      units: [u('Packet Sniffer', 2, 3, 2, { tx: 'Reveal the top card of their deck.' }), u('Firewall Warden', 1, 6, 3, { guard: 1, tx: 'Guard.' }), null, null] },
+    B: { agent: 'HIVEMIND//K', owner: 'House', faction: 'Swarm', c: C_OPP, init: 'HK', hp: 19, max: 30, en: 4, enMax: 7, deck: 17,
+      sig: 'Swarm Queen // Ascend', sigOut: false,
+      hand: [u('Larva Batch', 1, 1, 1), u('Brood Relay', 3, 4, 3), u('Hive Pulse', 0, 0, 2, { spell: 1 }), u('Swarm Drone', 2, 2, 1), u('Molt', 0, 0, 1, { spell: 1 })],
+      units: [u('Swarm Drone', 2, 2, 1, { tx: 'When it dies: summon a Larva.' }), u('Brood Relay', 3, 4, 3, { tx: 'Your Drones have +1 attack.' }), u('Swarm Drone', 2, 2, 1, { tx: 'When it dies: summon a Larva.' }), null] }
+  };
+}
+let S = initial(), pov = 'A';
+const other = s => (s === 'A' ? 'B' : 'A');
+const CAST = { P: { name: 'Rex Overclock', role: 'Play-by-play', c: '#ffb000', i: 'RO' }, C: { name: 'Juno Static', role: 'Colour analyst', c: '#9b6bff', i: 'JS' } };
+
+function cardHTML(k, c) {
+  if (!k) return '';
+  const stats = k.spell ? '' : `<div class="st atk">${k.atk}</div><div class="st def">${k.def}</div>`;
+  return `<div class="card${k.guard ? ' guard' : ''}${k.def < k.max ? ' hurt' : ''}" style="--c:${c}"><div class="nm">${k.name}</div><div class="cost">${k.cost}</div><div class="art"></div><div class="tx">${k.tx || (k.spell ? 'Command.' : '')}</div>${stats}</div>`;
+}
+function hudHTML(sd, cls) {
+  const s = S[sd];
+  const pips = Array.from({ length: s.enMax }, (_, i) => `<i class="${i < s.en ? 'on' : ''}"></i>`).join('');
+  return `<div class="port" style="background:${s.c};--c:${s.c}">${s.init}</div>
+    <div class="who"><b>${s.agent}</b><span>${s.owner} · ${s.faction}</span></div>
+    <div class="hp" style="--c:${s.c}"><div class="hpbar"><div style="width:${(100 * s.hp) / s.max}%"></div></div><div class="hpnum"><b>${s.hp}</b> / ${s.max} health</div></div>
+    <div><div class="en">${pips}</div><div class="hpnum">${s.en} / ${s.enMax} energy</div></div>
+    <div class="counts">Hand<b>${s.hand.length}</b> Deck<b>${s.deck}</b></div>
+    <div class="sig" style="--c:${s.c}">SIGNATURE · ${s.sigOut ? 'IN PLAY' : 'READY'}</div>`;
+}
+function renderHUD() {
+  document.getElementById('hudOpp').innerHTML = hudHTML(other(pov));
+  document.getElementById('hudYou').innerHTML = hudHTML(pov);
+  const near = S[pov], far = S[other(pov)];
+  document.getElementById('hand').innerHTML = near.hand.map((k, i, a) => {
+    const r = (i - (a.length - 1) / 2) * 7, y = Math.abs(i - (a.length - 1) / 2) * 6;
+    return `<div class="hc" style="position:relative;transform:rotate(${r}deg) translateY(${y}px)">${cardHTML(k, near.c)}</div>`;
+  }).join('');
+  document.getElementById('ohand').innerHTML = far.hand.map((k, i, a) => {
+    const r = (i - (a.length - 1) / 2) * 7;
+    return `<div class="hc back" style="transform:rotate(${r}deg)"></div>`;
+  }).join('');
+  document.getElementById('turnline').innerHTML = `TURN ${S.turn} · <b style="color:${S[S.active || 'A'].c}">${S[S.active || 'A'].agent}</b>`;
+}
+function renderAll() { renderHUD(); BOARD.render(S, pov); }
+function hudOf(sd) { return document.getElementById(sd === pov ? 'hudYou' : 'hudOpp'); }
+
+// side panel
+function feedAdd(html, cls) {
+  const f = document.getElementById('feed');
+  const d = document.createElement('div'); d.className = 'ev ' + (cls || ''); d.innerHTML = html; f.appendChild(d); f.scrollTop = f.scrollHeight;
+}
+function say(who, text, hot) {
+  const c = CAST[who];
+  feedAdd(`<div class="av" style="background:${c.c}">${c.i}</div><div class="bub"><small>${c.name.toUpperCase()}</small>${text}</div>`, hot ? 'hot' : '');
+  const el = document.getElementById('cast' + who); el.classList.add('talk');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('talk'), Math.min(4200, 900 + text.length * 45));
+}
+function sys(text) { feedAdd(`<div class="bub">${text}</div>`, 'sys'); }
+function stageFX(cls) { const st = document.getElementById('stage'); const d = document.createElement('div'); d.className = cls; st.appendChild(d); setTimeout(() => d.remove(), 1200); }
+function bigCall(text) { const st = document.getElementById('stage'); const d = document.createElement('div'); d.className = 'bigcall'; d.textContent = text; st.appendChild(d); setTimeout(() => d.remove(), 2300); }
+function dmgAt(x, y, amt) { const st = document.getElementById('stage'); const d = document.createElement('div'); d.className = 'dmg'; d.style.left = x + 'px'; d.style.top = y + 'px'; d.textContent = '-' + amt; st.appendChild(d); setTimeout(() => d.remove(), 1200); }
+function faceHit(sd, amt) {
+  S[sd].hp -= amt; renderHUD();
+  const h = hudOf(sd); h.classList.remove('flashred', 'shake'); void h.offsetWidth; h.classList.add('flashred', 'shake');
+  const st = document.getElementById('stage').getBoundingClientRect(), r = h.querySelector('.hpbar').getBoundingClientRect();
+  dmgAt(r.left + r.width / 2 - st.left, sd === pov ? st.height - 30 : 40, amt);
+}
+function shakeStage() { const s = document.getElementById('stage'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
+
+// the scripted turn (loops)
+const SCRIPT = [
+  [0.0, () => { S.active = 'A'; renderHUD(); sys('TURN 7 · VANTA-7'); }],
+  [0.4, () => say('P', 'Turn seven. VANTA-7 on the clock with five energy to spend.')],
+  [2.8, () => { const k = S.A.hand.shift(); S.A.en -= 4; S.A.units[2] = k; renderHUD(); BOARD.play('A', 2, k); }],
+  [3.3, () => say('P', 'Down goes <b>Recursive Construct</b>! A four-drop with real teeth.')],
+  [6.0, () => BOARD.attack('A', 0, 'B', 0, () => { S.B.units[0].def -= 2; S.A.units[0].def -= 2; BOARD.hurt('B', 0, 2); BOARD.hurt('A', 0, 2); setTimeout(() => { S.B.units[0] = null; BOARD.kill('B', 0); }, 450); })],
+  [7.0, () => say('C', 'Clean trade. The Sniffer reads the packet and that Drone is gone.')],
+  [9.6, () => { S.active = 'B'; S.B.en = 7; renderHUD(); sys('TURN 7 · HIVEMIND//K'); }],
+  [10.0, () => BOARD.attack('B', 1, 'A', 1, () => { S.A.units[1].def -= 3; BOARD.hurt('A', 1, 3); })],
+  [10.6, () => say('P', 'Relay has to go through the Warden first. Guard doing its job.')],
+  [13.4, () => { S.B.sigOut = true; S.B.en = 2; renderHUD(); stageFX('bigflash'); bigCall('SWARM QUEEN // ASCEND'); BOARD.signature('B'); }],
+  [14.2, () => { shakeStage(); faceHit('A', 5); say('P', 'OH! THE QUEEN IS HERE! FIVE STRAIGHT TO THE FACE!', true); }],
+  [17.6, () => say('C', 'Nineteen apiece. Folks, we have ourselves a ballgame.')],
+  [22.5, () => { S = initial(); renderAll(); document.getElementById('feed').innerHTML = ''; sys('— TEST LOOP RESTARTS —'); }],
+];
+let loopStart = 0, idx = 0;
+function tick(now) {
+  if (!loopStart) loopStart = now;
+  const t = (now - loopStart) / 1000;
+  while (idx < SCRIPT.length && SCRIPT[idx][0] <= t) { SCRIPT[idx][1](); idx++; }
+  if (idx >= SCRIPT.length) { idx = 0; loopStart = now; }
+  requestAnimationFrame(tick);
+}
+// chat (guest view)
+const CHAT = [['nova', '#2de2e6', 'warden holding the line again'], ['bram', '#ffb000', 'swarm has queen in hand, watch'], ['cy', '#9b6bff', 'gg if it lands'], ['kitbash', '#3dffa0', 'that construct copy is nasty'], ['nova', '#2de2e6', 'QUEEN 👀'], ['bram', '#ffb000', 'called it']];
+let chatI = 0;
+function chatTick() { const m = CHAT[chatI++ % CHAT.length]; const box = document.getElementById('msgs'); const p = document.createElement('p'); p.innerHTML = `<b style="color:${m[1]}">${m[0]}</b>${m[2]}`; box.appendChild(p); while (box.children.length > 40) box.firstChild.remove(); box.scrollTop = box.scrollHeight; }
+function tab(which) {
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === which));
+  document.getElementById('feed').style.display = which === 'pbp' ? 'flex' : 'none';
+  document.getElementById('chat').style.display = which === 'chat' ? 'flex' : 'none';
+}
+function boot() {
+  for (const k of ['P', 'C']) { const c = CAST[k]; document.getElementById('cast' + k).innerHTML = `<div class="av" style="background:${c.c}">${c.i}</div><div><b>${c.name}</b><span>${c.role}</span></div><div class="wave" style="--c:${c.c}"><i></i><i></i><i></i><i></i><i></i></div>`; }
+  document.getElementById('watchAs').onclick = () => { pov = other(pov); document.getElementById('watchAs').textContent = 'Watch as: ' + S[pov].agent; renderAll(); };
+  document.querySelectorAll('.tabs button').forEach(b => (b.onclick = () => tab(b.dataset.t)));
+  for (let i = 0; i < 4; i++) chatTick(); setInterval(chatTick, 3800);
+  BOARD.init(); renderAll(); requestAnimationFrame(tick);
+}
+</script><script>// True 3D board, v2: a round arena, the far side's hand held in the scene, cards facing their owner,
+// each side's card back (cosmetic) on its draw pile and held hand, hover to read any card.
+const BOARD = (() => {
+  let renderer, scene, camera, stageEl, ray, mouse, preview, labels = {};
+  const meshes = {}; const tweens = []; const held = { A: [], B: [] }; const piles = { A: [], B: [] };
+  let shakeT = 0;
+  const CW = 1.15, CH = 1.6, SX = [-2.85, -0.95, 0.95, 2.85], ZN = 1.65, ZF = -1.65, R = 5.95;
+  const rowZ = (sd) => (sd === 'A' ? ZN : ZF);
+  const faceY = (sd) => (sd === 'A' ? 0 : Math.PI); // a card faces its owner's seat
+  const sigX = 4.75, deckX = -4.75;
+  const BACKS = { A: { name: 'Circuit Board', c1: '#0b2a3a', c2: '#2de2e6' }, B: { name: 'Hive Lattice', c1: '#2a0b2a', c2: '#ff3caa' } };
+  function posOf(sd, i) { return new THREE.Vector3(SX[i], 0.03, rowZ(sd)); }
+  function cardCanvas(k, color) {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 356; const g = cv.getContext('2d');
+    const grd = g.createLinearGradient(0, 0, 256, 356); grd.addColorStop(0, '#241b58'); grd.addColorStop(0.7, '#0f0c28'); g.fillStyle = grd; g.fillRect(0, 0, 256, 356);
+    g.strokeStyle = color; g.lineWidth = 10; g.strokeRect(5, 5, 246, 346);
+    const ag = g.createRadialGradient(128, 130, 4, 128, 130, 95); ag.addColorStop(0, '#fff'); ag.addColorStop(0.12, color); ag.addColorStop(1, '#14103a');
+    g.fillStyle = ag; g.fillRect(22, 52, 212, 150);
+    g.strokeStyle = 'rgba(255,255,255,.12)'; for (let r = 14; r < 120; r += 16) { g.beginPath(); g.arc(128, 130, r, 0, 6.29); g.stroke(); }
+    g.fillStyle = '#e8ecff'; g.font = 'bold 22px Segoe UI, sans-serif'; g.fillText(k.name.length > 18 ? k.name.slice(0, 17) + '…' : k.name, 18, 38);
+    g.fillStyle = '#ffb000'; g.beginPath(); g.arc(228, 30, 18, 0, 6.29); g.fill(); g.fillStyle = '#111'; g.font = 'bold 22px sans-serif'; g.fillText(k.cost, 221, 38);
+    g.fillStyle = '#8f93c4'; g.font = '16px sans-serif'; const tx = k.tx || ''; g.fillText(tx.slice(0, 26), 22, 232); g.fillText(tx.slice(26, 52), 22, 254);
+    if (!k.spell) {
+      g.fillStyle = '#ffb000'; g.beginPath(); g.arc(36, 318, 24, 0, 6.29); g.fill();
+      g.fillStyle = k.def < k.max ? '#ff4b5c' : '#3dffa0'; g.beginPath(); g.arc(220, 318, 24, 0, 6.29); g.fill();
+      g.fillStyle = '#0b0b16'; g.font = 'bold 28px sans-serif'; g.fillText(k.atk, 28, 328); g.fillStyle = k.def < k.max ? '#fff' : '#0b0b16'; g.fillText(k.def, 211, 328);
+    }
+    if (k.guard) { g.setLineDash([12, 8]); g.strokeStyle = '#fff'; g.lineWidth = 4; g.strokeRect(14, 14, 228, 328); }
+    return cv;
+  }
+  function tex(cv) { const t = new THREE.CanvasTexture(cv); t.anisotropy = 8; return t; }
+  const backMats = {};
+  function backMat(sd) {
+    if (backMats[sd]) return backMats[sd];
+    const b = BACKS[sd]; const cv = document.createElement('canvas'); cv.width = 256; cv.height = 356; const g = cv.getContext('2d');
+    const bg = g.createLinearGradient(0, 0, 256, 356); bg.addColorStop(0, b.c1); bg.addColorStop(1, '#07060f'); g.fillStyle = bg; g.fillRect(0, 0, 256, 356);
+    g.strokeStyle = b.c2; g.globalAlpha = 0.45; g.lineWidth = 3;
+    if (sd === 'A') { // circuit traces
+      for (let i = 0; i < 26; i++) { let x = 20 + ((i * 53) % 216), y = 20 + ((i * 97) % 316); g.beginPath(); g.moveTo(x, y); x += i % 2 ? 40 : -30; g.lineTo(x, y); y += 36; g.lineTo(x, y); g.stroke(); g.beginPath(); g.arc(x, y, 4, 0, 6.29); g.fill(); }
+    } else { // hex lattice
+      const hx = (cx, cy, r) => { g.beginPath(); for (let a = 0; a < 6; a++) g.lineTo(cx + r * Math.cos(a * Math.PI / 3), cy + r * Math.sin(a * Math.PI / 3)); g.closePath(); g.stroke(); };
+      for (let y = 0; y < 380; y += 30) for (let x = 0; x < 280; x += 52) hx(x + ((y / 30) % 2) * 26, y, 16);
+    }
+    g.globalAlpha = 1; g.fillStyle = '#07060f'; g.beginPath(); g.arc(128, 178, 46, 0, 6.29); g.fill();
+    g.strokeStyle = b.c2; g.lineWidth = 5; g.beginPath(); g.arc(128, 178, 46, 0, 6.29); g.stroke();
+    g.fillStyle = b.c2; g.font = 'bold 30px sans-serif'; g.textAlign = 'center'; g.fillText(S[sd].init, 128, 189);
+    g.lineWidth = 8; g.strokeRect(4, 4, 248, 348);
+    return (backMats[sd] = new THREE.MeshStandardMaterial({ map: tex(cv), roughness: 0.5, emissive: new THREE.Color(b.c2), emissiveIntensity: 0.05 }));
+  }
+  const edgeMat = new THREE.MeshStandardMaterial({ color: 0x1a1640, roughness: 0.6 });
+  function makeCard(k, sd) {
+    const face = new THREE.MeshStandardMaterial({ map: tex(cardCanvas(k, S[sd].c)), roughness: 0.45, metalness: 0.1, emissive: new THREE.Color(S[sd].c), emissiveIntensity: 0.06 });
+    // box faces: +x,-x,+y(face),-y(back),+z,-z
+    const m = new THREE.Mesh(new THREE.BoxGeometry(CW, 0.03, CH), [edgeMat, edgeMat, face, backMat(sd), edgeMat, edgeMat]);
+    m.castShadow = true; m.userData = { k, sd }; return m;
+  }
+  function floorTexture() {
+    const n = 2048, cv = document.createElement('canvas'); cv.width = cv.height = n; const g = cv.getContext('2d');
+    const bg = g.createRadialGradient(n / 2, n / 2, 40, n / 2, n / 2, n / 2); bg.addColorStop(0, '#1b1650'); bg.addColorStop(0.75, '#100c2e'); bg.addColorStop(1, '#0a0820'); g.fillStyle = bg; g.fillRect(0, 0, n, n);
+    g.strokeStyle = 'rgba(255,255,255,.045)'; g.lineWidth = 2; for (let x = 0; x < n; x += 64) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, n); g.stroke(); g.beginPath(); g.moveTo(0, x); g.lineTo(n, x); g.stroke(); }
+    g.strokeStyle = 'rgba(155,107,255,.25)'; for (const r of [0.2, 0.62, 0.9]) { g.lineWidth = 4; g.beginPath(); g.arc(n / 2, n / 2, (r * n) / 2, 0, 6.29); g.stroke(); }
+    return tex(cv);
+  }
+  function frameAt(x, z, color, w = CW + 0.16, h = CH + 0.16, op = 0.75) {
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op }); const t = 0.035;
+    for (const [px, pz, sx, sz] of [[x, z - h / 2, w, t], [x, z + h / 2, w, t], [x - w / 2, z, t, h], [x + w / 2, z, t, h]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.01, sz), mat); b.position.set(px, 0.006, pz); scene.add(b); }
+  }
+  function placeCamera() { const s = pov === 'A' ? 1 : -1; camera.position.set(0, 7.3, 8.3 * s); camera.lookAt(0, 0.1, 0.45 * s); }
+  function resize() { const r = stageEl.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.fov = r.width / r.height < 1.5 ? 56 : 47; camera.updateProjectionMatrix(); }
+  function screenOf(v) { const p = v.clone().project(camera); const r = stageEl.getBoundingClientRect(); return [(p.x * 0.5 + 0.5) * r.width, (-p.y * 0.5 + 0.5) * r.height]; }
+  function tween(o) { o.t0 = performance.now(); tweens.push(o); }
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  function buildPiles() {
+    for (const sd of ['A', 'B']) {
+      piles[sd].forEach((m) => scene.remove(m)); piles[sd] = [];
+      const bm = backMat(sd);
+      for (let n = 0; n < 7; n++) { const d = new THREE.Mesh(new THREE.BoxGeometry(CW, 0.03, CH), [edgeMat, edgeMat, bm, bm, edgeMat, edgeMat]); d.position.set(deckX, 0.02 + n * 0.035, rowZ(sd)); d.rotation.y = faceY(sd) + (n % 3 - 1) * 0.015; d.castShadow = true; scene.add(d); piles[sd].push(d); }
+    }
+  }
+  function buildHeld() { // the far side holds its hand up behind its row, backs to the viewer
+    for (const sd of ['A', 'B']) { held[sd].forEach((m) => scene.remove(m)); held[sd] = []; }
+    const far = other(pov), s = far === 'A' ? 1 : -1, n = S[far].hand.length;
+    S[far].hand.forEach((k, i) => {
+      const m = makeCard(k, far); const off = i - (n - 1) / 2;
+      m.userData.hidden = true; // never readable: hidden information
+      m.userData.base = { x: off * 0.55, y: 1.25 - Math.abs(off) * 0.06, z: s * 3.95 + Math.abs(off) * 0.05 * s, rx: s * (Math.PI / 2 - 0.32), ry: -off * 0.13 * s, i };
+      scene.add(m); held[far].push(m);
+    });
+  }
+  function frame(now) {
+    for (let i = tweens.length - 1; i >= 0; i--) { const tw = tweens[i]; const t = Math.min(1, (now - tw.t0) / tw.dur); tw.step(tw.ease ? tw.ease(t) : t, t); if (t >= 1) { tweens.splice(i, 1); tw.done && tw.done(); } }
+    for (const sd of ['A', 'B']) held[sd].forEach((m) => { const b = m.userData.base; m.position.set(b.x, b.y + Math.sin(now / 900 + b.i) * 0.04, b.z); m.rotation.set(b.rx, b.ry, 0); });
+    placeCamera();
+    if (shakeT > now) { const a = (shakeT - now) / 500; camera.position.x += (Math.random() - 0.5) * 0.35 * a; camera.position.y += (Math.random() - 0.5) * 0.2 * a; }
+    renderer.render(scene, camera);
+    const tl = document.getElementById('turnline'); if (tl) { const [, ty] = screenOf(new THREE.Vector3(0, 0, 0)); tl.style.top = ty + 'px'; }
+    for (const sd of ['A', 'B']) { const c = pov === 'A' ? 1 : -1, off = (sd === pov ? c : -c) * 1.0; const [x, y] = screenOf(new THREE.Vector3(deckX, 0.05, rowZ(sd) + off)); const l = labels[sd]; l.style.left = x + 'px'; l.style.top = (sd === pov ? y : y - 34) + 'px'; l.innerHTML = `DECK <b>${S[sd].deck}</b><br><span>${BACKS[sd].name}</span>`; l.style.setProperty('--c', S[sd].c); }
+    requestAnimationFrame(frame);
+  }
+  function setCard(key, k, sd, pos) {
+    if (meshes[key]) { scene.remove(meshes[key]); delete meshes[key]; }
+    if (!k) return null; const m = makeCard(k, sd); m.position.copy(pos); m.rotation.set(0, faceY(sd), 0); scene.add(m); meshes[key] = m; return m;
+  }
+  function inspect(ev) {
+    const r = renderer.domElement.getBoundingClientRect();
+    mouse.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera);
+    const hit = ray.intersectObjects(Object.values(meshes))[0];
+    if (hit && hit.object.userData.k) {
+      const { k, sd } = hit.object.userData; preview.innerHTML = cardHTML(k, S[sd].c) + `<div class="pvs" style="color:${S[sd].c}">${S[sd].agent}</div>`;
+      preview.style.display = 'block'; preview.style.left = Math.min(r.width - 220, ev.clientX - r.left + 18) + 'px'; preview.style.top = Math.max(8, ev.clientY - r.top - 140) + 'px';
+    } else preview.style.display = 'none';
+  }
+  return {
+    init() {
+      stageEl = document.getElementById('stage'); document.getElementById('ohand').style.display = 'none';
+      const css = document.createElement('style'); css.textContent = `.decklbl{position:absolute;z-index:5;transform:translate(-50%,0);font-size:11px;letter-spacing:.15em;color:var(--dim);text-align:center;pointer-events:none;text-shadow:0 1px 3px #000}.decklbl b{color:var(--c);font-size:14px}.decklbl span{font-size:9px;letter-spacing:.08em;color:var(--c);opacity:.8}
+        .preview{position:absolute;z-index:25;width:190px;height:266px;display:none;pointer-events:none;filter:drop-shadow(0 10px 24px rgba(0,0,0,.8))}.preview .card{font-size:14px}.preview .card .nm{font-size:14px}.preview .card .tx{font-size:11px}.preview .card .st{width:30px;height:30px;font-size:17px}.preview .card .cost{width:24px;height:24px;font-size:14px}
+        .pvs{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.15em}`; document.head.appendChild(css);
+      for (const sd of ['A', 'B']) { const l = document.createElement('div'); l.className = 'decklbl'; stageEl.appendChild(l); labels[sd] = l; }
+      preview = document.createElement('div'); preview.className = 'preview'; stageEl.appendChild(preview);
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; stageEl.prepend(renderer.domElement);
+      ray = new THREE.Raycaster(); mouse = new THREE.Vector2(); renderer.domElement.addEventListener('mousemove', inspect); renderer.domElement.addEventListener('mouseleave', () => (preview.style.display = 'none'));
+      scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x07060f, 13, 26);
+      camera = new THREE.PerspectiveCamera(48, 1.6, 0.1, 100);
+      scene.add(new THREE.AmbientLight(0x6a6aa0, 0.55));
+      const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(2, 10, 4); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 }); scene.add(key);
+      const r1 = new THREE.PointLight(0x2de2e6, 1.3, 13); r1.position.set(0, 2.5, 5.2); scene.add(r1);
+      const r2 = new THREE.PointLight(0xff3caa, 1.3, 13); r2.position.set(0, 2.5, -5.2); scene.add(r2);
+      // the round arena: a raised disc (the playmat circle), a glowing rim, faction-tinted halves
+      const disc = new THREE.Mesh(new THREE.CylinderGeometry(R, R + 0.15, 0.3, 128), [new THREE.MeshStandardMaterial({ color: 0x0b0920, roughness: 0.8 }), new THREE.MeshStandardMaterial({ map: floorTexture(), roughness: 0.75 }), new THREE.MeshStandardMaterial({ color: 0x0b0920 })]);
+      disc.position.y = -0.15; disc.receiveShadow = true; scene.add(disc);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(R + 0.05, 0.06, 12, 160), new THREE.MeshBasicMaterial({ color: 0x8a6bff })); rim.rotation.x = Math.PI / 2; rim.position.y = 0.0; scene.add(rim);
+      const halo = new THREE.Mesh(new THREE.RingGeometry(R + 0.1, R + 0.9, 128), new THREE.MeshBasicMaterial({ color: 0x6a5cff, transparent: true, opacity: 0.12, side: THREE.DoubleSide })); halo.rotation.x = -Math.PI / 2; halo.position.y = -0.2; scene.add(halo);
+      for (const [sd, start] of [['A', Math.PI], ['B', 0]]) { const h = new THREE.Mesh(new THREE.CircleGeometry(R - 0.05, 96, start, Math.PI), new THREE.MeshBasicMaterial({ color: new THREE.Color(S[sd].c), transparent: true, opacity: 0.07, depthWrite: false })); h.rotation.x = -Math.PI / 2; h.position.y = 0.004; scene.add(h); }
+      const mid = new THREE.Mesh(new THREE.BoxGeometry(2 * R - 1.2, 0.01, 0.04), new THREE.MeshBasicMaterial({ color: 0x8a7bff })); mid.position.y = 0.008; scene.add(mid);
+      for (const sd of ['A', 'B']) { for (const x of SX) frameAt(x, rowZ(sd), S[sd].c, undefined, undefined, 0.55); frameAt(sigX, rowZ(sd), S[sd].c, undefined, undefined, 0.95); frameAt(deckX, rowZ(sd), S[sd].c, undefined, undefined, 0.35); }
+      buildPiles(); addEventListener('resize', resize); resize(); requestAnimationFrame(frame);
+    },
+    render(S0, p) {
+      for (const sd of ['A', 'B']) {
+        S0[sd].units.forEach((k, i) => setCard(`${sd}-${i}`, k, sd, posOf(sd, i)));
+        setCard('sig-' + sd, S0[sd].sigOut ? { name: S0[sd].sig, atk: 5, def: 5, max: 5, cost: 5, tx: 'Ascend: deal 5 to the enemy agent.' } : null, sd, new THREE.Vector3(sigX, 0.03, rowZ(sd)));
+      }
+      buildHeld(); resize();
+    },
+    play(sd, i, k) {
+      const m = setCard(`${sd}-${i}`, k, sd, posOf(sd, i)); const end = posOf(sd, i);
+      const s = sd === 'A' ? 1 : -1, start = new THREE.Vector3(0, 3.2, s * 6.2);
+      const toCam = pov === 'A' ? 0 : Math.PI; // shown to the viewer in flight, then settles facing its owner
+      tween({ dur: 900, ease, step: (e) => { m.position.lerpVectors(start, end, e); m.position.y = end.y + Math.sin(e * Math.PI) * 1.4 + (1 - e) * 1.6; m.rotation.x = (1 - e) * -0.8 * (pov === 'A' ? 1 : -1); m.rotation.y = e < 0.7 ? toCam : toCam + (faceY(sd) - toCam) * ((e - 0.7) / 0.3); }, done: () => { m.position.copy(end); m.rotation.set(0, faceY(sd), 0); shakeT = performance.now() + 300; } });
+      buildHeld();
+    },
+    attack(fs, fi, ts, ti, onHit) {
+      const m = meshes[`${fs}-${fi}`], a = posOf(fs, fi), b = posOf(ts, ti); if (!m) return;
+      const base = faceY(fs), toCam = pov === 'A' ? 0 : Math.PI; let hit = false;
+      tween({ dur: 900, step: (e, t) => {
+        const f = t < 0.62 ? Math.sin((t / 0.62) * Math.PI / 2) * 0.8 : 0.8 * (1 - (t - 0.62) / 0.38);
+        m.position.lerpVectors(a, b, f); m.position.y = 0.03 + Math.sin(Math.min(1, t / 0.62) * Math.PI) * 1.1;
+        const turn = Math.sin(Math.min(1, t / 0.9) * Math.PI); m.rotation.y = base + (toCam - base) * turn; // lifts and turns to the viewer
+        if (!hit && t >= 0.62) { hit = true; shakeT = performance.now() + 500; onHit && onHit(); }
+      }, done: () => { m.position.copy(a); m.rotation.set(0, base, 0); } });
+    },
+    hurt(sd, i, amt) {
+      const k = S[sd].units[i]; const m = meshes[`${sd}-${i}`];
+      if (k && m) { m.userData.k = k; m.material[2].map = tex(cardCanvas(k, S[sd].c)); m.material[2].needsUpdate = true; m.material[2].emissiveIntensity = 0.9; tween({ dur: 450, step: (e) => (m.material[2].emissiveIntensity = 0.9 - 0.84 * e) }); }
+      const [x, y] = screenOf(posOf(sd, i)); dmgAt(x, y, amt);
+    },
+    kill(sd, i) {
+      const m = meshes[`${sd}-${i}`]; if (!m) return; delete meshes[`${sd}-${i}`];
+      m.material[2].transparent = true;
+      tween({ dur: 650, step: (e) => { m.position.y = 0.03 + Math.sin(e * Math.PI) * 0.8; m.rotation.z = e * 1.2; m.material[2].opacity = 1 - e; m.scale.setScalar(1 - e * 0.4); m.material[2].emissiveIntensity = 1.2 * (1 - e); }, done: () => scene.remove(m) });
+    },
+    signature(sd) {
+      const s = S[sd]; const end = new THREE.Vector3(sigX, 0.03, rowZ(sd));
+      const m = setCard('sig-' + sd, { name: s.sig, atk: 5, def: 5, max: 5, cost: 5, tx: 'Ascend: deal 5 to the enemy agent.' }, sd, end);
+      const start = new THREE.Vector3(0, 4.6, 0), toCam = pov === 'A' ? 0 : Math.PI;
+      tween({ dur: 1500, ease, step: (e) => { m.position.lerpVectors(start, end, e); m.position.y = 4.6 * (1 - e) + 0.03 + Math.sin(e * Math.PI) * 1.0; m.rotation.x = (1 - e) * -1.1 * (pov === 'A' ? 1 : -1); m.rotation.y = e < 0.75 ? toCam : toCam + (faceY(sd) - toCam) * ((e - 0.75) / 0.25); m.scale.setScalar(1 + (1 - e) * 1.3); m.material[2].emissiveIntensity = 0.06 + (1 - e) * 1.2; }, done: () => { m.rotation.set(0, faceY(sd), 0); m.scale.setScalar(1); shakeT = performance.now() + 600; } });
+    },
+  };
+})();
+</script><script>boot();</script></body></html>
