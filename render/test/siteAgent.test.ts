@@ -120,7 +120,23 @@ describe("My agent and Agent controls: the views (pure)", () => {
     const waiting = { state: "waiting" as const, label: "Waiting for the next round", startedAt: null, endsAt: null, totalMinutes: 15, secondsLeft: 900, minutesLeft: 15, endsAtReset: false };
     const w = allowanceOf({ ...AUTO, on: true, allowance: waiting, canAddTime: true }, Date.parse("2026-12-05T00:00:00.000Z"));
     expect(w).toMatchObject({ state: "waiting", minutesTotal: 15, minutesLeft: 15, secondsLeft: 900 });
-    expect(timeRingView(w, on, false)).toEqual({ pct: 100, centre: "Waiting for the next round", unit: null, caption: "15 min, counted from your agent's first match", tone: "run" });
+    // Render session 72: the centre keeps the minutes (the words ran out of
+    // the widget at S); the server's words are the note beside the ring.
+    expect(timeRingView(w, on, false)).toEqual({ pct: 100, centre: "15", unit: "min", caption: "Waiting for the next round: the 15 min start when your agent is paired.", tone: "wait", note: "Waiting for the next round" });
+    expect(timeRingView(w, on, true).caption).toBe("Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed).");
+    // An older label-less answer still says it in the ring's own words.
+    expect(timeRingView({ ...w!, label: undefined }, on, false).note).toBe("Waiting for the next round");
+    expect(ringParts("Wren", timeRingView(w, on, false), 76).label).toBe("Wren: Waiting for the next round, 15 min");
+    // Waiting doesn't tick (nothing counts down) but reads the status every 5 s,
+    // so the ring starts draining within seconds of the pairing.
+    const wp = { ...PLAY, autoPlay: { ...AUTO, on: true, allowance: waiting, canAddTime: true } } as SitePlay;
+    expect(ringTicks(wp)).toBe(false);
+    expect(statusPollMs(wp, Date.parse("2026-12-05T00:00:00.000Z"))).toBe(5000);
+    // At S the words sit under the name; the pill in the ring stays short.
+    const sHtml = agentControlsHtml("S", { ...DATA, play: wp, allowance: w });
+    expect(sHtml).toMatch(/<span class="small ac-cap ac-note" title="Waiting for the next round: the 15 min start[^"]*">Waiting for the next round<\/span>/);
+    expect(sHtml).toContain('class="tring t-wait"');
+    expect(sHtml).toMatch(/<b class="tr-c">15<small>min<\/small><\/b>/);
     // Minutes never run past the ring.
     expect(timeRingView({ minutesTotal: 15, minutesLeft: 99, state: "running" }, on, false).pct).toBe(100);
     // No allowance: on with no limit, off, stopped at the day's cap, a house agent.

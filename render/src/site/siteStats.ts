@@ -33,6 +33,7 @@ import { zoneCity } from "./siteStore.js";
 import { amount } from "./siteLook.js";
 import { FACTION_HEX, esc } from "./siteModel.js";
 import { signed, whenText } from "./siteMatches.js";
+import { seasonEndHtml, seasonEndView, type SiteSeason } from "./siteSeason.js";
 import {
   formPips,
   ratingChartSvg,
@@ -69,6 +70,9 @@ export interface StatsPageState {
   loading: boolean;
   error: string | null;
   ladderError: string | null;
+  /** `GET /api/season` (render session 72): the season's end under the
+   * ladder's title; null until read (or on a server without it). */
+  season?: SiteSeason | null;
 }
 
 // ---- the filter ----------------------------------------------------------------------
@@ -245,7 +249,7 @@ function ladderRow(r: SiteLadderRow, youId: string, nowDay: string | null): stri
 /** The ladder on the Stats page: the tiers (the owner's lit), how the
  * listed owners spread over them, and the public list with the owner's
  * row lit (and added at the foot when off the list, as in placement). */
-export function ladderSectionHtml(l: SiteLadder, nowDay: string | null): string {
+export function ladderSectionHtml(l: SiteLadder, nowDay: string | null, seasonLine = ""): string {
   const youIn = l.standings.some((r) => r.ownerId === l.you.ownerId);
   const rows = l.standings.map((r) => ladderRow(r, l.you.ownerId, nowDay)).join("");
   const foot = youIn ? "" : `<tbody class="lt-you"><tr class="lt-gap"><td colspan="7">⋯</td></tr>${ladderRow(l.you, l.you.ownerId, nowDay)}</tbody>`;
@@ -253,7 +257,7 @@ export function ladderSectionHtml(l: SiteLadder, nowDay: string | null): string 
   const table = l.standings.length
     ? `<div class="lt-wrap"><table class="ltable"><thead><tr><th>#</th><th>Agent</th><th>Tier</th><th>Rating</th><th title="Wins-losses-draws">Record</th><th>Rated</th><th>Last</th></tr></thead><tbody>${rows}</tbody>${foot}</table></div>`
     : `<p class="muted small">No one has a rated match yet. The ladder fills as the rounds are played.</p>`;
-  return `<section class="panel glass st-ladder"><div class="row between nowrap"><h4>Season ladder</h4><span class="muted small">${l.owners} owner${l.owners === 1 ? "" : "s"} rated · ${placed} placed</span></div>${tierSpreadHtml(l)}<div class="st-ll">${tierLadderHtml(l)}${table}</div><p class="muted small">Glicko-2, one rating per owner. A tier and a rank show after ${l.placementMatches} rated matches; ± is how sure the rating is.</p></section>`;
+  return `<section class="panel glass st-ladder"><div class="row between nowrap"><h4>Season ladder</h4><span class="muted small">${l.owners} owner${l.owners === 1 ? "" : "s"} rated · ${placed} placed</span></div>${seasonLine}${tierSpreadHtml(l)}<div class="st-ll">${tierLadderHtml(l)}${table}</div><p class="muted small">Glicko-2, one rating per owner. A tier and a rank show after ${l.placementMatches} rated matches; ± is how sure the rating is.</p></section>`;
 }
 
 // ---- the page ------------------------------------------------------------------------
@@ -267,7 +271,7 @@ export function statsPageHtml(st: StatsPageState, nowMs: number): string {
   const err = st.error ? `<div class="banner warn" role="status">Couldn't refresh: ${esc(st.error)}</div>` : "";
   const today = s.rating.chart[s.rating.chart.length - 1]?.day ?? null;
   const ladder = st.ladder
-    ? ladderSectionHtml(st.ladder, today)
+    ? ladderSectionHtml(st.ladder, today, seasonEndHtml(seasonEndView(st.season ?? null, nowMs)))
     : `<section class="panel glass st-ladder"><h4>Season ladder</h4><p class="muted small">${st.ladderError ? `Couldn't read the ladder: ${esc(st.ladderError)}` : "Loading the ladder…"}</p></section>`;
   return `<div class="pg-wide st-pg">${err}${filter}<div class="st-grid">`
     + `<div class="st-main">${ratingHeroHtml(s, st.ladder, st.days)}${totalsHtml(s)}<div class="st-two">${factionTableHtml("Win rate by your deck's faction", s.byFaction, s.factionNotRecorded, "faction")}${factionTableHtml("Against each faction", s.byOpponentFaction, s.opponentFactionNotRecorded, "opponent's faction")}</div></div>`

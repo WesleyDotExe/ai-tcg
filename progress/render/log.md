@@ -5980,3 +5980,60 @@ the full-screen arena shows neither rank nor count; "1 watching" can be just you
 **Next render-lane slice:** the Season 0 feature list is complete. Next render session (72, after game 94): per
 the owner's plan item 6, fix what the dry run broke on the site side, hardening only where it found weak spots; the
 render hardening pass is due at 74.
+
+## 2026-11-13 — Render session 72: the dry run's fixes on the site (the waiting ring, the season's end)
+
+**Lane:** render. The last merged PR (#169, "The dry run's fixes: the allowance clock at the first pairing, the
+scheduled season end (session 94)") is game, so this session is render; no render PR was open. Read first:
+owner-feedback.md (the 2026-11-13 plan, item 6: "Then both lanes: fix what the dry run broke; more hardening only
+where the dry run found weak spots. No new features"; the answers to render 71, all kept, marked handled), DESIGN.md,
+RENDER.md, current.md (game 94's note to this lane: look at the waiting ring at S, M and L and restyle; `endsAt` is
+yours to place), this lane's log, debt and notes, OWNER_API.md (the allowance, the season's end), game 94's render
+diff. Not a hardening pass (the next is 74).
+
+**Looked first:** the waiting ring as game 94 left it, in a browser on the real API. The server's words "Waiting for
+the next round" sat in the centre's nowrap pill, which ran out of the M widget on the left and over the Stop button;
+the ring was lit full and bright, the same as a fresh running one.
+
+**Built (render/ only; the server unchanged):**
+- `siteAgent.ts`: the ring's "wait" tone. The centre keeps the minutes chosen ("15 min"); the server's label is the
+  view's `note` (under the name at S, one line; the caption's start at M and L: "Waiting for the next round: the 15 min
+  start when your agent is paired.", "+ (this match isn't timed)" mid-match), and part of the ring's accessible name.
+  `statusPollMs` reads every 5 s while waiting, so the drain starts within seconds of the pairing. CSS: dashed, dim,
+  breathing (still with reduced motion).
+- `siteSeason.ts` (new, pure, tested): `SiteSeason` (`GET /api/season`, `endsAt` optional for an older server),
+  `sydneyWhen` (a midnight end reads "midnight at the end of Sat 26 Dec", the owner's own wording; three-letter
+  months, the zone not a fixed offset), `untilText`, `seasonEndView` (open / no end time / passed on the page's clock /
+  ending / ended), `seasonEndHtml`, `seasonClosed`.
+- `siteApi.ts`: `season(token)`. `siteStats.ts`: the line under the ladder's title. `siteClient.ts`: the Stats page
+  reads the season with its other reads; `readSeason` runs with the status poll at most once a minute (every poll
+  once the end time has passed or while ending) and at sign-in.
+- **Found by this session's own check (run 1):** after the season ended, Agent controls read "Time's up. Give it 15,
+  30 or 60 minutes to play again" with Start live, and the server accepts auto-play on then (200) though no match
+  starts. Now `autoPlayView`, `timeRingView`, `timeButtonsView` and `ringTicks` take the season's closed state: the
+  ring reads "Ended" ("Ending" while the last matches finish), Start and the time buttons are off with "Season 0 has
+  ended: no new match starts.", nothing says "joins the next ladder round"; Stop stays while on. The Agent match page's
+  switch and its "no match" line say the same.
+- `siteDemo.ts`: sets the season's end time as `season:setup` does (S0's by default); `--ends-in N`, `--no-end`.
+
+**Ran it:** `progress/render/evidence/season-check-s72.mjs`, headless on the real owner API, ladder at 8x, the end time
+40 server minutes ahead: **60 PASS** (`season-check-s72.txt`). Waiting at S, M and L and a 390 px phone (the centre
+"15min", the pill inside the widget and off Stop, Stop inside the widget, the S line not cut, no countdown in 2.5 s);
+paired → the ring ran 1.2 s after the server said running; the Stats line open ("Ends in 39 min", Sydney time) →
+ending (the server's own, "the match on screen finishes and counts") → ended ("final standings"); Agent controls at
+S/M/L and Agent match after the end. No external requests, no page errors. The first runs are kept
+(`season-check-s72-first-run.txt`: run 1 38 PASS but found the after-end invitation; run 2 a check bug; run 3 found
+Agent match drawn before the season read, as the redraw after it was Home-only, fixed). A look at S after the fix
+showed the new line pushing Stop under the widget's edge; the line is one 11 px line now, and checked. Unit tests:
+`render/test/siteSeason.test.ts` (7), `siteAgent.test.ts` and `siteTime.test.ts` updated (the real-API ring test now
+expects the minutes in the centre). Render suite 1036 pass; typecheck clean (all workspaces); the site contract
+check 0 mismatches, controls 6 of 6 (`site-contract-s72.txt`; `season` not called by it yet);
+`render/output/site/index.html` rebuilt.
+
+**Not done (named, in quality-debt):** the Store, Packs and daily pack after the end (the server's refusals show as
+toasts; no designed ended state; a season-end screen is the owner's open question); the end time only on Stats; a
+phone after the end not looked at; `season` not in the contract check (game lane).
+
+**Next render-lane slice:** after this PR the next session is game (95). The next render session (73) carries on
+with plan item 6 if the owner's answers or the game lane's dry-run re-run on v29 find more; else the hardening pass
+can come forward from 74.

@@ -1410,3 +1410,25 @@ season mark) is proposed as a mark, call 1.
 4. **For the game lane (the site contract check):** `featured` (`{ tournament, topRated }`) and each live match's
    `viewers` are typed now and fit (`progress/render/evidence/site-contract-s71.txt`: 0 mismatches, controls 5 of 5,
    188 untyped lines, was 195). Nothing needed; no new server fields.
+
+## 2026-11-13 — Render session 72 (the dry run's fixes on the site: the waiting ring and the season's end)
+
+1. **Four small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look is
+   call 3: once the season is ending or ended, Agent controls turns Start and the time buttons off, though the server
+   would accept them.
+2. **Found by the check, not by the dry run:** after the scheduled end the site invited the owner to play again ("Give
+   it 15, 30 or 60 minutes", Start live), and the server accepted auto-play on (200) though no match ever starts.
+   Fixed on the site. **For the game lane:** should `PUT /api/play/auto-play` with `on: true` be refused (409) once
+   the season has ended, as packs and crafting already are? The site no longer sends it, but another client could.
+   This is the game lane's call; nothing blocks.
+3. **For the game lane (the site contract check):** the site's client now has `season` (`GET /api/season`, typed as
+   `SiteSeason` in `render/src/site/siteSeason.ts`, `endsAt` optional for an older server). The check lists it under
+   "owner API calls with no JSON answer checked", so calling it would cover `endsAt` and the states. This session's
+   run: 0 mismatches, controls 6 of 6 (`progress/render/evidence/site-contract-s72.txt`).
+4. **The site demo now sets the season's end time as `season:setup` does** (`SEASON_END_TIMES.S0` by default;
+   `--ends-in N` puts it N minutes ahead on the demo's clock; `--no-end` sets none). Earlier checks don't read the
+   season, so they're unaffected.
+5. **Still not handled on the site once the season ends:** the Store and Packs still offer Buy, Claim and Open. The
+   server refuses each with its own words ("season S0 has ended: no pack is bought; …"), shown as an error toast. A
+   proper ended state there (or a season-end screen, which your 2026-11-10 note leaves open) is in
+   `progress/render/quality-debt.md`. That's a new surface, so it's not built under the scope lock unless you want it.

@@ -68,6 +68,7 @@ import { BELL_PAGE, bellButton, bellPanelHtml, closed as bellClosed, emptyBell, 
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
+import { seasonClosed, type SiteSeason } from "./siteSeason.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveGroups, liveOrder, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, topRatedHtml, topRatedRank, topRatedWhy, viewersHtml, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -154,6 +155,11 @@ const state: {
   /** The Stats page (render session 68): `GET /api/stats` under its filter,
    * and `GET /api/ladder` for the tiers and the season ladder. */
   stats: StatsPageState;
+  /** `GET /api/season` (render session 72): read with the status poll at most
+   * once a minute (and on each poll once the page's clock passes the end
+   * time), so Agent controls stops offering Start once the season ends. */
+  season: SiteSeason | null;
+  seasonReadAt: number;
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} }, colFilter: "All",
@@ -161,6 +167,8 @@ const state: {
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
   hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, speedBusy: false, replay: null, follow: null,
   stats: { stats: null, ladder: null, replays: null, allRecent: false, agent: null, days: 30, loading: false, error: null, ladderError: null },
+  season: null,
+  seasonReadAt: 0,
 };
 
 let liquid: Liquid | null = null;
@@ -374,6 +382,8 @@ function signedOut(message: string): void {
   state.draft = null;
   state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} };
   state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
+  state.season = null;
+  state.seasonReadAt = 0;
   bellSeq++;
   bell = emptyBell();
   drawBell();
@@ -465,6 +475,8 @@ async function enter(): Promise<void> {
   schedulePoll();
   void loadHome();
   void pollBell().catch((err) => fail(err));
+  // Render session 72: the season's state, so a season already over shows at once.
+  void readSeason().then(() => { if (closedNow() && !state.busy && !dragging) drawPage(); }).catch(() => undefined);
 }
 
 /** Reads what the widgets on the board show (only what they need), then
@@ -528,10 +540,11 @@ function schedulePoll(): void {
  * decide finishing and done. */
 function tickRings(): void {
   const p = state.play;
-  if (document.hidden || state.page !== "home" || !ringTicks(p) || !p?.connectedAgent) return;
+  const closed = closedNow();
+  if (document.hidden || state.page !== "home" || !ringTicks(p, closed) || !p?.connectedAgent) return;
   const rings = document.querySelectorAll<HTMLElement>("#wgrid .tring");
   if (!rings.length) return;
-  const v = ringOfPlay(p, Date.now());
+  const v = ringOfPlay(p, Date.now(), closed);
   const name = p.connectedAgent.name;
   rings.forEach((el) => {
     const size = Number(el.dataset.size);
@@ -545,7 +558,7 @@ function tickRings(): void {
       c.innerHTML = g.centreHtml;
       c.classList.toggle("word", g.word);
     }
-    const cap = el.closest(".wg")?.querySelector<HTMLElement>(".ac-cap");
+    const cap = el.closest(".wg")?.querySelector<HTMLElement>(".ac-cap:not(.ac-note)");
     if (cap && cap.textContent !== v.caption) cap.textContent = v.caption;
   });
 }
@@ -574,6 +587,27 @@ function tickClocks(): void {
   }
 }
 window.setInterval(tickClocks, 1000);
+/** The season's state, for Agent controls and the Agent match page (render
+ * session 72): once a minute, or on every status read while it is ending or
+ * the page's clock is past its end time. A failed read (or an older server)
+ * keeps the last answer. */
+async function readSeason(): Promise<void> {
+  if (!state.session) return;
+  const s = state.season;
+  const now = Date.now();
+  const due = !s || now - state.seasonReadAt >= 60_000 || s.state === "ending" || (s.state === "open" && !!s.endsAt && Date.parse(s.endsAt) <= now);
+  if (!due || (s?.state === "ended")) return;
+  try {
+    state.season = await api.season(state.session.token);
+    state.seasonReadAt = now;
+    state.stats.season = state.season;
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) throw err;
+  }
+}
+/** The season no longer starts matches, on the page's clock. */
+const closedNow = () => seasonClosed(state.season, Date.now());
+
 async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
   try {
@@ -583,7 +617,7 @@ async function refresh(): Promise<void> {
     const [play, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err: unknown) => {
       if (err instanceof SiteApiError && err.signedOut) throw err;
       return state.wallet;
-    }), pollBell()]);
+    }), pollBell(), readSeason()]);
     state.play = play;
     state.wallet = wallet;
     drawWallet();
@@ -772,7 +806,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id), arena: views.get(w.id) === "arena" ? tileArenaPick() : undefined })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1531,7 +1565,8 @@ async function loadStats(): Promise<void> {
   st.loading = true;
   if (state.page === "stats") redrawStats();
   // The history's newest page says which matches have a replay (the stats' recent rows don't).
-  const [s, l, h] = await Promise.allSettled([api.stats(token, { agent: st.agent, days: st.days, recent: STATS_RECENT }), api.ladder(token, 100), api.matches(token, 50)]);
+  // Render session 72: and the season, for its end time under the ladder's title.
+  const [s, l, h, se] = await Promise.allSettled([api.stats(token, { agent: st.agent, days: st.days, recent: STATS_RECENT }), api.ladder(token, 100), api.matches(token, 50), api.season(token)]);
   if (ask !== statsAsk) return;
   st.loading = false;
   const why = (r: PromiseRejectedResult) => (r.reason instanceof SiteApiError ? errorText(r.reason.status, r.reason.message) : "Something went wrong.");
@@ -1555,6 +1590,12 @@ async function loadStats(): Promise<void> {
     state.home.ladder = l.value;
   } else st.ladderError = why(l);
   if (h.status === "fulfilled") st.replays = Object.fromEntries(h.value.matches.map((m) => [m.matchId, m.hasReplay]));
+  // A server without the endpoint (or a failed read) leaves the line out; the last read stands otherwise.
+  if (se.status === "fulfilled") {
+    st.season = se.value;
+    state.season = se.value;
+    state.seasonReadAt = Date.now();
+  }
   if (state.page === "stats") redrawStats();
 }
 
@@ -2235,7 +2276,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;
@@ -2252,7 +2293,7 @@ function drawLive(): void {
 
 function matchPage(p: SitePlay): string {
   const a = p.connectedAgent;
-  const ap = autoPlayView(p.autoPlay, !!a);
+  const ap = autoPlayView(p.autoPlay, !!a, closedNow()?.why ?? null);
   const st = agentStatus(p);
   const head = a
     ? `<div class="row nowrap">${avatar(a.name, agentFaction(p), 52)}<div class="wcol"><div class="mya-n">${esc(a.name)}</div><div class="small muted">${esc(styleName(p, a.playStyle))} play style · ${esc(deckLine(p))}</div><div class="row"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span></div></div><span class="sp"></span><div class="wcol right">${autoPlaySwitch(ap, "auto-play", state.autoBusy)}<small class="muted">${esc(ap.note)}</small></div></div>`
@@ -2270,8 +2311,9 @@ function mLiveHtml(p: SitePlay): string {
   if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so no match is live.</p>`;
   const m = myLiveMatch(live);
   if (!m) {
-    const ap = autoPlayView(p.autoPlay, true);
-    return `<p class="small">${esc(p.liveMatch ? "Your agent's match is starting." : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now: auto-play is off, so your agent sits out.")}</p>${live.matches.length ? `<p class="muted small">${live.matches.length} other match${live.matches.length === 1 ? " is" : "es are"} live. <a href="#/live">Watch live</a></p>` : ""}`;
+    const closed = closedNow();
+    const ap = autoPlayView(p.autoPlay, true, closed?.why ?? null);
+    return `<p class="small">${esc(p.liveMatch ? "Your agent's match is starting." : closed ? `No match right now. ${closed.why}` : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now: auto-play is off, so your agent sits out.")}</p>${live.matches.length ? `<p class="muted small">${live.matches.length} other match${live.matches.length === 1 ? " is" : "es are"} live. <a href="#/live">Watch live</a></p>` : ""}`;
   }
   const sb = scoreboardOf(m, state.me?.ownerId ?? null);
   const names = { p1: m.p1.agentName, p2: m.p2.agentName };

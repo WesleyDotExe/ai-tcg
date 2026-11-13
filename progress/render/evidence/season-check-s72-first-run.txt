@@ -1,0 +1,175 @@
+# Run 1: before Agent controls knew the season (found it offering Start after the end)
+
+[A] the waiting ring at S, M and L
+PASS  A. S: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. S: the ring takes the waiting look
+PASS  A. S: the centre keeps the minutes chosen ("15min")
+PASS  A. S: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. S: the server's words under the name ("Waiting for the next round")
+PASS  A. S: the centre's pill is inside the widget (pill 309-357, widget 278-546)
+PASS  A. S: the pill is off the Stop button
+PASS  A. S: nothing counts down while waiting (arc 213.6 213.6)
+PASS  A. M: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. M: the ring takes the waiting look
+PASS  A. M: the centre keeps the minutes chosen ("15min")
+PASS  A. M: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. M: the caption "Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed)."
+PASS  A. M: the centre's pill is inside the widget (pill 315-363, widget 278-834)
+PASS  A. M: the pill is off the Stop button
+PASS  A. M: nothing counts down while waiting (arc 251.3 251.3)
+PASS  A. L: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. L: the ring takes the waiting look
+PASS  A. L: the centre keeps the minutes chosen ("15min")
+PASS  A. L: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. L: the caption "Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed)."
+PASS  A. L: the centre's pill is inside the widget (pill 315-363, widget 278-1410)
+PASS  A. L: the pill is off the Stop button
+PASS  A. L: nothing counts down while waiting (arc 251.3 251.3)
+PASS  A. phone 390 px: waiting, the pill inside, the words under the name
+PASS  A. phone: no sideways scroll (390 px)
+PASS  A. the server starts the clock at the agent's pairing (running)
+PASS  A. the ring runs 1.3 s after the server said so (status read every 5 s while waiting)
+PASS  A. running: "15min", "15 min left today"
+
+[B] the season's end on the Stats page
+      GET /api/season: state open, endsAt 2026-11-13T16:50:49.896Z
+PASS  B. the line under the ladder's title is drawn
+PASS  B. open: "Ends in 39 min"
+PASS  B. open: "Ends in 39 min Season 0 ends at Sat 14 Nov, 03:50 (Sydney time), in 39 min. The server ends it: no new round starts from then."
+      (the demo's clock runs at 8x, so the server reaches its end long before the page's countdown would: the real server runs at 1x)
+PASS  B. the ladder reaches the end time: the server says "ending"
+PASS  B. ending: "Ending now" — Ending now Season 0 is ending: no new round starts; the match on screen finishes and counts, then it ends.
+PASS  B. the server says ended
+PASS  B. ended: "Ended" — Ended Season 0 has ended (its last match recorded Sat 14 Nov, 03:56, Sydney time). The ladder is its final standings.
+      after the end, Agent controls reads: "Agent controls Time's up Vector Halcyon Ready Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney). Start Personality Calculator Applies from the next match. SWARM Your agent picks: "
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+38 PASS, 0 FAIL
+
+# Run 2: after the fix; the check's own fault (Home's widget looked for while on Stats)
+
+[A] the waiting ring at S, M and L
+PASS  A. S: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. S: the ring takes the waiting look
+PASS  A. S: the centre keeps the minutes chosen ("15min")
+PASS  A. S: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. S: the server's words under the name ("Waiting for the next round")
+PASS  A. S: the centre's pill is inside the widget (pill 309-357, widget 278-546)
+PASS  A. S: the pill is off the Stop button
+PASS  A. S: nothing counts down while waiting (arc 213.6 213.6)
+PASS  A. M: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. M: the ring takes the waiting look
+PASS  A. M: the centre keeps the minutes chosen ("15min")
+PASS  A. M: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. M: the caption "Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed)."
+PASS  A. M: the centre's pill is inside the widget (pill 315-363, widget 278-834)
+PASS  A. M: the pill is off the Stop button
+PASS  A. M: nothing counts down while waiting (arc 251.3 251.3)
+PASS  A. L: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. L: the ring takes the waiting look
+PASS  A. L: the centre keeps the minutes chosen ("15min")
+PASS  A. L: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. L: the caption "Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed)."
+PASS  A. L: the centre's pill is inside the widget (pill 315-363, widget 278-1410)
+PASS  A. L: the pill is off the Stop button
+PASS  A. L: nothing counts down while waiting (arc 251.3 251.3)
+PASS  A. phone 390 px: waiting, the pill inside, the words under the name
+PASS  A. phone: no sideways scroll (390 px)
+PASS  A. the server starts the clock at the agent's pairing (running)
+PASS  A. the ring runs 1.2 s after the server said so (status read every 5 s while waiting)
+PASS  A. running: "15min", "15 min left today"
+
+[B] the season's end on the Stats page
+      GET /api/season: state open, endsAt 2026-11-13T16:58:39.068Z
+PASS  B. the line under the ladder's title is drawn
+PASS  B. open: "Ends in 39 min"
+PASS  B. open: "Ends in 39 min Season 0 ends at Sat 14 Nov, 03:58 (Sydney time), in 39 min. The server ends it: no new round starts from then."
+      (the demo's clock runs at 8x, so the server reaches its end long before the page's countdown would: the real server runs at 1x)
+PASS  B. the ladder reaches the end time: the server says "ending"
+PASS  B. ending: "Ending now" — Ending now Season 0 is ending: no new round starts; the match on screen finishes and counts, then it ends.
+PASS  B. the server says ended
+PASS  B. ended: "Ended" — Ended Season 0 has ended (its last match recorded Sat 14 Nov, 04:04, Sydney time). The ladder is its final standings.
+      PUT /api/play/auto-play {on:true} after the end: 200 (the server accepts it; no match will start)
+FAIL  the check stopped: page.waitForSelector: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#wgrid .wg[data-type="live"][data-size="S"] .tring') to be visible[22m
+
+    at setBoard (/home/user/ai-tcg/progress/render/evidence/season-check-s72.mjs:89:149)
+    at async file:///home/user/ai-tcg/progress/render/evidence/season-check-s72.mjs:192:5
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+38 PASS, 1 FAIL
+
+# Run 3: Agent match drawn before the season read (the redraw was Home-only); fixed
+
+[A] the waiting ring at S, M and L
+PASS  A. S: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. S: the ring takes the waiting look
+PASS  A. S: the centre keeps the minutes chosen ("15min")
+PASS  A. S: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. S: the server's words under the name ("Waiting for the next round")
+PASS  A. S: the centre's pill is inside the widget (pill 309-357, widget 278-546)
+PASS  A. S: the pill is off the Stop button
+PASS  A. S: nothing counts down while waiting (arc 213.6 213.6)
+PASS  A. M: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. M: the ring takes the waiting look
+PASS  A. M: the centre keeps the minutes chosen ("15min")
+PASS  A. M: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. M: the caption "Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed)."
+PASS  A. M: the centre's pill is inside the widget (pill 315-363, widget 278-834)
+PASS  A. M: the pill is off the Stop button
+PASS  A. M: nothing counts down while waiting (arc 251.3 251.3)
+PASS  A. L: the server waits ("Waiting for the next round", endsAt null)
+PASS  A. L: the ring takes the waiting look
+PASS  A. L: the centre keeps the minutes chosen ("15min")
+PASS  A. L: the ring's accessible name "Vector Halcyon: Waiting for the next round, 15 min"
+PASS  A. L: the caption "Waiting for the next round: the 15 min start when your agent is next paired (this match isn't timed)."
+PASS  A. L: the centre's pill is inside the widget (pill 315-363, widget 278-1410)
+PASS  A. L: the pill is off the Stop button
+PASS  A. L: nothing counts down while waiting (arc 251.3 251.3)
+PASS  A. phone 390 px: waiting, the pill inside, the words under the name
+PASS  A. phone: no sideways scroll (390 px)
+PASS  A. the server starts the clock at the agent's pairing (running)
+PASS  A. the ring runs 0.6 s after the server said so (status read every 5 s while waiting)
+PASS  A. running: "15min", "15 min left today"
+
+[B] the season's end on the Stats page
+      GET /api/season: state open, endsAt 2026-11-13T17:04:59.024Z
+PASS  B. the line under the ladder's title is drawn
+PASS  B. open: "Ends in 39 min"
+PASS  B. open: "Ends in 39 min Season 0 ends at Sat 14 Nov, 04:04 (Sydney time), in 39 min. The server ends it: no new round starts from then."
+      (the demo's clock runs at 8x, so the server reaches its end long before the page's countdown would: the real server runs at 1x)
+PASS  B. the ladder reaches the end time: the server says "ending"
+PASS  B. ending: "Ending now" — Ending now Season 0 is ending: no new round starts; the match on screen finishes and counts, then it ends.
+PASS  B. the server says ended
+PASS  B. ended: "Ended" — Ended Season 0 has ended (its last match recorded Sat 14 Nov, 04:10, Sydney time). The ladder is its final standings.
+      PUT /api/play/auto-play {on:true} after the end: 200 (the server accepts it; no match will start)
+PASS  B. S: Agent controls' ring says "Ended"
+PASS  B. S: Start is off, with the reason ("Season 0 has ended: no new match starts.")
+PASS  B. S: the 0 time buttons are off
+PASS  B. S: nothing promises a next match
+PASS  B. S: "Season over" under the name
+PASS  B. M: Agent controls' ring says "Ended"
+PASS  B. M: Start is off, with the reason ("Season 0 has ended: no new match starts.")
+PASS  B. M: the 3 time buttons are off
+PASS  B. M: nothing promises a next match
+PASS  B. M: the caption "Season 0 has ended: no new match starts. Its ladder is the final standings."
+PASS  B. L: Agent controls' ring says "Ended"
+PASS  B. L: Start is off, with the reason ("Season 0 has ended: no new match starts.")
+PASS  B. L: the 5 time buttons are off
+PASS  B. L: nothing promises a next match
+PASS  B. L: the caption "Season 0 has ended: no new match starts. Its ladder is the final standings."
+FAIL  B. Agent match: the auto-play switch is off, "Off: your agent sits out the ladder rounds."
+PASS  B. Agent match: "No match right now: auto-play is off, so your agent sits out."
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+54 PASS, 1 FAIL

@@ -512,6 +512,15 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .tring .tr-fg { fill: none; stroke: var(--c); stroke-width: 6; stroke-linecap: round; transition: stroke-dasharray .8s ease; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--c) 70%, transparent)); }
 .tring.t-low .tr-fg { stroke: #ffb347; } .tring.t-finish .tr-bg { stroke: rgba(255,179,71,.5); animation: pulse 1.4s ease-in-out infinite; } .tring.t-done .tr-bg { stroke: rgba(255,255,255,.08); } .tring.t-off .av { filter: grayscale(.7) brightness(.8); }
 .tring .av { border-radius: 50%; }
+/* Render session 72: waiting for the first pairing (the clock not started): the ring full but dimmed and dashed,
+   breathing slowly, so it reads as set and not yet running; the centre keeps the minutes chosen. */
+.tring.t-wait .tr-fg { stroke-dasharray: 3 7 !important; opacity: .8; filter: none; animation: twait 2.4s ease-in-out infinite; }
+.tring.t-wait .tr-c { box-shadow: 0 0 0 1.5px rgba(255,255,255,.35); }
+@keyframes twait { 50% { opacity: .35; } }
+/* Render session 72: the season's end under the ladder's title (GET /api/season). */
+.st-season { margin: 2px 0 10px; font-size: 13px; color: var(--muted); } .st-season b { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 99px; font-size: 11.5px; color: var(--ink); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.st-season.t-ending b { background: rgba(255,179,71,.3); } .st-season.t-ended b { background: rgba(140,140,160,.25); }
+.ac-note { opacity: .92; font-weight: 650; line-height: 1.2; font-size: 11px; letter-spacing: -.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .tring .tr-c { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); padding: 2px 8px; border-radius: 99px; background: rgba(10,12,30,.9); color: #fff; font: 800 12px ui-rounded, system-ui; white-space: nowrap; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent); }
 .tring .tr-c small { font-size: 9.5px; margin-left: 2px; opacity: .8; } .tring .tr-c.word { font-size: 10px; }
 .btn.ss { min-width: 76px; } .btn.ss.stop { background: rgba(255,93,115,.22) !important; color: #fff; }
@@ -528,7 +537,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .dsw-o { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: inherit; text-align: left; cursor: pointer; font: inherit; }
 .dsw-o i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 2px var(--c); } .dsw-o.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); } .dsw-o.on i { background: var(--c); }
 .dsw-o span { display: flex; flex-direction: column; min-width: 0; } .dsw-o small { opacity: .75; font-size: 11.5px; } .dsw-o[disabled] { opacity: .5; cursor: default; }
-@media (prefers-reduced-motion: reduce) { .tring .tr-fg, .dn-face i { transition: none; } .tring.t-finish .tr-bg { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tring .tr-fg, .dn-face i { transition: none; } .tring.t-finish .tr-bg, .tring.t-wait .tr-fg { animation: none; } }
 /* Render session 65: Ladder, Rating & form and Notifications on the server's data (siteStanding.ts). */
 .tbadge { position: relative; flex: none; display: inline-grid; place-items: center; width: var(--s); height: var(--s); filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--t) 45%, transparent)); }
 .tbadge .tb-o { fill: color-mix(in srgb, var(--t) 70%, #10142e); } .tbadge .tb-i { fill: var(--t); } .tbadge .tb-h { fill: rgba(255,255,255,.42); }

@@ -4832,7 +4832,7 @@ Completes the entry above ("Not decided: the end time on 26 Dec").
 
 ---
 
-## 2026-11-13 — Owner: answers to render session 71 (Top rated and viewer counts on Watch live), keep all 4
+## 2026-11-13 — Owner: answers to render session 71 (Top rated and viewer counts on Watch live), keep all 4 (HANDLED 2026-11-13, render session 72: all 4 kept, nothing changed)
 
 **Render session 71** (PR #168, `progress/render/checkpoints.md`, `progress/render/evidence/featured-check-s71.txt`). **Keep all 4 calls:**
 1. **Keep:** the eye counts the owner too when their own arena is reading the match, as the server counts ("1 watching" may be just them).

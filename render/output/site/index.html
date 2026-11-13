@@ -459,6 +459,15 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .tring .tr-fg { fill: none; stroke: var(--c); stroke-width: 6; stroke-linecap: round; transition: stroke-dasharray .8s ease; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--c) 70%, transparent)); }
 .tring.t-low .tr-fg { stroke: #ffb347; } .tring.t-finish .tr-bg { stroke: rgba(255,179,71,.5); animation: pulse 1.4s ease-in-out infinite; } .tring.t-done .tr-bg { stroke: rgba(255,255,255,.08); } .tring.t-off .av { filter: grayscale(.7) brightness(.8); }
 .tring .av { border-radius: 50%; }
+/* Render session 72: waiting for the first pairing (the clock not started): the ring full but dimmed and dashed,
+   breathing slowly, so it reads as set and not yet running; the centre keeps the minutes chosen. */
+.tring.t-wait .tr-fg { stroke-dasharray: 3 7 !important; opacity: .8; filter: none; animation: twait 2.4s ease-in-out infinite; }
+.tring.t-wait .tr-c { box-shadow: 0 0 0 1.5px rgba(255,255,255,.35); }
+@keyframes twait { 50% { opacity: .35; } }
+/* Render session 72: the season's end under the ladder's title (GET /api/season). */
+.st-season { margin: 2px 0 10px; font-size: 13px; color: var(--muted); } .st-season b { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 99px; font-size: 11.5px; color: var(--ink); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.st-season.t-ending b { background: rgba(255,179,71,.3); } .st-season.t-ended b { background: rgba(140,140,160,.25); }
+.ac-note { opacity: .92; font-weight: 650; line-height: 1.2; font-size: 11px; letter-spacing: -.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .tring .tr-c { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); padding: 2px 8px; border-radius: 99px; background: rgba(10,12,30,.9); color: #fff; font: 800 12px ui-rounded, system-ui; white-space: nowrap; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent); }
 .tring .tr-c small { font-size: 9.5px; margin-left: 2px; opacity: .8; } .tring .tr-c.word { font-size: 10px; }
 .btn.ss { min-width: 76px; } .btn.ss.stop { background: rgba(255,93,115,.22) !important; color: #fff; }
@@ -475,7 +484,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .dsw-o { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: inherit; text-align: left; cursor: pointer; font: inherit; }
 .dsw-o i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 2px var(--c); } .dsw-o.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); } .dsw-o.on i { background: var(--c); }
 .dsw-o span { display: flex; flex-direction: column; min-width: 0; } .dsw-o small { opacity: .75; font-size: 11.5px; } .dsw-o[disabled] { opacity: .5; cursor: default; }
-@media (prefers-reduced-motion: reduce) { .tring .tr-fg, .dn-face i { transition: none; } .tring.t-finish .tr-bg { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tring .tr-fg, .dn-face i { transition: none; } .tring.t-finish .tr-bg, .tring.t-wait .tr-fg { animation: none; } }
 /* Render session 65: Ladder, Rating & form and Notifications on the server's data (siteStanding.ts). */
 .tbadge { position: relative; flex: none; display: inline-grid; place-items: center; width: var(--s); height: var(--s); filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--t) 45%, transparent)); }
 .tbadge .tb-o { fill: color-mix(in srgb, var(--t) 70%, #10142e); } .tbadge .tb-i { fill: var(--t); } .tbadge .tb-h { fill: rgba(255,255,255,.42); }
@@ -6371,11 +6380,12 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     }
     return { wins, losses, draws, line: `${wins}W ${losses}L${draws ? ` ${draws}D` : ""}` };
   }
-  function autoPlayView(a, hasAgent) {
+  function autoPlayView(a, hasAgent, closed2 = null) {
     if (a.house) return { shown: false, on: true, enabled: false, label: "Always plays", note: "A house agent always plays.", stopped: null };
     const stopped = !a.stopped ? null : a.stopped.reason === "timeUp" ? "Time's up. Give your agent more minutes to play again." : "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney).";
     const stoppedReason = !a.stopped ? null : a.stopped.reason === "timeUp" ? "timeUp" : "dailyRewardsMaxed";
     if (!hasAgent) return { shown: true, on: a.on, enabled: false, label: "Auto-play", note: "Connect an agent to play matches.", stopped, stoppedReason };
+    if (closed2) return { shown: true, on: a.on, enabled: a.on, label: "Auto-play", note: closed2, stopped, stoppedReason };
     if (a.on) return { shown: true, on: true, enabled: true, label: "Auto-play", note: "Your agent joins every ladder round. A match already live finishes if you turn it off.", stopped, stoppedReason };
     if (!a.canTurnOn) return { shown: true, on: false, enabled: false, label: "Auto-play", note: "Today's rewards are maxed; auto-play can go on again after midnight (Sydney).", stopped, stoppedReason };
     return { shown: true, on: false, enabled: true, label: "Auto-play", note: "Off: your agent sits out the ladder rounds.", stopped, stoppedReason };
@@ -6611,20 +6621,30 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return { kind, n, line: kind === "W" ? `${n} wins in a row` : `Lost ${n} in a row` };
   }
   function allowanceOf(a, now) {
+    var _a4;
     const al = a.allowance;
     if (!al) return null;
     let secs = al.secondsLeft;
     if (al.state === "running") {
-      const end = Date.parse(al.endsAt);
+      const end = Date.parse((_a4 = al.endsAt) != null ? _a4 : "");
       if (Number.isFinite(end)) secs = Math.max(0, Math.min(secs, Math.ceil((end - now) / 1e3)));
-    } else secs = 0;
+    } else if (al.state !== "waiting") secs = 0;
     return { minutesTotal: al.totalMinutes, minutesLeft: Math.ceil(secs / 60), secondsLeft: secs, endsAtReset: al.endsAtReset, state: al.state, ...al.label ? { label: al.label } : {} };
   }
-  function timeRingView(allowance, ap, inMatch) {
+  function timeRingView(allowance, ap, inMatch, closed2 = null) {
+    if (closed2 && ap.shown) {
+      const caption = closed2.ended ? `${closed2.why} Its ladder is the final standings.` : `${closed2.why} ${inMatch ? "Your agent's match finishes and counts." : "The matches on screen finish, then it ends."}`;
+      return { pct: 0, centre: closed2.ended ? "Ended" : "Ending", unit: null, caption, tone: closed2.ended ? "done" : "finish", note: closed2.ended ? "Season over" : "Season ending" };
+    }
     if (allowance) {
       const total = Math.max(1, allowance.minutesTotal);
       const left = Math.max(0, Math.min(total, Math.round(allowance.minutesLeft)));
       const said = (s, own) => allowance.state === s && allowance.label || own;
+      if (allowance.state === "waiting") {
+        const words = said("waiting", "Waiting for the next round");
+        const why = inMatch ? `the ${left} min start when your agent is next paired (this match isn't timed)` : `the ${left} min start when your agent is paired`;
+        return { pct: 100, centre: String(left), unit: "min", caption: `${words}: ${why}.`, tone: "wait", note: words };
+      }
       if (allowance.state === "done") return { pct: 0, centre: said("done", "Time's up"), unit: null, caption: "Time's up. Give it 15, 30 or 60 minutes to play again; the day resets at midnight (Sydney).", tone: "done" };
       if (allowance.state === "finishing" || left === 0)
         return { pct: 0, centre: said("finishing", "Finishing match"), unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
@@ -6647,22 +6667,23 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const r = size / 2 - 4;
     const circ = 2 * Math.PI * r;
     const lit = circ * v.pct / 100;
-    const label = `${name}: ${v.unit ? `${v.centre} ${v.unit} left` : v.centre}`;
+    const label = `${name}: ${v.note ? `${v.note}, ${v.centre}${v.unit ? ` ${v.unit}` : ""}` : v.unit ? `${v.centre} ${v.unit} left` : v.centre}`;
     return { dash: `${lit.toFixed(1)} ${circ.toFixed(1)}`, label, centreHtml: `${esc(v.centre)}${v.unit ? `<small>${esc(v.unit)}</small>` : ""}`, word: !v.unit, tone: v.tone };
   }
-  function ringOfPlay(p, now) {
-    return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent), !!p.liveMatch);
-  }
-  function ringTicks(p) {
+  function ringOfPlay(p, now, closed2 = null) {
     var _a4;
-    return !!(p == null ? void 0 : p.connectedAgent) && ((_a4 = p.autoPlay.allowance) == null ? void 0 : _a4.state) === "running";
+    return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent, (_a4 = closed2 == null ? void 0 : closed2.why) != null ? _a4 : null), !!p.liveMatch, closed2);
+  }
+  function ringTicks(p, closed2 = null) {
+    var _a4;
+    return !closed2 && !!(p == null ? void 0 : p.connectedAgent) && ((_a4 = p.autoPlay.allowance) == null ? void 0 : _a4.state) === "running";
   }
   function statusPollMs(p, now) {
     var _a4;
     if (!p) return 15e3;
     if (((_a4 = p.rebuild.job) == null ? void 0 : _a4.state) === "running") return 1500;
     const a = allowanceOf(p.autoPlay, now);
-    if (a && (a.state === "finishing" || a.state === "running" && a.secondsLeft !== void 0 && a.secondsLeft < 30)) return 5e3;
+    if (a && (a.state === "waiting" || a.state === "finishing" || a.state === "running" && a.secondsLeft !== void 0 && a.secondsLeft < 30)) return 5e3;
     return 15e3;
   }
   function dialView(p, liveStyle) {
@@ -6771,9 +6792,10 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   var TIME_PRESETS = [15, 30, 60];
   var TIME_ADDS = [15, 30];
   var TIME_WAITS = "Time limits arrive with the server's play-time allowance.";
-  function timeButtonsView(a, ap, busy) {
+  function timeButtonsView(a, ap, busy, closed2 = null) {
     if (a.allowance === void 0) return { presets: { enabled: false, why: TIME_WAITS }, adds: { enabled: false, why: TIME_WAITS }, note: TIME_WAITS };
     if (!ap.shown) return { presets: { enabled: false, why: "A house agent always plays." }, adds: { enabled: false, why: "A house agent always plays." }, note: "" };
+    if (closed2) return { presets: { enabled: false, why: closed2.why }, adds: { enabled: false, why: closed2.why }, note: "" };
     const presets = a.dailyRewardsMaxed || !a.canTurnOn ? { enabled: false, why: "Today's rewards are maxed; time can be given again after midnight (Sydney)." } : { enabled: !busy, why: a.allowance && a.allowance.state !== "done" ? "Starts a new allowance from now, in place of the time left." : "" };
     const al = a.allowance;
     const adds = a.canAddTime ? { enabled: !busy, why: "" } : { enabled: false, why: !al ? a.on ? "Auto-play is on with no time limit." : "Start with 15, 30 or 60 minutes first." : al.state === "done" ? "Time's up: start again with 15, 30 or 60 minutes." : "The time already runs to midnight (Sydney)." };
@@ -6789,24 +6811,26 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return ap.on ? `<button type="button" class="btn sm ss stop" data-act="auto-play" data-on="0"${dis}>Stop</button>` : `<button type="button" class="btn pri sm ss" data-act="auto-play" data-on="1"${dis}${ap.enabled ? "" : ` title="${esc(ap.note)}"`}>Start</button>`;
   }
   function agentControlsHtml(size, d) {
+    var _a4, _b;
     const p = d.play;
     const a = p.connectedAgent;
     if (!a) return noAgent();
     const fac = factionOf(p);
-    const ap = autoPlayView(p.autoPlay, true);
+    const closed2 = (_a4 = d.closed) != null ? _a4 : null;
+    const ap = autoPlayView(p.autoPlay, true, (_b = closed2 == null ? void 0 : closed2.why) != null ? _b : null);
     const inMatch = !!p.liveMatch;
-    const ring = timeRingView(d.allowance, ap, inMatch);
+    const ring = timeRingView(d.allowance, ap, inMatch, closed2);
     const go = inMatch ? `<a class="btn pri sm" href="#/match">Go to match</a>` : "";
-    const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small ac-cap">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
+    const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? ring.note ? `<span class="small ac-cap ac-note" title="${esc(ring.caption)}">${esc(ring.note)}</span>` : "" : `<span class="small ac-cap">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
     if (size === "S") return top;
     const mine = myLiveMatch(d.live);
     const liveStyle = mine ? mine.p1.agentId === a.agentId ? mine.p1.playStyle : mine.p2.agentId === a.agentId ? mine.p2.playStyle : null : null;
     const dv = dialView(p, liveStyle);
     const dial = dv ? dialHtml(dv, { busy: d.busy, size: size === "M" ? 92 : 112, summary: size === "L" }) : `<p class="muted small">No play styles on this server.</p>`;
     const deck = `<div class="small">${ftag(fac)} ${esc(deckLine(p))}</div>`;
-    const idle = inMatch ? "" : `<span class="muted small">No match live${ap.on ? ": joins the next ladder round" : ""}</span>`;
-    const stopped = ap.stopped && !(ap.stoppedReason === "timeUp" && ring.tone === "done") ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
-    const tb = timeButtonsView(p.autoPlay, ap, !!d.busy);
+    const idle = inMatch ? "" : `<span class="muted small">No match live${closed2 ? "" : ap.on ? ": joins the next ladder round" : ""}</span>`;
+    const stopped = ap.stopped && !closed2 && !(ap.stoppedReason === "timeUp" && ring.tone === "done") ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
+    const tb = timeButtonsView(p.autoPlay, ap, !!d.busy, closed2);
     const waits = tb.note ? `<span class="muted small">${esc(tb.note)}</span>` : "";
     const time = `<div class="wcol tight tgrp"><span class="muted small">Give your agent</span>${timeButtons(TIME_PRESETS, false, tb.presets)}</div>`;
     if (size === "M") return top + `<div class="ac-mid">${dial}<div class="wcol tight">${deck}${idle}${time}</div></div>${waits}` + stopped;
@@ -7188,6 +7212,7 @@ gl_FragColor=vec4(col,1.);}`;
       },
       markNotificationsRead: (token, what) => call("POST", "/api/notifications/read", { token, body: what }),
       clearNotifications: (token, what) => call("POST", "/api/notifications/clear", { token, body: what }),
+      season: (token) => call("GET", "/api/season", { token }),
       live: (token) => call("GET", "/api/live", { token }),
       liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
       setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),
@@ -9241,9 +9266,9 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function agentData(d) {
-    var _a4, _b;
+    var _a4, _b, _c;
     const { rating, daily, history: history2, live } = d.errors;
-    return { play: d.play, rating: (_a4 = d.rating) != null ? _a4 : null, daily: d.daily, history: d.history, live: d.live, allowance: (_b = d.allowance) != null ? _b : null, errors: { rating, daily, history: history2, live }, now: d.now, busy: d.busy };
+    return { play: d.play, rating: (_a4 = d.rating) != null ? _a4 : null, daily: d.daily, history: d.history, live: d.live, allowance: (_b = d.allowance) != null ? _b : null, errors: { rating, daily, history: history2, live }, now: d.now, busy: d.busy, closed: (_c = d.closed) != null ? _c : null };
   }
   function widgetHtml(w2, d, o) {
     const info = WIDGET_INFO[w2.type];
@@ -9454,6 +9479,61 @@ gl_FragColor=vec4(col,1.);}`;
     return true;
   }
 
+  // src/site/siteSeason.ts
+  var SYD = "Australia/Sydney";
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var mon = (m) => {
+    var _a4, _b;
+    return (_b = (_a4 = MONTHS[Number(m) - 1]) != null ? _a4 : m) != null ? _b : "";
+  };
+  function seasonName2(code) {
+    const m = /^S(\d+)$/.exec(code);
+    return m ? `Season ${m[1]}` : code;
+  }
+  function sydneyWhen(iso) {
+    const d = new Date(iso);
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: SYD, weekday: "short", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).map((p) => [p.type, p.value]));
+    if (parts.hour === "00" && parts.minute === "00") {
+      const before = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: SYD, weekday: "short", day: "numeric", month: "numeric" }).formatToParts(new Date(d.getTime() - 6e4)).map((p) => [p.type, p.value]));
+      return `midnight at the end of ${before.weekday} ${before.day} ${mon(before.month)}`;
+    }
+    return `${parts.weekday} ${parts.day} ${mon(parts.month)}, ${parts.hour}:${parts.minute}`;
+  }
+  function untilText2(ms) {
+    if (ms < 6e4) return "in under a minute";
+    const min = Math.floor(ms / 6e4);
+    if (min < 60) return `in ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 48) return `in ${h} h`;
+    return `in ${Math.floor(h / 24)} days`;
+  }
+  function seasonEndView(s, now) {
+    if (!s) return null;
+    const name = seasonName2(s.season);
+    if (s.state === "ended") {
+      return { tone: "ended", line: `${name} has ended${s.endedAt ? ` (its last match recorded ${sydneyWhen(s.endedAt)}, Sydney time)` : ""}. The ladder is its final standings.`, chip: "Ended" };
+    }
+    if (s.state === "ending") {
+      const shown = s.liveMatches === 0 ? "it ends in a moment" : s.liveMatches === 1 ? "the match on screen finishes and counts, then it ends" : `the ${s.liveMatches} matches on screen finish and count, then it ends`;
+      return { tone: "ending", line: `${name} is ending: no new round starts; ${shown}.`, chip: "Ending now" };
+    }
+    if (!s.endsAt) return { tone: "none", line: `${name} has no end time set yet.`, chip: "No end time" };
+    const left = Date.parse(s.endsAt) - now;
+    if (left <= 0) return { tone: "ending", line: `${name}'s end time has passed: it ends once the matches on screen finish.`, chip: "Ending now" };
+    const until = untilText2(left);
+    return { tone: "open", line: `${name} ends at ${sydneyWhen(s.endsAt)} (Sydney time), ${until}. The server ends it: no new round starts from then.`, chip: `Ends ${until}` };
+  }
+  function seasonEndHtml(v) {
+    if (!v) return "";
+    return `<p class="st-season t-${v.tone}" role="note"><b>${esc(v.chip)}</b> ${esc(v.line)}</p>`;
+  }
+  function seasonClosed(s, now) {
+    const v = seasonEndView(s, now);
+    if (!v || !s || v.tone !== "ending" && v.tone !== "ended") return null;
+    const name = seasonName2(s.season);
+    return v.tone === "ended" ? { ended: true, why: `${name} has ended: no new match starts.` } : { ended: false, why: `${name} is ending: no new round starts.` };
+  }
+
   // src/site/siteStats.ts
   var STATS_DAYS = [7, 30, 90];
   var STATS_RECENT = 20;
@@ -9589,16 +9669,16 @@ gl_FragColor=vec4(col,1.);}`;
     const last = r.lastDay ? r.lastDay === nowDay ? "today" : r.lastDay : "\u2014";
     return `<tr class="${you ? "you" : ""}" style="--t:${(_a4 = TIER_HEX[r.tier]) != null ? _a4 : "#8f8cff"}"${you ? ` aria-current="true"` : ""}><td class="lt-k">${r.rank === null ? "\u2014" : r.rank}</td><td class="lt-n"><b>${esc((_c = (_b = r.agent) == null ? void 0 : _b.name) != null ? _c : r.ownerName)}</b><small>${esc(r.ownerName)}${r.ownerKind === "house" ? " \xB7 house" : ""}${you ? " \xB7 you" : ""}</small></td><td class="lt-t"><i></i>${esc(r.tier)}</td><td class="lt-r">${placed ? Math.round(r.rating) : "\u2014"}<small> \xB1${Math.round(r.rd)}</small></td><td class="lt-w">${r.wins}-${r.losses}${r.draws ? `-${r.draws}` : ""}</td><td class="lt-m">${r.ratedMatches}</td><td class="lt-d small muted">${esc(last)}</td></tr>`;
   }
-  function ladderSectionHtml(l, nowDay) {
+  function ladderSectionHtml(l, nowDay, seasonLine = "") {
     const youIn = l.standings.some((r) => r.ownerId === l.you.ownerId);
     const rows = l.standings.map((r) => ladderRow(r, l.you.ownerId, nowDay)).join("");
     const foot = youIn ? "" : `<tbody class="lt-you"><tr class="lt-gap"><td colspan="7">\u22EF</td></tr>${ladderRow(l.you, l.you.ownerId, nowDay)}</tbody>`;
     const placed = l.standings.filter((r) => r.rank !== null).length;
     const table = l.standings.length ? `<div class="lt-wrap"><table class="ltable"><thead><tr><th>#</th><th>Agent</th><th>Tier</th><th>Rating</th><th title="Wins-losses-draws">Record</th><th>Rated</th><th>Last</th></tr></thead><tbody>${rows}</tbody>${foot}</table></div>` : `<p class="muted small">No one has a rated match yet. The ladder fills as the rounds are played.</p>`;
-    return `<section class="panel glass st-ladder"><div class="row between nowrap"><h4>Season ladder</h4><span class="muted small">${l.owners} owner${l.owners === 1 ? "" : "s"} rated \xB7 ${placed} placed</span></div>${tierSpreadHtml(l)}<div class="st-ll">${tierLadderHtml(l)}${table}</div><p class="muted small">Glicko-2, one rating per owner. A tier and a rank show after ${l.placementMatches} rated matches; \xB1 is how sure the rating is.</p></section>`;
+    return `<section class="panel glass st-ladder"><div class="row between nowrap"><h4>Season ladder</h4><span class="muted small">${l.owners} owner${l.owners === 1 ? "" : "s"} rated \xB7 ${placed} placed</span></div>${seasonLine}${tierSpreadHtml(l)}<div class="st-ll">${tierLadderHtml(l)}${table}</div><p class="muted small">Glicko-2, one rating per owner. A tier and a rank show after ${l.placementMatches} rated matches; \xB1 is how sure the rating is.</p></section>`;
   }
   function statsPageHtml(st, nowMs) {
-    var _a4, _b;
+    var _a4, _b, _c;
     const s = st.stats;
     const filter = statsFilterHtml(s, st);
     if (!s) {
@@ -9606,7 +9686,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
     const err = st.error ? `<div class="banner warn" role="status">Couldn't refresh: ${esc(st.error)}</div>` : "";
     const today = (_b = (_a4 = s.rating.chart[s.rating.chart.length - 1]) == null ? void 0 : _a4.day) != null ? _b : null;
-    const ladder = st.ladder ? ladderSectionHtml(st.ladder, today) : `<section class="panel glass st-ladder"><h4>Season ladder</h4><p class="muted small">${st.ladderError ? `Couldn't read the ladder: ${esc(st.ladderError)}` : "Loading the ladder\u2026"}</p></section>`;
+    const ladder = st.ladder ? ladderSectionHtml(st.ladder, today, seasonEndHtml(seasonEndView((_c = st.season) != null ? _c : null, nowMs))) : `<section class="panel glass st-ladder"><h4>Season ladder</h4><p class="muted small">${st.ladderError ? `Couldn't read the ladder: ${esc(st.ladderError)}` : "Loading the ladder\u2026"}</p></section>`;
     return `<div class="pg-wide st-pg">${err}${filter}<div class="st-grid"><div class="st-main">${ratingHeroHtml(s, st.ladder, st.days)}${totalsHtml(s)}<div class="st-two">${factionTableHtml("Win rate by your deck's faction", s.byFaction, s.factionNotRecorded, "faction")}${factionTableHtml("Against each faction", s.byOpponentFaction, s.opponentFactionNotRecorded, "opponent's faction")}</div></div><div class="st-side">${todayHtml(s.today, nowMs)}${recentHtml(s, nowMs, st.replays, st.allRecent)}</div></div>${ladder}</div>`;
   }
 
@@ -9639,7 +9719,9 @@ gl_FragColor=vec4(col,1.);}`;
     speedBusy: false,
     replay: null,
     follow: null,
-    stats: { stats: null, ladder: null, replays: null, allRecent: false, agent: null, days: 30, loading: false, error: null, ladderError: null }
+    stats: { stats: null, ladder: null, replays: null, allRecent: false, agent: null, days: 30, loading: false, error: null, ladderError: null },
+    season: null,
+    seasonReadAt: 0
   };
   var liquid = null;
   window.__site = {
@@ -9841,6 +9923,8 @@ gl_FragColor=vec4(col,1.);}`;
     state.draft = null;
     state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} };
     state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
+    state.season = null;
+    state.seasonReadAt = 0;
     bellSeq++;
     bell2 = emptyBell();
     drawBell();
@@ -9926,6 +10010,9 @@ gl_FragColor=vec4(col,1.);}`;
     schedulePoll();
     void loadHome();
     void pollBell().catch((err) => fail(err));
+    void readSeason().then(() => {
+      if (closedNow() && !state.busy && !dragging) drawPage();
+    }).catch(() => void 0);
   }
   async function loadHome(only) {
     var _a4, _b, _c;
@@ -9975,10 +10062,11 @@ gl_FragColor=vec4(col,1.);}`;
   }
   function tickRings() {
     const p = state.play;
-    if (document.hidden || state.page !== "home" || !ringTicks(p) || !(p == null ? void 0 : p.connectedAgent)) return;
+    const closed2 = closedNow();
+    if (document.hidden || state.page !== "home" || !ringTicks(p, closed2) || !(p == null ? void 0 : p.connectedAgent)) return;
     const rings = document.querySelectorAll("#wgrid .tring");
     if (!rings.length) return;
-    const v = ringOfPlay(p, Date.now());
+    const v = ringOfPlay(p, Date.now(), closed2);
     const name = p.connectedAgent.name;
     rings.forEach((el) => {
       var _a4, _b;
@@ -9993,7 +10081,7 @@ gl_FragColor=vec4(col,1.);}`;
         c.innerHTML = g.centreHtml;
         c.classList.toggle("word", g.word);
       }
-      const cap = (_b = el.closest(".wg")) == null ? void 0 : _b.querySelector(".ac-cap");
+      const cap = (_b = el.closest(".wg")) == null ? void 0 : _b.querySelector(".ac-cap:not(.ac-note)");
       if (cap && cap.textContent !== v.caption) cap.textContent = v.caption;
     });
   }
@@ -10017,6 +10105,21 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   window.setInterval(tickClocks, 1e3);
+  async function readSeason() {
+    if (!state.session) return;
+    const s = state.season;
+    const now = Date.now();
+    const due = !s || now - state.seasonReadAt >= 6e4 || s.state === "ending" || s.state === "open" && !!s.endsAt && Date.parse(s.endsAt) <= now;
+    if (!due || (s == null ? void 0 : s.state) === "ended") return;
+    try {
+      state.season = await api.season(state.session.token);
+      state.seasonReadAt = now;
+      state.stats.season = state.season;
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) throw err;
+    }
+  }
+  var closedNow = () => seasonClosed(state.season, Date.now());
   async function refresh() {
     var _a4, _b, _c, _d, _e, _f, _g;
     if (!state.session || document.hidden) return schedulePoll();
@@ -10027,7 +10130,7 @@ gl_FragColor=vec4(col,1.);}`;
       const [play2, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err) => {
         if (err instanceof SiteApiError && err.signedOut) throw err;
         return state.wallet;
-      }), pollBell()]);
+      }), pollBell(), readSeason()]);
       state.play = play2;
       state.wallet = wallet;
       drawWallet();
@@ -10180,7 +10283,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (!widgets.length) {
       return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
     }
-    const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
+    const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
     const { views, capped } = liveViews(widgets);
     const tiles = widgets.map((w2) => widgetHtml(w2, data, { editing, live: views.get(w2.id), capped: capped.has(w2.id), arena: views.get(w2.id) === "arena" ? tileArenaPick() : void 0 })).join("");
     const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -10828,7 +10931,7 @@ gl_FragColor=vec4(col,1.);}`;
     const ask = ++statsAsk;
     st.loading = true;
     if (state.page === "stats") redrawStats();
-    const [s, l, h] = await Promise.allSettled([api.stats(token, { agent: st.agent, days: st.days, recent: STATS_RECENT }), api.ladder(token, 100), api.matches(token, 50)]);
+    const [s, l, h, se] = await Promise.allSettled([api.stats(token, { agent: st.agent, days: st.days, recent: STATS_RECENT }), api.ladder(token, 100), api.matches(token, 50), api.season(token)]);
     if (ask !== statsAsk) return;
     st.loading = false;
     const why = (r) => r.reason instanceof SiteApiError ? errorText(r.reason.status, r.reason.message) : "Something went wrong.";
@@ -10850,6 +10953,11 @@ gl_FragColor=vec4(col,1.);}`;
       state.home.ladder = l.value;
     } else st.ladderError = why(l);
     if (h.status === "fulfilled") st.replays = Object.fromEntries(h.value.matches.map((m) => [m.matchId, m.hasReplay]));
+    if (se.status === "fulfilled") {
+      st.season = se.value;
+      state.season = se.value;
+      state.seasonReadAt = Date.now();
+    }
     if (state.page === "stats") redrawStats();
   }
   function redrawStats() {
@@ -11427,7 +11535,7 @@ gl_FragColor=vec4(col,1.);}`;
       const p = state.play;
       if (!p) return;
       const widgets = state.board.widgets;
-      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
+      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt(), closed: closedNow() };
       const { views, capped } = liveViews(widgets);
       for (const w2 of widgets) {
         if (w2.type !== "live" && w2.type !== "watch") continue;
@@ -11442,8 +11550,9 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function matchPage(p) {
+    var _a4, _b;
     const a = p.connectedAgent;
-    const ap = autoPlayView(p.autoPlay, !!a);
+    const ap = autoPlayView(p.autoPlay, !!a, (_b = (_a4 = closedNow()) == null ? void 0 : _a4.why) != null ? _b : null);
     const st = agentStatus(p);
     const head = a ? `<div class="row nowrap">${avatar2(a.name, agentFaction2(p), 52)}<div class="wcol"><div class="mya-n">${esc(a.name)}</div><div class="small muted">${esc(styleName(p, a.playStyle))} play style \xB7 ${esc(deckLine(p))}</div><div class="row"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span></div></div><span class="sp"></span><div class="wcol right">${autoPlaySwitch(ap, "auto-play", state.autoBusy)}<small class="muted">${esc(ap.note)}</small></div></div>` : `<b>No agent connected</b><p class="muted small">Connect an agent to play matches.</p><a class="btn pri sm" href="#/connect">Connect agent</a>`;
     const stopped = ap.stopped ? `<div class="banner warn" role="status">${esc(ap.stopped)}</div>` : "";
@@ -11452,21 +11561,22 @@ gl_FragColor=vec4(col,1.);}`;
   <h3>Match history</h3><section class="panel glass" id="m-hist">${histHtml()}</section></div>`;
   }
   function mLiveHtml(p) {
-    var _a4, _b, _c, _d, _e;
+    var _a4, _b, _c, _d, _e, _f;
     if (!p.connectedAgent) return `<p class="muted small">No agent connected, so no match.</p>`;
     const live = state.home.live;
     if (!live) return state.home.errors.live ? `<p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p>` : `<p class="muted small">Loading\u2026</p>`;
     if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so no match is live.</p>`;
     const m = myLiveMatch(live);
     if (!m) {
-      const ap = autoPlayView(p.autoPlay, true);
-      return `<p class="small">${esc(p.liveMatch ? "Your agent's match is starting." : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now: auto-play is off, so your agent sits out.")}</p>${live.matches.length ? `<p class="muted small">${live.matches.length} other match${live.matches.length === 1 ? " is" : "es are"} live. <a href="#/live">Watch live</a></p>` : ""}`;
+      const closed2 = closedNow();
+      const ap = autoPlayView(p.autoPlay, true, (_a4 = closed2 == null ? void 0 : closed2.why) != null ? _a4 : null);
+      return `<p class="small">${esc(p.liveMatch ? "Your agent's match is starting." : closed2 ? `No match right now. ${closed2.why}` : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now: auto-play is off, so your agent sits out.")}</p>${live.matches.length ? `<p class="muted small">${live.matches.length} other match${live.matches.length === 1 ? " is" : "es are"} live. <a href="#/live">Watch live</a></p>` : ""}`;
     }
-    const sb = scoreboardOf(m, (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null);
+    const sb = scoreboardOf(m, (_c = (_b = state.me) == null ? void 0 : _b.ownerId) != null ? _c : null);
     const names = { p1: m.p1.agentName, p2: m.p2.agentName };
-    const lines = ((_c = state.follow) == null ? void 0 : _c.matchId) === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
+    const lines = ((_d = state.follow) == null ? void 0 : _d.matchId) === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
     const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
-    const speed = speedControlHtml(speedControlView(m, (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null), "m-speed", m.matchId, state.speedBusy);
+    const speed = speedControlHtml(speedControlView(m, (_f = (_e = state.me) == null ? void 0 : _e.ownerId) != null ? _f : null), "m-speed", m.matchId, state.speedBusy);
     return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${speed}${compactBoard(m, sb.near)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
   }
   function histHtml() {
@@ -11515,7 +11625,7 @@ gl_FragColor=vec4(col,1.);}`;
       const r = (time == null ? void 0 : time.add) ? await api.addPlayTime(state.session.token, time.minutes) : await api.setAutoPlay(state.session.token, on, time == null ? void 0 : time.minutes);
       state.play = { ...state.play, autoPlay: r.autoPlay };
       const al = r.autoPlay.allowance;
-      toast((time == null ? void 0 : time.add) ? `+${time.minutes} min: ${al ? `${al.minutesLeft} min left today` : "added"}.` : time ? `Your agent plays for ${al ? al.minutesLeft : time.minutes} min${(al == null ? void 0 : al.endsAtReset) ? " (to midnight, Sydney)" : ""}, then finishes its match and stops.` : r.autoPlay.on ? "Auto-play is on: your agent joins the next ladder round." : "Auto-play is off. A match already live finishes.");
+      toast((time == null ? void 0 : time.add) ? `+${time.minutes} min: ${al ? `${al.minutesLeft} min left today` : "added"}.` : time && (al == null ? void 0 : al.state) === "waiting" ? `Your agent plays for ${al.minutesLeft} min from its first match (in the next round), then finishes its match and stops.` : time ? `Your agent plays for ${al ? al.minutesLeft : time.minutes} min${(al == null ? void 0 : al.endsAtReset) ? " (to midnight, Sydney)" : ""}, then finishes its match and stops.` : r.autoPlay.on ? "Auto-play is on: your agent joins the next ladder round." : "Auto-play is off. A match already live finishes.");
     } catch (err) {
       fail(err);
     } finally {

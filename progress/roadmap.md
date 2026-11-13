@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-13, game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-13, render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -274,6 +274,12 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      match; the widget leads with the top pick ("#k" and the eye on its lines, "N live · K top rated"; at L the
      tile's arena embeds it); typed, so the contract check covers both. On the real API with two owners watching
      (`featured-check-s71` 39 PASS). The render side of the Season 0 feature list is complete
+   - [x] (owner 2026-11-13 plan, item 6, render side) Fix what the dry run broke. Done (render 72): the allowance's
+     "waiting" state on Agent controls (the centre keeps the minutes, a still dashed ring, the server's words
+     beside it at S/M/L; game 94's pill ran out of the widget); the season's end time from `GET /api/season` on the
+     Stats page (open / ending / ended, Sydney time); Agent controls and Agent match stop offering Start and time once
+     the season is ending or ended (the check found them inviting play after the end). On the real API with the
+     server's own end (`season-check-s72` 60 PASS)
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause

@@ -7,6 +7,54 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-13 — The dry run's fixes on the site: the waiting ring and the season's end (session 72) — AWAITING FEEDBACK (four small calls)
+
+Your plan's item 6, render side. Game session 94 changed two things the site shows, and the site needed fixing for both.
+Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --speed 8 --ends-in 40`, sign in as nova, press 15 min on
+Agent controls, then watch the Stats page as the season ends (about 5 minutes).
+
+**What you'll see:**
+- **Waiting for the next round** (the clock starts at the agent's first pairing). Session 94 had put the server's words
+  in the ring's centre pill. At M and S the pill ran out of the widget and over the Stop button. Now the centre keeps
+  the minutes chosen ("15 min"), and the ring is full but dashed and dim, breathing slowly (still with reduced motion).
+  So it reads as set but not yet running. The server's words sit beside it: under the name at S, and at M and L as
+  the caption "Waiting for the next round: the 15 min start when your agent is paired." If the agent is mid-match, the
+  caption adds "(this match isn't timed)". While waiting, the page reads the status every 5 s, so the ring starts
+  draining within seconds of the pairing (1.2 s in the check).
+- **The season's end on the Stats page.** A line under the ladder's title, from `GET /api/season`:
+  - while open: "Ends in 43 days. Season 0 ends at midnight at the end of Sat 26 Dec (Sydney time), in 43 days. The
+    server ends it: no new round starts from then."
+  - while ending: "Ending now. Season 0 is ending: no new round starts; the match on screen finishes and counts, then
+    it ends."
+  - once ended: "Ended. Season 0 has ended (its last match recorded …). The ladder is its final standings."
+- **Agent controls once the season ends.** The check's first run found the widget saying "Time's up. Give it 15, 30 or
+  60 minutes to play again" with Start live after the end. The server still accepts auto-play then (200), but no
+  match ever starts. Now the ring says "Ended" ("Ending" while the last matches finish). Start and every time button
+  are off, with "Season 0 has ended: no new match starts." Under the ring: "Its ladder is the final standings." The
+  Agent match page's switch says the same. Stop stays while auto-play is on.
+
+Evidence: `progress/render/evidence/season-check-s72.txt`. 60 PASS on the real owner API with the ladder at 8x and
+the end time 40 minutes ahead on the server's clock, so the server itself went open → ending → ended. The first runs
+are kept: `season-check-s72-first-run.txt`. Stills: `v2-s72-wait-S/M/L`, `-wait-phone(-dark)`, `-run-after-wait`,
+`-season-open/-ending/-ended`, `-controls-ended-S/M/L`. Unit tests: `render/test/siteSeason.test.ts`, with the Sydney
+wording checked on the real S0 end time. The site contract check: 0 mismatches, 6 of 6 controls
+(`site-contract-s72.txt`).
+
+**Small calls (kept as built unless you say otherwise):**
+1. **The waiting ring shows the minutes, not the words, in its centre.** The words are on the line beside it, at
+   every size. This is the one place where the server's label isn't the centre (your session-69 call 1 was for
+   "Finishing match" and "Time's up", which fit).
+2. **A midnight end reads as "midnight at the end of Sat 26 Dec"**, your own wording, rather than "Sun 27 Dec,
+   00:00". Other times read "Sat 26 Dec, 23:00". All in Sydney time.
+3. **Once the season is ending or ended, Agent controls turns Start and the time buttons off**, even though the
+   server would accept them. Stop stays.
+4. **The end time shows on the Stats page only** (under the ladder's title), not in the top bar or on Home. Home says
+   it once the season actually ends, through Agent controls.
+
+**Next:** game 95 (the owner's answers; the contract check could call `season`); the render hardening pass is due at 74.
+
+---
+
 ## 2026-11-13 — Top rated and viewer counts on Watch live (session 71) — AWAITING FEEDBACK (four small calls)
 
 Watch live now shows the server's featured picks and how many owners are watching each match. This completes the
