@@ -4844,7 +4844,7 @@ Next session by alternation: game 94, then both lanes fix what the dry run broke
 
 ---
 
-## 2026-11-14 — Owner: answers to game session 94 and render session 72 (the dry run's fixes), keep all; yes to both asks
+## 2026-11-14 — Owner: answers to game session 94 and render session 72 (the dry run's fixes), keep all; yes to both asks (game asks HANDLED 2026-11-14, game session 95 — 1: the store refuses `setAutoPlay(on)` once the season has ended (`season S0 has ended: auto-play doesn't go on; the file is the season's archive`), so `PUT /api/play/auto-play` with `on: true` is 409, as a pack buy is; `POST /api/play/auto-play/time` likewise (`no play time is added`); off still works; tests `server/test/seasonEnd.test.ts` (fails on the old code: 200), `economy/test/nextSeason.test.ts`; `server/OWNER_API.md`. 2: the site contract check reads `GET /api/season` open with no end time, open with one, ending (a match on screen) and ended (the standings), checks the three refusals are 409, and has a 7th control (the state "closed"); `progress/site-contract-001.txt`, 0 mismatches, 7 of 7 controls, every shape reached; on the old code the check fails (the refusal shape not reached). The 3 kept calls and the render calls needed nothing)
 
 **Game session 94** (PR #169, `progress/notes-for-owner.md`, `progress/play-time-002.txt`, `progress/season-end-002.txt`). **Keep all 3 calls:**
 1. **Keep:** the season's recorded end is when the last match on screen finishes (e.g. 00:02:35), not 00:00 exactly; those matches count in the final standings.

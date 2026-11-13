@@ -298,6 +298,11 @@ describe("the next season's file (v27)", () => {
     expect(() => s.craftCard(ada.ownerId, s.collection(ada.ownerId)[0]!.cardId)).toThrow(frozen);
     expect(() => s.buyCosmetic(bram.ownerId, "coin-s0-dial-up-dime")).toThrow(frozen);
     expect(() => s.grantStarterCollection(s.createOwner({ name: "late" }).ownerId, "Null")).toThrow(frozen);
+    // (session 95) Auto-play doesn't go on, and no play time is added; off still works.
+    expect(() => s.setAutoPlay(ada.ownerId, true)).toThrow(/season S0 has ended: auto-play doesn't go on/);
+    expect(() => s.setAutoPlay(ada.ownerId, true, 15)).toThrow(frozen);
+    expect(() => s.addAutoPlayTime(ada.ownerId, 15)).toThrow(/season S0 has ended: no play time is added/);
+    expect(s.setAutoPlay(ada.ownerId, false).on).toBe(false);
     // The schema refuses the same writes, whatever a hand edit tries.
     expect(() => credit(s, ada.ownerId, 100)).toThrow(/credits and pack points are frozen/);
     expect(() => s.unsafeExec(`INSERT INTO packs (pack_id, owner_id, set_code, source, acquired_at) VALUES ('p', '${ada.ownerId}', 'S0', 'weeklyChallenge', '${DAY1}')`)).toThrow(/no pack is bought or granted/);

@@ -2086,6 +2086,9 @@ export class EconomyStore {
     const at = this.stamp();
     const owner = this.getOwner(ownerId);
     if (owner.kind === "house") throw new EconomyError("house owners always play; auto-play is for player owners");
+    // (session 95; owner 2026-11-14, render 72's ask) No round starts once
+    // the season has ended, so the switch doesn't go on; off still works.
+    if (on) this.refuseIfEnded("auto-play doesn't go on");
     const v22 = this.schemaVersion >= 22;
     if (minutes !== undefined) {
       if (!on) throw new EconomyError("minutes go with turning auto-play on");
@@ -2128,6 +2131,7 @@ export class EconomyStore {
     if (owner.kind === "house") throw new EconomyError("house owners always play; auto-play is for player owners");
     if (!(AUTO_PLAY_ADD_MINUTES as readonly number[]).includes(minutes)) throw new EconomyError(`time is added ${AUTO_PLAY_ADD_MINUTES.join(" or ")} minutes at a time`);
     if (this.schemaVersion < 22) throw new EconomyError("the play-time allowance needs schema v22");
+    this.refuseIfEnded("no play time is added");
     const status = this.autoPlay(ownerId, at);
     const a = status.allowance;
     if (a === null || a.state === "done") throw new EconomyError("auto-play isn't running on a time allowance; start it with 15, 30 or 60 minutes");

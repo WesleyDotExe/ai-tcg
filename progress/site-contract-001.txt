@@ -1,4 +1,4 @@
-# The site contract check: the render's site types against the served answers (game sessions 90-91, 94)
+# The site contract check: the render's site types against the served answers (game sessions 90-91, 94-95)
 
 The website's own client (render/src/site/siteApi.ts, unchanged) called the real owner API over a real
 season file with the live ladder playing (5 owners, a fixed clock and seeds). Each answer it parsed was
@@ -8,7 +8,7 @@ compiler settings.
   UNTYPED   the server sends a field the type doesn't name: harmless; the site could read it.
             (Every one is listed: the check repeats with each reported field taken out.)
 
-Ladder: 18 matches started before the reads; calls made: 65; refused: 0.
+Ladder: 19 matches started before the reads; calls made: 70; refused: 0.
 
 fits  POST /api/session (one)  (SiteApi.signIn)
 fits  POST /api/session (two)  (SiteApi.signIn)
@@ -53,6 +53,8 @@ fits  GET /api/rating?recent=10  (SiteApi.rating)
 fits  GET /api/ladder?limit=10  (SiteApi.ladder)
 fits  GET /api/stats  (SiteApi.stats)
 fits  GET /api/notifications?limit=10  (SiteApi.notifications)
+fits  GET /api/season (open, no end time)  (SiteApi.season)
+fits  GET /api/season (open, the end time set)  (SiteApi.season)
 fits (with untyped fields)  GET /api/live  (SiteApi.live)
     UNTYPED   matches[].boast is sent; the type doesn't name it
     UNTYPED   matches[].p1.arena is sent; the type doesn't name it
@@ -267,8 +269,13 @@ fits (with untyped fields)  GET /api/play (two: the allowance done, stopped time
 fits  GET /api/notifications (two: the time-up notice)  (SiteApi.notifications)
 fits  POST /api/notifications/clear {ids} (one)  (SiteApi.clearNotifications)
 fits  POST /api/notifications/clear {all}  (SiteApi.clearNotifications)
+fits  GET /api/season (ending: the end time passed, a match still on screen)  (SiteApi.season)
+fits  GET /api/season (ended: the final standings)  (SiteApi.season)
+fits  PUT /api/play/auto-play {on:false} (after the end: still answered)  (SiteApi.setAutoPlay)
 
 Shapes reached (unions and nullable fields a plain run leaves on one side; session 91):
+    reached  season "open", endsAt null
+    reached  season "open", endsAt set
     reached  autoPlay.allowance in "waiting" (startedAt and endsAt null)
     reached  a live match with its last move out
     reached  the live feed's boast, not null (the winner's)
@@ -286,10 +293,19 @@ Shapes reached (unions and nullable fields a plain run leaves on one side; sessi
     reached  a crafted secret illustration
     reached  a cosmetic bought
     reached  clearNotifications: one by id, then all (the feed empty after)
+    reached  season "ending" (a match on screen)
+    reached  season "ended" (standings and the caller's line)
+    reached  auto-play on refused once the season has ended (409)
+    reached  auto-play off still answered after the end
 
 Not checked here:
     the site host's own calls (not the owner API): liveFrames, livePage, replayPage
     owner API calls with no JSON answer checked: signOut
+
+Refused on purpose once the season had ended (session 95; each must be a 409):
+    PUT /api/play/auto-play {on, minutes:15}: 409 season S0 has ended: auto-play doesn't go on; the file is the season's archive
+    PUT /api/play/auto-play {on}: 409 season S0 has ended: auto-play doesn't go on; the file is the season's archive
+    POST /api/play/auto-play/time: 409 season S0 has ended: no play time is added; the file is the season's archive
 
 The controls (broken copies of real answers; each must be a MISMATCH):
 caught   control: GET /api/me with `kind` taken out
@@ -302,7 +318,9 @@ caught   control: GET /api/play with the allowance's state "ending" (not a state
     at autoPlay.allowance.state: Type '"ending"' is not assignable to type '"done" | "finishing" | "running" | "waiting"'.
 caught   control: GET /api/play with `autoPlay.stopped` sent as text
     at autoPlay.stopped: Type 'string' is not assignable to type '{ reason: string; day: string; }'.
+caught   control: GET /api/season with its state "closed" (not a state the site knows)
+    at state: Type '"closed"' is not assignable to type '"ended" | "ending" | "open"'.
 caught   control: POST /api/notifications/clear with `cleared` sent as text
     at cleared: Type 'string' is not assignable to type 'number'.
 
-Totals: 0 call(s) with a mismatch; 192 untyped field line(s); controls caught 6 of 6.
+Totals: 0 call(s) with a mismatch; 192 untyped field line(s); controls caught 7 of 7.
