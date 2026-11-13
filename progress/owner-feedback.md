@@ -4822,3 +4822,10 @@ Next session by alternation: render 71 (Top rated and viewer counts on Watch liv
 Follows call 2 of game session 93 (PR #167, `progress/notes-for-owner.md`) and the entry above.
 1. **Decision:** Season 0 runs 3 weeks: 5 Dec to 26 Dec 2026, ended by the server on that schedule. Not decided: the end time on 26 Dec.
 2. **Decision:** the switch to Season 1 waits until later in Q1 2027: Season 1 is a live launch on its own server and domain (see `progress/season-1-ideas.md`, 2026-11-13).
+
+---
+
+## 2026-11-13 — Owner: Season 0's end time
+
+Completes the entry above ("Not decided: the end time on 26 Dec").
+1. **Decision:** Season 0 ends at midnight Sydney time at the end of 26 December 2026: 00:00 on 27 Dec AEDT (13:00 UTC on 26 Dec), ended by the server.
