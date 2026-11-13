@@ -4803,3 +4803,14 @@ Owner decision on the call in `progress/notes-for-owner.md` (PR #164, `progress/
 **For the game lane (from render 70's notes):** the site contract check doesn't call `clearNotifications` yet. Add it to `server/src/dev/siteContractCheck.ts` (with a shape reached for it, and a control if useful) in the next game hardening pass, **after game 93's dry run**, not before it.
 
 Next session by alternation: game 93 (the Season 0 dry run and the owner's Mac mini guide, with the launch agent per the entry above), then render 71 (Top rated and viewer counts on Watch live).
+
+---
+
+## 2026-11-13 — Owner: answers to game session 93 (the Season 0 dry run and the owner's Mac mini guide)
+
+**Game session 93** (PR #167, `progress/notes-for-owner.md`, `progress/season0-dry-run-001.txt`, `progress/mac-mini-guide.md`).
+1. **Decision: (a).** The auto-play allowance's clock starts when the agent is first paired, not when the owner presses the button; until then the ring reads "Waiting for the next round". Part of the dry-run fixes.
+2. **Decision:** the season's end is decided by the server, not the player. The season's end time is set before the season starts. (This replaces session 82's "the owner presses it".) Not decided: Season 0's end date and time.
+3. **Keep:** no pack can be bought on day one (a day's matches pay at most 110 credits; a pack costs 100). No change.
+
+Next session by alternation: render 71 (Top rated and viewer counts on Watch live), then both lanes fix what the dry run broke.
