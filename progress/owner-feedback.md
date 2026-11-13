@@ -4872,7 +4872,7 @@ Next session by alternation: game 95 (the two asks above), then render 73.
 
 ---
 
-## 2026-11-14 — Owner: Season 0 gets its own pack-only booster cards (option B); launch stays 5 December
+## 2026-11-14 — Owner: Season 0 gets its own pack-only booster cards (option B); launch stays 5 December (item 4's first step HANDLED 2026-11-14, game session 96: the card list proposed at an [OWNER CHECK-IN], `progress/booster-proposal-s0.md`; 28 cards, 7 per faction, existing mechanics only, draft data in `engine/src/dev/boosterDraft.ts`, not registered or ownable; checked by the engine, `progress/booster-proposal-005.txt`; item 6's two open points proposed there as calls 2 and 8; the rest of item 4 waits on the answers)
 
 Prompted by the owner's review of the Season 0 set: 89 of the set's 96 cards are in at least one starter deck (`engine/src/data/registry.ts` `SHIPPED_DECK_LISTS`), so the only base cards packs hold that no starter deck does are 7 neutrals (NT-001, NT-002, NT-003, NT-006, NT-007, NT-009, NT-010) and the 3 Zero-Day cards.
 
@@ -4885,7 +4885,7 @@ Prompted by the owner's review of the Season 0 set: 89 of the set's 96 cards are
 
 ---
 
-## 2026-11-14 — Owner: answers to game session 95 and render session 73 (the season's end), keep all 5
+## 2026-11-14 — Owner: answers to game session 95 and render session 73 (the season's end), keep all 5 (HANDLED 2026-11-14, game session 96: all kept, nothing to build)
 
 **Game session 95** (PR #171, `progress/notes-for-owner.md`, `progress/site-contract-001.txt`). **Keep both calls:**
 1. **Keep:** +15/+30 is refused too after the season has ended, not just switching auto-play on.

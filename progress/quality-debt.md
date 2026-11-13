@@ -262,6 +262,28 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 96 (the Season 0 booster-card proposal, test only; no product code or schema change): what is still thin
+
+Raised: 28 proposed booster cards as real card data the engine checks (the lint, a real match for each, every
+ability resolved), and a first power read with a leave-one-out and a blank-body control. Still thin:
+- **The probe is not the store's deck builder.** It cuts the lowest-rated starter copies by `cardRating`, the
+  builder's prior, and never searches. The builder picks by playing (`chooseDeck`), so real decks with booster
+  cards will differ, probably by more. The real number is the built-deck ring with the cards in the registry,
+  which is the build step.
+- **The control shows the measuring stick is soft:** a blank vanilla body in place of each booster card gains as
+  much as the cards (Cortex +19.6 with blanks against +10.8 with its real cards). The "gain" figures mostly
+  measure the cuts. Each card's own worth is read best from the leave-one-out and "over the blanks" columns, and
+  those are noisier (about ±3 points at 2,000 games).
+- **One agent, one style:** Lookahead against Lookahead, Calculator style, no signature cards (the gate mode).
+  Not measured: the other play styles, real-match mode (signature cards), or watch time.
+- **Null is still above the proposed band** (+17.1 against +8 to +12). Aegis Overwatch carries most of Aegis's gain
+  (+8.3 of +12.7). Both are left for the build's re-run, not tuned further here.
+- **Draft cards live in `engine/src/dev/`**, written with small helper functions, not in the faction files' literal
+  style. They move when built.
+- Not yet looked at: the ring's set-Mythic stand-in (`withSetMythicSignature`) throws on a deck with two Mythics,
+  so a built deck holding a booster Mythic needs it to pick the starter Mythic; the pack simulation and the
+  realistic collections for a booster set.
+
 ## Session 95 (render 72's two asks: auto-play refused once ended, `season` in the contract check): what was raised, and what is still thin
 
 Raised: an ended season's file refuses auto-play on and +15/+30 (409 over the API), with the archive's reason, as it
