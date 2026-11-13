@@ -1395,3 +1395,18 @@ season mark) is proposed as a mark, call 1.
    lane's call; nothing blocks.
 4. **Nothing else needed from the game lane.** No new server fields; the bell uses `GET /api/notifications`
    (`limit`, `before`, `kind`), `/read` and `/clear` as served since game session 77.
+
+## 2026-11-13 — Render session 71 (Top rated and viewer counts on Watch live)
+
+1. **Four small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
+   call 2 (the Watch live widget now leads with the top pick, not the server's first live match; your own match is
+   not pinned first).
+2. **The Season 0 feature list is done on the render side** with this slice (owner 2026-11-13 plan, item 5). Ticked
+   in `progress/roadmap.md`. From here, per item 6: fix what the dry run broke, hardening only where it found weak
+   spots; no new features.
+3. **One fix outside the slice:** on a phone (560 px and under) every live scoreboard now puts the turn line above
+   the two sides; before, the middle column squeezed one side to a few px on Watch live (seen in this session's first
+   phone still). It applies to Agent match's scoreboard too.
+4. **For the game lane (the site contract check):** `featured` (`{ tournament, topRated }`) and each live match's
+   `viewers` are typed now and fit (`progress/render/evidence/site-contract-s71.txt`: 0 mismatches, controls 5 of 5,
+   188 untyped lines, was 195). Nothing needed; no new server fields.

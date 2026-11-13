@@ -332,10 +332,10 @@ describe("the match pages over the real owner API, with the ladder playing", () 
     }
     expect(widgetHtml({ id: "w", type: "history", size: "S" }, data, { editing: false })).toContain("Win");
     // Nothing live: Agent controls says the agent joins the next round; with a match live, "Go to match".
-    const none = { ...data, play: { ...play, liveMatch: null }, live: { running: true, matches: [], mine: null } };
+    const none = { ...data, play: { ...play, liveMatch: null }, live: { running: true, matches: [], mine: null, featured: { tournament: [], topRated: [] } } };
     expect(widgetHtml({ id: "w", type: "live", size: "M" }, none, { editing: false })).toContain("No match live: joins the next ladder round");
     expect(widgetHtml({ id: "w", type: "live", size: "M" }, { ...none, play }, { editing: false })).toContain(play.liveMatch ? "Go to match" : "No match live");
-    expect(widgetHtml({ id: "w", type: "watch", size: "M" }, { ...none, live: { running: false, matches: [], mine: null } }, { editing: false })).toContain("The ladder isn't running");
+    expect(widgetHtml({ id: "w", type: "watch", size: "M" }, { ...none, live: { running: false, matches: [], mine: null, featured: { tournament: [], topRated: [] } } }, { editing: false })).toContain("The ladder isn't running");
   });
 });
 

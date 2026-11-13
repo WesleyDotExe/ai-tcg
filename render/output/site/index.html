@@ -592,6 +592,20 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .rp-speed .speed-ctl { margin: 0; background: rgba(10,12,30,.86); color: #fff; }
 @media (max-width: 560px) { .rp-speed { right: 12px; left: 12px; bottom: 58px; max-width: none; } }
 .pill.fast { background: #ffb43c; color: #1a1205; margin-left: 6px; }
+/* ---- featured picks and viewers (render session 71): Watch live's groups, the Top rated chip, the eye ---- */
+.pill.top { background: linear-gradient(135deg, #ffe08a, #ffb43c); color: #2a1a00; white-space: nowrap; }
+.vw { display: inline-flex; align-items: center; gap: 4px; font: 700 12px system-ui; font-variant-numeric: tabular-nums; padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, currentColor 12%, transparent); white-space: nowrap; }
+.vw.none { opacity: .62; }
+.lc-tags, .mtags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.lc-tags .pill.fast { margin-left: 0; } .lc-sp { flex: 1; } .lc-why { white-space: nowrap; }
+.mtags { margin-bottom: 4px; }
+.ltags { display: inline-flex; gap: 4px; margin-left: auto; flex: none; } .ltags .pill { padding: 2px 7px; font-size: 11px; } .ltags .vw { padding: 2px 6px; font-size: 11px; }
+.lgroup { margin-bottom: 20px; } .lg-h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 4px 10px; } .lg-h h3 { margin: 0; font-size: 17px; } .lg-h p { margin: 0; flex: 1 1 20em; }
+.lg-none { margin: 0 4px 16px; }
+.live-card.top { border-color: rgba(255,207,92,.55); box-shadow: 0 0 0 1px rgba(255,207,92,.25), 0 10px 28px -14px rgba(255,180,60,.55); }
+@media (max-width: 560px) { .lc-why { white-space: normal; flex-basis: 100%; order: 5; } }
+/* A phone (render session 71): the turn line above the two sides, which split the width (it had squeezed them to a few px). */
+@media (max-width: 560px) { .sb { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; } .sb-mid { grid-row: 1; grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; flex-direction: row; max-width: none; min-width: 0; } .sb-hp b { font-size: 18px; } }
 @media (max-width: 760px) { .m-live-grid { grid-template-columns: 1fr; } .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .hrow .hr-act { grid-column: 2 / 4; } .sb-meta { display: none; } }
 /* ---- the Stats page (render session 68): the filter, the rating and its chart, the totals, today, factions, recent, the ladder ---- */
 .st-filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; } .st-filter .sp { flex: 1; }
@@ -6468,9 +6482,59 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const [a, b] = nearFirst(near);
     return `<div class="cboard"><div class="cb-row" data-seat="${a}">${unitChips(m.now[a])}</div><div class="cb-row" data-seat="${b}">${unitChips(m.now[b])}</div></div>`;
   }
-  function liveLineHtml(sb) {
+  function liveLineHtml(sb, tags = "") {
     const [a, b] = nearFirst(sb.near);
-    return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}\u2013${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small></li>`;
+    return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}\u2013${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small>${tags ? `<span class="ltags">${tags}</span>` : ""}</li>`;
+  }
+  function liveGroups(live) {
+    const byId = new Map(live.matches.map((m) => [m.matchId, m]));
+    const used = /* @__PURE__ */ new Set();
+    const pick = (ids) => {
+      const out = [];
+      for (const id of ids != null ? ids : []) {
+        const m = byId.get(id);
+        if (m && !used.has(id)) {
+          used.add(id);
+          out.push(m);
+        }
+      }
+      return out;
+    };
+    const f = live.featured;
+    const tournament = pick(f == null ? void 0 : f.tournament);
+    const topRated = pick(f == null ? void 0 : f.topRated);
+    return { tournament, topRated, rest: live.matches.filter((m) => !used.has(m.matchId)) };
+  }
+  function liveOrder(live) {
+    const g = liveGroups(live);
+    return [...g.tournament, ...g.topRated, ...g.rest];
+  }
+  function topRatedRank(live, matchId) {
+    var _a4, _b;
+    const i = ((_b = (_a4 = live.featured) == null ? void 0 : _a4.topRated) != null ? _b : []).indexOf(matchId);
+    return i < 0 || !live.matches.some((m) => m.matchId === matchId) ? null : i + 1;
+  }
+  function topRatedWhy(m) {
+    const weaker = Math.round(m.p1.rating) <= Math.round(m.p2.rating) ? m.p1 : m.p2;
+    return `Weaker side ${Math.round(weaker.rating)} ${weaker.tier}`;
+  }
+  function viewersText(n) {
+    if (typeof n !== "number" || !isFinite(n) || n < 0) return null;
+    const k = Math.round(n);
+    return k === 0 ? "No one watching" : `${k} watching`;
+  }
+  var EYE = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  function viewersHtml(n) {
+    const t = viewersText(n);
+    if (t === null) return "";
+    const title = `${t} (owners with this match open in the last 30 s)`;
+    return `<span class="vw${Math.round(n) ? "" : " none"}" title="${esc(title)}" aria-label="${esc(t)}">${EYE}<b aria-hidden="true">${Math.round(n)}</b></span>`;
+  }
+  function topRatedHtml(live, m, opts = {}) {
+    const rank = topRatedRank(live, m.matchId);
+    if (rank === null) return "";
+    const why = `Top rated #${rank}: both sides out of placement; ${topRatedWhy(m).toLowerCase()} as the match started`;
+    return `<span class="pill top" title="${esc(why)}" aria-label="${esc(`Top rated, number ${rank}`)}">${opts.short ? `#${rank}` : `Top rated #${rank}`}</span>`;
   }
   function speedControlView(m, viewerOwnerId) {
     const sp = m.speed;
@@ -9001,44 +9065,53 @@ gl_FragColor=vec4(col,1.);}`;
     const note = o.capped ? `<p class="muted small wcap">Scoreboard only: two live boards are already showing.</p>` : "";
     const l = loading(d, "live");
     if (l) return l + note;
-    {
-      const live = d.live;
-      if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
-      if (w2.size === "L" && view === "arena" && o.arena) return arenaBody(w2, live, live.matches.map((m) => {
-        var _a5, _b;
-        return scoreboardOf(m, d.ownerId, (_b = (_a5 = d.viewOf) == null ? void 0 : _a5.call(d, m.matchId)) != null ? _b : null);
-      }), o) + note;
-      if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
-      const sbs = live.matches.map((m) => {
-        var _a5, _b;
-        return scoreboardOf(m, d.ownerId, (_b = (_a5 = d.viewOf) == null ? void 0 : _a5.call(d, m.matchId)) != null ? _b : null);
-      });
-      if (w2.size === "L" && view === "arena") return arenaBody(w2, live, sbs, o) + note;
-      const first = scoreboardHtml(sbs[0], { small: w2.size !== "L" }) + (w2.size === "L" && view === "board" ? compactBoard(live.matches[0], sbs[0].near) : "") + (w2.size === "S" ? "" : watchAsHtml(sbs[0], `wa-${w2.id}`));
-      const rest = sbs.slice(1);
-      const list = w2.size === "S" || !rest.length ? "" : `<ul class="lines">${rest.map(liveLineHtml).join("")}</ul>`;
-      const boards = w2.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
-      const more = w2.size === "S" ? "" : `<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live \xB7 featured picks come later</span></div>`;
-      return `${boards}${more}${note}`;
-    }
+    const live = d.live;
+    if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
+    const ordered = liveOrder(live);
+    const sbs = ordered.map((m) => {
+      var _a5, _b;
+      return scoreboardOf(m, d.ownerId, (_b = (_a5 = d.viewOf) == null ? void 0 : _a5.call(d, m.matchId)) != null ? _b : null);
+    });
+    if (w2.size === "L" && view === "arena" && o.arena) return arenaBody(w2, live, ordered, sbs, o) + note;
+    if (!ordered.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
+    if (w2.size === "L" && view === "arena") return arenaBody(w2, live, ordered, sbs, o) + note;
+    const first = (w2.size === "S" ? "" : matchTagsHtml(live, ordered[0])) + scoreboardHtml(sbs[0], { small: w2.size !== "L" }) + (w2.size === "L" && view === "board" ? compactBoard(ordered[0], sbs[0].near) : "") + (w2.size === "S" ? "" : watchAsHtml(sbs[0], `wa-${w2.id}`));
+    const rest = sbs.slice(1);
+    const list = w2.size === "S" || !rest.length ? "" : linesHtml(live, ordered.slice(1), rest);
+    const boards = w2.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
+    const more = w2.size === "S" ? "" : `<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${liveCountText(live)}</span></div>`;
+    return `${boards}${more}${note}`;
+  }
+  function liveCountText(live) {
+    const top = liveGroups(live).topRated.length;
+    return `${live.matches.length} live${top ? ` \xB7 ${top} top rated` : ""}`;
+  }
+  function matchTagsHtml(live, m) {
+    const tags = topRatedHtml(live, m) + viewersHtml(m.viewers);
+    return tags ? `<div class="mtags">${tags}</div>` : "";
+  }
+  function linesHtml(live, ms, sbs) {
+    return `<ul class="lines">${sbs.map((sb, i) => liveLineHtml(sb, topRatedHtml(live, ms[i], { short: true }) + viewersHtml(ms[i].viewers))).join("")}</ul>`;
   }
   function arenaMatchOf(live, o) {
     var _a4, _b, _c, _d;
-    const id = (_d = (_c = (_a4 = o.arena) == null ? void 0 : _a4.matchId) != null ? _c : (_b = live.matches[0]) == null ? void 0 : _b.matchId) != null ? _d : "";
-    return { matchId: id, index: live.matches.findIndex((m) => m.matchId === id) };
+    const ordered = liveOrder(live);
+    const id = (_d = (_c = (_a4 = o.arena) == null ? void 0 : _a4.matchId) != null ? _c : (_b = ordered[0]) == null ? void 0 : _b.matchId) != null ? _d : "";
+    return { matchId: id, index: ordered.findIndex((m) => m.matchId === id) };
   }
-  function arenaBody(w2, live, sbs, o) {
+  function arenaBody(w2, live, ordered, sbs, o) {
     var _a4;
     const { matchId, index } = arenaMatchOf(live, o);
     const sb = index >= 0 ? sbs[index] : null;
     const ended = !sb || !!((_a4 = o.arena) == null ? void 0 : _a4.ended);
     const label = sb ? `${sb.p1.agentName} vs ${sb.p2.agentName}` : "the match";
+    const othersM = ordered.filter((_, i) => i !== index);
     const others = sbs.filter((_, i) => i !== index);
-    const stage = sb ? `<div class="wl-fallback">${compactBoard(live.matches[index], sb.near)}</div>` : `<div class="wl-fallback"><p class="muted small">The match is over.</p></div>`;
+    const stage = sb ? `<div class="wl-fallback">${compactBoard(ordered[index], sb.near)}</div>` : `<div class="wl-fallback"><p class="muted small">The match is over.</p></div>`;
     const arena = `<div class="wl-arena" data-match="${esc(matchId)}" data-ended="${ended}"><div class="wl-frame" aria-hidden="true"></div><div class="wl-wait" aria-hidden="true">Joining the match\u2026</div>${stage}<button type="button" class="wl-open" data-act="watch-arena" data-match="${esc(matchId)}" aria-label="${esc(`Watch ${label} full screen on the arena`)}"${sb ? "" : " disabled"}><span>${icon("arrow", 12)} Full screen</span></button></div>`;
-    const head = sb ? scoreboardHtml(sb, { small: true }) + watchAsHtml(sb, `wa-${w2.id}`) : `<p class="small"><b>Match over.</b> <span class="muted">Its result and replay are in your match history. The next live match takes this tile in a moment.</span></p>`;
-    const list = others.length ? `<ul class="lines">${others.map(liveLineHtml).join("")}</ul>` : `<p class="muted small">${sb ? "No other match is live." : "No match is live right now. The next ladder round starts soon."}</p>`;
-    const info = `<div class="wl-info">${head}<h4>Also live</h4>${list}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live</span></div></div>`;
+    const head = sb ? matchTagsHtml(live, ordered[index]) + scoreboardHtml(sb, { small: true }) + watchAsHtml(sb, `wa-${w2.id}`) : `<p class="small"><b>Match over.</b> <span class="muted">Its result and replay are in your match history. The next live match takes this tile in a moment.</span></p>`;
+    const list = others.length ? linesHtml(live, othersM, others) : `<p class="muted small">${sb ? "No other match is live." : "No match is live right now. The next ladder round starts soon."}</p>`;
+    const info = `<div class="wl-info">${head}<h4>Also live</h4>${list}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${liveCountText(live)}</span></div></div>`;
     return `<div class="wl-l">${arena}${info}</div>`;
   }
   function historyBody(w2, d) {
@@ -11408,7 +11481,17 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="row between"><span class="small">${h.rows.length} of ${h.total} matches \xB7 ${esc(rec.line)}</span>${h.error ? `<span class="warn-t small">${esc(h.error)}</span>` : ""}</div><ul class="hlist">${h.rows.map((r) => historyRowHtml(historyRowView(r, now))).join("")}</ul>${more}`;
   }
   function livePage() {
-    return `<div class="pg-wide"><p class="muted small">Every match the ladder is showing now. Featured picks ("Top rated") and viewer counts come with their endpoint.</p><div id="live-list">${liveListHtml()}</div></div>`;
+    return `<div class="pg-wide"><p class="muted small">Every match the ladder is showing now: the featured picks first, then the rest. The eye counts the owners watching a match (its arena or match page open in the last 30 s; this list alone doesn't count).</p><div id="live-list">${liveListHtml()}</div></div>`;
+  }
+  function liveCardHtml(live, m, me) {
+    const sb = scoreboardOf(m, me, viewOf(m.matchId));
+    const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
+    const sv = speedControlView(m, me);
+    const fast = (sv == null ? void 0 : sv.pill) ? `<span class="pill fast" title="${esc(sv.line || "Playing at 2\xD7")}">${esc(sv.pill)}</span>` : "";
+    const rank = topRatedRank(live, m.matchId);
+    const why = rank !== null ? `<span class="small muted lc-why">${esc(topRatedWhy(m))}</span>` : "";
+    const tags = `<div class="lc-tags">${topRatedHtml(live, m)}${sb.mine ? '<span class="pill on">Your agent</span>' : ""}${fast}${why}<span class="lc-sp"></span>${viewersHtml(m.viewers)}</div>`;
+    return `<section class="panel dark live-card${rank !== null ? " top" : ""}" data-match="${esc(m.matchId)}">${tags}${sb.mine ? "" : watchAsHtml(sb, "wa-live")}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
   }
   function liveListHtml() {
     var _a4, _b;
@@ -11417,13 +11500,11 @@ gl_FragColor=vec4(col,1.);}`;
     if (!live.running) return `<section class="panel glass"><p class="muted small">The ladder isn't running on this server, so nothing is live.</p></section>`;
     if (!live.matches.length) return `<section class="panel glass"><p class="muted small">No match is live right now. The next ladder round starts soon.</p></section>`;
     const me = (_b = (_a4 = state.me) == null ? void 0 : _a4.ownerId) != null ? _b : null;
-    return live.matches.map((m) => {
-      const sb = scoreboardOf(m, me, viewOf(m.matchId));
-      const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
-      const sv = speedControlView(m, me);
-      const fast = (sv == null ? void 0 : sv.pill) ? `<span class="pill fast" title="${esc(sv.line || "Playing at 2\xD7")}">${esc(sv.pill)}</span>` : "";
-      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${fast}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
-    }).join("");
+    const g = liveGroups(live);
+    const group = (id, title, note, ms) => ms.length ? `<section class="lgroup" aria-labelledby="lg-${id}"><div class="lg-h"><h3 id="lg-${id}">${esc(title)} <small class="muted">${ms.length}</small></h3><p class="muted small">${esc(note)}</p></div><div class="lg-cards">${ms.map((m) => liveCardHtml(live, m, me)).join("")}</div></section>` : "";
+    const topNote = "Both sides out of placement, ranked by the weaker side's rating as the match started: a match is only as top as its weaker player.";
+    const noTop = g.topRated.length ? "" : `<p class="muted small lg-none">No Top rated match right now: every live match has a side still in placement.</p>`;
+    return group("tour", "Tournament", "The tournament's matches.", g.tournament) + group("top", "Top rated", topNote, g.topRated) + noTop + group("rest", g.tournament.length || g.topRated.length ? "Also live" : "Live now", "In the order the round started them.", g.rest);
   }
   async function setAutoPlay(on, time) {
     var _a4, _b, _c;
@@ -11582,8 +11663,7 @@ gl_FragColor=vec4(col,1.);}`;
   var _a3;
   (_a3 = phoneQuery == null ? void 0 : phoneQuery.addEventListener) == null ? void 0 : _a3.call(phoneQuery, "change", () => mountTileArena());
   function tileArenaPick() {
-    var _a4, _b;
-    const ids = ((_b = (_a4 = state.home.live) == null ? void 0 : _a4.matches) != null ? _b : []).map((m) => m.matchId);
+    const ids = (state.home.live ? liveOrder(state.home.live) : []).map((m) => m.matchId);
     const now = Date.now();
     if (heldArena && !ids.includes(heldArena.matchId) && heldArena.goneAt === null) heldArena.goneAt = now;
     const pick = arenaPick(heldArena, ids, now);

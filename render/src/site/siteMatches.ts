@@ -317,11 +317,99 @@ export function compactBoard(m: SiteLiveMatch, near: "p1" | "p2" | null = null):
 }
 
 /** One live match as a single line (the Watch live widget's list). */
-export function liveLineHtml(sb: Scoreboard): string {
+export function liveLineHtml(sb: Scoreboard, tags = ""): string {
   const [a, b] = nearFirst(sb.near);
-  return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}–${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small></li>`;
+  return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}–${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small>${tags ? `<span class="ltags">${tags}</span>` : ""}</li>`;
 }
 
+
+// ---- featured picks and viewers (render session 71; game session 74) --------
+//
+// Watch live's groups and viewer counts, as the server sends them (OWNER_API.md
+// "Featured and viewers"): `featured.topRated` names up to 3 live matches in
+// order (both sides out of placement, by the weaker side's rating as the match
+// started); `featured.tournament` is empty until tournaments exist; each
+// match's `viewers` is the owners who read its feed in the last 30 s. The rule
+// is the server's: this only orders, words and explains what it sent.
+
+/** Watch live's groups: the matches each featured id names (an id no longer
+ * in `matches` is skipped), then every other live match in the server's order.
+ * A match is in one group only (tournament first). */
+export interface LiveGroups {
+  tournament: SiteLiveMatch[];
+  topRated: SiteLiveMatch[];
+  rest: SiteLiveMatch[];
+}
+
+export function liveGroups(live: SiteLive): LiveGroups {
+  const byId = new Map(live.matches.map((m) => [m.matchId, m]));
+  const used = new Set<string>();
+  const pick = (ids: readonly string[] | undefined): SiteLiveMatch[] => {
+    const out: SiteLiveMatch[] = [];
+    for (const id of ids ?? []) {
+      const m = byId.get(id);
+      if (m && !used.has(id)) {
+        used.add(id);
+        out.push(m);
+      }
+    }
+    return out;
+  };
+  // `featured` is optional at run time only (a server before session 74).
+  const f = live.featured as SiteLive["featured"] | undefined;
+  const tournament = pick(f?.tournament);
+  const topRated = pick(f?.topRated);
+  return { tournament, topRated, rest: live.matches.filter((m) => !used.has(m.matchId)) };
+}
+
+/** The live matches in Watch live's order: the tournament group, Top rated,
+ * then the rest (the widget's first match is the top pick). */
+export function liveOrder(live: SiteLive): SiteLiveMatch[] {
+  const g = liveGroups(live);
+  return [...g.tournament, ...g.topRated, ...g.rest];
+}
+
+/** A match's place in Top rated (1 = the top pick), or null. */
+export function topRatedRank(live: SiteLive, matchId: string): number | null {
+  const i = (live.featured?.topRated ?? []).indexOf(matchId);
+  return i < 0 || !live.matches.some((m) => m.matchId === matchId) ? null : i + 1;
+}
+
+/** Why a match is in Top rated, from the two sides' ratings and tiers as it
+ * started (the server's rule): "Weaker side 1786 Platinum". */
+export function topRatedWhy(m: SiteLiveMatch): string {
+  const weaker = Math.round(m.p1.rating) <= Math.round(m.p2.rating) ? m.p1 : m.p2;
+  return `Weaker side ${Math.round(weaker.rating)} ${weaker.tier}`;
+}
+
+/** The viewer count as words, or null when the server sent none (before
+ * session 74): "No one watching", "1 watching", "12 watching". */
+export function viewersText(n: number | undefined): string | null {
+  if (typeof n !== "number" || !isFinite(n) || n < 0) return null;
+  const k = Math.round(n);
+  return k === 0 ? "No one watching" : `${k} watching`;
+}
+
+const EYE = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+/** The viewer count as a chip (an eye and the number; the words for a
+ * screen reader and on hover), or "" when the server sent none. */
+export function viewersHtml(n: number | undefined): string {
+  const t = viewersText(n);
+  if (t === null) return "";
+  const title = `${t} (owners with this match open in the last 30 s)`;
+  return `<span class="vw${Math.round(n!) ? "" : " none"}" title="${esc(title)}" aria-label="${esc(t)}">${EYE}<b aria-hidden="true">${Math.round(n!)}</b></span>`;
+}
+
+/** The Top rated chip on a match ("Top rated #1"), with why on hover;
+ * "" for a match not in the group. `short` (a one-line row) drops the words
+ * to "#1". */
+export function topRatedHtml(live: SiteLive, m: SiteLiveMatch, opts: { short?: boolean } = {}): string {
+  const rank = topRatedRank(live, m.matchId);
+  if (rank === null) return "";
+  const why = `Top rated #${rank}: both sides out of placement; ${topRatedWhy(m).toLowerCase()} as the match started`;
+  return `<span class="pill top" title="${esc(why)}" aria-label="${esc(`Top rated, number ${rank}`)}">${opts.short ? `#${rank}` : `Top rated #${rank}`}</span>`;
+}
 
 // ---- the 2× vote (render session 56; game session 73) -----------------------
 //

@@ -7,6 +7,44 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-13 — Top rated and viewer counts on Watch live (session 71) — AWAITING FEEDBACK (four small calls)
+
+Watch live now shows the server's featured picks and how many owners are watching each match. This completes the
+Season 0 feature list on the render side. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --warm 4`, sign
+in as nova, open Watch live; the second round after the site opens is featured.
+
+**What you'll see:**
+- **Watch live page:** a **Top rated** group first (its count and the rule in one line: both sides out of placement,
+  ranked by the weaker side's rating as the match started), then "Also live". Each featured card has a gold edge,
+  "Top rated #1" (hover: the rule) and "Weaker side 1455 Silver". When nothing qualifies: "No Top rated match right
+  now: every live match has a side still in placement." A Tournament group appears above it only when the server
+  sends one (after Season 0).
+- **The eye** on every card (top right): the server's viewer count, "No one watching" / "3 watching" to a screen
+  reader and on hover. The page's lead line says what it counts: owners with the match's arena or match page open in
+  the last 30 s; the list alone doesn't count.
+- **The Watch live widget:** leads with the top pick, which wears its chip and eye at M and L; the other matches'
+  lines carry "#2" and their eye; the foot reads "2 live · 2 top rated". At L the tile's arena embeds the top pick.
+  At S, the score alone (your call 4 of session 67), of the top pick.
+
+Evidence: `progress/render/evidence/featured-check-s71.txt`, 39 PASS on the real owner API with the ladder at 8x
+and two signed-in owners, every rank and count checked against the server's answer; stills `v2-s71-live-top.jpg`,
+`-live-none`, `-live-viewers`, `-widget-M`, `-widget-L`, `-live-phone`, `-live-dark`.
+
+**Small calls (kept as built unless you say otherwise):**
+1. **The eye counts you too** when your own arena is reading the match (the Home tile at L, a full-screen arena or
+   Agent match), as the server counts; so "1 watching" may be just you. The alternative is "N others watching",
+   which needs the site to know whether it is itself counted.
+2. **The widget leads with the top pick**, not your own live match (your match is on Agent controls and Agent
+   match). The alternative: your own match first, then Top rated.
+3. **No count shown on the full-screen arena**, only on the page and widget (the arena is the game lane's render
+   page and kept clean).
+4. **On a phone the scoreboard's turn line sits above the two sides** (560 px and under), on every live scoreboard,
+   including Agent match. Before, the middle column squeezed a side to a few px.
+
+**Next:** game 94, then both lanes fix what the dry run broke (plan item 6); the render hardening pass is due at 74.
+
+---
+
 ## 2026-11-13 — The notifications bell (session 70) — AWAITING FEEDBACK (six small calls)
 
 The top bar has its bell. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder`, sign in as nova, and wait a

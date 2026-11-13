@@ -68,7 +68,7 @@ import { BELL_PAGE, bellButton, bellPanelHtml, closed as bellClosed, emptyBell, 
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
-import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
+import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveGroups, liveOrder, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, topRatedHtml, topRatedRank, topRatedWhy, viewersHtml, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
@@ -2294,24 +2294,38 @@ function histHtml(): string {
 }
 
 function livePage(): string {
-  return `<div class="pg-wide"><p class="muted small">Every match the ladder is showing now. Featured picks ("Top rated") and viewer counts come with their endpoint.</p><div id="live-list">${liveListHtml()}</div></div>`;
+  return `<div class="pg-wide"><p class="muted small">Every match the ladder is showing now: the featured picks first, then the rest. The eye counts the owners watching a match (its arena or match page open in the last 30 s; this list alone doesn't count).</p><div id="live-list">${liveListHtml()}</div></div>`;
 }
 
+/** One live match's card on Watch live. */
+function liveCardHtml(live: SiteLive, m: SiteLive["matches"][number], me: string | null): string {
+  const sb = scoreboardOf(m, me, viewOf(m.matchId));
+  const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
+  const sv = speedControlView(m, me);
+  const fast = sv?.pill ? `<span class="pill fast" title="${esc(sv.line || "Playing at 2×")}">${esc(sv.pill)}</span>` : "";
+  const rank = topRatedRank(live, m.matchId);
+  const why = rank !== null ? `<span class="small muted lc-why">${esc(topRatedWhy(m))}</span>` : "";
+  const tags = `<div class="lc-tags">${topRatedHtml(live, m)}${sb.mine ? '<span class="pill on">Your agent</span>' : ""}${fast}${why}<span class="lc-sp"></span>${viewersHtml(m.viewers)}</div>`;
+  return `<section class="panel dark live-card${rank !== null ? " top" : ""}" data-match="${esc(m.matchId)}">${tags}${sb.mine ? "" : watchAsHtml(sb, "wa-live")}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
+}
+
+/** Watch live's list (render session 71): the server's featured groups
+ * (Tournament when there is one, Top rated), then every other live match. */
 function liveListHtml(): string {
   const live = state.home.live;
   if (!live) return state.home.errors.live ? `<section class="panel glass"><p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p></section>` : `<section class="panel glass"><p class="muted small">Loading…</p></section>`;
   if (!live.running) return `<section class="panel glass"><p class="muted small">The ladder isn't running on this server, so nothing is live.</p></section>`;
   if (!live.matches.length) return `<section class="panel glass"><p class="muted small">No match is live right now. The next ladder round starts soon.</p></section>`;
   const me = state.me?.ownerId ?? null;
-  return live.matches
-    .map((m) => {
-      const sb = scoreboardOf(m, me, viewOf(m.matchId));
-      const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
-      const sv = speedControlView(m, me);
-      const fast = sv?.pill ? `<span class="pill fast" title="${esc(sv.line || "Playing at 2×")}">${esc(sv.pill)}</span>` : "";
-      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${fast}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
-    })
-    .join("");
+  const g = liveGroups(live);
+  const group = (id: string, title: string, note: string, ms: typeof live.matches) =>
+    ms.length ? `<section class="lgroup" aria-labelledby="lg-${id}"><div class="lg-h"><h3 id="lg-${id}">${esc(title)} <small class="muted">${ms.length}</small></h3><p class="muted small">${esc(note)}</p></div><div class="lg-cards">${ms.map((m) => liveCardHtml(live, m, me)).join("")}</div></section>` : "";
+  const topNote = "Both sides out of placement, ranked by the weaker side's rating as the match started: a match is only as top as its weaker player.";
+  const noTop = g.topRated.length ? "" : `<p class="muted small lg-none">No Top rated match right now: every live match has a side still in placement.</p>`;
+  return group("tour", "Tournament", "The tournament's matches.", g.tournament)
+    + group("top", "Top rated", topNote, g.topRated)
+    + noTop
+    + group("rest", g.tournament.length || g.topRated.length ? "Also live" : "Live now", "In the order the round started them.", g.rest);
 }
 
 /** Auto-play on or off; `minutes` (15 / 30 / 60) turns it on with a
@@ -2518,7 +2532,8 @@ phoneQuery?.addEventListener?.("change", () => mountTileArena());
 /** Which match the tile shows now, remembering when the held one left the
  * live list. */
 function tileArenaPick(): { matchId: string; ended: boolean } | null {
-  const ids = (state.home.live?.matches ?? []).map((m) => m.matchId);
+  // Watch live's order (render session 71): with nothing held, the top pick.
+  const ids = (state.home.live ? liveOrder(state.home.live) : []).map((m) => m.matchId);
   const now = Date.now();
   if (heldArena && !ids.includes(heldArena.matchId) && heldArena.goneAt === null) heldArena.goneAt = now;
   const pick = arenaPick(heldArena, ids, now);

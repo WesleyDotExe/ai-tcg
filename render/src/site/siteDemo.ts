@@ -233,7 +233,10 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(imp
 if (isMain) {
   const i = process.argv.indexOf("--port");
   const sp = process.argv.indexOf("--speed");
-  const demo = await startSiteDemo({ port: i >= 0 ? Number(process.argv[i + 1]) : 8080, full: process.argv.includes("--full"), ladder: process.argv.includes("--ladder"), speed: sp >= 0 ? Number(process.argv[sp + 1]) : 1 });
+  // Render session 71: --warm N, the matches Nova's agent records before the
+  // site opens (default 4; the house agents leave placement at 5).
+  const wm = process.argv.indexOf("--warm");
+  const demo = await startSiteDemo({ port: i >= 0 ? Number(process.argv[i + 1]) : 8080, full: process.argv.includes("--full"), ladder: process.argv.includes("--ladder"), speed: sp >= 0 ? Number(process.argv[sp + 1]) : 1, ...(wm >= 0 ? { warmMatches: Number(process.argv[wm + 1]) } : {}) });
   console.log(`[site-demo] ${demo.url}  sign in as "${DEMO_LOGIN}" / "${DEMO_PASSWORD}"  (owner API on port ${demo.apiPort})`);
   const stop = async () => {
     await demo.close();

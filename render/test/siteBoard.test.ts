@@ -365,10 +365,10 @@ describe("what the widgets show", () => {
     expect(over).toMatch(/data-act="watch-arena" data-match="m-0"[^>]* disabled>/);
     expect(over).toMatch(/Also live<\/h4><ul class="lines">[\s\S]*Hive Courier/);
     // Between ladder rounds nothing else is live: the held match stays on the arena.
-    const between = widgetHtml(W("w", "watch", "L"), { ...DATA, live: { running: true, matches: [], mine: null } }, { editing: false, live: "arena", arena: { matchId: "m-1", ended: true } });
+    const between = widgetHtml(W("w", "watch", "L"), { ...DATA, live: { running: true, matches: [], mine: null, featured: { tournament: [], topRated: [] } } }, { editing: false, live: "arena", arena: { matchId: "m-1", ended: true } });
     expect(between).toContain('data-match="m-1" data-ended="true"');
     expect(between).toContain("No match is live right now. The next ladder round starts soon.");
-    expect(widgetHtml(W("w", "watch", "L"), { ...DATA, live: { running: true, matches: [], mine: null } }, { editing: false, live: "arena" })).not.toContain("wl-arena");
+    expect(widgetHtml(W("w", "watch", "L"), { ...DATA, live: { running: true, matches: [], mine: null, featured: { tournament: [], topRated: [] } } }, { editing: false, live: "arena" })).not.toContain("wl-arena");
     // M and S don't embed it, whatever view they're handed.
     expect(widgetHtml(W("w", "watch", "M"), two, { editing: false, live: "list" })).not.toContain("wl-arena");
     expect(widgetHtml(W("w", "watch", "S"), two, { editing: false, live: "arena" })).not.toContain("wl-arena");
