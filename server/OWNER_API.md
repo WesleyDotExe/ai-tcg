@@ -41,7 +41,7 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/ladder?limit=100` | none | the ladder: `{ standings, you, owners, tiers, placementMatches }` (below) |
 | `GET /api/rating?recent=10` | none | `{ rating, recent }`: the owner's Glicko-2 rating and its last rated matches (below) |
 | `GET /api/stats?agent=<agentId>&days=30&recent=10` | none | the Stats page and the Rating & form widget: totals, win rate by faction and by the opponent's faction, recent results, the rating chart and weekly trend, today's earnings (below; schema v24, session 78); 400 for `days` outside 7-90 or `recent` outside 1-50, 404 for an agent that isn't the caller's |
-| `GET /api/season` | none | the season: `{ season, state, endedAt, liveMatches, tierCoinsNow, you, standings, retiredPrototypes, startedFrom, yourSeed }` (below; schema v26, session 82; `startedFrom` and `yourSeed` v27, session 83) |
+| `GET /api/season` | none | the season: `{ season, state, endedAt, endsAt, liveMatches, tierCoinsNow, you, standings, retiredPrototypes, startedFrom, yourSeed }` (below; schema v26, session 82; `startedFrom` and `yourSeed` v27, session 83) |
 | `POST /api/admin/season/end` | `{ season: "S0" }` | the house admin ends the season (below): 202 `state: "ending"` while the ladder's shown matches finish, 200 once ended; 400 for a body that doesn't name the current season, 403 for a non-admin, 409 once ended (or, with no ladder in this process, while a match is live) |
 | `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
 | `GET /api/collection?recentPacks=3` | none | the collection (below) |
@@ -243,7 +243,9 @@ The tiers, the placement count and the matchmaker are session 66's proposals, at
 
 Season 0 game item 3, part 1 (ECONOMY.md "Seasons"). Ending a season is one store transaction, in this order: every owner's tier coins for its tier at that moment (the Platinum, Diamond and Mythic coins, as `grantSeasonTierCoins`); the final standings, frozen as the ladder stands then; every Prototype run of the season's set retired, with how many copies it found. After it the season's file is its archive: no match starts or is recorded, no rating moves, and a pack's Prototype bonus is a Gold (as when every run is used up). The schema refuses each of these too.
 
-`POST /api/admin/season/end` with `{ "season": "S0" }` (the body must name the season being ended, so a stray call can't end the wrong one). Only the house admin (`isAdmin` in `GET /api/me`). With the ladder running in this process (`npm run season`): no new round starts; the matches being shown finish at their own pace and are recorded (they pay and rate as usual), then the season ends. The answer is 202 with `state: "ending"` while that happens, or 200 with `state: "ended"` when nothing was live. The server prints `[season] season S0 ended ...` when it does. Without a ladder in the process, it ends at once, or 409 while any match is live.
+**The end time (schema v29, session 94; owner 2026-11-13: the season's end is decided by the server, at a time set before the season starts).** `npm run season:setup` writes it into a new season's file (Season 0: 00:00 27 Dec 2026 Sydney, `2026-12-26T13:00:00.000Z`; `--ends <time>` or `--ends none` to change it). From that moment the store refuses a new match, and the live ladder starts no round, prints `[season] season S0's end time ... has passed`, lets the matches on screen finish (they pay and rate as usual), then ends the season as below; `GET /api/season` reads `ending`, then `ended`, with `endedAt` the last match's recording. A server down over the end time ends the season on its first tick after starting (the matches the stopped server left on screen are cancelled first, as after any restart). The end time can't change once the season has ended.
+
+The admin's end call stays as the fallback, for a file with no end time: `POST /api/admin/season/end` with `{ "season": "S0" }` (the body must name the season being ended, so a stray call can't end the wrong one). Only the house admin (`isAdmin` in `GET /api/me`). With the ladder running in this process (`npm run season`): no new round starts; the matches being shown finish at their own pace and are recorded (they pay and rate as usual), then the season ends. The answer is 202 with `state: "ending"` while that happens, or 200 with `state: "ended"` when nothing was live. The server prints `[season] season S0 ended ...` when it does. Without a ladder in the process, it ends at once, or 409 while any match is live.
 
 `GET /api/season`, any signed-in owner:
 
@@ -252,6 +254,7 @@ Season 0 game item 3, part 1 (ECONOMY.md "Seasons"). Ending a season is one stor
   "season": "S0",
   "state": "open",                 // "open" | "ending" | "ended"
   "endedAt": null,                 // ISO time once ended
+  "endsAt": "2026-12-26T13:00:00.000Z",   // (v29, session 94) when the server ends the season, set before it starts; null: no end time
   "liveMatches": 2,
   "tierCoinsNow": { "tier": "Gold", "coins": [] },   // while open: what the caller's tier would earn now; null once ended
   "you": null,                     // once ended: the caller's line in the standings (null if never rated)
@@ -535,14 +538,14 @@ The switch on the My agent card, the match screen and Settings -> Play (owner ap
 
 #### The play-time allowance (schema v22, session 76)
 
-"Give the agent X minutes" on the Agent controls widget (owner 2026-11-06; `progress/season0-final-brief.md` section 1). `PUT /api/play/auto-play` with `{ on: true, minutes: 15 | 30 | 60 }` turns auto-play on for that long from now; `{ on: true }` with no minutes is auto-play with no time limit, as before. `autoPlay` carries two more fields:
+"Give the agent X minutes" on the Agent controls widget (owner 2026-11-06; `progress/season0-final-brief.md` section 1). `PUT /api/play/auto-play` with `{ on: true, minutes: 15 | 30 | 60 }` turns auto-play on for that long, counted from the agent's first pairing (schema v29, session 94; on a v22-v28 file, from now); `{ on: true }` with no minutes is auto-play with no time limit, as before. `autoPlay` carries two more fields:
 
 ```
   allowance: {
-    state: "running" | "finishing" | "done",
-    label: "Running" | "Finishing match" | "Time's up",   // the state as the owner reads it (owner 2026-11-06)
-    startedAt: string, endsAt: string,   // the window the agent may be paired in
-    totalMinutes: number,                // its length (the ring: secondsLeft / (totalMinutes * 60))
+    state: "waiting" | "running" | "finishing" | "done",
+    label: "Waiting for the next round" | "Running" | "Finishing match" | "Time's up",   // the state as the owner reads it (owner 2026-11-06, 2026-11-13)
+    startedAt: string | null, endsAt: string | null,   // the window the agent may be paired in; null while "waiting"
+    totalMinutes: number,                // its length (the ring: secondsLeft / (totalMinutes * 60)); while waiting, the minutes chosen
     secondsLeft: number,                 // 0 once time is up
     minutesLeft: number,                 // rounded up: "1 min left" until the last second
     endsAtReset: boolean                 // the window ends at midnight Sydney: no more time can go on today
@@ -550,11 +553,12 @@ The switch on the My agent card, the match screen and Settings -> Play (owner ap
   canAddTime: boolean                    // "+15 / +30" can be pressed now
 ```
 
-- **running**: time is left; the ladder queues the agent each round. The clock runs on wall time from the start, whether or not the agent is in a match (rounds wait for every match in them to end, so some of the time is spent waiting for the next round).
+- **waiting** (v29, session 94; owner 2026-11-13, on session 93's dry run): the minutes are chosen and the agent is queued, but the clock hasn't started: it starts when the agent is first paired (the match's start). Until then `startedAt` and `endsAt` are null, `secondsLeft` is the full time and doesn't count down, and the widget shows `label`, "Waiting for the next round". The dry run found that 15 minutes pressed while a round was being shown went mostly on waiting for that round (~11 minutes, one match); now none of it does. A wait across midnight keeps the minutes (they are the new day's once paired).
+- **running**: time is left; the ladder queues the agent each round. The clock runs on wall time from the first pairing, whether or not the agent is in a match (rounds wait for every match in them to end, so some of the time after the first match is spent waiting for the next round).
 - **finishing**: time is up while the agent is in a live match. It is not queued again; the match plays to the end and counts as normal. `on` is still true. The widget shows "Finishing match".
 - **done**: time is up and no match is left. `on` reads false and `stopped` is `{ reason: "timeUp", day }` from the moment time is up (the server writes the stop after the match, or before the next round, and the ladder's `autoPlayStopped` event carries `reason: "timeUp"`). The widget shows `label`, "Time's up" (owner 2026-11-06: renamed from "Done for today", since the owner can start again the same day; the wire value stays `done`). It shows until midnight Sydney; the owner can start again with new minutes at any time (there is no daily cap on time, only on rewards).
-- **+15 / +30** (`POST /api/play/auto-play/time`): while running, adds to the end; while finishing, opens a new window of that many minutes from now, so the agent is paired again next round. Refused when done (start again with minutes instead) and with no time limit.
-- **No carry-over**: every window is cut at the next midnight Sydney (60 minutes started at 23:30 give 30, with `endsAtReset: true`, and nothing can be added). A match still running at midnight finishes; its "done" belongs to the day the time ran out, so the new day reads clean (`allowance: null`, `stopped: null`).
+- **+15 / +30** (`POST /api/play/auto-play/time`): while waiting, adds to the minutes chosen; while running, adds to the end; while finishing, opens a new window of that many minutes from now, so the agent is paired again next round. Refused when done (start again with minutes instead) and with no time limit.
+- **No carry-over**: every window is cut at the next midnight Sydney, worked out when it opens (60 minutes first paired at 23:30 give 30, with `endsAtReset: true`, and nothing can be added). A match still running at midnight finishes; its "done" belongs to the day the time ran out, so the new day reads clean (`allowance: null`, `stopped: null`).
 - Turning auto-play off, or on again (with or without minutes), drops the current allowance. Maxing the day's rewards turns auto-play off with `dailyRewardsMaxed` and drops the allowance too.
 - A personality (play style) change still applies from the next match; the allowance doesn't touch it.
 

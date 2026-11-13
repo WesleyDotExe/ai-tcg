@@ -1691,4 +1691,37 @@ export const MIGRATIONS: readonly string[] = [
   WHEN OLD.disposed_at IS NOT NULL AND (NEW.disposed_at IS NOT OLD.disposed_at OR NEW.disposed_reason IS NOT OLD.disposed_reason)
   BEGIN SELECT RAISE(ABORT, 'a disposed copy stays disposed'); END;
   `,
+  // 29: two of the Season 0 dry run's fixes (session 94; owner 2026-11-13,
+  // answers to game session 93).
+  //  - The play-time allowance's clock starts when the agent is first paired,
+  //    not when the owner presses the button (call 1, (a)): switched on while
+  //    a round was being shown, the agent waited ~11 minutes for that round
+  //    to end and 15 minutes bought one match. allowance_waiting_minutes holds
+  //    the minutes chosen until then (auto-play on, no window yet);
+  //    startMatch turns it into the window [paired, paired + minutes), cut at
+  //    the next midnight Sydney as before.
+  //  - The season's end is decided by the server (call 2, and the owner's
+  //    end time for Season 0: 00:00 27 Dec 2026 Sydney, 13:00 UTC 26 Dec).
+  //    season_schedule holds the end time, set before the season starts
+  //    (season:setup); the live ladder starts no round from then, lets the
+  //    matches being shown finish and ends the season. No row: no end time
+  //    (the admin's end call stays, as the fallback). Fixed once ended.
+  `
+  ALTER TABLE auto_play ADD COLUMN allowance_waiting_minutes INTEGER
+    CHECK (allowance_waiting_minutes IS NULL OR (allowance_waiting_minutes > 0 AND is_on = 1 AND allowance_started_at IS NULL));
+  CREATE TABLE season_schedule (
+    one      INTEGER PRIMARY KEY CHECK (one = 1),
+    ends_at  TEXT NOT NULL CHECK (ends_at GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]Z'),
+    set_at   TEXT NOT NULL
+  );
+  CREATE TRIGGER no_schedule_after_season_end BEFORE INSERT ON season_schedule
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: its end time is fixed'); END;
+  CREATE TRIGGER schedule_fixed_after_season_end BEFORE UPDATE ON season_schedule
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: its end time is fixed'); END;
+  CREATE TRIGGER schedule_kept_after_season_end BEFORE DELETE ON season_schedule
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: its end time is fixed'); END;
+  `,
 ];

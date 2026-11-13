@@ -4,18 +4,22 @@ import { EconomyStore } from "@ai-tcg/economy";
 import type { DeckFaction } from "@ai-tcg/engine";
 import { acquireSeasonLock, exitOnStopSignals } from "./seasonLock.js";
 import { SETUP_FACTIONS, setUpSeason } from "./seasonSetup.js";
+import { sydney } from "./seasonFile.js";
 import { stampConsole } from "./logTime.js";
 
 // A new season file with the owner's account and the house in it (session
 // 93; seasonSetup.ts says what it puts there). The first step of the Mac mini
 // guide (progress/mac-mini-guide.md):
-//   npm run season:setup -w server -- <new season file> --name "<shown name>" --login <username> --faction <Cortex|Swarm|Aegis|Null> [--agent "<agent name>"] [--email <address>]
+//   npm run season:setup -w server -- <new season file> --name "<shown name>" --login <username> --faction <Cortex|Swarm|Aegis|Null> [--agent "<agent name>"] [--email <address>] [--ends <time> | --ends none]
+// (session 94) --ends sets when the server ends the season (an ISO time, e.g.
+// 2026-12-26T13:00:00Z); left out, it is the owner's time for the season
+// (Season 0: 00:00 27 Dec 2026 Sydney); "none" sets no end time.
 // It asks for the password twice (hidden). Piped in (not a terminal), it
 // reads one line from standard input instead. It refuses a file that exists.
 // Then: npm run season -w server -- <the same file>
 stampConsole();
 const USAGE =
-  'usage: npm run season:setup -w server -- <new season file> --name "<shown name>" --login <username> --faction <Cortex|Swarm|Aegis|Null> [--agent "<agent name>"] [--email <address>]';
+  'usage: npm run season:setup -w server -- <new season file> --name "<shown name>" --login <username> --faction <Cortex|Swarm|Aegis|Null> [--agent "<agent name>"] [--email <address>] [--ends <time> | --ends none]';
 const argv = process.argv.slice(2);
 const opts: Record<string, string> = {};
 const rest: string[] = [];
@@ -24,7 +28,7 @@ for (let i = 0; i < argv.length; i++) {
   if (a.startsWith("--")) {
     const key = a.slice(2);
     const value = argv[i + 1];
-    if (!["name", "login", "faction", "agent", "email"].includes(key) || value === undefined || value.startsWith("--")) {
+    if (!["name", "login", "faction", "agent", "email", "ends"].includes(key) || value === undefined || value.startsWith("--")) {
       console.error(`[setup] ${value === undefined || value.startsWith("--") ? `--${key} needs a value` : `unknown option "${a}"`}\n${USAGE}`);
       process.exit(1);
     }
@@ -113,10 +117,15 @@ exitOnStopSignals();
 let store: EconomyStore | null = null;
 try {
   store = EconomyStore.open(file);
-  const r = setUpSeason(store, { name: opts.name, username: opts.login, password, email: opts.email ?? null, faction: faction as DeckFaction, ...(opts.agent ? { agentName: opts.agent } : {}) });
+  const r = setUpSeason(store, { name: opts.name, username: opts.login, password, email: opts.email ?? null, faction: faction as DeckFaction, ...(opts.agent ? { agentName: opts.agent } : {}), ...(opts.ends ? { endsAt: opts.ends === "none" ? null : opts.ends } : {}) });
   console.log(`[setup] season ${store.season} file made: ${file}`);
   console.log(`[setup] your account: ${opts.name}, sign in as "${opts.login}" (the admin); ${faction} starter deck and packs; your agent ${r.agentName} (signature card ${r.signatureCard}), connected, auto-play off`);
   console.log(`[setup] the house: ${r.house.map((h) => `${h.name} (${h.agent}, ${h.faction})`).join(", ")}`);
+  console.log(
+    r.endsAt === null
+      ? "[setup] no end time set: the season ends only by the admin's end call"
+      : `[setup] the season ends at ${r.endsAt} (${sydney(r.endsAt)} Sydney): the server stops pairing then, lets the matches on screen finish and ends it`,
+  );
   console.log(`[setup] next: npm run season -w server -- ${file}`);
   store.close();
 } catch (err) {

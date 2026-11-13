@@ -52,7 +52,7 @@ describe("the reveal kept as answered (schema v19)", () => {
     const old = v18.openPack(o, undefined, { seed: 1 });
     v18.close();
     const s = open(path);
-    expect(s.schemaVersion).toBe(28);
+    expect(s.schemaVersion).toBe(29);
     expect(s.packReveal(old.packId)).toBeNull();
     // The logged opening itself is still there.
     expect(s.packOpening(old.packId).seed).toBe(1);

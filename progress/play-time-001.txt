@@ -3,6 +3,8 @@ Play-time demo 001 — "give the agent X minutes" on auto-play (session 76)
 Owner 2026-11-06: auto-play on with 15 / 30 / 60 minutes, +15 / +30 while it runs; when time runs out
 the agent finishes its current match and isn't paired again; no carry-over, resets at midnight Sydney;
 no time chosen is auto-play as before. Times below are Sydney wall-clock.
+(Session 94: run on a v28 file, where the clock starts at the button. From v29 it starts at the agent's
+first pairing: progress/play-time-002.txt.)
 
 1. Turning it on (PUT /api/play/auto-play)
 ------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-# The site contract check: the render's site types against the served answers (game sessions 90-91)
+# The site contract check: the render's site types against the served answers (game sessions 90-91, 94)
 
 The website's own client (render/src/site/siteApi.ts, unchanged) called the real owner API over a real
 season file with the live ladder playing (5 owners, a fixed clock and seeds). Each answer it parsed was
@@ -8,7 +8,7 @@ compiler settings.
   UNTYPED   the server sends a field the type doesn't name: harmless; the site could read it.
             (Every one is listed: the check repeats with each reported field taken out.)
 
-Ladder: 12 matches started before the reads; calls made: 62; refused: 0.
+Ladder: 18 matches started before the reads; calls made: 65; refused: 0.
 
 fits  POST /api/session (one)  (SiteApi.signIn)
 fits  POST /api/session (two)  (SiteApi.signIn)
@@ -54,7 +54,6 @@ fits  GET /api/ladder?limit=10  (SiteApi.ladder)
 fits  GET /api/stats  (SiteApi.stats)
 fits  GET /api/notifications?limit=10  (SiteApi.notifications)
 fits (with untyped fields)  GET /api/live  (SiteApi.live)
-    UNTYPED   featured is sent; the type doesn't name it
     UNTYPED   matches[].boast is sent; the type doesn't name it
     UNTYPED   matches[].p1.arena is sent; the type doesn't name it
     UNTYPED   matches[].p1.coin is sent; the type doesn't name it
@@ -62,7 +61,6 @@ fits (with untyped fields)  GET /api/live  (SiteApi.live)
     UNTYPED   matches[].p2.arena is sent; the type doesn't name it
     UNTYPED   matches[].p2.coin is sent; the type doesn't name it
     UNTYPED   matches[].p2.faction is sent; the type doesn't name it
-    UNTYPED   matches[].viewers is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/live/:id?from=N (the last two moves)  (SiteApi.liveFeed)
     UNTYPED   boast is sent; the type doesn't name it
     UNTYPED   openingHands is sent; the type doesn't name it
@@ -74,7 +72,6 @@ fits (with untyped fields)  GET /api/live/:id?from=N (the last two moves)  (Site
     UNTYPED   p2.faction is sent; the type doesn't name it
     UNTYPED   steps[].events is sent; the type doesn't name it
     UNTYPED   steps[].move is sent; the type doesn't name it
-    UNTYPED   viewers is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/live/:id?from=0 (from the start)  (SiteApi.liveFeed)
     UNTYPED   boast is sent; the type doesn't name it
     UNTYPED   openingHands is sent; the type doesn't name it
@@ -86,7 +83,6 @@ fits (with untyped fields)  GET /api/live/:id?from=0 (from the start)  (SiteApi.
     UNTYPED   p2.faction is sent; the type doesn't name it
     UNTYPED   steps[].events is sent; the type doesn't name it
     UNTYPED   steps[].move is sent; the type doesn't name it
-    UNTYPED   viewers is sent; the type doesn't name it
 fits  GET /api/matches?limit=50 (every result kind)  (SiteApi.matches)
 fits (with untyped fields)  GET /api/matches/:id (loss)  (SiteApi.match)
     UNTYPED   defaultView is sent; the type doesn't name it
@@ -224,10 +220,8 @@ fits (with untyped fields)  PUT /api/agents/:id/play-style  (SiteApi.setPlayStyl
     UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
     UNTYPED   agentDeck.list is sent; the type doesn't name it
     UNTYPED   decks[].list is sent; the type doesn't name it
-fits (with untyped fields)  PUT /api/play/auto-play {on, minutes:30}  (SiteApi.setAutoPlay)
-    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
-fits (with untyped fields)  POST /api/play/auto-play/time  (SiteApi.addPlayTime)
-    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
+fits  PUT /api/play/auto-play {on, minutes:30} (waiting for the next round)  (SiteApi.setAutoPlay)
+fits  POST /api/play/auto-play/time (while waiting)  (SiteApi.addPlayTime)
 fits  PUT /api/live/:id/speed  (SiteApi.setLiveSpeed)
 fits  POST /api/notifications/read {all}  (SiteApi.markNotificationsRead)
 fits  PUT /api/play/auto-play {on:false}  (SiteApi.setAutoPlay)
@@ -235,10 +229,8 @@ fits  PUT /api/agents/:id/loadout/coin  (SiteApi.setLoadout)
 fits  POST /api/play/rebuild  (SiteApi.rebuild)
 fits (with untyped fields)  GET /api/play/rebuild (finished)  (SiteApi.rebuildJob)
     UNTYPED   result.rule is sent; the type doesn't name it
-fits (with untyped fields)  PUT /api/play/auto-play {on, minutes:15} (two)  (SiteApi.setAutoPlay)
-    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
+fits  PUT /api/play/auto-play {on, minutes:15} (two)  (SiteApi.setAutoPlay)
 fits (with untyped fields)  GET /api/live (a match with its last move out)  (SiteApi.live)
-    UNTYPED   featured is sent; the type doesn't name it
     UNTYPED   matches[].boast is sent; the type doesn't name it
     UNTYPED   matches[].p1.arena is sent; the type doesn't name it
     UNTYPED   matches[].p1.coin is sent; the type doesn't name it
@@ -246,7 +238,6 @@ fits (with untyped fields)  GET /api/live (a match with its last move out)  (Sit
     UNTYPED   matches[].p2.arena is sent; the type doesn't name it
     UNTYPED   matches[].p2.coin is sent; the type doesn't name it
     UNTYPED   matches[].p2.faction is sent; the type doesn't name it
-    UNTYPED   matches[].viewers is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/live/:id?from=N (the last move out, the boast)  (SiteApi.liveFeed)
     UNTYPED   boast is sent; the type doesn't name it
     UNTYPED   openingHands is sent; the type doesn't name it
@@ -258,24 +249,30 @@ fits (with untyped fields)  GET /api/live/:id?from=N (the last move out, the boa
     UNTYPED   p2.faction is sent; the type doesn't name it
     UNTYPED   steps[].events is sent; the type doesn't name it
     UNTYPED   steps[].move is sent; the type doesn't name it
-    UNTYPED   viewers is sent; the type doesn't name it
+fits (with untyped fields)  GET /api/play (two: the allowance running, from its first pairing)  (SiteApi.play)
+    UNTYPED   activeDeck.list is sent; the type doesn't name it
+    UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
+    UNTYPED   agentDeck.list is sent; the type doesn't name it
+    UNTYPED   decks[].list is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/play (two: the allowance finishing)  (SiteApi.play)
     UNTYPED   activeDeck.list is sent; the type doesn't name it
     UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
     UNTYPED   agentDeck.list is sent; the type doesn't name it
-    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
     UNTYPED   decks[].list is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/play (two: the allowance done, stopped timeUp)  (SiteApi.play)
     UNTYPED   activeDeck.list is sent; the type doesn't name it
     UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
     UNTYPED   agentDeck.list is sent; the type doesn't name it
-    UNTYPED   autoPlay.allowance.label is sent; the type doesn't name it
     UNTYPED   decks[].list is sent; the type doesn't name it
 fits  GET /api/notifications (two: the time-up notice)  (SiteApi.notifications)
+fits  POST /api/notifications/clear {ids} (one)  (SiteApi.clearNotifications)
+fits  POST /api/notifications/clear {all}  (SiteApi.clearNotifications)
 
 Shapes reached (unions and nullable fields a plain run leaves on one side; session 91):
+    reached  autoPlay.allowance in "waiting" (startedAt and endsAt null)
     reached  a live match with its last move out
     reached  the live feed's boast, not null (the winner's)
+    reached  autoPlay.allowance in "running"
     reached  autoPlay.allowance in "finishing"
     reached  autoPlay.allowance in "done"
     reached  autoPlay.stopped ("timeUp")
@@ -288,6 +285,7 @@ Shapes reached (unions and nullable fields a plain run leaves on one side; sessi
     reached  a Prototype copy (binder run, card viewer)
     reached  a crafted secret illustration
     reached  a cosmetic bought
+    reached  clearNotifications: one by id, then all (the feed empty after)
 
 Not checked here:
     the site host's own calls (not the owner API): liveFrames, livePage, replayPage
@@ -301,8 +299,10 @@ caught   control: GET /api/wallet with `credits` sent as text
 caught   control: GET /api/matches with `result` renamed `outcome`
     at matches[]: Property 'result' is missing in type '{ matchId: string; endedAt: string; seat: "p1"; credits: number; rating: { before: number; after: number; change: number; }; opponent: { ownerId: string; ownerName: string; agentName: string; }; agentName: string; turns: number; hasLog: true; hasReplay: true; }' but required in type 'SiteHistoryRow'. (and 4 more like it)
 caught   control: GET /api/play with the allowance's state "ending" (not a state the site knows)
-    at autoPlay.allowance.state: Type '"ending"' is not assignable to type '"done" | "finishing" | "running"'.
+    at autoPlay.allowance.state: Type '"ending"' is not assignable to type '"done" | "finishing" | "running" | "waiting"'.
 caught   control: GET /api/play with `autoPlay.stopped` sent as text
     at autoPlay.stopped: Type 'string' is not assignable to type '{ reason: string; day: string; }'.
+caught   control: POST /api/notifications/clear with `cleared` sent as text
+    at cleared: Type 'string' is not assignable to type 'number'.
 
-Totals: 0 call(s) with a mismatch; 200 untyped field line(s); controls caught 5 of 5.
+Totals: 0 call(s) with a mismatch; 192 untyped field line(s); controls caught 6 of 6.

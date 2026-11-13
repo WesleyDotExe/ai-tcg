@@ -107,13 +107,18 @@ describe("seasonFileLine", () => {
   it("says which season the server is on, and when it is an archive", () => {
     const { open, ended, s1 } = files(tmpDir());
     for (const [path, want] of [
-      [open, /^\[season\] season S0 on .*open\.db$/],
-      [s1, /^\[season\] season S1 \(made from S0's archive\) on .*season-1\.db$/],
+      [open, /^\[season\] season S0 on .*open\.db; no end time set: it ends only by the admin's end call$/],
+      [s1, /^\[season\] season S1 \(made from S0's archive\) on .*season-1\.db; no end time set: it ends only by the admin's end call$/],
       [ended, /^\[season\] serving season S0's archive \(ended .*\) from .*season-0\.db: no match will be paired$/],
     ] as const) {
       const s = EconomyStore.open(path);
       expect(seasonFileLine(s, path)).toMatch(want);
       s.close();
     }
+    // (session 94) With an end time, it says when, in Sydney time too.
+    const s = EconomyStore.open(open, { now: () => new Date("2026-12-05T00:00:00.000Z") });
+    s.setSeasonEndTime("2026-12-26T13:00:00Z");
+    expect(seasonFileLine(s, open)).toMatch(/; ends at 2026-12-26T13:00:00\.000Z \(Sun 27 Dec 2026 00:00 Sydney\), by the server$/);
+    s.close();
   });
 });

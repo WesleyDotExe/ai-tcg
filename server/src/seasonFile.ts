@@ -58,5 +58,21 @@ export function seasonFileLine(store: EconomyStore, path: string): string {
   const end = store.seasonEnd();
   if (end !== null) return `[season] serving season ${store.season}'s archive (ended ${end.endedAt}) from ${path}: no match will be paired`;
   const start = store.seasonStart();
-  return `[season] season ${store.season}${start ? ` (made from ${start.fromSeason}'s archive)` : ""} on ${path}`;
+  const schedule = store.seasonSchedule();
+  // (session 94) When the server will end it, in Sydney time too.
+  const ends =
+    schedule === null
+      ? "no end time set: it ends only by the admin's end call"
+      : `ends at ${schedule.endsAt} (${sydney(schedule.endsAt)} Sydney), by the server`;
+  return `[season] season ${store.season}${start ? ` (made from ${start.fromSeason}'s archive)` : ""} on ${path}; ${ends}`;
+}
+
+/** An instant as Sydney's wall clock, e.g. "Sun 27 Dec 2026 00:00". */
+export function sydney(iso: string): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+      .formatToParts(new Date(iso))
+      .map((p) => [p.type, p.value]),
+  );
+  return `${parts.weekday} ${parts.day} ${parts.month} ${parts.year} ${parts.hour}:${parts.minute}`;
 }

@@ -176,6 +176,15 @@ function isSignatureRef(originRef: string | null | undefined): boolean {
  * a new database file; the old file is the archive. */
 export const DEFAULT_SEASON = "S0";
 
+/** (v29) Each season's end time, as the owner set it (owner 2026-11-13:
+ * Season 0 runs 5 to 26 Dec 2026 and ends at midnight Sydney at the end of
+ * 26 Dec, 00:00 27 Dec AEDT = 13:00 UTC 26 Dec). `npm run season:setup`
+ * writes it into a new season's file; a season not listed has no end time
+ * until one is set. */
+export const SEASON_END_TIMES: Readonly<Record<string, string>> = {
+  S0: "2026-12-26T13:00:00.000Z",
+};
+
 export { PACK_PRICE_CREDITS };
 
 export interface OwnerRecord {
@@ -870,16 +879,20 @@ export interface LiveSide {
  * maxed (v18), or its play-time allowance ran out (v22). */
 export type AutoPlayStopReason = "dailyRewardsMaxed" | "timeUp";
 
-/** Where a play-time allowance stands (owner 2026-11-06): time left; time
+/** Where a play-time allowance stands (owner 2026-11-06): (v29) waiting
+ * for the agent's first pairing, the clock not started (owner 2026-11-13,
+ * on session 93's dry run: the clock starts when the agent is first
+ * paired); time left; time
  * up while the agent finishes the match it is in; or time's up (no match
  * left to finish: the agent isn't paired again). The wire value stays
  * "done"; what the owner reads is `AUTO_PLAY_ALLOWANCE_LABELS`. */
-export type AutoPlayAllowanceState = "running" | "finishing" | "done";
+export type AutoPlayAllowanceState = "waiting" | "running" | "finishing" | "done";
 
 /** What each allowance state reads as on the website (owner 2026-11-06,
  * on session 76: "Done for today" became "Time's up", since the owner can
  * start again the same day). Sent as `allowance.label`. */
 export const AUTO_PLAY_ALLOWANCE_LABELS: Readonly<Record<AutoPlayAllowanceState, string>> = {
+  waiting: "Waiting for the next round",
   running: "Running",
   finishing: "Finishing match",
   done: "Time's up",
@@ -891,11 +904,14 @@ export interface AutoPlayAllowance {
   /** The state as the owner reads it: "Running", "Finishing match" or
    * "Time's up". */
   label: string;
-  /** The window the agent may be paired in: [startedAt, endsAt). */
-  startedAt: string;
-  endsAt: string;
+  /** The window the agent may be paired in: [startedAt, endsAt). (v29)
+   * Both null while "waiting": the window opens at the agent's first
+   * pairing. */
+  startedAt: string | null;
+  endsAt: string | null;
   /** The window's length in minutes (for the ring: left / total). Shorter
-   * than the minutes chosen when the next midnight Sydney cut it. */
+   * than the minutes chosen when the next midnight Sydney cut it. While
+   * "waiting", the minutes chosen (the cut is worked out at the pairing). */
   totalMinutes: number;
   /** Time left, 0 once it is up. `minutesLeft` rounds up ("1 min left"
    * until the last second). */
@@ -1077,6 +1093,13 @@ export interface RetiredPrototypeRun {
   found: number;
   retired: number;
   retiredAt: string;
+}
+
+/** (v29) A season's end time, set before it starts. */
+export interface SeasonSchedule {
+  endsAt: string;
+  /** When it was set. */
+  setAt: string;
 }
 
 /** (v26) A season's end, as `endSeason` wrote it. */
@@ -1974,8 +1997,22 @@ export class EconomyStore {
     let on = num(row.is_on) === 1;
     let stopped = row.stopped_reason == null ? null : { reason: str(row.stopped_reason) as AutoPlayStopReason, day: str(row.stopped_day) };
     let allowance: AutoPlayAllowance | null = null;
+    // (v29) Chosen, the clock not started: it starts at the first pairing.
+    if (row.allowance_waiting_minutes != null && on) {
+      const minutes = num(row.allowance_waiting_minutes);
+      allowance = {
+        state: "waiting",
+        label: AUTO_PLAY_ALLOWANCE_LABELS.waiting,
+        startedAt: null,
+        endsAt: null,
+        totalMinutes: minutes,
+        secondsLeft: minutes * 60,
+        minutesLeft: minutes,
+        endsAtReset: false,
+      };
+    }
     // Read before v22 (a store opened with migrateTo below 22) as none.
-    if (row.allowance_ends_at != null) {
+    else if (row.allowance_ends_at != null) {
       const startedAt = str(row.allowance_started_at);
       const endsAt = str(row.allowance_ends_at);
       const endsMs = Date.parse(endsAt);
@@ -2006,7 +2043,9 @@ export class EconomyStore {
         };
       }
     }
-    const canAddTime = allowance !== null && (allowance.state === "finishing" || (allowance.state === "running" && allowance.endsAt < this.resetDay(at).endsAt));
+    const canAddTime =
+      allowance !== null &&
+      (allowance.state === "waiting" || allowance.state === "finishing" || (allowance.state === "running" && allowance.endsAt! < this.resetDay(at).endsAt));
     return {
       on,
       changedAt: str(row.changed_at),
@@ -2039,7 +2078,8 @@ export class EconomyStore {
    * match already running: it only keeps the owner out of the next round.
    *
    * (v22) `minutes` (15, 30 or 60) turns it on with a play-time allowance
-   * from now, cut at the next midnight Sydney; without it, auto-play has no
+   * from now, cut at the next midnight Sydney (v29: from the agent's first
+   * pairing, "waiting" until then); without it, auto-play has no
    * time limit, as before. Either way any earlier allowance is replaced, and
    * turning it off drops it. */
   setAutoPlay(ownerId: string, on: boolean, minutes?: number): AutoPlayStatus {
@@ -2055,24 +2095,31 @@ export class EconomyStore {
     if (on && this.dailyEarnings(ownerId, at).nextWinPays === 0) {
       throw new EconomyError("today's rewards are maxed; auto-play can go back on after midnight Sydney");
     }
-    const window = minutes === undefined ? [null, null] : [at, this.allowanceEnd(at, minutes)];
+    // (v29) The clock starts at the agent's first pairing (startMatch).
+    const v29 = this.schemaVersion >= 29;
+    const window = minutes === undefined || v29 ? [null, null] : [at, this.allowanceEnd(at, minutes)];
     this.db
       .prepare(
-        v22
+        v29
+          ? `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day, allowance_started_at, allowance_ends_at, allowance_waiting_minutes) VALUES (?, ?, ?, NULL, NULL, ?, ?, ?)
+             ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL,
+               allowance_started_at = excluded.allowance_started_at, allowance_ends_at = excluded.allowance_ends_at, allowance_waiting_minutes = excluded.allowance_waiting_minutes`
+          : v22
           ? `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day, allowance_started_at, allowance_ends_at) VALUES (?, ?, ?, NULL, NULL, ?, ?)
              ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL,
                allowance_started_at = excluded.allowance_started_at, allowance_ends_at = excluded.allowance_ends_at`
           : `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day) VALUES (?, ?, ?, NULL, NULL)
              ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL`,
       )
-      .run(ownerId, on ? 1 : 0, at, ...(v22 ? window : []));
+      .run(ownerId, on ? 1 : 0, at, ...(v22 ? window : []), ...(v29 ? [on && minutes !== undefined ? minutes : null] : []));
     return this.autoPlay(ownerId, at);
   }
 
   /** "+15 / +30" (v22): adds minutes to a running allowance, still cut at
    * the next midnight Sydney. While the agent finishes its last match
    * (time up), it opens a new window of that many minutes from now, so the
-   * agent is paired again. Refused with no allowance (auto-play off, done
+   * agent is paired again. (v29) While waiting for the first pairing, it
+   * adds to the minutes chosen. Refused with no allowance (auto-play off, done
    * for today, or on with no time limit), and when the allowance already
    * runs to midnight. */
   addAutoPlayTime(ownerId: string, minutes: number): AutoPlayStatus {
@@ -2085,7 +2132,12 @@ export class EconomyStore {
     const a = status.allowance;
     if (a === null || a.state === "done") throw new EconomyError("auto-play isn't running on a time allowance; start it with 15, 30 or 60 minutes");
     if (!status.canAddTime) throw new EconomyError("the time already runs to midnight Sydney, when it resets; no more can go on today");
-    const [startedAt, endsAt] = a.state === "running" ? [a.startedAt, this.allowanceEnd(a.endsAt, minutes)] : [at, this.allowanceEnd(at, minutes)];
+    if (a.state === "waiting") {
+      // (v29) Not paired yet: the minutes go on the ones chosen.
+      this.db.prepare("UPDATE auto_play SET allowance_waiting_minutes = allowance_waiting_minutes + ? WHERE owner_id = ?").run(minutes, ownerId);
+      return this.autoPlay(ownerId, at);
+    }
+    const [startedAt, endsAt] = a.state === "running" ? [a.startedAt!, this.allowanceEnd(a.endsAt!, minutes)] : [at, this.allowanceEnd(at, minutes)];
     this.db.prepare("UPDATE auto_play SET allowance_started_at = ?, allowance_ends_at = ? WHERE owner_id = ?").run(startedAt, endsAt, ownerId);
     return this.autoPlay(ownerId, at);
   }
@@ -2101,7 +2153,7 @@ export class EconomyStore {
     this.transaction(() => {
       this.db
         .prepare(
-          `UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ?${this.schemaVersion >= 22 ? ", allowance_started_at = NULL, allowance_ends_at = NULL" : ""} WHERE owner_id = ?`,
+          `UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ?${this.schemaVersion >= 22 ? ", allowance_started_at = NULL, allowance_ends_at = NULL" : ""}${this.schemaVersion >= 29 ? ", allowance_waiting_minutes = NULL" : ""} WHERE owner_id = ?`,
         )
         .run(at, day, ownerId);
       this.notify(ownerId, `dailyRewardsMaxed:${at}`, { kind: "autoPlayStopped", autoPlayStopped: { reason: "dailyRewardsMaxed", day, allowanceMinutes: null } }, at);
@@ -2809,6 +2861,41 @@ export class EconomyStore {
 
   // ---- the season's end (v26; Season 0 game item 3, part 1) ----
 
+  /** (v29) The season's end time, as set before it started, or null: no
+   * end time (it ends only by the admin's call). */
+  seasonSchedule(): SeasonSchedule | null {
+    if (this.schemaVersion < 29) return null;
+    const row = this.db.prepare("SELECT ends_at, set_at FROM season_schedule").get() as Row | undefined;
+    return row ? { endsAt: str(row.ends_at), setAt: str(row.set_at) } : null;
+  }
+
+  /** (v29; owner 2026-11-13, on session 93: "the season's end is decided by
+   * the server; its end time is set before the season starts") Sets the
+   * season's end time, an ISO instant. From then no match starts; the live
+   * ladder lets the matches being shown finish and ends the season.
+   * Refused once the season has ended, and for a time that has already
+   * passed. Setting it again replaces it (while the season is open). */
+  setSeasonEndTime(endsAt: string): SeasonSchedule {
+    if (this.schemaVersion < 29) throw new EconomyError("a season end time needs schema v29");
+    const ms = Date.parse(endsAt);
+    if (!Number.isFinite(ms)) throw new EconomyError(`"${endsAt}" isn't a time (e.g. 2026-12-26T13:00:00Z)`);
+    const iso = new Date(ms).toISOString();
+    const at = this.stamp();
+    this.refuseIfEnded("its end time is fixed");
+    if (iso <= at) throw new EconomyError(`the end time ${iso} has already passed (now ${at})`);
+    this.db
+      .prepare("INSERT INTO season_schedule (one, ends_at, set_at) VALUES (1, ?, ?) ON CONFLICT (one) DO UPDATE SET ends_at = excluded.ends_at, set_at = excluded.set_at")
+      .run(iso, at);
+    return this.seasonSchedule()!;
+  }
+
+  /** (v29) Whether the season's end time has passed (and it hasn't ended
+   * yet): the live ladder's signal to end it. */
+  seasonEndDue(at: string = this.stamp()): boolean {
+    const s = this.seasonSchedule();
+    return s !== null && at >= s.endsAt && !this.seasonEnded();
+  }
+
   /** Whether the season has ended (v26). */
   seasonEnded(): boolean {
     return this.schemaVersion >= 26 && this.db.prepare("SELECT 1 FROM season_end").get() !== undefined;
@@ -3164,6 +3251,10 @@ export class EconomyStore {
     if (input.p1OwnerId === input.p2OwnerId) throw new EconomyError("an owner's own agents never play each other in rewarded play");
     return this.transaction(() => {
       if (this.seasonEnded()) throw new EconomyError(`season ${this.season} has ended: no match starts`);
+      const schedule = this.seasonSchedule();
+      if (schedule !== null && this.stamp() >= schedule.endsAt) {
+        throw new EconomyError(`season ${this.season}'s end time (${schedule.endsAt}) has passed: no match starts`);
+      }
       if (this.db.prepare("SELECT 1 FROM live_matches WHERE match_id = ?").get(input.matchId)) {
         throw new EconomyError(`match "${input.matchId}" is already live`);
       }
@@ -3218,6 +3309,16 @@ export class EconomyStore {
         }
       } catch (err) {
         refused(err);
+      }
+      // (v29) A waiting allowance's clock starts now, at the first pairing.
+      if (this.schemaVersion >= 29) {
+        for (const ownerId of [p1.ownerId, p2.ownerId]) {
+          const row = this.db.prepare("SELECT allowance_waiting_minutes FROM auto_play WHERE owner_id = ? AND is_on = 1").get(ownerId) as Row | undefined;
+          if (!row || row.allowance_waiting_minutes == null) continue;
+          this.db
+            .prepare("UPDATE auto_play SET allowance_started_at = ?, allowance_ends_at = ?, allowance_waiting_minutes = NULL WHERE owner_id = ?")
+            .run(startedAt, this.allowanceEnd(startedAt, num(row.allowance_waiting_minutes)), ownerId);
+        }
       }
       return { matchId: input.matchId, startedAt, p1, p2, ratingsAtStart };
     });

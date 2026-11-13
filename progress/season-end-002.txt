@@ -1,0 +1,68 @@
+Season end demo 002 — the server ends the season at its end time (session 94, schema v29)
+========================================================================
+Owner 2026-11-13: the season's end is decided by the server, at a time set before the season starts;
+Season 0 ends at midnight Sydney at the end of 26 Dec 2026 (00:00 27 Dec AEDT, 13:00 UTC 26 Dec).
+Times below are Sydney wall-clock. (The admin's end call, session 82, stays as the fallback for a
+file with no end time: progress/season-end-001.txt.)
+
+1. The season file, made as the owner makes it (4 Dec)
+------------------------------------------------------------------------
+  setUpSeason (npm run season:setup): the owner, its agent Hyperfixer's Black-Market Engine, House Cortex, House Swarm, House Aegis, House Null
+  end time written: 2026-12-26T13:00:00.000Z (Sun 27 Dec 2026 00:00 Sydney)
+  the server's start line: [season] season S0 on <dir>/season-0.db; ends at 2026-12-26T13:00:00.000Z (Sun 27 Dec 2026 00:00 Sydney), by the server
+  [PASS] Season 0's end time is in the file: 13:00 UTC 26 Dec = 00:00 Sun 27 Dec Sydney
+
+2. The last half hour of Season 0, on the live ladder
+------------------------------------------------------------------------
+  23:33:00  GET /api/season: state open, endsAt 2026-12-26T13:00:00.000Z, endedAt null
+  [PASS] GET /api/season says the end time while the season is open
+  23:33:00  round 1: House Null v House Aegis, The Owner v House Cortex; House Swarm sits out
+  23:40:20  m2 recorded (win): The Owner v House Cortex
+  23:40:30  m1 recorded (win): House Null v House Aegis
+  23:41:00  round 2: House Swarm v The Owner, House Null v House Cortex; House Aegis sits out
+  23:45:40  m4 recorded (win): House Null v House Cortex
+  23:47:20  m3 recorded (win): House Swarm v The Owner
+  23:47:50  round 3: The Owner v House Aegis, House Cortex v House Swarm; House Null sits out
+  23:54:15  m6 recorded (win): House Cortex v House Swarm
+  23:55:00  (the file copied for section 3, 1 match(es) on screen)
+  23:55:30  m5 recorded (win): The Owner v House Aegis
+  23:56:00  round 4: House Swarm v House Null, House Aegis v House Cortex; The Owner sits out
+  00:00:00  [season] the end time has passed: no new round; 2 match(es) on screen finish first
+  00:00:00  GET /api/season: state ending, 2 match(es) on screen
+  00:00:35  m7 recorded (win): House Swarm v House Null
+  00:02:35  m8 recorded (win): House Aegis v House Cortex
+  00:02:35  [season] season S0 ended at 00:02:35: 5 owners in the final standings
+  00:02:40  GET /api/season: state ended, endsAt 2026-12-26T13:00:00.000Z, endedAt 2026-12-26T13:02:35.000Z
+  The final standings:
+     -  House Cortex    1886  Placement 4W 0L 0D
+     -  House Swarm     1636  Placement 2W 1L 0D
+     -  House Null      1427  Placement 1W 2L 0D
+     -  House Aegis     1415  Placement 1W 2L 0D
+     -  The Owner       1161  Placement 0W 3L 0D
+  [PASS] matches played up to midnight (none cancelled), each started before the end time
+  [PASS] at midnight the season was "ending" with matches on screen (2), and no round started after it
+  [PASS] the matches on screen at midnight finished after it and counted
+  [PASS] then the season ended (once), at the last match's recording
+  [PASS] GET /api/season after: ended, the end time and the standings (all five owners)
+  [PASS] half an hour on, nothing more is paired
+
+3. The server down over midnight (the file as it was at 23:55, started again at 00:20)
+------------------------------------------------------------------------
+  00:20:00  [season] season S0 on <dir>/season-0-at-2355.db; ends at 2026-12-26T13:00:00.000Z (Sun 27 Dec 2026 00:00 Sydney), by the server
+  00:20:00  the file holds 1 match(es) left on screen by the stopped server
+  00:20:00  [ladder] cancelled 1 match(es) left live by the last run: m5
+  00:20:00  [season] the end time has passed: no new round; 0 match(es) on screen finish first
+  00:20:00  [season] season S0 ended at 00:20:00: 5 owners in the final standings
+  [PASS] the matches left on screen were cancelled, and the season ended on the first tick, with no round
+  [PASS] the server said why
+
+4. The refusals
+------------------------------------------------------------------------
+  a match after the season's end: refused: season S0 has ended: no match starts
+  the end time moved after the season ended: refused: season S0 has ended: its end time is fixed; the file is the season's archive
+  a new file's end time already past (setup on 27 Dec): refused: the end time 2026-12-26T13:00:00.000Z has already passed (now 2026-12-26T13:20:00.000Z)
+  [PASS] each is refused, with the reason
+  a match at 00:00 in a file not yet ended: refused: season S0's end time (2026-12-26T13:00:00.000Z) has passed: no match starts
+  [PASS] the store refuses a match from the end time, even before the season is ended
+
+Schema v29. 12 PASS, 0 FAIL

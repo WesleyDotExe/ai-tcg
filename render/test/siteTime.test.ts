@@ -126,8 +126,15 @@ describe("the time ring over the real owner API, with the ladder playing", () =>
     expect(html).not.toContain("arrive with the server");
 
     // "15 min" (what its button sends).
+    // (game session 94, schema v29) The clock waits for the agent's first
+    // pairing: the ring is full and says the server's words.
     let r = await client.setAutoPlay(ada, true, 15);
-    expect(r.autoPlay.allowance).toMatchObject({ state: "running", totalMinutes: 15, minutesLeft: 15 });
+    expect(r.autoPlay.allowance).toMatchObject({ state: "waiting", label: "Waiting for the next round", endsAt: null, totalMinutes: 15, minutesLeft: 15 });
+    ({ html } = await draw("S"));
+    expect(centre(html)).toBe("Waiting for the next round");
+    // The ladder's round pairs Ada now: the 15 minutes start.
+    await live.tick();
+    expect(store.liveMatchOf(owners[0]!.ownerId)).not.toBeNull();
     ({ html } = await draw("S"));
     expect(centre(html)).toBe("15");
     expect(html).toContain('aria-label="Lattice Wren: 15 min left"');

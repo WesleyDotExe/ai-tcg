@@ -28,7 +28,9 @@
 // reached" list is printed and an unreached one fails the check.
 //
 // The game lane doesn't edit render files: what this finds goes to the render
-// lane in progress/notes-for-owner.md. Seeds and the clock are fixed, so the
+// lane in progress/notes-for-owner.md. (One exception, session 94: a new
+// allowance state the server sends ("waiting", schema v29) needed the site's
+// type and ring to match before CI could pass; said in notes-for-owner.md.) Seeds and the clock are fixed, so the
 // output is the same every run.
 
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -268,8 +270,11 @@ try {
   await ask("setDeckChoice", "PUT /api/play/deck-choice", t, "agent");
   await ask("setFactionLock", "PUT /api/play/faction-lock", t, null);
   await ask("setPlayStyle", "PUT /api/agents/:id/play-style", t, agentId, "tempo");
-  await ask("setAutoPlay", "PUT /api/play/auto-play {on, minutes:30}", t, true, 30);
-  await ask("addPlayTime", "POST /api/play/auto-play/time", t, 15);
+  // (session 94, v29) The clock starts at the agent's first pairing: these
+  // answers are "waiting" (no window yet).
+  const waitingAnswer = (await ask("setAutoPlay", "PUT /api/play/auto-play {on, minutes:30} (waiting for the next round)", t, true, 30)) as { autoPlay: { allowance?: { state: string } | null } } | undefined;
+  const waitingAdded = (await ask("addPlayTime", "POST /api/play/auto-play/time (while waiting)", t, 15)) as { autoPlay: { allowance?: { state: string; totalMinutes: number } | null } } | undefined;
+  shapes["autoPlay.allowance in \"waiting\" (startedAt and endsAt null)"] = waitingAnswer?.autoPlay.allowance?.state === "waiting" && waitingAdded?.autoPlay.allowance?.totalMinutes === 45;
   const mine = (liveNow?.matches ?? []).find((m) => m.p1.ownerId === one || m.p2.ownerId === one);
   if (mine) await ask("setLiveSpeed", "PUT /api/live/:id/speed", t, mine.matchId, true);
   await ask("markNotificationsRead", "POST /api/notifications/read {all}", t, { all: true });
@@ -294,6 +299,7 @@ try {
   let finishedRead = false;
   let boastServed = false;
   let finishingRead = false;
+  let runningRead = false;
   for (let i = 0; i < 720; i++) {
     await tick(5000);
     if (!finishedRead) {
@@ -307,15 +313,24 @@ try {
       }
     }
     const al = store.autoPlay(two, new Date(clock.t).toISOString()).allowance;
+    if (!runningRead && al?.state === "running") {
+      runningRead = true;
+      await ask("play", "GET /api/play (two: the allowance running, from its first pairing)", t2);
+    }
     if (!finishingRead && al?.state === "finishing") {
       finishingRead = true;
       await ask("play", "GET /api/play (two: the allowance finishing)", t2);
     }
+    // (session 94) From v29 the window opens at the first pairing, so it
+    // can run out between two matches (straight to "done"); then two is
+    // given another 15 minutes until one runs out mid-match.
+    if (!finishingRead && store.autoPlay(two, new Date(clock.t).toISOString()).allowance?.state === "done") store.setAutoPlay(two, true, 15);
     if (finishingRead && store.liveMatchOf(two) === null && (finishedRead || i > 600)) break;
   }
   const doneAnswer = (await ask("play", "GET /api/play (two: the allowance done, stopped timeUp)", t2)) as { autoPlay: { allowance?: { state: string } | null; stopped: { reason: string } | null } } | undefined;
   shapes["a live match with its last move out"] = finishedRead;
   shapes["the live feed's boast, not null (the winner's)"] = boastServed;
+  shapes["autoPlay.allowance in \"running\""] = runningRead;
   shapes["autoPlay.allowance in \"finishing\""] = finishingRead;
   shapes["autoPlay.allowance in \"done\""] = doneAnswer?.autoPlay.allowance?.state === "done";
   shapes["autoPlay.stopped (\"timeUp\")"] = doneAnswer?.autoPlay.stopped?.reason === "timeUp";
@@ -323,7 +338,14 @@ try {
   shapes["a Prototype copy (binder run, card viewer)"] = store.collection(one).some((c) => c.finish === "prototype");
   shapes["a crafted secret illustration"] = answers.some((a) => a.method === "craftSecret");
   shapes["a cosmetic bought"] = answers.some((a) => a.method === "buyCosmetic");
-  await ask("notifications", "GET /api/notifications (two: the time-up notice)", t2, 10);
+  const feed = (await ask("notifications", "GET /api/notifications (two: the time-up notice)", t2, 10)) as { notifications: { notificationId: number }[] } | undefined;
+  // (session 94; owner 2026-11-13, after render 70's bell) Clearing: one by
+  // id, then all.
+  const firstId = feed?.notifications[0]?.notificationId;
+  const clearedOne = firstId === undefined ? undefined : ((await ask("clearNotifications", "POST /api/notifications/clear {ids} (one)", t2, { ids: [firstId] })) as { cleared: number } | undefined);
+  const clearedAll = (await ask("clearNotifications", "POST /api/notifications/clear {all}", t2, { all: true })) as { cleared: number; unread: number } | undefined;
+  const after = (await client.notifications!(t2, 10)) as { notifications: unknown[] };
+  shapes["clearNotifications: one by id, then all (the feed empty after)"] = clearedOne?.cleared === 1 && clearedAll !== undefined && clearedAll.unread === 0 && after.notifications.length === 0;
 } finally {
   await api.close();
   await live.stop();
@@ -454,6 +476,9 @@ for (const row of historyRenamed.matches as Record<string, Json>[]) {
 // reason's object sent as bare text.
 const finishing = structuredClone(items.find((x) => x.label.includes("allowance finishing"))?.value ?? null) as { autoPlay: { allowance: { state: string } } } | null;
 if (finishing) finishing.autoPlay.allowance.state = "ending";
+// (session 94) The clear answer with its count sent as text.
+const clearText = structuredClone(items.find((x) => x.method === "clearNotifications")?.value ?? null) as { cleared: Json } | null;
+if (clearText) clearText.cleared = String(clearText.cleared);
 const stoppedText = structuredClone(items.find((x) => x.label.includes("stopped timeUp"))?.value ?? null) as { autoPlay: { stopped: Json } } | null;
 if (stoppedText) stoppedText.autoPlay.stopped = "timeUp";
 const controls: Checked[] = [
@@ -462,10 +487,11 @@ const controls: Checked[] = [
   { label: "control: GET /api/matches with `result` renamed `outcome`", method: "matches", value: historyRenamed },
   ...(finishing ? [{ label: "control: GET /api/play with the allowance's state \"ending\" (not a state the site knows)", method: "play", value: finishing as unknown as Json }] : []),
   ...(stoppedText ? [{ label: "control: GET /api/play with `autoPlay.stopped` sent as text", method: "play", value: stoppedText as unknown as Json }] : []),
+  ...(clearText ? [{ label: "control: POST /api/notifications/clear with `cleared` sent as text", method: "clearNotifications", value: clearText as unknown as Json }] : []),
 ];
 const results = typeCheck([...items, ...controls]);
 
-say("# The site contract check: the render's site types against the served answers (game sessions 90-91)");
+say("# The site contract check: the render's site types against the served answers (game sessions 90-91, 94)");
 say();
 say("The website's own client (render/src/site/siteApi.ts, unchanged) called the real owner API over a real");
 say("season file with the live ladder playing (5 owners, a fixed clock and seeds). Each answer it parsed was");

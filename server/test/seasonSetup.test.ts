@@ -23,11 +23,14 @@ const tmpDir = () => {
   dirs.push(d);
   return d;
 };
+// (session 94) A fixed clock before Season 0's end time, so the default end
+// time can be set whatever day the tests run.
+const NOV_13 = () => new Date("2026-11-13T00:00:00.000Z");
 const INPUT = { name: "The Owner", username: "owner", password: "a long enough password", faction: "Aegis" as const, seed: 7 };
 
 describe("setUpSeason", () => {
   it("makes the owner's admin account, its connected agent and the four house owners", () => {
-    const store = EconomyStore.open(":memory:");
+    const store = EconomyStore.open(":memory:", { now: NOV_13 });
     const r = setUpSeason(store, INPUT);
     const signedIn = store.signIn("owner", INPUT.password);
     expect(signedIn.ownerId).toBe(r.ownerId);
@@ -48,13 +51,28 @@ describe("setUpSeason", () => {
     }
   });
 
+  it("(session 94) sets the season's end time: Season 0's by default, the one given, or none", () => {
+    const s0 = EconomyStore.open(":memory:", { now: NOV_13 });
+    expect(setUpSeason(s0, INPUT).endsAt).toBe("2026-12-26T13:00:00.000Z");
+    expect(s0.seasonSchedule()?.endsAt).toBe("2026-12-26T13:00:00.000Z");
+    const given = EconomyStore.open(":memory:", { now: NOV_13 });
+    expect(setUpSeason(given, { ...INPUT, endsAt: "2026-12-20T13:00:00Z" }).endsAt).toBe("2026-12-20T13:00:00.000Z");
+    const none = EconomyStore.open(":memory:", { now: NOV_13 });
+    expect(setUpSeason(none, { ...INPUT, endsAt: null }).endsAt).toBeNull();
+    expect(none.seasonSchedule()).toBeNull();
+    // A past end time refuses the setup before anyone is made.
+    const late = EconomyStore.open(":memory:", { now: () => new Date("2026-12-27T00:00:00.000Z") });
+    expect(() => setUpSeason(late, INPUT)).toThrow(/already passed/);
+    expect(late.listOwners()).toEqual([]);
+  });
+
   it("keeps a typed agent name", () => {
-    const store = EconomyStore.open(":memory:");
+    const store = EconomyStore.open(":memory:", { now: NOV_13 });
     expect(setUpSeason(store, { ...INPUT, agentName: "Night Shift" }).agentName).toBe("Night Shift");
   });
 
   it("refuses a file that already has owners (no second house)", () => {
-    const store = EconomyStore.open(":memory:");
+    const store = EconomyStore.open(":memory:", { now: NOV_13 });
     setUpSeason(store, INPUT);
     const owners = store.listOwners().length;
     expect(() => setUpSeason(store, { ...INPUT, username: "other" })).toThrow(/already has owners/);
@@ -74,8 +92,9 @@ describe("npm run season:setup", () => {
 
   it("makes the file and its folder, then refuses to touch it again", () => {
     const file = join(tmpDir(), "data", "season-0.db");
-    const first = setup(file, "a long enough password");
+    const first = setup(file, "a long enough password", ["--ends", "2099-12-31T13:00:00Z"]);
     expect(first.status).toBe(0);
+    expect(first.stdout).toContain("[setup] the season ends at 2099-12-31T13:00:00.000Z (Fri 1 Jan 2100 00:00 Sydney)");
     expect(first.stdout).toContain("[setup] next: npm run season -w server -- ");
     const store = EconomyStore.open(file);
     expect(store.signIn("owner", "a long enough password").ownerId).toBeTruthy();
@@ -88,7 +107,7 @@ describe("npm run season:setup", () => {
 
   it("leaves nothing behind when it refuses (a short password)", () => {
     const file = join(tmpDir(), "season-0.db");
-    const r = setup(file, "short");
+    const r = setup(file, "short", ["--ends", "none"]);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("a password needs at least 10 characters");
     expect(existsSync(file)).toBe(false);

@@ -4790,7 +4790,7 @@ Owner decision on the call in `progress/notes-for-owner.md` (PR #164, `progress/
 
 ---
 
-## 2026-11-13 — Owner: answers to render session 70 (the notifications bell), keep all 6; one item for the game lane
+## 2026-11-13 — Owner: answers to render session 70 (the notifications bell), keep all 6; one item for the game lane (game item HANDLED 2026-11-13, game session 94: `server/src/dev/siteContractCheck.ts` now clears one notification by id and then all, through the site's own `clearNotifications`; a shape "one by id, then all (the feed empty after)" must be reached, and a control (the answer's `cleared` sent as text) must be caught; `progress/site-contract-001.txt`, 0 mismatches, 6 of 6 controls)
 
 **Render session 70** (PR #166, `progress/render/checkpoints.md`, `progress/render/evidence/bell-check-s70.txt`). **Keep all 6 calls:**
 1. **Keep:** opening the panel marks what it shows read (by id), and those lines stay "New" until the panel closes.
@@ -4806,7 +4806,7 @@ Next session by alternation: game 93 (the Season 0 dry run and the owner's Mac m
 
 ---
 
-## 2026-11-13 — Owner: answers to game session 93 (the Season 0 dry run and the owner's Mac mini guide)
+## 2026-11-13 — Owner: answers to game session 93 (the Season 0 dry run and the owner's Mac mini guide) (HANDLED 2026-11-13, game session 94 — 1: schema v29, the allowance's clock starts at the agent's first pairing (`startMatch`); until then the state is "waiting", label "Waiting for the next round", no window; +15/+30 add to the minutes chosen; the midnight cut is worked out at the pairing; evidence `progress/play-time-002.txt` (the dry run's moment replayed: 9 PASS, the 15 minutes from 10:05:25 not 10:00:30, three matches not two), tests `economy/test/playTimeClock.test.ts`, `server/test/playTimeAllowance.test.ts`; the website's ring shows it (a small render-file change, said in notes-for-owner.md). 2: schema v29 `season_schedule`, set by `season:setup`; the live ladder ends the season at it (no round from then, the matches on screen finish and count, then the end); evidence `progress/season-end-002.txt` (12 PASS), tests `economy/test/seasonSchedule.test.ts`, `server/test/seasonSchedule.test.ts`; the guide's step 8 rewritten (nothing to press). 3: no change, as decided)
 
 **Game session 93** (PR #167, `progress/notes-for-owner.md`, `progress/season0-dry-run-001.txt`, `progress/mac-mini-guide.md`).
 1. **Decision: (a).** The auto-play allowance's clock starts when the agent is first paired, not when the owner presses the button; until then the ring reads "Waiting for the next round". Part of the dry-run fixes.
@@ -4817,7 +4817,7 @@ Next session by alternation: render 71 (Top rated and viewer counts on Watch liv
 
 ---
 
-## 2026-11-13 — Owner: Season 0's length (follow-up to the answers to game session 93)
+## 2026-11-13 — Owner: Season 0's length (follow-up to the answers to game session 93) (HANDLED 2026-11-13, game session 94: 1 is the end time below, built in; 2 needs nothing from Season 0's code: `season:next` makes S1's file with no end time, said in notes-for-owner.md)
 
 Follows call 2 of game session 93 (PR #167, `progress/notes-for-owner.md`) and the entry above.
 1. **Decision:** Season 0 runs 3 weeks: 5 Dec to 26 Dec 2026, ended by the server on that schedule. Not decided: the end time on 26 Dec.
@@ -4825,7 +4825,7 @@ Follows call 2 of game session 93 (PR #167, `progress/notes-for-owner.md`) and t
 
 ---
 
-## 2026-11-13 — Owner: Season 0's end time
+## 2026-11-13 — Owner: Season 0's end time (HANDLED 2026-11-13, game session 94: `SEASON_END_TIMES.S0 = 2026-12-26T13:00:00.000Z` (00:00 Sun 27 Dec Sydney, checked in a test), written into the file by `npm run season:setup`; the server prints it on every start, and ends the season then)
 
 Completes the entry above ("Not decided: the end time on 26 Dec").
 1. **Decision:** Season 0 ends at midnight Sydney time at the end of 26 December 2026: 00:00 on 27 Dec AEDT (13:00 UTC on 26 Dec), ended by the server.

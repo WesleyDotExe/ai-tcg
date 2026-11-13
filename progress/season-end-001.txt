@@ -7,7 +7,7 @@ The Season 1 file made from this one (part 2, session 83): progress/season-next-
 1. A v25 season file opens at v26, the season open
 ------------------------------------------------------------------------
   written at schema v25: 6 owners
-  reopened: schema v28, season S0
+  reopened: schema v29, season S0
   [PASS] the migrated file's season is open
 
 2. Three hours of ladder; one Prototype found
@@ -85,4 +85,4 @@ The Season 1 file made from this one (part 2, session 83): progress/season-next-
   reopened the file: season S0 ended 2026-12-14T02:02:30.000Z, 6 standings, 15 retired runs
   [PASS] the end is kept on disk
 
-Schema v28. 11 PASS, 0 FAIL.
+Schema v29. 11 PASS, 0 FAIL.

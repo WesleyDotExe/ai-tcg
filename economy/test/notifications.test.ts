@@ -248,8 +248,11 @@ describe("notifications: auto-play switched off", () => {
     const list = feed(s, a.ownerId);
     expect(list).toHaveLength(1);
     expect(list[0]).toMatchObject({ kind: "autoPlayStopped", createdAt: clock.toISOString(), autoPlayStopped: { reason: "timeUp", day: "2026-11-02", allowanceMinutes: 15 } });
-    // Started again the same day and run out again: a second one.
+    // Started again the same day and run out again: a second one. (v29)
+    // The clock starts at the next pairing.
     s.setAutoPlay(a.ownerId, true, 15);
+    s.startMatch({ matchId: "nt-live-2", p1OwnerId: a.ownerId, p2OwnerId: b.ownerId });
+    s.recordMatch({ matchId: "nt-live-2", seed: 2, p1AgentId: a.agentId, p2AgentId: b.agentId, outcome: { kind: "cancelled" } });
     later(16);
     expect(s.stopAutoPlayTimeUp()).toEqual([a.ownerId]);
     expect(feed(s, a.ownerId).map((x) => x.kind)).toEqual(["autoPlayStopped", "autoPlayStopped"]);
@@ -357,7 +360,7 @@ describe("notifications: the schema", () => {
     expect(() => v22.markNotificationsRead(a.ownerId, "all")).toThrow(/notifications need schema v23/);
     v22.close();
     const v23 = open(path);
-    expect(v23.schemaVersion).toBe(28);
+    expect(v23.schemaVersion).toBe(29);
     expect(v23.accountSettings(a.ownerId)).toMatchObject({ theme: "dark", notifications: { bigPulls: true, matchResults: true, dailyPack: true } });
     // The match before the migration isn't told; today's daily pack is (it waits now).
     expect(kinds(feed(v23, a.ownerId))).toEqual(["dailyPack"]);

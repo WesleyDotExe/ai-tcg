@@ -59,16 +59,24 @@ describe("the play-time allowance over HTTP", () => {
     for (const body of [{ on: true, minutes: 45 }, { on: true, minutes: "30" }, { on: false, minutes: 15 }]) {
       expect((await call("PUT", "/api/play/auto-play", { token: t, body })).status).toBe(400);
     }
+    // (v29, session 94) The clock waits for the agent's first pairing.
     const on = await call("PUT", "/api/play/auto-play", { token: t, body: { on: true, minutes: 30 } });
     expect(on).toMatchObject({
       status: 200,
-      body: { autoPlay: { on: true, house: false, canAddTime: true, allowance: { state: "running", endsAt: "2026-11-01T22:30:00.000Z", totalMinutes: 30, minutesLeft: 30, endsAtReset: false } } },
+      body: {
+        autoPlay: {
+          on: true,
+          house: false,
+          canAddTime: true,
+          allowance: { state: "waiting", label: "Waiting for the next round", startedAt: null, endsAt: null, totalMinutes: 30, minutesLeft: 30, endsAtReset: false },
+        },
+      },
     });
     clock.t += 12 * 60_000;
-    expect((await call("GET", "/api/play", { token: t })).body.autoPlay.allowance).toMatchObject({ state: "running", minutesLeft: 18, secondsLeft: 1080 });
+    expect((await call("GET", "/api/play", { token: t })).body.autoPlay.allowance).toMatchObject({ state: "waiting", minutesLeft: 30, secondsLeft: 1800 });
     for (const minutes of [60, 0, "15", undefined]) expect((await call("POST", "/api/play/auto-play/time", { token: t, body: { minutes } })).status).toBe(400);
     const added = await call("POST", "/api/play/auto-play/time", { token: t, body: { minutes: 15 } });
-    expect(added.body.autoPlay.allowance).toMatchObject({ endsAt: "2026-11-01T22:45:00.000Z", totalMinutes: 45, minutesLeft: 33 });
+    expect(added.body.autoPlay.allowance).toMatchObject({ state: "waiting", endsAt: null, totalMinutes: 45, minutesLeft: 45 });
     // No time limit: on as before, nothing to add to.
     expect((await call("PUT", "/api/play/auto-play", { token: t, body: { on: true } })).body.autoPlay).toMatchObject({ on: true, allowance: null, canAddTime: false });
     expect(await call("POST", "/api/play/auto-play/time", { token: t, body: { minutes: 30 } })).toMatchObject({
@@ -77,13 +85,10 @@ describe("the play-time allowance over HTTP", () => {
     });
     expect((await call("PUT", "/api/play/auto-play", { token: h, body: { on: true, minutes: 15 } })).status).toBe(409);
     expect((await call("POST", "/api/play/auto-play/time", { token: h, body: { minutes: 15 } })).status).toBe(409);
-    // Near midnight Sydney the window is cut there, and nothing more goes on.
+    // Near midnight Sydney the window is cut there once paired (economy
+    // test playTimeClock.test.ts), and nothing more goes on.
     clock.t = Date.parse("2026-11-02T12:20:00.000Z"); // 23:20 Mon
-    expect((await call("PUT", "/api/play/auto-play", { token: t, body: { on: true, minutes: 60 } })).body.autoPlay).toMatchObject({
-      canAddTime: false,
-      allowance: { endsAt: "2026-11-02T13:00:00.000Z", totalMinutes: 40, endsAtReset: true },
-    });
-    expect((await call("POST", "/api/play/auto-play/time", { token: t, body: { minutes: 15 } })).status).toBe(409);
+    expect((await call("PUT", "/api/play/auto-play", { token: t, body: { on: true, minutes: 60 } })).body.autoPlay.allowance).toMatchObject({ state: "waiting", totalMinutes: 60 });
   });
 });
 
@@ -143,13 +148,50 @@ describe("the play-time allowance on the ladder", () => {
     expect(store.autoPlay(ada)).toMatchObject({ on: false, stopped: { reason: "timeUp" } });
   });
 
-  it("time running out between rounds: switched off at the next round with the event, and not queued", async () => {
-    const { clock, store, live, ada, events } = await setup();
+  it("(v29) switched on before any round has run: 15 minutes later it is still waiting, and the clock starts at its first pairing", async () => {
+    const { clock, store, live, ada, events, of } = await setup();
     store.setAutoPlay(ada, true, 15);
     clock.t += 15 * 60_000; // before any round has run
+    expect(store.autoPlay(ada)).toMatchObject({ on: true, allowance: { state: "waiting", minutesLeft: 15 } });
     await live.tick();
-    expect(live.liveMatches()).toEqual([]);
+    expect(events.filter((e) => e.kind === "autoPlayStopped")).toEqual([]);
+    expect(live.liveMatchOf(ada)).not.toBeNull();
+    expect(store.autoPlay(ada).allowance).toMatchObject({ state: "running", startedAt: new Date(clock.t).toISOString(), minutesLeft: 15 });
+    for (let s = 0; s < 60 * 60; s += 5) {
+      clock.t += 5000;
+      await live.tick();
+    }
+    const first = of(ada)[0]!.startedAt;
+    for (const m of of(ada)) expect(m.startedAt).toBeLessThan(first + 15 * 60_000);
+    expect(store.autoPlay(ada)).toMatchObject({ on: false, stopped: { reason: "timeUp" }, allowance: { state: "done", totalMinutes: 15 } });
+  });
+
+  it("(v29) switched on while a round is being shown: the wait for that round costs none of the 15 minutes (the dry run's finding)", async () => {
+    const { clock, store, live, ada, events, of } = await setup();
+    // A second house owner, so a round plays without Ada.
+    const h2 = store.createOwner({ name: "House Two", kind: "house" });
+    store.grantStarterCollection(h2.ownerId, "Swarm");
+    store.connectAgent(h2.ownerId, store.createAgent({ ownerId: h2.ownerId, name: "H2-agent" }).agentId);
+    await live.tick();
+    expect(live.liveMatches()).toHaveLength(1);
+    expect(live.liveMatchOf(ada)).toBeNull();
+    const pressed = clock.t;
+    store.setAutoPlay(ada, true, 15);
+    let waitedUntil = 0;
+    for (let s = 0; s < 90 * 60; s += 5) {
+      clock.t += 5000;
+      await live.tick();
+      if (waitedUntil === 0 && store.autoPlay(ada).allowance?.state !== "waiting") waitedUntil = clock.t;
+    }
+    const mine = of(ada);
+    expect(mine.length).toBeGreaterThanOrEqual(1);
+    const first = mine[0]!.startedAt;
+    // It waited for the round being shown, and the window opened at the pairing.
+    expect(first).toBeGreaterThan(pressed);
+    expect(waitedUntil).toBe(first);
+    const stop = store.autoPlay(ada);
+    expect(stop).toMatchObject({ on: false, stopped: { reason: "timeUp" }, allowance: { state: "done", startedAt: new Date(first).toISOString(), endsAt: new Date(first + 15 * 60_000).toISOString() } });
+    for (const m of mine) expect(m.startedAt).toBeLessThan(first + 15 * 60_000);
     expect(events.filter((e) => e.kind === "autoPlayStopped")).toEqual([{ kind: "autoPlayStopped", ownerId: ada, reason: "timeUp" }]);
-    expect(store.autoPlay(ada)).toMatchObject({ on: false, stopped: { reason: "timeUp" } });
   });
 });

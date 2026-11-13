@@ -10,7 +10,7 @@ Builds here: {"games":10,"trials":6,"confirmGames":60} (smaller than the store's
   null-house    55 copies; built Null (Null rating 55.4%), rule plain
 
 ## 2. Reopened at the current schema
-  schema v28
+  schema v29
   cortex-house  recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
   swarm-house   recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
   aegis-house   recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)

@@ -15,6 +15,11 @@
 //
 //   npx tsx src/dev/playTimeApiDemo.ts > ../progress/play-time-001.txt
 //
+// (session 94) This is the v22-v28 rule, where the clock starts at the
+// button, so it runs on a v28 file (the code path a v28 file still takes).
+// From v29 the clock starts at the agent's first pairing:
+// playTimeClockDemo.ts, progress/play-time-002.txt.
+//
 // Ids are match numbers and owner names, so the output is the same every run.
 
 import { type DeckFaction } from "@ai-tcg/engine";
@@ -46,9 +51,12 @@ try {
   say("Owner 2026-11-06: auto-play on with 15 / 30 / 60 minutes, +15 / +30 while it runs; when time runs out");
   say("the agent finishes its current match and isn't paired again; no carry-over, resets at midnight Sydney;");
   say("no time chosen is auto-play as before. Times below are Sydney wall-clock.");
+  say("(Session 94: run on a v28 file, where the clock starts at the button. From v29 it starts at the agent's");
+  say("first pairing: progress/play-time-002.txt.)");
 
   const clock = { t: Date.parse("2026-11-08T23:00:00.000Z") }; // 10:00 Mon 9 Nov in Sydney
-  const store = EconomyStore.open(":memory:", { now: () => new Date(clock.t) });
+  // (session 94) A v28 file: the clock starts at the button.
+  const store = EconomyStore.open(":memory:", { now: () => new Date(clock.t), migrateTo: 28 });
   const names = new Map<string, string>();
   const join1 = (name: string, faction: DeckFaction, kind: "house" | "player") => {
     const acct = store.createAccount({ name, username: name.toLowerCase(), password: PASSWORD, kind });

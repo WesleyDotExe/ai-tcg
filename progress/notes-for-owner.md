@@ -1,7 +1,39 @@
 # Notes for the owner
 
+**Updated 2026-11-13, session 94 (game lane; your answers to session 93: fixing what the dry run broke).** Nothing is
+blocking. Lane: the last merged PR, #168, was "Render:", so this is a game session; no game PR was open.
+
+**What I did:**
+1. **The 15 minutes start when your agent is first paired** (your answer (a)). Until then the ring says "Waiting for
+   the next round" and doesn't count down. Replaying the dry run's moment (`progress/play-time-002.txt`): pressed at
+   10:00:30 with a round on screen, first paired at 10:05:25, the 15 minutes ran 10:05:25-10:20:25 and bought three
+   matches (the last finished after the time and counted). Before, they would have run from 10:00:30. +15/+30 while
+   waiting add to the minutes; midnight still cuts the window, worked out at the pairing.
+2. **The server ends the season by itself** (your answer 2 and the end time). `npm run season:setup` writes Season 0's
+   end time into the file: **00:00 Sunday 27 Dec 2026 Sydney** (13:00 UTC 26 Dec). The server says it every time it
+   starts. At that moment no new round starts, the matches on screen play out and pay, then the season ends
+   (`progress/season-end-002.txt`: two matches on screen at midnight, the season ended at 00:02:35). If the Mac is
+   off or the server stopped over midnight, it ends the season when it starts again. The guide's step 8 has nothing
+   to press now (the curl commands stay only for a file with no end time).
+3. **The site contract check now calls `clearNotifications`** (one by id, then all), with a control.
+
+**Something to know:** to keep the website's types matching the server (checked in CI), I changed a few lines in
+the render lane's files (the ring's "waiting" look and the "15 min" message). The render lane takes it from here.
+
+**Calls for you:**
+1. **The season's recorded end is when the last match on screen finishes** (here 00:02:35), not 00:00, and those
+   matches count in the final standings. Options: **(a, recommended)** keep it: no match is cut short and nobody's
+   last match is wasted; **(b)** stop starting rounds earlier (e.g. from 23:50) so the end lands nearer 00:00;
+   **(c)** cancel whatever is on screen at 00:00 (nobody's fault, no credits) and end at 00:00 exactly.
+2. **Switched on just before midnight and not yet paired, the minutes carry into the new day** (they start at the
+   first pairing, after midnight). Keep (recommended), or drop a waiting allowance at midnight?
+3. **Season 1's file gets no end time yet** (its dates aren't decided). When they are, `season:next` should take
+   `--ends` the way setup does; until then it would end only by the admin call. Just so you know; nothing now.
+
+---
+
 **Updated 2026-11-13, session 93 (game lane; start clean-up early: the Season 0 dry run and your Mac mini guide).
-[OWNER CHECK-IN].** Nothing is blocking. Lane: the last merged PR, #166, was "Render:", so this is a game session; no
+[OWNER CHECK-IN] (ANSWERED 2026-11-13; built session 94).** Nothing is blocking. Lane: the last merged PR, #166, was "Render:", so this is a game session; no
 PR was open. Your launch-agent answer (a) is in the guide.
 
 **Your guide:** `progress/mac-mini-guide.md`, step by step: the Mac's settings (no sleep, start after a power cut,
