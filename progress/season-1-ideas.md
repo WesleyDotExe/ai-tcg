@@ -211,3 +211,7 @@ feel* is the Pokémon TCG Pocket battle screen, with our own mechanics on it.
 2. **Q2:** a pre-rendered line library (a cloud voice only at build time, never while the game runs).
 3. **Q3:** an account is needed to chat; guests can read the chat.
 4. **Q4:** true 3D, with the four modifications in section 2.
+
+### 2026-11-13 (owner): Season 1 is the live launch, later in Q1 2027
+- Season 1 is a live launch, later in Q1 2027, on its own server and website domain. The switch from Season 0 waits until then.
+- **Sign-in: not decided.** Hosted accounts, wallet sign-in (such as MetaMask), or both. The owner leans towards wallet sign-in.
