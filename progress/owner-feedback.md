@@ -4913,3 +4913,12 @@ Next session by alternation: game 96 (the booster-card proposal, per the entry a
 8. **Keep:** if the balance re-run fails: tune the booster cards only (costs and stats, never a starter card), up to two rounds; if still outside the target, bring it back to the owner with the numbers rather than ship it. Launch stays 5 December either way; the fallback is packs as they are today.
 
 Next: the build (the proposal's build order: cards and registry, set numbering and pack table, the deck builder's collections, the balance re-run). Next session by alternation: render 74, then game 97 (the build).
+
+---
+
+## 2026-11-14 — Owner: starter cards are Standard only; every special version belongs to the booster cards (replaces call 7's starter-card line)
+
+Follows the entry above (answers to game session 96, PR #173, `progress/booster-proposal-s0.md`, call 7).
+1. **Decision:** starter cards are Standard only. They are never in packs, and never in any special version: no Foil, Full Art, Glitch, Alt Art, secret illustration, Gold or Prototype copy of a starter card. Every special version belongs to the booster cards. This replaces call 7's line that starter cards appear in packs only in the chase versions; packs hold booster cards (plus the 3 Zero-Day cards, unchanged).
+2. **For the build:** the game lane re-points the Glitch list, the secret-illustration list and the 15 Prototype runs (including the 1/1) at booster cards, and shows the owner the new lists at its [OWNER CHECK-IN].
+3. **Not decided:** the exact new lists.
