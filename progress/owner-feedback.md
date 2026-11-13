@@ -4753,3 +4753,18 @@ Next session: once PR #160 has merged, render (the Stats page, per its plan).
 1. **Keep:** the site contract check writes two ledger rows directly in its own throwaway file to give the test owner credits and pack points for a cosmetic and a secret card; no rule changes.
 
 Next session by alternation: render (session 69, the render hardening pass, with Agent controls taking the server's "Time's up" words).
+
+---
+
+## 2026-11-13 — Owner: the plan from here to the Season 0 launch (one hardening round, then start clean-up early)
+
+The Season 0 feature list is nearly done (render: the hardening pass, the bell, Top rated and viewers; game: done, spare sessions). The owner's order from here, by alternation:
+
+1. **Render 69:** the render hardening pass, as planned (Agent controls take the server's "Time's up" words).
+2. **Game 92:** a hardening pass aimed at the 7-day unattended run on the Mac mini: crash and restart recovery (the server comes back after a restart, takes over its lock and carries on), disk use, the clock, and the logs an owner would read after a problem. Measure first; fix only what is real and small.
+3. **Render 70:** the notifications bell.
+4. **Game 93: start clean-up early.** Run the full Season 0 dry run in `progress/season0-final-brief.md` in the session's own environment, and write the owner's step-by-step guide for the Mac mini: first start (`--new`), running unattended, stopping (Ctrl-C), a restart, checking the clock before a restart, ending the season and the switch (`season:next`). Report what broke at an [OWNER CHECK-IN].
+5. **Render 71:** Top rated and viewer counts on Watch live. That completes the Season 0 feature list.
+6. **Then both lanes:** fix what the dry run broke; more hardening only where the dry run found weak spots. No new features (the scope lock stands).
+
+The dry run's results should reach the owner before the midpoint check (~22 November). **The owner does the real start on the Mac mini** (including one machine restart to check recovery, and the feel check) from the guide, well before Season 0 starts on 5 December.
