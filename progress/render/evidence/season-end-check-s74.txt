@@ -1,0 +1,55 @@
+
+[A] the Stats page's season line on the page's clock
+PASS  A. the server says open, ending at 2026-11-13T21:28:30.469Z
+PASS  A. the line's chip: "Ends in 6 min"
+      (the page's clock is 381 s before the end time; the demo's server clock runs at 8x)
+PASS  A. jumped to 90 s before the end: "Ends in 1 min" (was "Ends in 6 min"), no reload
+PASS  A. past the end on the page's clock: "Ending now" (st-season t-ending)
+PASS  A. the same page throughout (no reload)
+
+[B, C] before the end: the picker open in one tab, a pack summary in another
+PASS  B. before the end the picker's coin slot sells (Buy · 300, Buy · 300)
+PASS  B. no closed banner before the end
+PASS  C. a single pack played to its summary before the end
+PASS  C. its "Open another" is live before the end (Open another | Done)
+PASS  the ladder ended the season on its end time (GET /api/season: ended, 36 s after the set-up)
+
+[B] the loadout picker across the end
+      (the picker had not read the end yet: the stale-press path)
+PASS  B. the server refuses the buy: 409 "season S0 has ended: no cosmetic is bought; the file is the season's archive"
+      (the picker's toast: "")
+PASS  B. the picker redrew itself closed (1 s after the end; no reload, the frame kept)
+PASS  B. the banner: "Store closed Season 0 has ended, so the Store is closed: nothing more is bought. What you own still equips."
+PASS  B. still on the owner's slot (coin)
+PASS  B. no Buy left; 2 tiles say Closed · 300, Closed · 300 (off, the reason on hover)
+PASS  B. an Equip button is still live on the coin slot
+PASS  B. Equip after the end saves (200, coin = coin-s0-platinum)
+PASS  B. the picker shows it equipped
+
+[C] the pack summary left on screen across the end
+PASS  C. the summary's open button turned off by itself (19 s after the end)
+PASS  C. Open another (off), Done (leads)
+PASS  C. the reason under them: "Season 0 has ended: no pack opens now. Unopened packs carry over to the next season and open as its packs."
+
+[D] Daily rewards at M and L after the end
+PASS  D. M: no win slot marked next, the row closed (10 slots, 5 paid)
+PASS  D. M: the unpaid slots' hover says so ("Win 6: no match is left to win it, the season has ended")
+PASS  D. M: "no more matches pay"; no "Next win" or "next pays"
+PASS  D. L: no win slot marked next, the row closed (10 slots, 5 paid)
+PASS  D. L: the unpaid slots' hover says so ("Win 6: no match is left to win it, the season has ended")
+PASS  D. L: "no more matches pay"; no "Next win" or "next pays"
+
+[E] a 390 px phone: the closed Home widgets
+PASS  E. S: nothing to buy, claim or open
+PASS  E. S: no sideways scroll (390 px; widgets over by store 0, packs 0, daily 0)
+PASS  E. S: the Store and Daily rewards say why
+PASS  E. M: nothing to buy, claim or open
+PASS  E. M: no sideways scroll (390 px; widgets over by store 0, packs 0, daily 0)
+PASS  E. M: the Store and Daily rewards say why
+
+[F] the pages
+PASS  F. at most the one 409 B may ask for (1; its console line 1)
+PASS  F. no external requests
+PASS  F. no other page errors
+
+36 PASS, 0 FAIL

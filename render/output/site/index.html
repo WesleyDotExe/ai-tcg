@@ -564,6 +564,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .dr-w.paid .dr-wn { color: #fff; background: linear-gradient(140deg, #3cc47c, #2fb6ff); box-shadow: none; }
 .dr-w.next .dr-wn { color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); animation: dr-next 1.6s ease-in-out infinite; }
 @keyframes dr-next { 50% { transform: scale(1.12); } }
+.dr-row.closed .dr-w.ahead { opacity: .42; }
 .dr-wc { font: 700 10.5px system-ui; color: var(--muted); font-variant-numeric: tabular-nums; } .dr-w.paid .dr-wc { color: #2fae6a; }
 .dr-reset { display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 14px; background: var(--soft); } .dr-reset .sh-clock-ic { align-self: center; } .dr-reset .sh-clock { font-size: 20px; } .dr-reset small { color: var(--muted); margin-left: auto; }
 .dr-rw { display: flex; flex-direction: column; gap: 5px; } .dr-rwn b { font: 800 16px ui-rounded, system-ui; }
@@ -6123,7 +6124,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   }
   var PICKER_SLOTS = LOADOUT_SLOTS;
   function loadoutPayload(x) {
-    var _a4, _b, _c;
+    var _a4, _b, _c, _d;
     const text = loadoutSlotText(CLOSE_WIN_HEALTH);
     const ownedBy = new Map(x.owned.map((o) => [o.itemId, o]));
     const items = /* @__PURE__ */ new Map();
@@ -6181,6 +6182,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       deckFaction2 ? `Its deck plays ${deckFaction2}.` : "It hasn't built a deck yet, so an empty victory-boast slot can't be shown.",
       "Equip saves to the server at once."
     ].join(" ");
+    const storeClosed = (_c = x.storeClosed) != null ? _c : null;
     const scenario = {
       key: x.agent.agentId,
       label: x.agent.name,
@@ -6192,7 +6194,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       slots,
       outcomes: {},
       cards: previewCards(x.collection, rowFaction),
-      foeFaction: (_c = FACTION_ORDER.find((f) => f !== rowFaction)) != null ? _c : "Aegis"
+      foeFaction: (_d = FACTION_ORDER.find((f) => f !== rowFaction)) != null ? _d : "Aegis",
+      ...storeClosed ? { storeClosed } : {}
     };
     return { scenario, starters, names };
   }
@@ -8153,7 +8156,12 @@ gl_FragColor=vec4(col,1.);}`;
     if (r.kind !== "single" || !base) return r;
     return { ...r, reveal: withSetBar(r.reveal, base) };
   }
-  function summaryButtons(kind, unopened, bulkCount) {
+  function summaryButtons(kind, unopened, bulkCount, frozenWhy = null) {
+    if (frozenWhy) {
+      const off = (act2, label) => ({ act: act2, label, primary: false, enabled: false, why: frozenWhy });
+      const done2 = { act: "done", label: "Done", primary: true, enabled: true, why: null };
+      return kind === "single" ? [off("one", "Open another"), done2] : [off("ten", `Open ${bulkCount} more`), off("one", "Open one pack"), done2];
+    }
     const none = unopened === 0 ? "No packs waiting. Buy more in the Store, or claim your free daily pack." : null;
     const one = { act: "one", label: kind === "single" ? "Open another" : "Open one pack", primary: kind === "single", enabled: unopened >= 1, why: none };
     const done = { act: "done", label: "Done", primary: unopened === 0, enabled: true, why: null };
@@ -8762,7 +8770,8 @@ gl_FragColor=vec4(col,1.);}`;
       packs: `${name} has ended: no pack opens now. Unopened packs carry over to the next season and open as its packs.`,
       daily: `${name} has ended: no free pack to claim.`,
       collection: `${name} has ended: the collection is kept as it stands, so nothing is crafted or salvaged.`,
-      wins: `${name} has ended: no more matches pay.`
+      wins: `${name} has ended: no more matches pay.`,
+      cosmetics: `${name} has ended, so the Store is closed: nothing more is bought. What you own still equips.`
     };
   }
   function isSeasonEndedRefusal(status, message) {
@@ -9060,15 +9069,15 @@ gl_FragColor=vec4(col,1.);}`;
     const next = p.nextPackAt ? `<b class="sh-clock" data-until="${esc(p.nextPackAt)}">${clockLeft(nowMs, p.nextPackAt)}</b>` : "";
     return `<li class="dr-pk done"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><button type="button" class="btn sm" disabled>Claimed</button>${next ? `<span class="dr-nx">next in ${next}</span>` : ""}</li>`;
   }
-  function winNodeHtml(s, first) {
+  function winNodeHtml(s, first, ended = false) {
     const tier = s.slot >= 30 ? "t3" : s.slot >= 10 ? "t2" : "t1";
-    const what = s.state === "paid" ? `paid ${s.credits}` : s.state === "next" ? `pays ${s.credits}, next` : `pays ${s.credits}`;
+    const what = s.state === "paid" ? `paid ${s.credits}` : ended ? "no match is left to win it, the season has ended" : s.state === "next" ? `pays ${s.credits}, next` : `pays ${s.credits}`;
     return `<li class="dr-w ${s.state} ${tier}${first ? " band" : ""}" title="Win ${s.nth}: ${what}"><span class="dr-wn" aria-hidden="true">${s.state === "paid" ? "\u2713" : s.nth}</span><span class="dr-wc">+${s.credits}</span><span class="vh">Win ${s.nth}, ${what}</span></li>`;
   }
   function rewardRowHtml(d, pack, nowMs, frozen = null) {
-    const steps = winSteps(d);
-    const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1].band !== s.band)).join("");
-    return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs, frozen)}${wins}</ol>`;
+    const steps = frozen ? winSteps(d).map((s) => s.state === "next" ? { ...s, state: "ahead" } : s) : winSteps(d);
+    const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1].band !== s.band, !!frozen)).join("");
+    return `<ol class="dr-row${frozen ? " closed" : ""}" aria-label="Today's rewards">${packNodeHtml(pack, nowMs, frozen)}${wins}</ol>`;
   }
   function nextLine(d, frozen = null) {
     if (frozen) return esc(frozen.wins);
@@ -9094,7 +9103,7 @@ gl_FragColor=vec4(col,1.);}`;
     const rewarded = `<div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${pct3}%"></i></div></div>`;
     const wins = d.rewardedWins.length ? `<ul class="dr-list">${d.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clockTime(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>` : `<p class="muted small">No rewarded wins yet today.</p>`;
     const paidLosses = Math.min(d.losses, d.maxPaidLosses);
-    const losses = `<div class="small">Losses and draws: <b>${d.losses}</b> \xB7 ${paidLosses} of ${d.maxPaidLosses} paid \xB7 +${d.creditsFromLosses}${d.nextLossPays > 0 ? ` <span class="muted">(next pays ${d.nextLossPays})</span>` : ""}</div>`;
+    const losses = `<div class="small">Losses and draws: <b>${d.losses}</b> \xB7 ${paidLosses} of ${d.maxPaidLosses} paid \xB7 +${d.creditsFromLosses}${d.nextLossPays > 0 && !frozen ? ` <span class="muted">(next pays ${d.nextLossPays})</span>` : ""}</div>`;
     return head + row + reset + rewarded + `<h4>Today's wins</h4>${wins}${losses}<div class="dr-tot"><span>In all today</span><b>${amount(d.credits)}</b><small>credits</small></div><p class="muted small dr-nq">No quests, weekly challenge or streak in Season 0.</p>`;
   }
 
@@ -9929,7 +9938,7 @@ gl_FragColor=vec4(col,1.);}`;
         return;
       }
       toast(errorText(err.status, err.message), "error");
-      if (isSeasonEndedRefusal(err.status, err.message)) seasonRefused();
+      if (isSeasonEndedRefusal(err.status, err.message)) void seasonRefused();
     } else toast("Something went wrong. Try again.", "error");
   }
   function confirmDialog(title, body, confirm) {
@@ -10155,6 +10164,11 @@ gl_FragColor=vec4(col,1.);}`;
       if (el.textContent !== t) el.textContent = t;
       if (Date.parse(until) <= now) passed = until;
     });
+    const line = state.page === "stats" ? document.querySelector(".st-season") : null;
+    if (line) {
+      const v = seasonEndView(state.season, now);
+      if (v && line.textContent !== `${v.chip} ${v.line}`) line.outerHTML = seasonEndHtml(v);
+    }
     if (passed && clockReloadFor !== passed) {
       clockReloadFor = passed;
       if (state.page === "store" && !state.opening) void loadShop();
@@ -10173,6 +10187,8 @@ gl_FragColor=vec4(col,1.);}`;
       state.season = await api.season(state.session.token);
       state.seasonReadAt = now;
       state.stats.season = state.season;
+      if (frozenNow() && (shownSummary == null ? void 0 : shownSummary.btns.isConnected)) summaryHere(shownSummary.btns, shownSummary.kind);
+      if (frozenNow()) void dressFrozen();
     } catch (err) {
       if (err instanceof SiteApiError && err.signedOut) throw err;
     }
@@ -10181,7 +10197,7 @@ gl_FragColor=vec4(col,1.);}`;
   var frozenNow = () => seasonFrozen(state.season);
   function seasonRefused() {
     state.seasonReadAt = 0;
-    void readSeason().then(() => {
+    return readSeason().then(() => {
       drawWallet();
       drawAgentCard();
       if (!state.busy && !dragging) drawPage();
@@ -11340,14 +11356,15 @@ gl_FragColor=vec4(col,1.);}`;
     frame == null ? void 0 : frame.focus();
     (_a4 = frame == null ? void 0 : frame.contentWindow) == null ? void 0 : _a4.focus();
   }
+  var shownSummary = null;
   function summaryHere(btns, kind) {
-    var _a4, _b, _c, _d, _e, _f, _g, _h;
+    var _a4, _b, _c, _d, _e, _f, _g, _h, _i, _j;
     const n = (_b = (_a4 = state.wallet) == null ? void 0 : _a4.unopenedPacks.length) != null ? _b : 0;
     const bulk = (_e = (_d = (_c = state.shop.packs) != null ? _c : state.home.packs) == null ? void 0 : _d.bulkOpenCount) != null ? _e : 10;
-    const list = summaryButtons(kind, n, bulk);
+    const list = summaryButtons(kind, n, bulk, (_g = (_f = frozenNow()) == null ? void 0 : _f.packs) != null ? _g : null);
     btns.innerHTML = list.map((b) => `<button type="button"${b.primary ? ' class="pri"' : ""} data-site="${b.act}"${b.enabled ? "" : " disabled"}>${esc(b.label)}</button>`).join("");
     const why = summaryWhy(list);
-    (_g = (_f = btns.parentElement) == null ? void 0 : _f.querySelector(".why")) == null ? void 0 : _g.remove();
+    (_i = (_h = btns.parentElement) == null ? void 0 : _h.querySelector(".why")) == null ? void 0 : _i.remove();
     if (why.length) btns.insertAdjacentHTML("afterend", `<p class="why">${why.map(esc).join(" ")}</p>`);
     btns.onclick = (e) => {
       var _a5;
@@ -11358,7 +11375,9 @@ gl_FragColor=vec4(col,1.);}`;
       btns.querySelectorAll("button").forEach((x) => x.disabled = true);
       void openPacks({ count: act2 === "ten" ? 10 : 1 });
     };
-    (_h = btns.querySelector("button.pri:not([disabled])")) == null ? void 0 : _h.focus({ preventScroll: true });
+    shownSummary = { btns, kind };
+    if (!frozenNow()) void readSeason().catch(() => void 0);
+    (_j = btns.querySelector("button.pri:not([disabled])")) == null ? void 0 : _j.focus({ preventScroll: true });
   }
   function packApi() {
     var _a4, _b;
@@ -11390,13 +11409,14 @@ gl_FragColor=vec4(col,1.);}`;
   var dressFrom = null;
   var dressAgent = null;
   async function dressPayload(token, agentId) {
+    var _a4, _b;
     const [play2, loadout, owned, store, collection] = await Promise.all([api.play(token), api.loadout(token, agentId), api.cosmetics(token), api.store(token), api.collection(token)]);
     state.play = play2;
     state.wallet = store.wallet;
     drawWallet();
     const agent = play2.agents.find((a) => a.agentId === agentId);
     if (!agent) throw new SiteApiError(404, "that agent isn't one of yours");
-    return loadoutPayload({ agent, loadout, owned: owned.owned, onSale: store.cosmetics, play: play2, collection, credits: store.wallet.credits });
+    return loadoutPayload({ agent, loadout, owned: owned.owned, onSale: store.cosmetics, play: play2, collection, credits: store.wallet.credits, storeClosed: (_b = (_a4 = frozenNow()) == null ? void 0 : _a4.cosmetics) != null ? _b : null });
   }
   function answerOf(err) {
     if (err instanceof SiteApiError && err.signedOut) {
@@ -11435,6 +11455,11 @@ gl_FragColor=vec4(col,1.);}`;
         drawWallet();
         return { ok: true, payload: await dressPayload(state.session.token, dressAgent) };
       } catch (err) {
+        if (err instanceof SiteApiError && isSeasonEndedRefusal(err.status, err.message) && state.session && dressAgent) {
+          await seasonRefused();
+          const payload = await dressPayload(state.session.token, dressAgent).catch(() => null);
+          return { ...answerOf(err), ...payload ? { payload } : {} };
+        }
         return answerOf(err);
       }
     },
@@ -11485,6 +11510,18 @@ gl_FragColor=vec4(col,1.);}`;
     } catch (err) {
       closeDress();
       fail(err);
+    }
+  }
+  async function dressFrozen() {
+    var _a4, _b, _c;
+    const agentId = dressAgent;
+    if (!agentId || !state.session || !dressReady || ((_a4 = document.getElementById("dress")) == null ? void 0 : _a4.hidden) !== false) return;
+    try {
+      const [payload, L] = await Promise.all([dressPayload(state.session.token, agentId), dressReady]);
+      if (dressAgent !== agentId) return;
+      const cur = (_c = (_b = dressFrame == null ? void 0 : dressFrame.contentWindow) == null ? void 0 : _b.__loadout) == null ? void 0 : _c.state();
+      L.show(payload, cur ? { slot: cur.slot, preview: cur.preview } : null);
+    } catch {
     }
   }
   function closeDress() {

@@ -126,6 +126,9 @@ export interface LoadoutInputs {
   play: SitePlay;
   collection: SiteCollection;
   credits: number;
+  /** (render session 74) The season has ended: the Store is closed, so the
+   * picker's Buy is off with this reason (equipping still works). */
+  storeClosed?: string | null;
 }
 
 /** The page's data for one agent, from the API's answers. The tiles of a
@@ -198,6 +201,7 @@ export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
     deckFaction ? `Its deck plays ${deckFaction}.` : "It hasn't built a deck yet, so an empty victory-boast slot can't be shown.",
     "Equip saves to the server at once.",
   ].join(" ");
+  const storeClosed = x.storeClosed ?? null;
   const scenario: PickerScenario = {
     key: x.agent.agentId,
     label: x.agent.name,
@@ -210,6 +214,7 @@ export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
     outcomes: {} as PickerScenario["outcomes"],
     cards: previewCards(x.collection, rowFaction),
     foeFaction: FACTION_ORDER.find((f) => f !== rowFaction) ?? "Aegis",
+    ...(storeClosed ? { storeClosed } : {}),
   };
   return { scenario, starters, names };
 }

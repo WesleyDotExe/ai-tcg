@@ -63,7 +63,15 @@ export interface SummaryButton {
  * offers the next one; a ten-pack open offers ten more and one. A button
  * whose packs aren't there is greyed, with the reason, never hidden: the
  * owner sees what the page can do. */
-export function summaryButtons(kind: SiteReveal["kind"], unopened: number, bulkCount: number): SummaryButton[] {
+export function summaryButtons(kind: SiteReveal["kind"], unopened: number, bulkCount: number, frozenWhy: string | null = null): SummaryButton[] {
+  // Render session 74: the season ended while the opening played (the
+  // server opened it; the next press would be refused): the open buttons
+  // are off with the reason, and Done leads.
+  if (frozenWhy) {
+    const off = (act: SummaryAction, label: string): SummaryButton => ({ act, label, primary: false, enabled: false, why: frozenWhy });
+    const done: SummaryButton = { act: "done", label: "Done", primary: true, enabled: true, why: null };
+    return kind === "single" ? [off("one", "Open another"), done] : [off("ten", `Open ${bulkCount} more`), off("one", "Open one pack"), done];
+  }
   const none = unopened === 0 ? "No packs waiting. Buy more in the Store, or claim your free daily pack." : null;
   const one: SummaryButton = { act: "one", label: kind === "single" ? "Open another" : "Open one pack", primary: kind === "single", enabled: unopened >= 1, why: none };
   const done: SummaryButton = { act: "done", label: "Done", primary: unopened === 0, enabled: true, why: null };

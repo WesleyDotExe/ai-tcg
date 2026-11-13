@@ -103,6 +103,9 @@ export interface PickerScenario {
   cards: PickerCard[];
   /** The other side of the preview board (dimmed, never touched). */
   foeFaction: string;
+  /** (render session 74, site mode) The season has ended, so the Store is
+   * closed: why Buy is off on every locked tile. Absent: the Store sells. */
+  storeClosed?: string;
 }
 
 export { loadoutSlotText } from "./loadoutText.js";
@@ -220,8 +223,9 @@ export const LOADOUT_PURE_SOURCE = String.raw`
   }
   // The locked tile's action on the website: Buy when the owner can pay,
   // else the price and what the owner has (standalone: always the plate).
-  function loadoutLockAction(site, price, credits) {
+  function loadoutLockAction(site, price, credits, closed) {
     if (price == null) return { kind: 'none' };
+    if (site && closed) return { kind: 'closed', price: price, why: closed };
     if (site && credits >= price) return { kind: 'buy', price: price };
     return { kind: 'plate', price: price, short: credits < price };
   }
@@ -249,7 +253,7 @@ const pure = new Function(`${LOADOUT_PURE_SOURCE}; return { LOADOUT_GLYPHS, load
     outcomes: PickerScenario["outcomes"],
   ) => { ok: boolean; state: Record<PickerSlot, string | null>; error: string | null };
   loadoutAnswerApply: (state: Record<PickerSlot, string | null>, answer: PickerAnswer | null) => { ok: boolean; state: Record<PickerSlot, string | null>; error: string | null };
-  loadoutLockAction: (site: boolean, price: number | null, credits: number) => { kind: "none" } | { kind: "buy"; price: number } | { kind: "plate"; price: number; short: boolean };
+  loadoutLockAction: (site: boolean, price: number | null, credits: number, closed?: string | null) => { kind: "none" } | { kind: "buy"; price: number } | { kind: "plate"; price: number; short: boolean } | { kind: "closed"; price: number; why: string };
   loadoutPreview: (state: Record<PickerSlot, string | null>, slot: PickerSlot, deckFaction: string | null, starters: Record<string, string>) => { id: string; close: boolean } | null;
   loadoutTilePreview: (state: Record<PickerSlot, string | null>, slot: PickerSlot, itemId: string | null, deckFaction: string | null, starters: Record<string, string>) => { id: string; close: boolean } | null;
   loadoutSlotLine: (state: Record<PickerSlot, string | null>, slot: PickerSlot, deckFaction: string | null, starters: Record<string, string>, names: Record<string, string>) => string;
@@ -504,8 +508,9 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
     var src = t.owned && t.source === 'purchase' ? '<span class="t-src">Bought</span>' : '';
     var action;
     if (!t.owned && t.itemId != null) {
-      var la = loadoutLockAction(SITE, t.priceCredits, S.sc.credits);
-      if (la.kind === 'buy') action = '<button type="button" class="t-equip t-buy" data-buy="' + esc(key) + '"' + (busy ? ' disabled' : '') + '>Buy · ' + la.price + '</button><div class="t-short">you have ' + S.sc.credits + '</div>';
+      var la = loadoutLockAction(SITE, t.priceCredits, S.sc.credits, S.sc.storeClosed || null);
+      if (la.kind === 'closed') action = '<button type="button" class="t-equip t-closed" disabled title="' + esc(la.why) + '">Closed · ' + la.price + '</button><div class="t-short">Season ended</div>';
+      else if (la.kind === 'buy') action = '<button type="button" class="t-equip t-buy" data-buy="' + esc(key) + '"' + (busy ? ' disabled' : '') + '>Buy · ' + la.price + '</button><div class="t-short">you have ' + S.sc.credits + '</div>';
       else action = '<div class="t-lock"><span class="t-price"><span class="lock-ico" aria-hidden="true"></span>In the store · ' + t.priceCredits + ' credits</span>' + (la.short ? '<span class="t-short">you have ' + S.sc.credits + '</span>' : '') + '</div>';
     } else if (equipped) action = '<div class="t-on">Equipped</div>';
     else action = '<button type="button" class="t-equip" data-equip="' + esc(key) + '"' + (busy ? ' disabled' : '') + '>Equip</button>';
@@ -576,7 +581,13 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
     Promise.resolve(h.buy(key)).then(function (a) { return a; }, function (err) { return { ok: false, error: (err && err.message) || 'the server could not be reached' }; }).then(function (a) {
       busy = false;
       if (S !== my) return;
-      if (!a || !a.ok) { toast('Not bought: ' + ((a && a.error) || 'no answer'), false); redraw(); return; }
+      if (!a || !a.ok) {
+        toast('Not bought: ' + ((a && a.error) || 'no answer'), false);
+        // Render session 74: a refusal can carry the state read again (the
+        // season ended while the picker was open): draw it, Buy off.
+        if (a && a.payload) { show(a.payload, { slot: slot, preview: S.preview }); refocus('data-tile', key); } else redraw();
+        return;
+      }
       if (a.cancelled) { redraw(); refocus('data-buy', key); return; }
       show(a.payload, { slot: slot, preview: { slot: slot, itemId: key } });
       toast(name + ' is yours. Equip saves it to this agent.', true);
@@ -612,8 +623,10 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
     document.getElementById('sc-note').textContent = sc.note;
     var lock = document.getElementById('livelock');
     if (sc.live) { lock.hidden = false; lock.innerHTML = '<b>In a live match</b>' + (sc.live.matchId ? ' (' + esc(sc.live.matchId) + (sc.live.startedAt ? ', since ' + esc(sc.live.startedAt.slice(11, 16)) + ' UTC' : '') + ')' : '') + '. The store refuses loadout changes until it ends: the match keeps the loadout it started with.'; }
+    else if (sc.storeClosed) { lock.hidden = false; lock.innerHTML = '<b>Store closed</b> ' + esc(sc.storeClosed); }
     else lock.hidden = true;
     app.classList.toggle('is-live', !!sc.live);
+    app.classList.toggle('is-closed', !sc.live && !!sc.storeClosed);
     document.getElementById('stage-board').innerHTML = stageHtml(sc);
     redraw();
     // Let the board lay out before measuring it.
@@ -692,6 +705,9 @@ body { padding: 12px 16px 40px; }
 .sc-note { width: 100%; font-size: 0.7rem; color: var(--ink-dim); line-height: 1.4; }
 .livelock { margin: 8px 0 0; padding: 8px 12px; border-radius: 6px; font-size: 0.74rem; line-height: 1.4; color: var(--ink); border: 1px solid color-mix(in srgb, var(--bad) 60%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); }
 .livelock b { color: var(--bad); letter-spacing: 0.05em; }
+#picker.is-closed .livelock { border-color: color-mix(in srgb, var(--ink-dim) 50%, transparent); background: color-mix(in srgb, var(--ink-dim) 8%, transparent); }
+#picker.is-closed .livelock b { color: var(--ink); }
+.t-equip.t-closed[disabled] { opacity: 0.55; cursor: not-allowed; }
 .pk-grid { display: grid; grid-template-columns: minmax(0, 800px) minmax(0, 1fr); gap: 14px; margin-top: 12px; align-items: start; }
 .stage { position: sticky; top: 8px; z-index: 2; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--bg); box-shadow: 0 10px 18px -12px #000; }
 .stage-board .st-foe .hud { padding: 5px 10px; }

@@ -617,6 +617,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .dr-w.paid .dr-wn { color: #fff; background: linear-gradient(140deg, #3cc47c, #2fb6ff); box-shadow: none; }
 .dr-w.next .dr-wn { color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); animation: dr-next 1.6s ease-in-out infinite; }
 @keyframes dr-next { 50% { transform: scale(1.12); } }
+.dr-row.closed .dr-w.ahead { opacity: .42; }
 .dr-wc { font: 700 10.5px system-ui; color: var(--muted); font-variant-numeric: tabular-nums; } .dr-w.paid .dr-wc { color: #2fae6a; }
 .dr-reset { display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 14px; background: var(--soft); } .dr-reset .sh-clock-ic { align-self: center; } .dr-reset .sh-clock { font-size: 20px; } .dr-reset small { color: var(--muted); margin-left: auto; }
 .dr-rw { display: flex; flex-direction: column; gap: 5px; } .dr-rwn b { font: 800 16px ui-rounded, system-ui; }
