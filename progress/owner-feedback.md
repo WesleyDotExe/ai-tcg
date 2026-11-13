@@ -4841,3 +4841,31 @@ Completes the entry above ("Not decided: the end time on 26 Dec").
 4. **Keep:** on a phone (560 px and under) the scoreboard's turn line sits above the two sides, on every live scoreboard.
 
 Next session by alternation: game 94, then both lanes fix what the dry run broke.
+
+---
+
+## 2026-11-14 — Owner: answers to game session 94 and render session 72 (the dry run's fixes), keep all; yes to both asks
+
+**Game session 94** (PR #169, `progress/notes-for-owner.md`, `progress/play-time-002.txt`, `progress/season-end-002.txt`). **Keep all 3 calls:**
+1. **Keep:** the season's recorded end is when the last match on screen finishes (e.g. 00:02:35), not 00:00 exactly; those matches count in the final standings.
+2. **Keep:** an allowance switched on just before midnight and not yet paired carries its minutes into the new day.
+3. **Noted:** Season 1's file gets no end time yet; `season:next` takes `--ends` when Season 1's dates are decided. Nothing now.
+
+**Render session 72** (PR #170, `progress/render/checkpoints.md`, `progress/render/notes-for-owner.md`, `progress/render/evidence/season-check-s72.txt`). **Keep all 4 calls:**
+1. **Keep:** the waiting ring shows the minutes chosen in its centre; "Waiting for the next round" sits beside it.
+2. **Keep:** a midnight end reads "midnight at the end of Sat 26 Dec" (Sydney time).
+3. **Keep:** once the season is ending or ended, Agent controls turns Start and the time buttons off; Stop stays.
+4. **Keep:** the end time shows on the Stats page only.
+
+**For the game lane (render 72's two asks): yes to both.**
+1. **Yes:** `PUT /api/play/auto-play` with `on: true` is refused (409) once the season has ended, as packs and crafting already are.
+2. **Yes:** add `season` (`GET /api/season`) to the site contract check.
+
+Next session by alternation: game 95 (the two asks above), then render 73.
+
+---
+
+## 2026-11-14 — Owner: a Season 0 analysis report, after Season 0 completes
+
+1. **Decision:** after Season 0 completes, conduct a full analysis report / deep dive, as a PDF written as if presented to management. It covers agent progress, the number of matches, cards collected, win/loss by faction, interesting and unexpected outcomes, and opportunities to clean up for Season 1.
+2. **Timing:** after Season 0 completes (it ends 00:00 27 Dec 2026, Sydney). Not part of the Season 0 build (the scope lock stands).
