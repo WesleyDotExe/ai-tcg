@@ -5,37 +5,37 @@
     v9: 45 copies held, deck "Aegis starter" complete: true
     v29: 45 copies held, every copy unchanged: true, secret codes: 0, deck complete: true
 
-## 2. Packs open under S0-odds-2: a secret illustration, a Glitch card and a Zero-Day card
+## 2. Packs open under S0-odds-3: a secret illustration, a Glitch card and a Zero-Day card
 
-secret pack  seed 26  odds S0-odds-2  +5 pack points  [full reveal]
-    Common    071/096  Stray Fragment                 Common              NEW  x1 owned
-    Common    047/096  Barrier Drone                  Common              NEW  x1 owned
-    Uncommon  008/096  Backup Protocol                Uncommon                 x2 owned
-    Rare      063/096  Latent Ward                    Rare                NEW  x1 owned
-    shine     217/096  Entropy Harvester              Rare      SECRET    NEW  x1 owned S0-SR25 art placeholder:secret/S0-SR25
-glitch pack  seed 15  odds S0-odds-2  +5 pack points
-    Common    030/096  Swarm Larva                    Common              NEW  x2 owned
-    Common    030/096  Swarm Larva                    Common              NEW  x2 owned
-    Uncommon  038/096  Reflex Spike                   Uncommon            NEW  x1 owned
-    Rare      065/096  Tariff Field                   Rare                NEW  x1 owned
-    shine     034/096  Corrosive Spitter              Uncommon  GLITCH    NEW  x1 owned
-zero-day pack  seed 624  odds S0-odds-2  +5 pack points  [full reveal]
-    Common    030/096  Swarm Larva                    Common                   x3 owned
-    Common    028/096  Chitin Plating                 Common              NEW  x1 owned
-    Uncommon  094/096  Cache Warmup                   Uncommon            NEW  x1 owned
-    Rare      022/096  Recursive Construct            Rare                     x3 owned
-    shine     226/096  Patient Zero                   Mythic    ZERO-DAY  NEW  x1 owned S0-ZD1 art placeholder:zero-day/S0-ZD1 (animated)
+secret pack  seed 26  odds S0-odds-3  +5 pack points  [full reveal]
+    Common    112/124  Shield Relay                   Common              NEW  x2 owned
+    Common    111/124  Kinetic Buffer                 Common              NEW  x1 owned
+    Uncommon  099/124  Cluster Node                   Uncommon            NEW  x1 owned
+    Rare      115/124  Hardening Protocol             Rare                NEW  x1 owned
+    shine     164/124  Shield Relay                   Common    SECRET    NEW  x2 owned S0-SR12 art placeholder:secret/S0-SR12
+glitch pack  seed 15  odds S0-odds-3  +5 pack points
+    Common    105/124  Spawning Pulse                 Common              NEW  x2 owned
+    Common    105/124  Spawning Pulse                 Common              NEW  x2 owned
+    Uncommon  107/124  Hive Relay                     Uncommon            NEW  x1 owned
+    Rare      116/124  Mirror Bulwark                 Rare                NEW  x1 owned
+    shine     110/124  Colony Overmind                Mythic    GLITCH    NEW  x1 owned
+zero-day pack  seed 624  odds S0-odds-3  +5 pack points  [full reveal]
+    Common    105/124  Spawning Pulse                 Common                   x3 owned
+    Common    104/124  Egg Courier                    Common              NEW  x1 owned
+    Uncommon  121/124  Zombie Fork                    Uncommon            NEW  x1 owned
+    Rare      102/124  Parity Checker                 Rare                NEW  x1 owned
+    shine     169/124  Patient Zero                   Mythic    ZERO-DAY  NEW  x1 owned S0-ZD1 art placeholder:zero-day/S0-ZD1 (animated)
 
 (Seeds were searched for here so each kind shows; the store draws them server-side otherwise.)
 
 ## 3. A 10-pack open (seeds 1-10)
 
-    50 cards, 23 new, +50 pack points
+    50 cards, 13 new, +50 pack points
     by finish: standard 47, foil 2, fullArt 1
     packs keeping their full reveal: 0
     pity now: 2 packs without a hit, 5 without a Mythic
 
-## 4. 2,000 packs opened through the store (20 owners x 100, seeds 50,000 up), counted against S0-odds-2
+## 4. 2,000 packs opened through the store (20 owners x 100, seeds 50,000 up), counted against S0-odds-3
 
     shine slot        table      store (pity on)
     standard          53.6%      53.05%  (1061)
@@ -52,34 +52,35 @@ zero-day pack  seed 624  odds S0-odds-2  +5 pack points  [full reveal]
 ## 5. Crafting secret cards (750 pack points an illustration, 3,000 a Zero-Day card)
 
     pack points after 203 opened packs (5 each): 1015
-    crafted Quorum Arbiter (S0-SR01, 193/096): finish secret, origin crafted, account-bound true; pack points now 265
-    crafting S0-SR01 again: refused (you already hold Quorum Arbiter (S0-SR01); crafting makes the one copy a collection needs)
+    crafted Grid Consensus (S0-SR01, 153/124): finish secret, origin crafted, account-bound true; pack points now 265
+    crafting S0-SR01 again: refused (you already hold Grid Consensus (S0-SR01); crafting makes the one copy a collection needs)
     crafting S0-ZD1: refused (you already hold Patient Zero (S0-ZD1); crafting makes the one copy a collection needs)
-    crafting with no pack points: refused (crafting Quorum Arbiter (S0-SR01) costs 750 pack points; you have 0)
+    crafting with no pack points: refused (crafting Grid Consensus (S0-SR01) costs 750 pack points; you have 0)
 
 ## 6. The demo owner's binder (set checklist)
 
-    Base set        96/96
-    Secret cards     6/36
-    Glitch           8/20
-    Gold             1/96
+    Base set        54/124
+    Secret cards     6/19
+    Glitch           9/16
+    Gold             1/28
     Prototypes     1/15 runs held
     secret cards held:
-      193/096  Quorum Arbiter                 illustration x1
-      205/096  Molted Stalker                 illustration x1
-      217/096  Entropy Harvester              illustration x2
-      221/096  Glitch Seed                    illustration x1
-      225/096  Scrap Recycler                 illustration x1
-      226/096  Patient Zero                   zeroDay      x1
+      153/124  Grid Consensus                 illustration x1
+      158/124  Swarm Surge                    illustration x1
+      164/124  Shield Relay                   illustration x2
+      166/124  Heap Spray                     illustration x1
+      168/124  Bad Sector                     illustration x1
+      169/124  Patient Zero                   zeroDay      x1
     Glitch held:
-      022/096  Recursive Construct            x2
-      034/096  Corrosive Spitter              x1
-      061/096  Aegis Warden                   x1
-      066/096  Prime Aegis                    x1
-      072/096  Zombie Process                 x1
-      082/096  Entropy Harvester              x1
-      087/096  Commodity Rack                 x1
-      088/096  Relay Courier                  x1
+      102/124  Parity Checker                 x1
+      103/124  Grid Consensus                 x1
+      106/124  Acid Drone                     x1
+      107/124  Hive Relay                     x1
+      110/124  Colony Overmind                x1
+      112/124  Shield Relay                   x1
+      121/124  Zombie Fork                    x1
+      122/124  Decay Engine                   x1
+      124/124  Heat Death                     x1
 
 ## 7. What the store and the schema refuse
 

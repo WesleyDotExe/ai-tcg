@@ -7,17 +7,17 @@ Owner API demo 006 — session 68's collection and deck asks over HTTP
 > POST /api/packs/open  -> 200
 > POST /api/packs/open  -> 200
   pack <id 1>: starterHit false, pity {"fullArt":false,"mythic":false}, +5 pack points
-    Common   Zombie Process             standard  NEW  x1 owned
-    Common   Corruption Patch           standard  NEW  x1 owned
-    Uncommon Fork Bomb                  standard  NEW  x1 owned
-    Rare     Entropy Harvester          standard  NEW  x1 owned
-    shine    Firewall Sentinel          standard  NEW  x1 owned
+    Common   Bad Sector                 standard  NEW  x1 owned
+    Common   Shield Relay               standard  NEW  x1 owned
+    Uncommon Reaper Thread              standard  NEW  x1 owned
+    Rare     Decay Engine               standard  NEW  x1 owned
+    shine    Cluster Node               standard  NEW  x1 owned
   pack <id 2>: starterHit false, pity {"fullArt":false,"mythic":false}, +5 pack points
-    Common   Relay Courier              standard  NEW  x1 owned
-    Common   Spare Cycles               standard  NEW  x1 owned
-    Uncommon Fork Bomb                  standard       x2 owned
-    Rare     Barrier Shim               standard       x2 owned
-    shine    Colony Broodling           foil      NEW  x1 owned
+    Common   Bad Sector                 standard       x2 owned
+    Common   Memory Leak                standard  NEW  x1 owned
+    Uncommon Reaper Thread              standard       x2 owned
+    Rare     Hardening Protocol         standard  NEW  x1 owned
+    shine    Egg Courier                foil      NEW  x1 owned
 
 2. Watch again: the opening read back, after a restart on the same file
 ------------------------------------------------------------------------

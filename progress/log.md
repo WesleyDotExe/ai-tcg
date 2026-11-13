@@ -5452,3 +5452,35 @@ upgrade comes from cutting the starter decks' weakest cards. This is call 5 in t
 **Thin:** in quality-debt.md (the probe is not the store's builder; one agent and style; Null above the proposed
 band; the ring's set-Mythic stand-in and two Mythics).
 **Blocked:** nothing (the build waits on the owner's answers, by design).
+
+**2026-11-14 — Session 97 (game lane; the booster cards built, steps 1 and 2 of the owner's 4; card version cards-2,
+S0-odds-3; no schema change; an [OWNER CHECK-IN] for the re-pointed lists).**
+Lane: the last merged PR, #174, was "Render:", so this is a game session; no game PR was open. Acted on the owner's
+2026-11-14 entries: the answers to game 96 (keep all 8) and "starter cards are Standard only".
+**Built:** (1) the 28 approved cards as literal cards at the end of the faction files, registered as
+`S0_BOOSTER_CARDS` (in no starter deck; checked at load), card version `cards-2`; a check found all 28 identical to
+session 96's draft and all 99 cards-1 cards unchanged, so the draft file now only names the registered cards. (2)
+`withSetMythicSignature` stands in the starter Mythic when a deck also holds a booster Mythic. (3) The S0 set at 124:
+the 96 keep 001-096 (no Gold number), the booster cards 097-124 with Gold 125-152, secrets 153-171. (4)
+`PACK_ODDS_V3` (S0-odds-3), live: S0-odds-2's numbers, every slot and finish from the set's `packCards` (the booster
+cards), plus the Zero-Day cards; S0-odds-1/2 roll `CardSet.legacy`, the set exactly as it stood. (5) The store
+refuses a pack version (Foil, Full Art, Glitch, Alt Art, illustration, Gold, Prototype) of a starter card; Standard,
+crafting and a prize's tournament finish stay. (6) The Glitch list (16), illustrations (16) and the 15 Prototype runs
+re-pointed at booster cards, proposed at the check-in with calls on Gold numbering, the 7 craft-only neutrals and
+the tournament finish. (7) The realistic collections re-made from S0-odds-3. A new engine test file
+(`boosterCards.test.ts`: the shape, the stand-in, the builder's first deck from a starter collection plus booster
+cards taking them and their abilities firing in real matches) and a Standard-only store test.
+**Ran it:** `progress/pack-sim-004-booster.txt`, 16 PASS: 200,000 packs per table, 0 starter cards under S0-odds-3
+(999,705 under S0-odds-2), hits 20.79% both, Zero-Day 1 in 430, each faction 25.0% of pulls; median 42 packs to one
+of every booster card, 48 to a playable set (131 for the old 96-card base set); S0-odds-1 and S0-odds-2's seed
+hashes unchanged. Tests 1,983 pass (engine 379, server 222, economy 306, render 1,052, ...); typecheck clean; 35
+demos the same after 17 were rewritten for the new numbers and odds version (each diff read: numbers, the version
+name, booster pulls, matches moved by decks built from them); one demo changed by hand (economy-demo-003's
+hand-granted Foil of a starter card became a promo); the ring regression check PASS, unchanged; the site contract
+check 0 mismatches, 7 of 7 controls.
+**Worked:** freezing the old set as `CardSet.legacy` instead of special-casing the old tables inside the roller: the
+two session-39 seed pins held on the first run.
+**Thin:** in quality-debt.md (the balance re-run not done; the lists live before the owner answers; reused codes; the
+7 neutrals craft-only; the render's pages rebuilt but not looked at; the dry run not re-run).
+**Blocked:** nothing.
+

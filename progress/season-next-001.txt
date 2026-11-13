@@ -56,19 +56,19 @@ an ended file is frozen completely.
 
 5. The retired Prototype runs carried
 ------------------------------------------------------------------------
-  Ada opens a pack with seed 551 (a Prototype in Season 0): bonus card SW-004, gold
+  Ada opens a pack with seed 551 (a Prototype in Season 0): bonus card SW-105, gold
   [PASS] the Prototype bonus is a Gold: no retired run mints again
 
 6. Two hours of Season 1 ladder
 ------------------------------------------------------------------------
   auto-play for Ada and Bram: off (it starts off; they switch it on)
-  42 matches recorded
-   #1 Kit   1695 (RD 103) Platinum  9-5-0    seed 1664
-   #2 Ada   1623 (RD 103) Gold      9-5-0    seed 1341
-   #3 Bram  1600 (RD 105) Gold      8-6-0    seed 1547
-   #4 Lux   1393 (RD 105) Silver    4-10-0   seed 1521
-   #5 Hub   1388 (RD 103) Silver    7-7-0    seed 1536
-   #6 Mox   1280 (RD 102) Bronze    5-9-0    seed 1371
+  45 matches recorded
+   #1 Ada   1642 (RD 99) Gold      10-5-0   seed 1341
+   #2 Bram  1590 (RD 99) Gold      8-7-0    seed 1547
+   #3 Lux   1581 (RD 99) Gold      7-8-0    seed 1521
+   #4 Kit   1557 (RD 98) Gold      7-8-0    seed 1664
+   #5 Hub   1408 (RD 99) Silver    9-6-0    seed 1536
+   #6 Mox   1206 (RD 99) Bronze    4-11-0   seed 1371
   Ada's agent deck: Cortex, 40 cards, built from the new starter grant
   Bram's agent deck: Aegis, 40 cards, built from the new starter grant
   s1-m1: Kit played from 1663.7 (RD 250)

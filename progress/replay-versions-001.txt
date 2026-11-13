@@ -4,8 +4,9 @@ Versioned replays (session 70)
 1. The versions the game is on
   rules rules-1: Both players start with 20 health. The player going first skips its first draw.
   rules rules-2 (current): The player going second starts with 24 health; the player going first starts with 20 and skips its first draw.
-  cards cards-1 (current): digest 6b0c6e22247bc341, 99 cards today. The Season 0 cards as they stood for every ai-tcg-replay/1 file (session 67 to session 70): the four faction pools, the neutral pool and the 3 Zero-Day cards.
-  today's registry digest: 6b0c6e22247bc341
+  cards cards-1: digest 6b0c6e22247bc341, 127 cards today. The Season 0 cards as they stood for every ai-tcg-replay/1 file (session 67 to session 70): the four faction pools, the neutral pool and the 3 Zero-Day cards.
+  cards cards-2 (current): digest 841867645a649a6d, 127 cards today. Session 97: cards-1 plus Season 0's 28 pack-only booster cards (CX-101 to CX-107, SW-101 to SW-107, AG-101 to AG-107, NL-101 to NL-107; owner 2026-11-14, option B). No cards-1 card changed.
+  today's registry digest: 841867645a649a6d
   [PASS] today's registry is the current card version
 
 2. The golden replays, rebuilt today
@@ -26,7 +27,7 @@ Versioned replays (session 70)
 3. A later set, simulated: two cards rebalanced in the registry (this process only)
   AG-001 "Aegis Cadet": 1/2 -> 3/3
   AG-005 "Perimeter Turret": 2/4 -> 4/5
-  registry digest now 854baf275ac9251f (cards-1 is 6b0c6e22247bc341)
+  registry digest now 8c1b5c6bf9914107 (cards-1 is 6b0c6e22247bc341)
   [PASS] the changed registry matches no published card version
   r2-1: ai-tcg-replay/2, 126 moves, rules rules-2, cards cards-1; Golden Null vs Kernel-Level Astroboar, Golden Null wins on turn 15, 6--1; log equals the ladder's: yes
   [PASS] after the change: r2-1 rebuilds byte for byte
@@ -44,7 +45,7 @@ Versioned replays (session 70)
   [PASS] unversioned, the old moves would show a different match: the frozen cards are what keep it
   a match played now: versions {"rules":"rules-2","cards":null,"cardsDigest":"3a9db051b0f98d20"}; carries the changed AG-001 and AG-005 as they are now
   [PASS] a match played on unpublished cards names no card version, and carries the cards it was played with
-  registry restored (digest 6b0c6e22247bc341)
+  registry restored (digest 841867645a649a6d)
   that new file, rebuilt after the registry went back: log equals the match's: yes
   [PASS] a file plays its own cards whatever the registry says
 

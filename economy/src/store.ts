@@ -19,6 +19,7 @@ import {
   generateAgentCandidates,
   generateSignatureCandidates,
   getCard,
+  isBoosterCard,
   COPY_LIMITS,
   TOP_TIER_COPY_LIMIT,
   SHIPPED_DECK_LISTS,
@@ -1302,7 +1303,23 @@ function chaseCopyProblem(cardId: string, finish: Finish, secretCode: string | n
   // card: no plain, Foil, Gold or other version of it exists.
   if (zeroDayEntry(cardId)) return `"${cardId}" is a Zero-Day card; its only version is the Zero-Day finish`;
   if (finish === "glitch" && ![...CARD_SETS.values()].some((set) => set.glitch.includes(cardId))) return `"${cardId}" has no Glitch version`;
+  // (session 97, owner 2026-11-14) A starter card, one of the 96 numbered
+  // 001 to 096, is Standard only: its only copies come in a starter deck or
+  // crafted. Every special version belongs to the booster cards.
+  if (PACK_ONLY_FINISHES.includes(finish) && isStarterSetCard(cardId)) return `"${getCard(cardId)!.name}" is a starter card; starter cards are Standard only`;
   return null;
+}
+
+/** The versions a starter card never has (owner 2026-11-14: "no Foil, Full
+ * Art, Glitch, Alt Art, secret illustration, Gold or Prototype copy of a
+ * starter card"). A prize's tournament finish is not a pack version and is
+ * not in the list. */
+const PACK_ONLY_FINISHES: readonly Finish[] = ["foil", "fullArt", "glitch", "altArt", "secret", "gold", "prototype"];
+
+/** A Season 0 starter card: a base-set card that is not a booster card. */
+function isStarterSetCard(cardId: string): boolean {
+  const card = getCard(cardId);
+  return card !== undefined && !card.topTier && !isBoosterCard(cardId) && [...CARD_SETS.values()].some((set) => set.cards.some((c) => c.cardId === cardId));
 }
 
 /** SQLite's own messages for the schema's RAISE(ABORT) rules and constraint
@@ -4732,7 +4749,9 @@ export class EconomyStore {
         rarity: c.rarity,
         owned: count((x) => x.cardId === c.cardId && x.finish === "glitch"),
       }));
-    const gold = set.cards.map((c) => ({
+    // Only cards with a Gold version (from session 97 the booster cards:
+    // a starter card is Standard only).
+    const gold = set.cards.flatMap((c) => (c.goldNumber === null ? [] : [{
       number: c.goldNumber,
       kind: "gold" as const,
       cardId: c.cardId,
@@ -4740,7 +4759,7 @@ export class EconomyStore {
       name: c.name,
       rarity: c.rarity,
       owned: count((x) => x.cardId === c.cardId && x.finish === "gold"),
-    }));
+    }]));
     return {
       setCode: set.code,
       base: section("Base set", base),

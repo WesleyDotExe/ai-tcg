@@ -82,10 +82,13 @@ describe("the starter collection, per faction (store: grantStarterCollection, op
         }
       }
     }
-    // The same packs read differently per faction: proof that each faction's
-    // packs really were opened in its own store.
-    const badges = data.factions.map((f) => f.packs.flatMap((p) => p.reveal.cards.map((c) => c.isNew)).join());
-    expect(new Set(badges).size).toBeGreaterThan(1);
+    // Until game session 97 the same packs read differently per faction (a
+    // pack card could be in the starter deck picked). Since S0-odds-3 a pack
+    // holds booster cards only, never a starter card (owner 2026-11-14), so
+    // no pack card is ever in any starter deck and the plain cards' badges
+    // are the same for every faction.
+    const starterCards = new Set(data.factions.flatMap((f) => f.cards.map((c) => c.cardId)));
+    for (const f of data.factions) for (const p of f.packs) for (const c of p.reveal.cards) expect(starterCards.has(c.cardId), `${f.faction}: ${c.face.name}`).toBe(false);
   });
 });
 

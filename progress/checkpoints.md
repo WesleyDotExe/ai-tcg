@@ -5,6 +5,34 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — [OWNER CHECK-IN] Season 0's booster cards built: the set, S0-odds-3 and the re-pointed chase lists (2026-11-14, session 97)
+
+Not a stage end: the check-in your "starter cards are Standard only" entry asked for ("shows the owner the new
+lists"). The calls are in `progress/notes-for-owner.md` (session 97).
+
+**Delivered, with evidence:** the 28 approved cards registered (`cards-2`; all 99 older cards unchanged); the set at
+124 cards, the 96 keeping 001 to 096; `S0-odds-3` live, with S0-odds-2's numbers on booster cards only; the store
+refusing special versions of starter cards; the Glitch list, illustrations and Prototype runs on booster cards.
+`progress/pack-sim-004-booster.txt` (16 PASS): no starter card in 200,000 packs, the rates equal to S0-odds-2's,
+each faction 25% of pulls, S0-odds-1 and S0-odds-2 still rolling exactly as before. Tests: 1,983 pass across the
+workspaces (new: `engine/test/boosterCards.test.ts`, a Standard-only test in `economy/test/chase.test.ts`); 35 demos
+reproduce; the ring regression check passes, unchanged.
+
+**Strong:** old openings and replays are untouched (frozen legacy set, card versions). The deck builder takes booster
+cards on its own and they resolve in real matches.
+
+**Thin:** the balance re-run is not done, so the booster cards are in packs at untuned numbers (Null was +17 in the
+probe). The codes S0-SR01... and S0-P01... now name new cards (fine for a fresh launch file). The website hasn't been
+looked at with the new set.
+
+**Decisions you might overrule:** the three lists, Gold numbers on booster cards only (125 to 152), the 7 unpacked
+neutrals now craft-only, and a tournament finish still allowed on a starter card (calls 1 to 6).
+
+**Next:** game 98, the balance re-run to call 3's target (call 8's fallback if it fails), then the ring regression
+check and the dry run on cards-2. Render 75: the booster cards on the site.
+
+---
+
 ## AWAITING FEEDBACK — [OWNER CHECK-IN] Season 0's booster cards: the proposed list (2026-11-14, session 96)
 
 This is not a stage end. It is the check-in your option B entry asked for before the build. The proposal is in

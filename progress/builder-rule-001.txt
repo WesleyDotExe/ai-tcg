@@ -4,10 +4,10 @@ Builds here: {"games":10,"trials":6,"confirmGames":60} (smaller than the store's
 
 ## 1. A v24 file: four agents build with the plain rule, as every deck before session 80 was built
   schema v24
-  cortex-house  55 copies; built Cortex (Cortex rating 62.9%), rule plain
-  swarm-house   55 copies; built Swarm (Swarm rating 45.8%), rule plain
-  aegis-house   55 copies; built Aegis (Aegis rating 51.7%), rule plain
-  null-house    55 copies; built Null (Null rating 55.4%), rule plain
+  cortex-house  55 copies; built Cortex (Cortex designed 58.8%), rule plain
+  swarm-house   55 copies; built Swarm (Swarm searched 50.0%), rule plain
+  aegis-house   55 copies; built Aegis (Aegis rating 50.8%), rule plain
+  null-house    55 copies; built Null (Null rating 63.3%), rule plain
 
 ## 2. Reopened at the current schema
   schema v29
@@ -17,10 +17,10 @@ Builds here: {"games":10,"trials":6,"confirmGames":60} (smaller than the store's
   null-house    recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
 
 ## 3. The normal rebuild path (rebuildAgentDeckIfNeeded, what the ladder calls between rounds)
-  cortex-house  rebuilt: Cortex keeps the rating deck (62.9%); rule keep-designed:1; list unchanged; reasons now: none
-  swarm-house   rebuilt: Swarm keeps the rating deck (45.8%); rule keep-designed:1; list unchanged; reasons now: none
+  cortex-house  rebuilt: Cortex keeps the designed deck (58.8%); rule keep-designed:1; list unchanged; reasons now: none
+  swarm-house   rebuilt: Swarm keeps the searched deck (50.0%); rule keep-designed:1; list unchanged; reasons now: none
   aegis-house   rebuilt: Aegis keeps the designed deck (49.2%); rule keep-designed:1; list changed; reasons now: none
-  null-house    rebuilt: Null keeps the designed deck (54.2%); rule keep-designed:1; list changed; reasons now: none
+  null-house    rebuilt: Null keeps the rating deck (63.3%); rule keep-designed:1; list unchanged; reasons now: none
 
 PASS  cortex-house: the v24 store reports no rebuild reason (it keeps no rule)
 PASS  swarm-house: the v24 store reports no rebuild reason (it keeps no rule)

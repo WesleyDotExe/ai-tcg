@@ -39,8 +39,8 @@ const faceClass = (html: string) => /^<div class="([^"]+)"/.exec(html)![1]!.spli
 describe("a modal card's face prints each mode (owner side task, 2026-10-18)", () => {
   const modal = [...CARD_REGISTRY.values()].filter((c) => c.modes && c.modes.length);
 
-  it("covers the 3 Zero-Day cards and, since game session 62, Force Quit and Null Pointer; every one's abilities list is empty", () => {
-    expect(modal.map((c) => c.id).sort()).toEqual(["CX-019", "NL-015", "S0-ZD1", "S0-ZD2", "S0-ZD3"]);
+  it("covers the 3 Zero-Day cards, since game session 62 Force Quit and Null Pointer, and since game session 97 Swarm Surge; every one's abilities list is empty", () => {
+    expect(modal.map((c) => c.id).sort()).toEqual(["CX-019", "NL-015", "S0-ZD1", "S0-ZD2", "S0-ZD3", "SW-105"]);
     for (const c of modal) expect(c.abilities).toEqual([]);
   });
 
@@ -148,7 +148,7 @@ describe("the card-face sheet", () => {
 
   it("shows the 3 Zero-Day cards with their set numbers and both modes", () => {
     const zd = zeroDayEntries();
-    expect(zd.map((e) => [e.card.face.name, e.card.collectorNumber])).toEqual([["Patient Zero", "226/096"], ["Root Access", "227/096"], ["Kill Switch", "228/096"]]);
+    expect(zd.map((e) => [e.card.face.name, e.card.collectorNumber])).toEqual([["Patient Zero", "169/124"], ["Root Access", "170/124"], ["Kill Switch", "171/124"]]);
     for (const e of zd) expect(e.card.face.modes).toHaveLength(2);
   });
 

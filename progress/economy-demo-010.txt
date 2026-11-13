@@ -2,17 +2,17 @@
 
 ## 1. The Zero-Day entries are the live cards
 
-    226/096  S0-ZD1  Patient Zero  Neutral Unit, 3 energy 2/4, Mythic, 1 per deck
+    169/124  S0-ZD1  Patient Zero  Neutral Unit, 3 energy 2/4, Mythic, 1 per deck
         Outbreak: "When this dies, deal 2 damage to all enemy units." / Carrier: "Your other units get +1/+0."
-    227/096  S0-ZD2  Root Access   Neutral Unit, 5 energy 3/6, Mythic, 1 per deck
+    170/124  S0-ZD2  Root Access   Neutral Unit, 5 energy 3/6, Mythic, 1 per deck
         Privilege Escalation: "This unit's attack equals the number of other units in play." / Lockout: "Enemy cards cost 1 more to play."
-    228/096  S0-ZD3  Kill Switch   Neutral Command, 7 energy, Mythic, 1 per deck
+    171/124  S0-ZD3  Kill Switch   Neutral Command, 7 energy, Mythic, 1 per deck
         Lights Out: "Stun all enemy units for 2 turns." / Wipe: "Deal 3 damage to all enemy units, then draw a card."
-    base set: 96 cards (unchanged: the Zero-Day cards are secret cards, not base cards; no Gold or plain version)
+    base set: 124 cards (unchanged: the Zero-Day cards are secret cards, not base cards; no Gold or plain version)
 
 ## 2. A Zero-Day card pulled from a pack goes in a deck and plays
 
-    pack seed 624 (S0-odds-2): shine slot 226/096 Patient Zero, finish zeroDay, NEW, full reveal true
+    pack seed 624 (S0-odds-3): shine slot 169/124 Patient Zero, finish zeroDay, NEW, full reveal true
     the copy: card S0-ZD1 (Patient Zero), finish zeroDay, secret code S0-ZD1, origin pack
     saved deck "Cortex + Patient Zero": 40 cards, Signal Drone out, Patient Zero in; active; loads for play
     match seed 3 against the shipped Cortex deck, LookaheadAgent both sides: the owner's agent plays it on turn 5
@@ -30,7 +30,7 @@
 ## 3. Zero-Day crafting is open (3,000 pack points)
 
     600 packs opened: 3000 pack points; Zero-Day cards pulled: 0
-    crafted Patient Zero (S0-ZD1, 226/096): finish zeroDay, origin crafted, account-bound true; pack points now 0
+    crafted Patient Zero (S0-ZD1, 169/124): finish zeroDay, origin crafted, account-bound true; pack points now 0
     crafting S0-ZD1 again: refused (you already hold Patient Zero (S0-ZD1); crafting makes the one copy a collection needs)
     crafting S0-ZD1 with craftCard (the Mythic price): refused ("S0-ZD1" is a Zero-Day card: craft it with craftSecret)
     the card viewer: owned 1, salvageable 0 (Account-bound (crafted copy): it can be played, never salvaged)

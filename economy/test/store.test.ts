@@ -33,6 +33,9 @@ function win(store: EconomyStore, matchId: string, winner: string, loser: string
 
 /** A Common the Aegis starter runs 3 of. */
 const AEGIS_COMMON = SHIPPED_DECK_LISTS.Aegis.find((e) => e.copies === 3 && getCard(e.cardId)?.rarity === "Common")!.cardId;
+/** An Aegis booster Common (Shield Relay): for the copies only a booster
+ * card has (Foil, Gold, Prototype; owner 2026-11-14). */
+const BOOSTER_COMMON = "AG-101";
 
 describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
@@ -590,7 +593,10 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
   it("says why each copy can't be salvaged: bound, finish, promo, prize, Prototype", () => {
     const s = open();
     const owner = s.createOwner({ name: "o" });
-    s.grantStarterCollection(owner.ownerId, "Aegis");
+    // A booster card (session 97): a starter card has no Foil, Gold or
+    // Prototype version. Its three bound copies stand in for starter copies.
+    const AEGIS_COMMON = BOOSTER_COMMON;
+    for (let i = 0; i < 3; i++) s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "starter" });
     s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "foil" });
     s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "gold" });
     s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "prototype", seriesKind: "prototype", seriesCode: "S0", serial: 1, runSize: 5 });
@@ -708,7 +714,7 @@ describe("EconomyStore: owned copies and decks", () => {
   it("keeps numbered serials unique and inside their run", () => {
     const s = open();
     const a = player(s, "a");
-    const cardId = SHIPPED_DECK_LISTS.Aegis[0]!.cardId;
+    const cardId = BOOSTER_COMMON; // a Prototype is a booster card's (session 97)
     const proto = { ownerId: a.ownerId, cardId, finish: "prototype" as const, seriesKind: "prototype" as const, seriesCode: "S1", runSize: 50, origin: "pack" as const };
     s.grantCopy({ ...proto, serial: 7 });
     expect(() => s.grantCopy({ ...proto, serial: 7 })).toThrow(EconomyError);
@@ -754,9 +760,9 @@ describe("EconomyStore: owned copies and decks", () => {
     const mine = s.grantStarterCollection(owner.ownerId, "Cortex").copies.map((c) => c.copyId);
     const deck = s.saveDeck(owner.ownerId, "main", mine);
     const gone = s.getCopy(mine[0]!);
-    const spare = s.grantCopy({ ownerId: owner.ownerId, cardId: gone.cardId, origin: "pack", finish: "foil" });
+    const spare = s.grantCopy({ ownerId: owner.ownerId, cardId: gone.cardId, origin: "pack" });
     s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'retired' WHERE copy_id = '${gone.copyId}'`);
-    // The foil fills the slot; the rest keep the copies the deck was saved with.
+    // The spare (a pack copy; a starter card is Standard only) fills the slot; the rest keep the copies the deck was saved with.
     expect(s.loadDeck(deck.deckId).copyIds).toEqual([spare.copyId, ...mine.slice(1)]);
     s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'retired' WHERE copy_id = '${spare.copyId}'`);
     expect(() => s.loadDeck(deck.deckId)).toThrow(/is incomplete/);

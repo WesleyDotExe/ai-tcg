@@ -1,5 +1,5 @@
 // The Season 0 booster-card proposal's check (owner 2026-11-14, option B;
-// the cards: dev/boosterDraft.ts, DRAFT, not shipped). Test only: nothing
+// the cards: dev/boosterDraft.ts, since session 97 the registered cards). Test only: nothing
 // here changes a shipped card, deck, rule, pack or the registry.
 //
 // What it shows, for the owner's check-in:
@@ -142,7 +142,7 @@ function wilson(wins: number, n: number): string {
 async function main(): Promise<void> {
   const lines: string[] = [];
   const say = (s = "") => { lines.push(s); console.log(s); };
-  say("Season 0 booster-card proposal: the engine's check (DRAFT cards, engine/src/dev/boosterDraft.ts; test only)");
+  say("Season 0 booster-card proposal: the engine's check (the booster cards, registered since session 97: data/registry.ts S0_BOOSTER_CARDS; test only)");
   say(`Lookahead vs Lookahead, Calculator style, ${GAMES} games against each shipped deck (seeds 1-${GAMES}, seats alternate).`);
   say("No shipped card, deck, rule, pack or registry entry changed: the cards are not ownable.");
   say();

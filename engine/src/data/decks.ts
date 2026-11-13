@@ -6,6 +6,7 @@ import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
 import { AEGIS_CARDS } from "./aegisCards.js";
 import { NULL_CARDS } from "./nullCards.js";
 import { ZERO_DAY_CARDS } from "./zeroDayCards.js";
+import { isBoosterCard } from "./registry.js";
 
 /** Top-tier guardrail (owner 2026-10-16): only 1 copy per deck of each
  * Zero-Day card, whatever its rarity says. */
@@ -143,7 +144,11 @@ export function buildNullDeck(id: DeckSpec["id"], name: string): DeckSpec {
  * is one card shorter and the Mythic is always available instead of drawn.
  * Throws unless the deck holds exactly one Mythic and it is a Unit. */
 export function withSetMythicSignature(spec: DeckSpec): DeckSpec {
-  const mythics = spec.cards.filter((c) => c.rarity === "Mythic");
+  // (session 97) A deck may now hold a booster Mythic too; the stand-in is
+  // the deck's starter Mythic, the one its starter list was measured with.
+  const all = spec.cards.filter((c) => c.rarity === "Mythic");
+  const starter = all.filter((c) => !isBoosterCard(c.id));
+  const mythics = all.length > 1 && starter.length > 0 ? starter : all;
   if (mythics.length !== 1) throw new Error(`Deck ${spec.name}: needs exactly one Mythic to stand in as its signature card, has ${mythics.length}`);
   const mythic = mythics[0]!;
   if (mythic.type !== "Unit") throw new Error(`Deck ${spec.name}: its Mythic ${mythic.name} is a ${mythic.type}; a signature card is a Unit`);

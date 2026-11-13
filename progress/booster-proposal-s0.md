@@ -1,5 +1,10 @@
 # Season 0 booster cards: the proposal [OWNER CHECK-IN]
 
+**Status (session 97):** approved as proposed (owner 2026-11-14, all 8 calls kept). Built: the cards are in the
+faction files and the registry (`cards-2`), the set is 001-124, packs roll S0-odds-3. The balance re-run (build
+step 4) is next. The chase lists moved to booster cards (owner 2026-11-14, "starter cards are Standard only"):
+`progress/notes-for-owner.md`, session 97.
+
 Game session 96, 2026-11-14. Your 2026-11-14 entry (option B) asked the game lane to propose the card list first,
 for your approval, before building it. This is that proposal. **Nothing is built:** the cards are draft data in
 `engine/src/dev/boosterDraft.ts`. They are not in the registry, any set, pack or starter deck, and nobody can own

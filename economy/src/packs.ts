@@ -10,9 +10,9 @@
 // simulation (dev/packSimulation.ts) calls the same function hundreds of
 // thousands of times to check the published rates.
 
-import { CARD_REGISTRY, getCard, Rng, type Rarity } from "@ai-tcg/engine";
-import { LIVE_PACK_ODDS, PACK_ODDS, PACK_ODDS_V2, type PackOdds } from "./config.js";
-import { S0_GLITCH_CARDS, S0_ILLUSTRATIONS, secretCards, type SecretCard } from "./chase.js";
+import { CARD_REGISTRY, getCard, isBoosterCard, Rng, type Card, type Rarity } from "@ai-tcg/engine";
+import { LIVE_PACK_ODDS, PACK_ODDS, type ChasePackOdds, type PackOdds } from "./config.js";
+import { S0_GLITCH_CARDS, S0_GLITCH_CARDS_V2, S0_ILLUSTRATIONS, S0_ILLUSTRATIONS_V2, secretCards, type SecretCard } from "./chase.js";
 import type { Finish } from "./schema.js";
 
 const RARITIES: readonly Rarity[] = ["Common", "Uncommon", "Rare", "Mythic"];
@@ -26,9 +26,10 @@ export interface SetCard {
   rarity: Rarity;
   /** "056/096": the number printed on the card face. */
   collectorNumber: string;
-  /** A Gold copy's number, above the set total ("152/096"): the set's
-   * secret cards. */
-  goldNumber: string;
+  /** A Gold copy's number, above the set total ("125/124"): the set's
+   * secret cards. Null for a card with no Gold version: from session 97 a
+   * starter card (owner 2026-11-14, "starter cards are Standard only"). */
+  goldNumber: string | null;
 }
 
 export interface PrototypeRun {
@@ -54,41 +55,117 @@ export interface CardSet {
   secrets: readonly SecretCard[];
   /** The cards with a Glitch version (Units only, chase.ts). */
   glitch: readonly string[];
+  /** (session 97) The cards a pack rolls, in every slot and every finish
+   * but the secret cards: Season 0's booster cards. The legacy set rolls
+   * all its cards. */
+  packCards: readonly SetCard[];
+  /** (session 97) The set as it stood before the booster cards, the set
+   * S0-odds-1 and S0-odds-2 roll, so every opening logged under them rolls
+   * again exactly from its seed: the 96 cards numbered /096 with a Gold
+   * number each, session 36's Prototype runs and session 38's chase lists.
+   * Never changes. Absent on the legacy set itself. */
+  legacy?: CardSet;
 }
 
-/** Season 0's set: every ownable card (the four faction pools and the
- * neutral pool), numbered by faction, then rarity, then name. The card id
- * and copy id never appear on a card; only the collector number does. The
- * Zero-Day cards are ownable too but are secret cards, numbered at the top
- * of the secret list (chase.ts), never base-set cards: no base number, no
- * Gold version, never rolled in a plain slot. */
+const byFactionRarityName = (a: Card, b: Card) =>
+  FACTION_ORDER.indexOf(a.faction) - FACTION_ORDER.indexOf(b.faction) ||
+  RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) ||
+  a.name.localeCompare(b.name);
+
+/** Season 0's set: every ownable card, numbered. The card id and copy id
+ * never appear on a card; only the collector number does.
+ *  - 001 to 096: the starter-era cards (the four faction pools and the
+ *    neutral pool), by faction, then rarity, then name, as they have been
+ *    numbered since session 36. Standard only (owner 2026-11-14): no Gold
+ *    number, never in a pack.
+ *  - 097 to 124: the 28 booster cards (owner 2026-11-14, call 6 (a)), by
+ *    faction, then rarity, then name; each with a Gold number above the set
+ *    total (125/124 to 152/124). The only cards a pack rolls (S0-odds-3).
+ *  - The secret cards above the Gold numbers: the illustrations, then the
+ *    Zero-Day cards at the very top (chase.ts). The Zero-Day cards are
+ *    ownable but are secret cards, never base-set cards: no base number, no
+ *    Gold version, never rolled in a plain slot. */
 function seasonZeroSet(): CardSet {
-  const cards = [...CARD_REGISTRY.values()].filter((c) => !c.topTier).sort(
-    (a, b) =>
-      FACTION_ORDER.indexOf(a.faction) - FACTION_ORDER.indexOf(b.faction) ||
-      RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) ||
-      a.name.localeCompare(b.name),
-  );
-  const total = cards.length;
-  const width = Math.max(3, String(total * 2).length);
+  const owned = [...CARD_REGISTRY.values()].filter((c) => !c.topTier);
+  const starter = owned.filter((c) => !isBoosterCard(c.id)).sort(byFactionRarityName);
+  const booster = owned.filter((c) => isBoosterCard(c.id)).sort(byFactionRarityName);
+  const total = starter.length + booster.length;
+  const width = Math.max(3, String(total + booster.length).length);
   const pad = (n: number) => String(n).padStart(width, "0");
+  const cards: SetCard[] = [
+    ...starter.map((c, i) => ({ cardId: c.id, name: c.name, rarity: c.rarity, collectorNumber: `${pad(i + 1)}/${pad(total)}`, goldNumber: null })),
+    ...booster.map((c, i) => ({
+      cardId: c.id,
+      name: c.name,
+      rarity: c.rarity,
+      collectorNumber: `${pad(starter.length + i + 1)}/${pad(total)}`,
+      goldNumber: `${pad(total + i + 1)}/${pad(total)}`,
+    })),
+  ];
   const set = {
     code: "S0",
     name: "Season Zero",
     season: "S0",
     symbol: "S0-boot",
-    cards: cards.map((c, i) => ({
-      cardId: c.id,
-      name: c.name,
-      rarity: c.rarity,
-      collectorNumber: `${pad(i + 1)}/${pad(total)}`,
-      goldNumber: `${pad(total + i + 1)}/${pad(total)}`,
-    })),
-    // The pyramid is the owner's (4 x /250, 3 x /100, 3 x /50, 2 x /25, /10,
-    // /5 and one 1/1: 1,516 copies). WHICH cards get a run is session 36's
-    // proposal for the owner's check-in: every faction's Mythic at the top,
-    // Rares below, all five pools represented. The owner checks the art
-    // previews before a season's list goes live.
+    cards,
+    // The owner's pyramid (4 x /250, 3 x /100, 3 x /50, 2 x /25, /10, /5
+    // and one 1/1: 1,516 copies), re-pointed at booster cards (owner
+    // 2026-11-14: "re-points ... the 15 Prototype runs (including the 1/1)
+    // at booster cards"). PROPOSED at session 97's [OWNER CHECK-IN], the old
+    // list's shape: the four Mythics at the top, in the old order of
+    // factions (Null's the 1/1), then the Rares, then three Uncommons. Run
+    // codes are the same 15 (S0-P01 to S0-P15), by run size.
+    prototypes: [
+      ["NL-107", 1], // Heat Death
+      ["AG-107", 5], // Aegis Overwatch
+      ["CX-107", 10], // Grid Consensus
+      ["SW-107", 25], // Colony Overmind
+      ["NL-105", 25], // Heap Spray
+      ["SW-105", 50], // Swarm Surge
+      ["AG-105", 50], // Mirror Bulwark
+      ["CX-105", 50], // Parity Checker
+      ["SW-106", 100], // Brood Tyrant
+      ["NL-106", 100], // Decay Engine
+      ["AG-106", 100], // Hardening Protocol
+      ["CX-106", 250], // Job Scheduler
+      ["AG-103", 250], // Bastion Array
+      ["SW-103", 250], // Hive Relay
+      ["NL-103", 250], // Reaper Thread
+    ].map(([cardId, runSize], i) => ({ code: `S0-P${String(i + 1).padStart(2, "0")}`, cardId: cardId as string, runSize: runSize as number })),
+  };
+  const packCards = cards.filter((c) => isBoosterCard(c.cardId));
+  for (const r of set.prototypes) if (!isBoosterCard(r.cardId)) throw new Error(`Prototype run ${r.code}: ${r.cardId} is not a booster card`);
+  for (const id of [...S0_ILLUSTRATIONS, ...S0_GLITCH_CARDS]) if (!isBoosterCard(id)) throw new Error(`special version of ${id}: not a booster card`);
+  return {
+    ...set,
+    secrets: secretCards(set, S0_ILLUSTRATIONS),
+    glitch: glitchList(set, S0_GLITCH_CARDS),
+    packCards,
+    legacy: legacySeasonZeroSet(starter),
+  };
+}
+
+/** Season 0's set from session 36 to session 96, exactly (see
+ * `CardSet.legacy`): the starter-era cards numbered /096, each with a Gold
+ * number, session 36's Prototype runs, and the chase lists the owner
+ * approved 2026-10-18 (answers 1 and 3). */
+function legacySeasonZeroSet(cards: readonly Card[]): CardSet {
+  const total = cards.length;
+  const width = Math.max(3, String(total * 2).length);
+  const pad = (n: number) => String(n).padStart(width, "0");
+  const setCards = cards.map((c, i) => ({
+    cardId: c.id,
+    name: c.name,
+    rarity: c.rarity,
+    collectorNumber: `${pad(i + 1)}/${pad(total)}`,
+    goldNumber: `${pad(total + i + 1)}/${pad(total)}`,
+  }));
+  const set = {
+    code: "S0",
+    name: "Season Zero",
+    season: "S0",
+    symbol: "S0-boot",
+    cards: setCards,
     prototypes: [
       ["NL-014", 1],
       ["AG-014", 5],
@@ -107,8 +184,13 @@ function seasonZeroSet(): CardSet {
       ["NL-019", 250],
     ].map(([cardId, runSize], i) => ({ code: `S0-P${String(i + 1).padStart(2, "0")}`, cardId: cardId as string, runSize: runSize as number })),
   };
-  // The chase lists the owner approved 2026-10-18 (answers 1 and 3).
-  return { ...set, secrets: secretCards(set, S0_ILLUSTRATIONS), glitch: glitchList(set, S0_GLITCH_CARDS) };
+  return { ...set, secrets: secretCards(set, S0_ILLUSTRATIONS_V2), glitch: glitchList(set, S0_GLITCH_CARDS_V2), packCards: setCards };
+}
+
+/** The set a table rolls: S0-odds-1 and S0-odds-2 roll the legacy set (the
+ * set as it stood when they were live), later tables the set itself. */
+export function rollingSet(set: CardSet, odds: PackOdds): CardSet {
+  return (odds.version === "S0-odds-1" || odds.version === "S0-odds-2") && set.legacy ? set.legacy : set;
 }
 
 /** A set's Glitch list, checked: every card is a Unit of the set, none twice. */
@@ -224,6 +306,9 @@ export function nextPity(state: PityState, pulls: readonly Pick<PackPull, "finis
  *    an illustration; Zero-Day one of the 3. A Jackpot card rolls Foil or
  *    better among the finishes its own card can carry; secret cards come
  *    only in the shine slot.
+ *  - S0-odds-3 (session 97): S0-odds-2's numbers and draws, on the set
+ *    itself rather than the legacy set: every slot and finish rolls the
+ *    booster cards (`packCards`), the chase lists are on booster cards.
  * Each table draws its random numbers in the order it always has, so every
  * logged opening reproduces from its seed and odds version (pinned by a
  * seed test in packs.test.ts).
@@ -244,17 +329,18 @@ export function rollPack(
   odds: PackOdds,
   options: RollOptions = {},
 ): PackRoll {
+  set = rollingSet(set, odds);
   const rng = new Rng(seed);
   const due = pityDue(pity, odds);
   const starterHit = options.starterHit === true && !due.fullArt;
   const hitDue = due.fullArt || starterHit;
-  const byRarity = new Map<Rarity, SetCard[]>(RARITIES.map((r) => [r, set.cards.filter((c) => c.rarity === r)]));
+  const byRarity = new Map<Rarity, SetCard[]>(RARITIES.map((r) => [r, set.packCards.filter((c) => c.rarity === r)]));
   const pickOf = (rarity: Rarity) => rng.pick(byRarity.get(rarity)!);
   const jackpot = rng.next() < odds.jackpotPack;
 
   const pulls: PackPull[] = [];
   const add = (card: SetCard, slot: PackSlot, finish: Finish) =>
-    pulls.push({ cardId: card.cardId, rarity: card.rarity, slot, finish, collectorNumber: finish === "gold" ? card.goldNumber : card.collectorNumber });
+    pulls.push({ cardId: card.cardId, rarity: card.rarity, slot, finish, collectorNumber: finish === "gold" ? goldNumberOf(card) : card.collectorNumber });
   const jackpotFinish = (card: SetCard): Finish =>
     odds.version === "S0-odds-1" ? foilOrBetterV1(rng, odds, card.rarity) : jackpotFinishV2(rng, odds, set, card);
 
@@ -338,7 +424,7 @@ function foilOrBetterV1(rng: Rng, odds: typeof PACK_ODDS, rarity: Rarity | undef
 // S0-odds-2's finish rolls.
 
 /** A Jackpot card's finish: Foil or better among what this card can carry. */
-function jackpotFinishV2(rng: Rng, odds: typeof PACK_ODDS_V2, set: CardSet, card: SetCard): Finish {
+function jackpotFinishV2(rng: Rng, odds: ChasePackOdds, set: CardSet, card: SetCard): Finish {
   const f = odds.shineFinish;
   const table: [Finish, number][] = [["foil", f.foil]];
   if (card.rarity !== "Common") table.push(["fullArt", f.fullArt]);
@@ -349,7 +435,7 @@ function jackpotFinishV2(rng: Rng, odds: typeof PACK_ODDS_V2, set: CardSet, card
 
 /** The shine slot's finish: the whole table, Foil or better (Jackpot), or
  * a hit only (pity), each in the table's own proportions. */
-function shineFinishV2(rng: Rng, odds: typeof PACK_ODDS_V2, mode: "any" | "foilOrBetter" | "hit"): Finish {
+function shineFinishV2(rng: Rng, odds: ChasePackOdds, mode: "any" | "foilOrBetter" | "hit"): Finish {
   const f = odds.shineFinish;
   const hits: [Finish, number][] = [
     ["fullArt", f.fullArt],
@@ -376,6 +462,11 @@ export function weightedPick<T>(rng: Rng, table: readonly (readonly [T, number])
   let roll = rng.next() * total;
   for (const [item, w] of table) if ((roll -= w) < 0) return item;
   return table[table.length - 1]![0];
+}
+
+function goldNumberOf(card: SetCard): string {
+  if (card.goldNumber === null) throw new Error(`${card.name} (${card.collectorNumber}) has no Gold version`);
+  return card.goldNumber;
 }
 
 /** The card behind a set card id, for callers that need its name. */

@@ -237,7 +237,7 @@ describe("the ladder", () => {
     expect(replay.format).toBe("ai-tcg-replay/2");
     if (replay.format !== "ai-tcg-replay/2") throw new Error("unreachable");
     expect(replay.versions.rules).toBe("rules-2");
-    expect(replay.versions.cards).toBe("cards-1");
+    expect(replay.versions.cards).toBe("cards-2"); // cards-2 since session 97 (the booster cards)
     for (const id of [...replay.decks.p1.cardIds, ...replay.decks.p2.cardIds]) expect(replay.cards.find((c) => c.id === id)).toEqual(getCard(id));
     expect(replay.moves).toHaveLength(m.record.moves!);
     // The generated agent's own signature card travels in full.

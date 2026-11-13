@@ -15,52 +15,56 @@ play-time allowance's time up (no switch). Player owners only. Times below are S
 
 2. A big pull (a pack the ceremony gives its full reveal)
 ------------------------------------------------------------------------
-  Ada opens her daily pack (seed 26): Stray Fragment [standard], Barrier Drone [standard], Backup Protocol [standard], Latent Ward [standard], Entropy Harvester [secret]
-  bell: 1 unread; latest: # 2 10:00:00 UNREAD bigPull         Entropy Harvester (Rare, secret, NEW)
+  Ada opens her daily pack (seed 26): Shield Relay [standard], Kinetic Buffer [standard], Cluster Node [standard], Hardening Protocol [standard], Shield Relay [secret]
+  bell: 1 unread; latest: # 2 10:00:00 UNREAD bigPull         Shield Relay (Common, secret, NEW)
   [PASS] the full-reveal pack is one bigPull naming its big card(s)
 
 3. The ladder at watch speed; Ada's bell read every 30 s (changes only)
 ------------------------------------------------------------------------
   Ada: auto-play on, 30 minutes (waiting: they start at her first pairing). Bram: on, no time limit, match results switched off.
   10:05:45  ladder: m2 recorded (win): Kiln v Bram
-  10:07:20  ladder: m1 recorded (win): Ada v Hub
-  10:07:30  Ada's bell: 2 unread — # 3 10:07:20 UNREAD matchResult     m1: Ada-agent loss v Hub-agent (Hub), 2 credits, -162.3 rating, 16 turns
-  10:15:25  ladder: m3 recorded (win): Hub v Bram
-  10:15:35  ladder: m4 recorded (win): Kiln v Ada
-  10:16:00  Ada's bell: 3 unread — # 4 10:15:35 UNREAD matchResult     m4: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -129.6 rating, 17 turns
-  10:22:05  ladder: m5 recorded (win): Kiln v Hub
-  10:22:40  ladder: m6 recorded (win): Bram v Ada
-  10:23:00  Ada's bell: 4 unread — # 5 10:22:40 UNREAD matchResult     m6: Ada-agent win v Bram-agent (Bram), 30 credits, +189.6 rating, 18 turns
-  10:31:00  ladder: m7 recorded (win): Kiln v Bram
-  10:31:05  ladder: auto-play off for Ada: timeUp
-  10:31:05  ladder: m8 recorded (win): Ada v Hub
-  10:31:30  Ada's bell: 6 unread — # 7 10:31:05 UNREAD autoPlayStopped auto-play off: your agent's 30 minutes are up (2026-11-09)
-  10:39:00  ladder: m9 recorded (win): Hub v Kiln
-  10:45:40  ladder: m10 recorded (win): Hub v Bram
-  Ada played 4 match(es); Bram 5 (switched off by hand at 10:50:05).
+  10:06:15  ladder: m1 recorded (win): Ada v Hub
+  10:06:30  Ada's bell: 2 unread — # 3 10:06:15 UNREAD matchResult     m1: Ada-agent loss v Hub-agent (Hub), 2 credits, -162.3 rating, 14 turns
+  10:14:20  ladder: m3 recorded (win): Hub v Bram
+  10:14:30  ladder: m4 recorded (win): Kiln v Ada
+  10:14:30  Ada's bell: 3 unread — # 4 10:14:30 UNREAD matchResult     m4: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -129.6 rating, 17 turns
+  10:20:50  ladder: m6 recorded (win): Bram v Ada
+  10:21:00  ladder: m5 recorded (win): Kiln v Hub
+  10:21:00  Ada's bell: 4 unread — # 5 10:20:50 UNREAD matchResult     m6: Ada-agent win v Bram-agent (Bram), 30 credits, +189.6 rating, 16 turns
+  10:29:10  ladder: m8 recorded (win): Ada v Hub
+  10:29:20  ladder: m7 recorded (win): Kiln v Bram
+  10:29:30  Ada's bell: 5 unread — # 6 10:29:10 UNREAD matchResult     m8: Ada-agent win v Hub-agent (Hub), 10 credits, +142.1 rating, 19 turns
+  10:35:55  ladder: auto-play off for Ada: timeUp
+  10:35:55  ladder: m9 recorded (win): Kiln v Ada
+  10:36:00  ladder: m10 recorded (win): Hub v Bram
+  10:36:00  Ada's bell: 7 unread — # 8 10:35:55 UNREAD autoPlayStopped auto-play off: your agent's 30 minutes are up (2026-11-09)
+  10:43:05  ladder: m11 recorded (win): Kiln v Hub
+  10:48:30  ladder: m12 recorded (win): Bram v Kiln
+  Ada played 5 match(es); Bram 6 (switched off by hand at 10:50:05).
 
 4. Ada's feed (GET /api/notifications), newest first
 ------------------------------------------------------------------------
-  # 7 10:31:05 UNREAD autoPlayStopped auto-play off: your agent's 30 minutes are up (2026-11-09)
-  # 6 10:31:05 UNREAD matchResult     m8: Ada-agent win v Hub-agent (Hub), 10 credits, +142.1 rating, 19 turns
-  # 5 10:22:40 UNREAD matchResult     m6: Ada-agent win v Bram-agent (Bram), 30 credits, +189.6 rating, 18 turns
-  # 4 10:15:35 UNREAD matchResult     m4: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -129.6 rating, 17 turns
-  # 3 10:07:20 UNREAD matchResult     m1: Ada-agent loss v Hub-agent (Hub), 2 credits, -162.3 rating, 16 turns
-  # 2 10:00:00 UNREAD bigPull         Entropy Harvester (Rare, secret, NEW)
+  # 8 10:35:55 UNREAD autoPlayStopped auto-play off: your agent's 30 minutes are up (2026-11-09)
+  # 7 10:35:55 UNREAD matchResult     m9: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -53.7 rating, 15 turns
+  # 6 10:29:10 UNREAD matchResult     m8: Ada-agent win v Hub-agent (Hub), 10 credits, +142.1 rating, 19 turns
+  # 5 10:20:50 UNREAD matchResult     m6: Ada-agent win v Bram-agent (Bram), 30 credits, +189.6 rating, 16 turns
+  # 4 10:14:30 UNREAD matchResult     m4: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -129.6 rating, 17 turns
+  # 3 10:06:15 UNREAD matchResult     m1: Ada-agent loss v Hub-agent (Hub), 2 credits, -162.3 rating, 14 turns
+  # 2 10:00:00 UNREAD bigPull         Shield Relay (Common, secret, NEW)
   # 1 10:00:00 read   dailyPack       free daily pack ready for 2026-11-09 (since 10:00:00), 1 of 2 waiting
-  unread 6; by kind {"matchResult":4,"bigPull":1,"dailyPack":0,"autoPlayStopped":1}; more=false
+  unread 7; by kind {"matchResult":5,"bigPull":1,"dailyPack":0,"autoPlayStopped":1}; more=false
   [PASS] one match result per match Ada played, in order, each matching the recorded match
   [PASS] each result's credits and rating change are the match's own
   [PASS] the time up comes after the last match, once, with the allowance's 30 minutes
   Bram's feed: dailyPack
   [PASS] Bram, with match results off, got none of his matches
   [PASS] house owners got none
-  ?kind=bigPull: 1 shown, unread still 6 (the badge counts every kind)
+  ?kind=bigPull: 1 shown, unread still 7 (the badge counts every kind)
   [PASS] a kind filter narrows the list but not the badge
 
 5. The day's rewards cap (Cyra; 10 wins recorded straight into the store)
 ------------------------------------------------------------------------
-  # 9 11:00:05 UNREAD autoPlayStopped auto-play off: today's rewards are maxed (2026-11-09)
+  #10 11:00:05 UNREAD autoPlayStopped auto-play off: today's rewards are maxed (2026-11-09)
   [PASS] the cap switches auto-play off and tells her once, though her other switches are off
 
 6. Reading and clearing (POST /api/notifications/read, /clear)
@@ -68,17 +72,17 @@ play-time allowance's time up (no switch). Player owners only. Times below are S
   read, no body                          400  send { "ids": [notification ids, 1 to 100] } or { "all": true }
   read { ids: [] }                       400  send { "ids": [notification ids, 1 to 100] } or { "all": true }
   clear { all: false }                   400  send { "ids": [notification ids, 1 to 100] } or { "all": true }
-  read { ids: [7, 8] } (Bram's)          404  no notification 8
+  read { ids: [8, 9] } (Bram's)          404  no notification 9
   [PASS] bad requests changed nothing
-  read { ids: [7, 6] }                   200  {"marked":2,"unread":4}
-  clear { ids: [1] }                     200  {"cleared":1,"unread":4}
-  read { all: true }                     200  {"marked":4,"unread":0}
+  read { ids: [8, 7] }                   200  {"marked":2,"unread":5}
+  clear { ids: [1] }                     200  {"cleared":1,"unread":5}
+  read { all: true }                     200  {"marked":5,"unread":0}
   [PASS] read by ids, cleared one (gone from the feed), then all read
 
 7. The next Sydney day
 ------------------------------------------------------------------------
-  Ada's bell: 1 unread; latest: #10 06:30:00 UNREAD dailyPack       free daily pack ready for 2026-11-10 (since 00:00:00), 1 of 2 waiting
+  Ada's bell: 1 unread; latest: #11 06:30:00 UNREAD dailyPack       free daily pack ready for 2026-11-10 (since 00:00:00), 1 of 2 waiting
   [PASS] a new day's pack is a new notification, ready since midnight Sydney
-  clear { all: true } 200 {"cleared":7,"unread":0}; feed now 0 item(s)
+  clear { all: true } 200 {"cleared":8,"unread":0}; feed now 0 item(s)
 
 Schema v29. 14 PASS, 0 FAIL.

@@ -4900,7 +4900,7 @@ Next session by alternation: game 96 (the booster-card proposal, per the entry a
 
 ---
 
-## 2026-11-14 — Owner: answers to game session 96 (the Season 0 booster-card proposal), keep all 8 as recommended
+## 2026-11-14 — Owner: answers to game session 96 (the Season 0 booster-card proposal), keep all 8 as recommended (build steps 1 and 2 HANDLED 2026-11-14, game session 97: the 28 cards unchanged into the faction files and the registry (`S0_BOOSTER_CARDS`), card version `cards-2`; the set 001-096 + 097-124 (call 6 (a)); `S0-odds-3` live, S0-odds-2's numbers on booster cards only, the old tables on the legacy set (their seed hashes unchanged); the set-Mythic stand-in picks the starter Mythic; the realistic collections re-made from S0-odds-3; evidence `progress/pack-sim-004-booster.txt` (16 PASS), tests `engine/test/boosterCards.test.ts`, `economy/test/chase.test.ts`, `economy/test/packs.test.ts`. Step 4, the balance re-run to call 3's target with call 8's fallback, is NOT done: the next game session's first job)
 
 **Game session 96** (PR #173, `progress/booster-proposal-s0.md`, `progress/booster-proposal-005.txt`, `progress/notes-for-owner.md`). **Keep all 8 calls, each as recommended:**
 1. **Keep:** the list: approve the 28 cards as proposed. The build tunes numbers only (costs and stats, never a card's job), by the real balance re-run.
@@ -4916,7 +4916,7 @@ Next: the build (the proposal's build order: cards and registry, set numbering a
 
 ---
 
-## 2026-11-14 — Owner: starter cards are Standard only; every special version belongs to the booster cards (replaces call 7's starter-card line)
+## 2026-11-14 — Owner: starter cards are Standard only; every special version belongs to the booster cards (replaces call 7's starter-card line) (HANDLED 2026-11-14, game session 97: 1: packs roll booster cards only in every slot and finish (plus the 3 Zero-Day cards), and the store refuses a Foil, Full Art, Glitch, Alt Art, illustration, Gold or Prototype copy of a starter card; Standard and crafting stay; Gold numbers only on booster cards. 2: the Glitch list (16), the illustrations (16) and the 15 Prototype runs (1/1 included) re-pointed at booster cards and shown at the [OWNER CHECK-IN] in `progress/notes-for-owner.md`, calls 1-3, with three smaller calls 4-6; test `economy/test/chase.test.ts` "starter cards are Standard only")
 
 Follows the entry above (answers to game session 96, PR #173, `progress/booster-proposal-s0.md`, call 7).
 1. **Decision:** starter cards are Standard only. They are never in packs, and never in any special version: no Foil, Full Art, Glitch, Alt Art, secret illustration, Gold or Prototype copy of a starter card. Every special version belongs to the booster cards. This replaces call 7's line that starter cards appear in packs only in the chase versions; packs hold booster cards (plus the 3 Zero-Day cards, unchanged).
