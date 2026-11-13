@@ -4869,3 +4869,16 @@ Next session by alternation: game 95 (the two asks above), then render 73.
 
 1. **Decision:** after Season 0 completes, conduct a full analysis report / deep dive, as a PDF written as if presented to management. It covers agent progress, the number of matches, cards collected, win/loss by faction, interesting and unexpected outcomes, and opportunities to clean up for Season 1.
 2. **Timing:** after Season 0 completes (it ends 00:00 27 Dec 2026, Sydney). Not part of the Season 0 build (the scope lock stands).
+
+---
+
+## 2026-11-14 — Owner: Season 0 gets its own pack-only booster cards (option B); launch stays 5 December
+
+Prompted by the owner's review of the Season 0 set: 89 of the set's 96 cards are in at least one starter deck (`engine/src/data/registry.ts` `SHIPPED_DECK_LISTS`), so the only base cards packs hold that no starter deck does are 7 neutrals (NT-001, NT-002, NT-003, NT-006, NT-007, NT-009, NT-010) and the 3 Zero-Day cards.
+
+1. **Decision:** the point of packs, besides the new versions (finishes), is brand-new cards unique to that season and available only in packs. Season 0 is meant to mimic Season 1, so Season 0 works this way too. This is an owner-approved exception to the 2026-11-06 scope lock.
+2. **Decision (option B):** a small pack-only booster set for Season 0: about 24–30 new cards, about 6–7 per faction. The four starter decks stay a separate, fixed product and are unchanged. Packs hold the new booster cards in their normal versions; starter cards appear in packs only as chase versions (Alt Art, Full Art, secret illustrations, Gold).
+3. **Decision:** the new cards use only abilities the engine already has (no new mechanics), and they power up each faction's existing plan.
+4. **First step:** the game lane proposes the card list at an [OWNER CHECK-IN] for the owner's approval before building it. Then: the set list and numbering, the pack table, the agents' deck builder, and a balance re-run against the starter decks.
+5. **Decision:** launch stays 5 December 2026.
+6. **Not decided:** the exact card count (within about 24–30) and the rarity split (for the proposal); what happens if the balance re-run fails.
