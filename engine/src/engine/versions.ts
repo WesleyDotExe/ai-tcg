@@ -149,6 +149,11 @@ export const CARDS_VERSIONS: readonly CardsVersion[] = [
     digest: "6b0c6e22247bc341",
     note: "The Season 0 cards as they stood for every ai-tcg-replay/1 file (session 67 to session 70): the four faction pools, the neutral pool and the 3 Zero-Day cards.",
   },
+  {
+    id: "cards-2",
+    digest: "841867645a649a6d",
+    note: "Session 97: cards-1 plus Season 0's 28 pack-only booster cards (CX-101 to CX-107, SW-101 to SW-107, AG-101 to AG-107, NL-101 to NL-107; owner 2026-11-14, option B). No cards-1 card changed.",
+  },
 ];
 
 /** The card version every match the game plays today is played under. */

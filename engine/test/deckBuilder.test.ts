@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { CARD_REGISTRY, getCard } from "../src/data/registry.js";
+import { CARD_REGISTRY, getCard, isBoosterCard } from "../src/data/registry.js";
 import { MAX_NEUTRAL_COPIES } from "../src/data/decks.js";
 import { isRemovalOrDebuffCard } from "../src/cards/poolLint.js";
 import type { Card, DeckFaction, UnitCard } from "../src/cards/types.js";
@@ -28,6 +28,7 @@ import {
   type DeckList,
   type Holdings,
 } from "../src/deckbuilder/deckBuilder.js";
+import { fullHoldings as fullHoldingsAll } from "../src/deckbuilder/deckBuilder.js";
 
 function unit(over: Partial<UnitCard>): UnitCard {
   return { id: "t", name: "T", faction: "Swarm", rarity: "Common", cost: 3, type: "Unit", art: "", flavor: "", abilities: [], attack: 3, health: 4, keywords: [], ...over };
@@ -327,6 +328,9 @@ describe("keepDesigned: the designed start is kept unless beaten by more than no
   });
 
   it("keeps the designed Null deck from a full collection at the store's settings (session 71's case: rating 214 vs designed 212 of 400)", async () => {
+    // Session 71's case is a collection of every starter-era card (cards-1):
+    // the booster cards (session 97) are left out, so it stays the same case.
+    const fullHoldings = () => new Map([...fullHoldingsAll()].filter(([id]) => !isBoosterCard(id)));
     const plain = await buildFaction("Null", fullHoldings(), { keepDesigned: null });
     expect(plain.chosen).toBe("rating");
     expect(plain.score!.wins).toBe(214);

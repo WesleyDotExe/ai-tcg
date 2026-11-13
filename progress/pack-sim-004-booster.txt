@@ -1,0 +1,136 @@
+AI-TCG booster-card pack simulation (session 97): S0-odds-3 (live) beside S0-odds-2, on the same seeds
+Command (from economy/): npx tsx src/dev/packSimulation3.ts. Every pack is rollPack(seed, ...), the function openPack uses.
+
+1. The set
+------------------------------------------------------------------------
+  124 base cards: 96 starter-era (001/124 to 096/124), 28 booster (097/124 to 124/124)
+  The booster cards (number, Gold number, card, rarity, faction):
+    097/124  125/124  CX-102  Mutex Lock           Common    Cortex
+    098/124  126/124  CX-101  Port Scanner         Common    Cortex
+    099/124  127/124  CX-103  Cluster Node         Uncommon  Cortex
+    100/124  128/124  CX-104  Hot Swap             Uncommon  Cortex
+    101/124  129/124  CX-106  Job Scheduler        Rare      Cortex
+    102/124  130/124  CX-105  Parity Checker       Rare      Cortex
+    103/124  131/124  CX-107  Grid Consensus       Mythic    Cortex
+    104/124  132/124  SW-101  Egg Courier          Common    Swarm
+    105/124  133/124  SW-102  Spawning Pulse       Common    Swarm
+    106/124  134/124  SW-104  Acid Drone           Uncommon  Swarm
+    107/124  135/124  SW-103  Hive Relay           Uncommon  Swarm
+    108/124  136/124  SW-106  Brood Tyrant         Rare      Swarm
+    109/124  137/124  SW-105  Swarm Surge          Rare      Swarm
+    110/124  138/124  SW-107  Colony Overmind      Mythic    Swarm
+    111/124  139/124  AG-102  Kinetic Buffer       Common    Aegis
+    112/124  140/124  AG-101  Shield Relay         Common    Aegis
+    113/124  141/124  AG-103  Bastion Array        Uncommon  Aegis
+    114/124  142/124  AG-104  Hardlight Shell      Uncommon  Aegis
+    115/124  143/124  AG-106  Hardening Protocol   Rare      Aegis
+    116/124  144/124  AG-105  Mirror Bulwark       Rare      Aegis
+    117/124  145/124  AG-107  Aegis Overwatch      Mythic    Aegis
+    118/124  146/124  NL-101  Bad Sector           Common    Null
+    119/124  147/124  NL-102  Memory Leak          Common    Null
+    120/124  148/124  NL-103  Reaper Thread        Uncommon  Null
+    121/124  149/124  NL-104  Zombie Fork          Uncommon  Null
+    122/124  150/124  NL-106  Decay Engine         Rare      Null
+    123/124  151/124  NL-105  Heap Spray           Rare      Null
+    124/124  152/124  NL-107  Heat Death           Mythic    Null
+  [PASS] 96 starter-era cards and 28 booster cards
+  [PASS] the 96 keep their numbers 001 to 096 in their old order (only the total moved, /096 to /124)
+  [PASS] only booster cards have a Gold number: 125/124 to 152/124
+  [PASS] booster rarities 8 C / 8 U / 8 R / 4 M (call 2 (a)): {"Common":8,"Uncommon":8,"Rare":8,"Mythic":4}
+
+  Secret cards (proposed this session, for the owner's check-in):
+    153/124  S0-SR01  illustration Grid Consensus (Mythic)
+    154/124  S0-SR02  illustration Parity Checker (Rare)
+    155/124  S0-SR03  illustration Job Scheduler (Rare)
+    156/124  S0-SR04  illustration Port Scanner (Common)
+    157/124  S0-SR05  illustration Colony Overmind (Mythic)
+    158/124  S0-SR06  illustration Swarm Surge (Rare)
+    159/124  S0-SR07  illustration Brood Tyrant (Rare)
+    160/124  S0-SR08  illustration Egg Courier (Common)
+    161/124  S0-SR09  illustration Aegis Overwatch (Mythic)
+    162/124  S0-SR10  illustration Mirror Bulwark (Rare)
+    163/124  S0-SR11  illustration Hardening Protocol (Rare)
+    164/124  S0-SR12  illustration Shield Relay (Common)
+    165/124  S0-SR13  illustration Heat Death (Mythic)
+    166/124  S0-SR14  illustration Heap Spray (Rare)
+    167/124  S0-SR15  illustration Decay Engine (Rare)
+    168/124  S0-SR16  illustration Bad Sector (Common)
+    169/124  S0-ZD1   zeroDay      Patient Zero
+    170/124  S0-ZD2   zeroDay      Root Access
+    171/124  S0-ZD3   zeroDay      Kill Switch
+  Glitch versions: Grid Consensus, Parity Checker, Cluster Node, Mutex Lock, Colony Overmind, Brood Tyrant, Hive Relay, Acid Drone, Aegis Overwatch, Mirror Bulwark, Bastion Array, Shield Relay, Heat Death, Heap Spray, Decay Engine, Zombie Fork
+  Prototype runs:
+    S0-P01  /1    Heat Death (Mythic)
+    S0-P02  /5    Aegis Overwatch (Mythic)
+    S0-P03  /10   Grid Consensus (Mythic)
+    S0-P04  /25   Colony Overmind (Mythic)
+    S0-P05  /25   Heap Spray (Rare)
+    S0-P06  /50   Swarm Surge (Rare)
+    S0-P07  /50   Mirror Bulwark (Rare)
+    S0-P08  /50   Parity Checker (Rare)
+    S0-P09  /100  Brood Tyrant (Rare)
+    S0-P10  /100  Decay Engine (Rare)
+    S0-P11  /100  Hardening Protocol (Rare)
+    S0-P12  /250  Job Scheduler (Rare)
+    S0-P13  /250  Bastion Array (Uncommon)
+    S0-P14  /250  Hive Relay (Uncommon)
+    S0-P15  /250  Reaper Thread (Uncommon)
+  [PASS] every illustration, Glitch version and Prototype run is on a booster card
+  [PASS] the secret cards run 153/124 to 171/124, the Zero-Day cards at the top
+  [PASS] the Prototype pyramid still holds 1,516 copies in 15 runs
+
+2. 200,000 packs per table, pity carried from pack to pack (one owner opening them all)
+------------------------------------------------------------------------
+                                        S0-odds-2   S0-odds-3
+  packs with Full Art or better            20.79%      20.79%
+    of which forced by pity                 2.62%       2.62%
+  shine slot Foil                          27.13%      27.14%
+  Rare slot a Mythic                       12.60%      12.59%
+  packs with a Zero-Day card             1 in 430    1 in 430
+  Jackpot packs                               103         103
+    pulls in standard                      903896      903896
+    pulls in foil                           54615       54605
+    pulls in fullArt                        20289       20293
+    pulls in glitch                          9204        9213
+    pulls in altArt                          6646        6646
+    pulls in secret                          3321        3319
+    pulls in gold                            1564        1563
+    pulls in zeroDay                          465         465
+    pulls in prototype                        170         170
+  pulls of a starter card                  999705           0
+  [PASS] S0-odds-3: no starter card in 200,000 packs, in any slot or finish
+  [PASS] the hit rate is S0-odds-2's (20.79% vs 20.79%; table base 18.4% before pity)
+  [PASS] Foil and the Mythic Rare slot are S0-odds-2's
+  [PASS] Jackpot about 1 in 2,000 (103, expected 100)
+
+  S0-odds-3 pulls by card (every slot and finish but Zero-Day), per rarity: fewest and most per card
+    Common     8 cards  61700 to 62842 pulls each
+    Uncommon   8 cards  30779 to 32036 pulls each
+    Rare       8 cards  25989 to 27269 pulls each
+    Mythic     4 cards  9355 to 9640 pulls each
+  [PASS] every booster card was pulled
+  S0-odds-3 pulls by faction:
+    Cortex  25.0%
+    Swarm   25.0%
+    Aegis   25.0%
+    Null    25.0%
+  [PASS] each faction is 25% of pulls, within a point
+
+3. Packs to complete, 400 owners each, from packs alone (no crafting; any finish counts)
+------------------------------------------------------------------------
+  S0-odds-3: one of each of the 28 booster cards             median   42  p10   24  p90   76
+  S0-odds-3: a playable set of them (3 / 3 / 2 / 1 by rarity) median   48  p10   35  p90   74
+  S0-odds-2 (before): one of each of the 96 base cards       median  131  p10   97  p90  181
+  At ECONOMY.md's ~2.4 packs a day, the median owner holds one of every booster card
+  after about 18 days and a playable set after about 20 days (Season 0 runs 21 days).
+  [PASS] the 28 booster cards complete sooner than the old 96-card base set did
+
+4. The old tables still roll the set as it stood (every logged opening reproduces)
+------------------------------------------------------------------------
+  S0-odds-1: 1efcc4db932d08a61afdc422a6f94a5141756fb2ed1b5ce5ee2bbbed983ef66c
+  [PASS] S0-odds-1 rolls exactly as it did before the booster cards (the hash chase.test.ts pinned in session 39)
+  S0-odds-2: 3fdd1b3fbb4c1959635fa21490d50baddda5cc89c1efb584ed05a7eba1fb4ada
+  [PASS] S0-odds-2 rolls exactly as it did before the booster cards (the hash chase.test.ts pinned in session 39)
+  S0-odds-3: 7c3eda22f8cf90addd558c47c9808109940da591084c5f5d970210668881ae2a
+
+16 PASS, 0 FAIL.

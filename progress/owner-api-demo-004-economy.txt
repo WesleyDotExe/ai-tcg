@@ -58,11 +58,11 @@ The database is a real file; the store's clock starts at 2026-11-01T09:00:00.000
   wallet: credits 350, pack points 0, 5 pack(s) to open
 > POST /api/packs/open {}  -> 200
   <pack 3> (seed logged, +5 pack points):
-    001/096 Cortex Engineer (Common) x3 owned
-    045/096 Aegis Cadet (Common) NEW x1 owned
-    039/096 Spore Cluster (Uncommon) NEW x1 owned
-    018/096 Dormant Exploit (Rare) x2 owned
-    087/096 Commodity Rack (Common) NEW x1 owned
+    097/124 Mutex Lock (Common) NEW x1 owned
+    105/124 Spawning Pulse (Common) NEW x1 owned
+    107/124 Hive Relay (Uncommon) NEW x1 owned
+    101/124 Job Scheduler (Rare) NEW x1 owned
+    118/124 Bad Sector (Common) NEW x1 owned
   wallet: credits 350, pack points 5, 4 pack(s) to open
 
 5. The server restarts on the same file: the board and the packs are on the account
@@ -74,52 +74,52 @@ The database is a real file; the store's clock starts at 2026-11-01T09:00:00.000
   wallet: credits 350, pack points 5, 4 pack(s) to open
 > POST /api/packs/open {"packId":"<pack 2>"}  -> 200
   opened the chosen pack, <pack 2>, not the oldest:
-    025/096 Brood Skitterer (Common) NEW x1 owned
-    004/096 Fail-safe Unit (Common) x3 owned
-    079/096 Propagating Exploit (Uncommon) NEW x1 owned
-    044/096 Hive Mother (Mythic) NEW x1 owned
-    026/096 Broodcaller (Common, foil) NEW x1 owned
+    104/124 Egg Courier (Common) NEW x2 owned
+    097/124 Mutex Lock (Common) x2 owned
+    121/124 Zombie Fork (Uncommon) NEW x1 owned
+    110/124 Colony Overmind (Mythic) NEW x1 owned
+    104/124 Egg Courier (Common, foil) NEW x2 owned
 > POST /api/packs/open {"count":10}  -> 409
   error: only 3 unopened pack(s); can't open 10
   (eight of the owner's daily packs granted through the store, as the daily-pack reward would)
 > POST /api/packs/open {"count":10}  -> 200
-  ten packs: 50 cards, 23 new, +50 pack points; by rarity Common 25, Uncommon 11, Rare 11, Mythic 3
+  ten packs: 50 cards, 17 new, +50 pack points; by rarity Common 25, Uncommon 11, Rare 10, Mythic 4
   by finish standard 45, glitch 1, foil 3, altArt 1; full reveals: 0
-    <pack 4>: 022/096 Recursive Construct (Rare, glitch) NEW x3 owned
-    <pack 5>: 070/096 Segfault Handler (Common, foil) NEW x1 owned
-    <pack 6>: 066/096 Prime Aegis (Mythic) NEW x2 owned; 066/096 Prime Aegis (Mythic, altArt) NEW x2 owned
-    <pack 8>: 024/096 Quorum Arbiter (Mythic, foil) x2 owned
-    <pack 11>: 092/096 Surge Protector (Common, foil) x2 owned
+    <pack 4>: 103/124 Grid Consensus (Mythic, glitch) NEW x1 owned
+    <pack 5>: 112/124 Shield Relay (Common, foil) x3 owned
+    <pack 6>: 117/124 Aegis Overwatch (Mythic) NEW x2 owned; 117/124 Aegis Overwatch (Mythic, altArt) NEW x2 owned
+    <pack 8>: 103/124 Grid Consensus (Mythic, foil) x2 owned
+    <pack 11>: 119/124 Memory Leak (Common, foil) x5 owned
   wallet: credits 350, pack points 60, 1 pack(s) to open
 
 6. The collection: by card, by set, and the recent pulls
 ------------------------------------------------------------------------
 > GET /api/collection?recentPacks=2  -> 200
-  100 copies of 55 cards
-  set S0: base 55/96, secrets 0/36, Glitch 1/20, Gold 0/96, Prototype runs 0/15
-  Cortex Engineer (Common, Cortex): 5 owned, 3 salvageable; origin starter 2, pack 3; finish standard 5
-  Init Daemon (Common, Cortex): 5 owned, 2 salvageable; origin starter 3, pack 2; finish standard 5
-  Recursive Construct (Rare, Cortex): 5 owned, 2 salvageable; origin starter 2, pack 3; finish standard 4, glitch 1
+  100 copies of 51 cards
+  set S0: base 51/124, secrets 0/19, Glitch 1/16, Gold 0/28, Prototype runs 0/15
+  Memory Leak (Common, Null): 5 owned, 4 salvageable; origin pack 5; finish standard 4, foil 1
+  Mutex Lock (Common, Cortex): 5 owned, 5 salvageable; origin pack 5; finish standard 5
+  Shield Relay (Common, Aegis): 5 owned, 4 salvageable; origin pack 5; finish standard 4, foil 1
   recent pulls: <pack 12> (5 cards), <pack 11> (5 cards)
 > GET /api/collection/binder/S0  -> 200
-  binder, first held places: 001/096 Cortex Engineer x5; 002/096 Deadlock Detector x1; 003/096 Diagnostic Pulse x2; 004/096 Fail-safe Unit x3
+  binder, first held places: 001/124 Cortex Engineer x2; 002/124 Deadlock Detector x1; 003/124 Diagnostic Pulse x1; 004/124 Fail-safe Unit x2
 
 7. Salvage (plan first, then do it) and crafting with pack points
 ------------------------------------------------------------------------
-> GET /api/collection/cards/AG-001  -> 200
-  Aegis Cadet: 4 owned, 4 salvageable at 5 each; not salvageable: none
-> GET /api/collection/cards/AG-001/salvage?quantity=2  -> 200
+> GET /api/collection/cards/NL-101  -> 200
+  Bad Sector: 4 owned, 4 salvageable at 5 each; not salvageable: none
+> GET /api/collection/cards/NL-101/salvage?quantity=2  -> 200
   plan: 2 go for 10 pack points, 2 left; decks left short: 0
-> POST /api/collection/cards/AG-001/salvage {"quantity":2}  -> 200
+> POST /api/collection/cards/NL-101/salvage {"quantity":2}  -> 200
   salvaged 2 for +10; now 2 owned
   wallet: credits 350, pack points 70, 1 pack(s) to open
-> POST /api/collection/cards/AG-001/salvage {"quantity":99}  -> 409
-  error: can't salvage 99 of "AG-001": 2 of 2 held can be salvaged
-> POST /api/collection/cards/SW-018/craft  -> 201
-  crafted Carapace Grunt: origin crafted, account-bound true; now 1 owned
+> POST /api/collection/cards/NL-101/salvage {"quantity":99}  -> 409
+  error: can't salvage 99 of "NL-101": 2 of 2 held can be salvaged
+> POST /api/collection/cards/SW-017/craft  -> 201
+  crafted Brood Skitterer: origin crafted, account-bound true; now 1 owned
   wallet: credits 350, pack points 30, 1 pack(s) to open
 > POST /api/collection/secrets/S0-SR01/craft  -> 409
-  error: crafting Quorum Arbiter (S0-SR01) costs 750 pack points; you have 30
+  error: crafting Grid Consensus (S0-SR01) costs 750 pack points; you have 30
 
 8. The store, cosmetics and the loadout
 ------------------------------------------------------------------------

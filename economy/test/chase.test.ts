@@ -5,7 +5,7 @@
 
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { LookaheadAgent, buildAegisDeck, getCard, runMatch } from "@ai-tcg/engine";
+import { LookaheadAgent, buildAegisDeck, getCard, isBoosterCard, runMatch } from "@ai-tcg/engine";
 import {
   EconomyStore,
   FULL_ART_OR_BETTER,
@@ -13,8 +13,10 @@ import {
   PACK_ODDS,
   PACK_ODDS_TABLES,
   PACK_ODDS_V2,
+  PACK_ODDS_V3,
   PACK_POINTS_PER_PACK,
   S0_GLITCH_CARDS,
+  S0_GLITCH_CARDS_V2,
   SECRET_CRAFT_PACK_POINTS,
   baseHitPercent,
   cardSet,
@@ -25,13 +27,23 @@ import {
 } from "../src/index.js";
 
 const S0 = cardSet("S0");
+/** The set as it stood before the booster cards (session 97): what
+ * S0-odds-1 and S0-odds-2 roll. */
+const LEGACY = S0.legacy!;
 const NO_PITY: PityState = { packsSinceFullArt: 0, packsSinceMythic: 0 };
 const RUNS = new Map(S0.prototypes.map((r) => [r.code, r.runSize]));
-const roll = (seed: number, pity = NO_PITY): PackRoll => rollPack(seed, S0, pity, RUNS, PACK_ODDS_V2);
+/** A pack under the live table (S0-odds-3 since session 97). */
+const roll = (seed: number, pity = NO_PITY): PackRoll => rollPack(seed, S0, pity, RUNS, LIVE_PACK_ODDS);
+/** The two chase tables, each with the set view and Glitch list it rolls. */
+const CHASE_TABLES = [
+  { odds: PACK_ODDS_V2, set: LEGACY, glitch: S0_GLITCH_CARDS_V2, booster: false },
+  { odds: PACK_ODDS_V3, set: S0, glitch: S0_GLITCH_CARDS, booster: true },
+] as const;
+const highestGold = (set: typeof S0) => Math.max(...set.cards.flatMap((c) => (c.goldNumber === null ? [] : [num(c.goldNumber)])));
 const num = (collector: string) => Number(collector.split("/")[0]);
 const T0 = Date.parse("2026-10-18T10:00:00.000Z");
 const store = () => EconomyStore.open(":memory:", { now: () => new Date(T0) });
-/** The first seed whose S0-odds-2 pack (fresh pity) passes `want`. */
+/** The first seed whose live pack (fresh pity) passes `want`. */
 function seedWhere(want: (r: PackRoll) => boolean, start = 0): number {
   for (let seed = start; seed < start + 2_000_000; seed++) if (want(roll(seed))) return seed;
   throw new Error("no seed found");
@@ -43,17 +55,27 @@ function ownerWithPacks(s: EconomyStore, n: number): string {
 }
 
 describe("the secret cards", () => {
-  it("33 illustrations and 3 Zero-Day slots, numbered above every Gold number, each its own entry", () => {
+  it("S0-odds-2's legacy set: 33 illustrations and 3 Zero-Day slots above every Gold number, all five pools", () => {
+    const illus = LEGACY.secrets.filter((x) => x.kind === "illustration");
+    expect(illus).toHaveLength(33);
+    expect(LEGACY.cards).toHaveLength(96);
+    expect(LEGACY.secrets[0]!.collectorNumber).toBe("193/096");
+    expect(LEGACY.secrets.at(-1)!.collectorNumber).toBe("228/096");
+    expect([...new Set(illus.map((x) => getCard(x.cardId)!.faction))].sort()).toEqual(["Aegis", "Cortex", "Neutral", "Null", "Swarm"]);
+  });
+
+  it("16 booster-card illustrations and 3 Zero-Day slots, numbered above every Gold number, each its own entry (session 97)", () => {
     const illus = S0.secrets.filter((s) => s.kind === "illustration");
     const zd = S0.secrets.filter((s) => s.kind === "zeroDay");
-    expect(illus).toHaveLength(33);
+    expect(illus).toHaveLength(16);
     expect(zd).toHaveLength(3);
     const numbers = S0.secrets.map((s) => num(s.collectorNumber));
-    const highestGold = Math.max(...S0.cards.map((c) => num(c.goldNumber)));
-    expect(numbers[0]).toBe(highestGold + 1);
-    expect(numbers).toEqual(numbers.map((_, i) => highestGold + 1 + i)); // contiguous, unique
+    expect(highestGold(S0)).toBe(152);
+    expect(numbers[0]).toBe(highestGold(S0) + 1);
+    expect(numbers).toEqual(numbers.map((_, i) => highestGold(S0) + 1 + i)); // contiguous, unique
+    expect(S0.secrets.at(-1)!.collectorNumber).toBe("171/124");
     expect(S0.secrets.every((s) => s.collectorNumber.endsWith(`/${String(S0.cards.length).padStart(3, "0")}`))).toBe(true);
-    expect(new Set(S0.secrets.map((s) => s.code)).size).toBe(36);
+    expect(new Set(S0.secrets.map((s) => s.code)).size).toBe(19);
     // Zero-Day sits at the very top, animated; illustrations name their card.
     expect(zd.map((s) => s.code)).toEqual(["S0-ZD1", "S0-ZD2", "S0-ZD3"]);
     // A Zero-Day card's id is its code: the card is designed under it later.
@@ -62,27 +84,44 @@ describe("the secret cards", () => {
       expect(s.animated).toBe(false);
       expect(getCard(s.cardId!)!.name).toBe(s.name);
       expect(s.art).toBe(`placeholder:secret/${s.code}`);
+      expect(isBoosterCard(s.cardId), s.cardId).toBe(true);
     }
-    // Every pool has some.
-    const pools = new Set(illus.map((s) => getCard(s.cardId!)!.faction));
-    expect([...pools].sort()).toEqual(["Aegis", "Cortex", "Neutral", "Null", "Swarm"]);
+    // Four per faction: its Mythic, both Rares, one Common.
+    for (const f of ["Cortex", "Swarm", "Aegis", "Null"]) {
+      const mine = illus.filter((x) => getCard(x.cardId)!.faction === f).map((x) => x.rarity);
+      expect(mine.sort(), f).toEqual(["Common", "Mythic", "Rare", "Rare"]);
+    }
   });
 });
 
 describe("the Glitch tier", () => {
-  it("20 listed Units, four per pool, none twice", () => {
-    expect(S0_GLITCH_CARDS).toHaveLength(20);
-    expect(new Set(S0_GLITCH_CARDS).size).toBe(20);
+  it("S0-odds-2's list: 20 listed Units, four per pool, none twice", () => {
+    expect(S0_GLITCH_CARDS_V2).toHaveLength(20);
+    expect(new Set(S0_GLITCH_CARDS_V2).size).toBe(20);
     const byPool: Record<string, number> = {};
-    for (const id of S0_GLITCH_CARDS) {
+    for (const id of S0_GLITCH_CARDS_V2) {
       expect(getCard(id)!.type, id).toBe("Unit");
       byPool[getCard(id)!.faction] = (byPool[getCard(id)!.faction] ?? 0) + 1;
     }
     expect(Object.values(byPool)).toEqual([4, 4, 4, 4, 4]);
+    expect(LEGACY.glitch).toEqual(S0_GLITCH_CARDS_V2);
+  });
+
+  it("from S0-odds-3: 16 booster Units, four per faction, none twice (session 97)", () => {
+    expect(S0_GLITCH_CARDS).toHaveLength(16);
+    expect(new Set(S0_GLITCH_CARDS).size).toBe(16);
+    const byPool: Record<string, number> = {};
+    for (const id of S0_GLITCH_CARDS) {
+      expect(getCard(id)!.type, id).toBe("Unit");
+      expect(isBoosterCard(id), id).toBe(true);
+      byPool[getCard(id)!.faction] = (byPool[getCard(id)!.faction] ?? 0) + 1;
+    }
+    expect(byPool).toEqual({ Cortex: 4, Swarm: 4, Aegis: 4, Null: 4 });
+    expect(S0.glitch).toEqual(S0_GLITCH_CARDS);
   });
 });
 
-describe("rollPack under S0-odds-2", () => {
+describe("rollPack under the chase tables (S0-odds-2 on the legacy set, S0-odds-3 on the booster cards)", () => {
   it("is deterministic and keeps the pack's shape", () => {
     expect(roll(77)).toEqual(roll(77));
     for (let seed = 0; seed < 2000; seed++) {
@@ -92,13 +131,16 @@ describe("rollPack under S0-odds-2", () => {
     }
   });
 
-  it("lands each special version only on the cards it may go on", () => {
-    const glitch = new Set(S0_GLITCH_CARDS);
-    const secretByCode = new Map(S0.secrets.map((s) => [s.code, s]));
+  it.each(CHASE_TABLES)("lands each special version only on the cards it may go on ($odds.version)", ({ odds, set, glitch: glitchList, booster }) => {
+    const glitch = new Set(glitchList);
+    const secretByCode = new Map(set.secrets.map((s) => [s.code, s]));
     const seen = new Set<string>();
     for (let seed = 0; seed < 60_000; seed++) {
-      const r = roll(seed);
+      const r = rollPack(seed, S0, NO_PITY, RUNS, odds);
       for (const p of r.pulls) {
+        // S0-odds-3: every card is a booster card or a Zero-Day card;
+        // S0-odds-2: none is a booster card.
+        expect(isBoosterCard(p.cardId) || p.finish === "zeroDay", `${odds.version} ${p.cardId}`).toBe(booster || p.finish === "zeroDay");
         seen.add(p.finish);
         if (p.finish === "fullArt") expect(p.rarity).not.toBe("Common");
         if (p.finish === "altArt" || p.finish === "gold") expect(["Rare", "Mythic"]).toContain(p.rarity);
@@ -109,7 +151,8 @@ describe("rollPack under S0-odds-2", () => {
           expect(s.kind).toBe(p.finish === "secret" ? "illustration" : "zeroDay");
           expect(p.collectorNumber).toBe(s.collectorNumber);
         }
-        if (p.finish === "gold") expect(p.collectorNumber).toBe(S0.cards.find((c) => c.cardId === p.cardId)!.goldNumber);
+        if (p.finish === "gold") expect(p.collectorNumber).toBe(set.cards.find((c) => c.cardId === p.cardId)!.goldNumber);
+        if (p.finish !== "gold" && !p.secret) expect(p.collectorNumber).toBe(set.cards.find((c) => c.cardId === p.cardId)!.collectorNumber);
         if (p.slot !== "shine" && !r.jackpot && p.slot !== "bonus") expect(p.finish).toBe("standard");
       }
     }
@@ -181,6 +224,9 @@ describe("every table reproduces its packs from their seeds", () => {
   const PINNED: Record<string, string> = {
     "S0-odds-1": "1efcc4db932d08a61afdc422a6f94a5141756fb2ed1b5ce5ee2bbbed983ef66c",
     "S0-odds-2": "3fdd1b3fbb4c1959635fa21490d50baddda5cc89c1efb584ed05a7eba1fb4ada",
+    // Session 97: pinned when it went live. S0-odds-1 and S0-odds-2 above
+    // kept their hashes through the booster cards (they roll the legacy set).
+    "S0-odds-3": "7c3eda22f8cf90addd558c47c9808109940da591084c5f5d970210668881ae2a",
   };
   const canon = (v: unknown): string =>
     Array.isArray(v)
@@ -195,7 +241,7 @@ describe("every table reproduces its packs from their seeds", () => {
   const NO_RUNS = new Map(S0.prototypes.map((r) => [r.code, 0]));
   const PITIES: PityState[] = [NO_PITY, { packsSinceFullArt: 10, packsSinceMythic: 0 }, { packsSinceFullArt: 0, packsSinceMythic: 40 }, { packsSinceFullArt: 10, packsSinceMythic: 40 }];
 
-  it("pins S0-odds-1 and S0-odds-2, the only tables ever live", () => {
+  it("pins S0-odds-1, S0-odds-2 and S0-odds-3, the only tables ever live", () => {
     expect([...PACK_ODDS_TABLES.keys()]).toEqual(Object.keys(PINNED));
     for (const [version, odds] of PACK_ODDS_TABLES) {
       const h = createHash("sha256");
@@ -205,14 +251,14 @@ describe("every table reproduces its packs from their seeds", () => {
   });
 });
 
-describe("live: openPack rolls S0-odds-2", () => {
+describe("live: openPack rolls S0-odds-3 (S0-odds-2 until session 97)", () => {
   it("every pack opens under the live table and its opening records the version", () => {
     const s = store();
     const o = ownerWithPacks(s, 1);
     const opened = s.openPack(o, undefined, { seed: 5 });
-    expect(LIVE_PACK_ODDS.version).toBe("S0-odds-2");
-    expect(opened.oddsVersion).toBe("S0-odds-2");
-    expect(s.packOpening(opened.packId).oddsVersion).toBe("S0-odds-2");
+    expect(LIVE_PACK_ODDS.version).toBe("S0-odds-3");
+    expect(opened.oddsVersion).toBe("S0-odds-3");
+    expect(s.packOpening(opened.packId).oddsVersion).toBe("S0-odds-3");
     expect(opened.cards.map((c) => [c.cardId, c.finish])).toEqual(roll(5).pulls.map((p) => [p.cardId, p.finish]));
   });
 
@@ -234,7 +280,7 @@ describe("live: openPack rolls S0-odds-2", () => {
       isNew: true,
     });
     expect(card.ownedAfter).toBe(1 + opened.cards.filter((c) => c.cardId === secret.cardId).length);
-    expect(num(card.collectorNumber)).toBeGreaterThan(2 * S0.cards.length);
+    expect(num(card.collectorNumber)).toBeGreaterThan(highestGold(S0));
     expect(opened.fullReveal).toBe(true);
     const copy = s.getCopy(card.copyId);
     expect(copy).toMatchObject({ finish: "secret", secretCode: secret.code, seriesKind: "set", accountBound: false });
@@ -437,16 +483,17 @@ describe("crafting secret cards (owner 2026-10-18, answer 5A)", () => {
 });
 
 describe("the binder and the set checklist", () => {
-  it("every entry in its place: 96 base cards, 36 secret cards, 20 Glitch, 96 Gold, 15 Prototype runs", () => {
+  it("every entry in its place: 124 base cards, 19 secret cards, 16 Glitch, 28 Gold (the booster cards), 15 Prototype runs", () => {
     const s = store();
     const o = ownerWithPacks(s, 0);
     const empty = s.binder(o, "S0");
-    expect([empty.base.total, empty.secrets.total, empty.glitch.total, empty.gold.total, empty.prototypes.length]).toEqual([S0.cards.length, 36, 20, S0.cards.length, 15]);
+    expect([empty.base.total, empty.secrets.total, empty.glitch.total, empty.gold.total, empty.prototypes.length]).toEqual([124, 19, 16, 28, 15]);
     expect([empty.base.held, empty.secrets.held, empty.glitch.held, empty.gold.held]).toEqual([0, 0, 0, 0]);
     expect(empty.base.entries.map((e) => e.number)).toEqual(S0.cards.map((c) => c.collectorNumber));
     expect(empty.secrets.entries.map((e) => e.number)).toEqual(S0.secrets.map((x) => x.collectorNumber));
     expect(empty.secrets.entries.slice(-3).map((e) => e.kind)).toEqual(["zeroDay", "zeroDay", "zeroDay"]);
-    expect(empty.gold.entries.map((e) => e.number)).toEqual(S0.cards.map((c) => c.goldNumber));
+    expect(empty.gold.entries.map((e) => e.number)).toEqual(S0.cards.filter((c) => isBoosterCard(c.cardId)).map((c) => c.goldNumber));
+    expect(empty.gold.entries.map((e) => e.number).slice(0, 1).concat(empty.gold.entries.map((e) => e.number).slice(-1))).toEqual(["125/124", "152/124"]);
     const glitchNumbers = empty.glitch.entries.map((e) => e.number);
     expect(glitchNumbers).toEqual([...glitchNumbers].sort());
     expect(new Set(empty.glitch.entries.map((e) => e.cardId))).toEqual(new Set(S0_GLITCH_CARDS));
@@ -456,7 +503,7 @@ describe("the binder and the set checklist", () => {
     // entry and its base entry.
     const illus = S0.secrets.find((x) => x.kind === "illustration")!;
     const glitchId = S0_GLITCH_CARDS.find((id) => id !== illus.cardId)!;
-    const goldId = S0.cards.find((c) => c.cardId !== illus.cardId && c.cardId !== glitchId)!.cardId;
+    const goldId = S0.packCards.find((c) => c.cardId !== illus.cardId && c.cardId !== glitchId)!.cardId;
     s.grantCopy({ ownerId: o, cardId: illus.cardId, origin: "pack", finish: "secret", secretCode: illus.code });
     s.grantCopy({ ownerId: o, cardId: glitchId, origin: "pack", finish: "glitch" });
     s.grantCopy({ ownerId: o, cardId: goldId, origin: "pack", finish: "gold" });
@@ -467,5 +514,29 @@ describe("the binder and the set checklist", () => {
     expect(b.gold.entries.find((e) => e.cardId === goldId)!.owned).toBe(1);
     expect(b.prototypes.every((r) => r.found === 0 && r.serialsHeld.length === 0)).toBe(true);
     expect(() => s.binder(o, "S9")).toThrow(/no card set/);
+  });
+});
+
+describe("starter cards are Standard only (owner 2026-11-14; session 97)", () => {
+  it("the store refuses every pack version of a starter card, and keeps Standard, crafting and a prize's tournament finish", () => {
+    const s = store();
+    const o = ownerWithPacks(s, 0);
+    const starterCard = S0.cards.find((c) => !isBoosterCard(c.cardId) && c.rarity === "Common")!;
+    const boosterUnit = S0_GLITCH_CARDS[0]!;
+    for (const finish of ["foil", "fullArt", "altArt", "gold"] as const) {
+      expect(() => s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "pack", finish }), finish).toThrow(/is a starter card; starter cards are Standard only/);
+      expect(s.grantCopy({ ownerId: o, cardId: boosterUnit, origin: "pack", finish }).finish).toBe(finish);
+    }
+    expect(() => s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "pack", finish: "glitch" })).toThrow(/no Glitch version/);
+    expect(() =>
+      s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "pack", finish: "prototype", seriesKind: "prototype", seriesCode: "S0-P01", serial: 1, runSize: 1 }),
+    ).toThrow(/Standard only/);
+    // A starter card's illustration doesn't exist any more: no secret card names one.
+    expect(S0.secrets.some((x) => x.kind === "illustration" && !isBoosterCard(x.cardId))).toBe(false);
+    // Standard copies, crafted copies and prize copies are as they were.
+    expect(s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "pack" }).finish).toBe("standard");
+    expect(s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 1, runSize: 10 }).finish).toBe("tournament");
+    // The card viewer offers to craft a starter card (Standard) as before.
+    expect(s.cardHoldings(o, starterCard.cardId).craft).not.toBeNull();
   });
 });

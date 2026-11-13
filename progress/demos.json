@@ -4,6 +4,7 @@
     { "file": "economy-demo-003.txt", "workspace": "economy", "script": "src/dev/economyDemo.ts", "plays": true },
     { "file": "economy-demo-005.txt", "workspace": "economy", "script": "src/dev/generateAgentDemo.ts", "plays": true },
     { "file": "economy-demo-006.txt", "workspace": "economy", "script": "src/dev/packOpeningDemo.ts", "plays": false },
+    { "file": "pack-sim-004-booster.txt", "workspace": "economy", "script": "src/dev/packSimulation3.ts", "plays": false },
     { "file": "economy-demo-008.txt", "workspace": "economy", "script": "src/dev/agentNamingDemo.ts", "plays": false },
     { "file": "economy-demo-009.txt", "workspace": "economy", "script": "src/dev/chaseLiveDemo.ts", "plays": false },
     { "file": "economy-demo-010.txt", "workspace": "economy", "script": "src/dev/zeroDayLiveDemo.ts", "plays": true },

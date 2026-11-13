@@ -312,7 +312,9 @@ const common = SHIPPED_DECK_LISTS.Aegis.find((e) => e.copies === 3 && getCard(e.
 // Pack opening is a later session; the pulled copies are granted by hand.
 store.grantCopy({ ownerId: aegis.ownerId, cardId: common, origin: "pack", originRef: "hand-granted pull" });
 store.grantCopy({ ownerId: aegis.ownerId, cardId: common, origin: "pack", originRef: "hand-granted pull" });
-store.grantCopy({ ownerId: aegis.ownerId, cardId: common, origin: "pack", finish: "foil", originRef: "hand-granted pull" });
+// (session 97) A promo copy, not a Foil: a starter card is Standard only
+// (owner 2026-11-14). Like a Foil, a promo is never salvaged.
+store.grantCopy({ ownerId: aegis.ownerId, cardId: common, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
 function viewer(ownerId: string, cardId: string) {
   const h = store.cardHoldings(ownerId, cardId);
   say(`card viewer: ${getCard(cardId)!.name} (${h.rarity}) x${h.owned} owned, ${h.salvageable} salvageable at ${h.packPointsEach} pack pts each`);

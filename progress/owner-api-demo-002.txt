@@ -27,13 +27,13 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
 ----------------------------------------------------------------
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the agent hasn't built a deck yet
-  [timing, varies per run] build took 9.6 s; GET /api/play answered 47 times while it ran, slowest 15 ms
+  [timing, varies per run] build took 9.2 s; GET /api/play answered 45 times while it ran, slowest 14 ms
   job: done
   saved <deck 1>: Cortex, 40 cards, played as calculator
-    Cortex  59.3% against the shipped decks (fresh seeds)
-    Swarm   can't build: no owned faction card that draws (the pool lint needs one)
-    Aegis   12.3% against the shipped decks (fresh seeds)
-    Null    55.0% against the shipped decks (fresh seeds)
+    Cortex  68.0% against the shipped decks (fresh seeds)
+    Swarm   can't build: can't build a legal deck from the owned cards (at most 13 usable cards, under 20)
+    Aegis   can't build: can't build a legal deck from the owned cards (at most 13 usable cards, under 20)
+    Null    can't build: can't build a legal deck from the owned cards (at most 17 usable cards, under 20)
 > GET /api/play  -> 200
   deck choice: agent   faction lock: none
   connected agent: Vector Halcyon (calculator)
@@ -81,8 +81,8 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
   active deck fits the lock: false
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the faction lock changed (none -> Swarm); the play style changed (Calculator -> Controller)
-  [timing, varies per run] build took 0.4 s; GET /api/play answered 2 times while it ran, slowest 7 ms
-  job: failed: no deck can be built: Swarm: no owned faction card that draws (the pool lint needs one)
+  [timing, varies per run] build took 0.7 s; GET /api/play answered 3 times while it ran, slowest 21 ms
+  job: failed: no deck can be built: Swarm: can't build a legal deck from the owned cards (at most 13 usable cards, under 20)
 > PUT /api/play/faction-lock {"faction":"Chrome"}  -> 409
   error: can't lock to "Chrome"
 > PUT /api/play/faction-lock {}  -> 400
@@ -99,31 +99,29 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
   active deck fits the lock: false
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the faction lock changed (none -> Null); the play style changed (Calculator -> Controller)
-  [timing, varies per run] build took 1.7 s; GET /api/play answered 8 times while it ran, slowest 8 ms
-  job: done
-  saved <deck 1>: Null, 27 cards, played as controller
-    Null    54.8% against the shipped decks (fresh seeds)
+  [timing, varies per run] build took 0.4 s; GET /api/play answered 2 times while it ran, slowest 11 ms
+  job: failed: no deck can be built: Null: can't build a legal deck from the owned cards (at most 17 usable cards, under 20)
 > GET /api/play  -> 200
   deck choice: agent   faction lock: Null
   connected agent: Vector Halcyon (controller)
-  active deck: <deck 1> "Agent's deck", 27 cards
-  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
-  rebuild reasons: none (up to date)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the faction lock changed (none -> Null); the play style changed (Calculator -> Controller)
 
 8. Forcing a deck: the owner saves the starter list and plays it
 ----------------------------------------------------------------
 > PUT /api/play/faction-lock {"faction":null}  -> 200
   deck choice: agent   faction lock: none
   connected agent: Vector Halcyon (controller)
-  active deck: <deck 1> "Agent's deck", 27 cards
-  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
-  rebuild reasons: the faction lock changed (Null -> none)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the play style changed (Calculator -> Controller)
   active deck fits the lock: true
 > PUT /api/play/active-deck {"deckId":"<deck 2>"}  -> 200
   deck choice: forced   faction lock: none
   connected agent: Vector Halcyon (controller)
   active deck: <deck 2> "Cortex starter", 40 cards
-  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
   rebuild reasons: none (up to date)
 > POST /api/play/rebuild  -> 409
   error: you force a deck; hand the deck choice to the agent first
@@ -136,9 +134,9 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
 > PUT /api/play/deck-choice {"choice":"agent"}  -> 200
   deck choice: agent   faction lock: none
   connected agent: Vector Halcyon (controller)
-  active deck: <deck 1> "Agent's deck", 27 cards
-  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
-  rebuild reasons: the faction lock changed (Null -> none)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the play style changed (Calculator -> Controller)
 
 10. Signing out
 ----------------------------------------------------------------

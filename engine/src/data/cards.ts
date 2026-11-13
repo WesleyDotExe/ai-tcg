@@ -1270,3 +1270,507 @@ export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: warrenGuardian, copies: 2 },
   { card: bloodswarmAlpha, copies: 2 },
 ];
+
+// --- Season 0 booster cards: Cortex (the cluster: count your units, ping theirs, keep the energy flowing) -------------------------------------
+//
+// Pack-only cards (owner 2026-11-14, option B; the list approved as
+// proposed, "keep all 8 as recommended", progress/booster-proposal-s0.md).
+// Built session 97 from the draft session 96 checked (dev/boosterDraft.ts,
+// progress/booster-proposal-005.txt), unchanged: the build may tune costs
+// and stats by the balance re-run, never a card's job. Every mechanism is
+// one a shipped card already resolves; the proposal names which.
+//
+// They are in NO starter deck (the starter decks above stay fixed for
+// Season 0) and are the only cards packs roll in their plain slots
+// (data/registry.ts S0_BOOSTER_CARD_IDS; economy/src/packs.ts). Ids are the
+// 1xx range of the faction's prefix, so they never collide with a starter
+// or trimmed card. 2 Common, 2 Uncommon, 2 Rare, 1 Mythic.
+
+// First cut pinged a random enemy unit on play; the probe deck then failed
+// the pool lint (Cortex removal/debuff 27.5%, over the 25% cap), so it pays
+// back energy instead: Watchtower Relay's mechanism, on Cortex's
+// count-your-units condition (proposal call 4).
+export const portScanner: UnitCard = {
+  id: "CX-101",
+  name: "Port Scanner",
+  faction: "Cortex",
+  rarity: "Common",
+  cost: 1,
+  type: "Unit",
+  attack: 1,
+  health: 1,
+  keywords: [],
+  art: "placeholder:cortex/port-scanner",
+  flavor: "It knocks on every door, just to hear which ones answer.",
+  abilities: [
+    {
+      id: "port-scanner-play",
+      trigger: "onPlay",
+      text: "When this enters play, if you control 3 or more units, recover 1 energy.",
+      condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 3 },
+      effects: [
+        { kind: "gainEnergy", amount: 1 },
+      ],
+    },
+  ],
+};
+
+export const mutexLock: UnitCard = {
+  id: "CX-102",
+  name: "Mutex Lock",
+  faction: "Cortex",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  attack: 1,
+  health: 3,
+  keywords: ["Guard"],
+  art: "placeholder:cortex/mutex-lock",
+  flavor: "One at a time. Everyone else waits at the gate.",
+  abilities: [],
+};
+
+export const clusterNode: UnitCard = {
+  id: "CX-103",
+  name: "Cluster Node",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 4,
+  type: "Unit",
+  attack: 1,
+  health: 3,
+  keywords: [],
+  art: "placeholder:cortex/cluster-node",
+  flavor: "Alone it is a server. Racked with the others it is a grid.",
+  abilities: [
+    {
+      id: "cluster-node-aura",
+      trigger: "static",
+      text: "Your other units get +1/+0.",
+      staticEffect: {
+        kind: "buffAllies",
+        attack: 1,
+        health: 0,
+        filter: { side: "controller", kind: "unit" },
+        excludeSelf: true,
+      },
+    },
+  ],
+};
+
+export const hotSwap: CommandCard = {
+  id: "CX-104",
+  name: "Hot Swap",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:cortex/hot-swap",
+  flavor: "Pull the failing part, slot the spare, never drop the connection.",
+  abilities: [
+    {
+      id: "hot-swap-cast",
+      trigger: "onPlay",
+      text: "Give target friendly unit +2/+2 this turn. If you control 3 or more units, draw a card. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+      effects: [
+        { kind: "buff", attack: 2, health: 2, duration: "turn" },
+        {
+          kind: "conditional",
+          condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 3 },
+          then: [
+            { kind: "drawCard", count: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export const parityChecker: UnitCard = {
+  id: "CX-105",
+  name: "Parity Checker",
+  faction: "Cortex",
+  rarity: "Rare",
+  cost: 3,
+  type: "Unit",
+  attack: 2,
+  health: 4,
+  keywords: [],
+  art: "placeholder:cortex/parity-checker",
+  flavor: "Every bit that disagrees with the checksum gets corrected, one at a time.",
+  abilities: [
+    {
+      id: "parity-checker-correct",
+      trigger: "activated",
+      text: "Pay 2 energy: deal 1 damage to target enemy unit. Instant speed. Once per turn.",
+      cost: { energy: 2 },
+      speed: "Instant",
+      limit: "oncePerTurn",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
+      effects: [
+        { kind: "damage", amount: { mode: "flat", value: 1 } },
+      ],
+    },
+  ],
+};
+
+export const jobScheduler: DirectiveCard = {
+  id: "CX-106",
+  name: "Job Scheduler",
+  faction: "Cortex",
+  rarity: "Rare",
+  cost: 3,
+  type: "Directive",
+  art: "placeholder:cortex/job-scheduler",
+  flavor: "Every cycle it looks at the queue and hands the next task to whoever is free.",
+  abilities: [
+    {
+      id: "job-scheduler-tick",
+      trigger: "onTurnStart",
+      text: "At the start of your turn, if you control 3 or more units, draw a card.",
+      condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 3 },
+      effects: [
+        { kind: "drawCard", count: 1 },
+      ],
+    },
+  ],
+};
+
+export const gridConsensus: UnitCard = {
+  id: "CX-107",
+  name: "Grid Consensus",
+  faction: "Cortex",
+  rarity: "Mythic",
+  cost: 6,
+  type: "Unit",
+  attack: 1,
+  health: 6,
+  keywords: [],
+  art: "placeholder:cortex/grid-consensus",
+  flavor: "No single node decides. All of them do, and they never disagree.",
+  abilities: [
+    {
+      id: "grid-consensus-scale",
+      trigger: "static",
+      text: "This unit's attack equals 1 plus the number of units you control.",
+      staticEffect: {
+        kind: "selfStatFromScaling",
+        attack: { mode: "scaling", base: 1, multiplier: 1, per: "controllerUnitsInPlay" },
+      },
+    },
+    {
+      id: "grid-consensus-play",
+      trigger: "onPlay",
+      text: "When this enters play, deal 1 damage to all enemy units.",
+      targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+      effects: [
+        { kind: "damage", amount: { mode: "flat", value: 1 } },
+      ],
+    },
+  ],
+};
+
+export const CORTEX_BOOSTER_CARDS: readonly (UnitCard | CommandCard | DirectiveCard | ToolCard)[] = [
+  portScanner,
+  mutexLock,
+  clusterNode,
+  hotSwap,
+  parityChecker,
+  jobScheduler,
+  gridConsensus,
+];
+
+// --- Season 0 booster cards: Swarm (go wide, die well, come back) -------------------------------------
+//
+// Pack-only cards (owner 2026-11-14, option B; the list approved as
+// proposed, "keep all 8 as recommended", progress/booster-proposal-s0.md).
+// Built session 97 from the draft session 96 checked (dev/boosterDraft.ts,
+// progress/booster-proposal-005.txt), unchanged: the build may tune costs
+// and stats by the balance re-run, never a card's job. Every mechanism is
+// one a shipped card already resolves; the proposal names which.
+//
+// They are in NO starter deck (the starter decks above stay fixed for
+// Season 0) and are the only cards packs roll in their plain slots
+// (data/registry.ts S0_BOOSTER_CARD_IDS; economy/src/packs.ts). Ids are the
+// 1xx range of the faction's prefix, so they never collide with a starter
+// or trimmed card. 2 Common, 2 Uncommon, 2 Rare, 1 Mythic.
+
+export const eggCourier: UnitCard = {
+  id: "SW-101",
+  name: "Egg Courier",
+  faction: "Swarm",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  attack: 2,
+  health: 2,
+  keywords: [],
+  art: "placeholder:swarm/egg-courier",
+  flavor: "It carries the next generation on its back, and drops it when it falls.",
+  abilities: [
+    {
+      id: "egg-courier-death",
+      trigger: "onDeath",
+      text: "When this dies, summon a 1/1 Swarm Larva.",
+      effects: [
+        {
+          kind: "summon",
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+          count: 1,
+        },
+      ],
+    },
+  ],
+};
+
+export const spawningPulse: CommandCard = {
+  id: "SW-102",
+  name: "Spawning Pulse",
+  faction: "Swarm",
+  rarity: "Common",
+  cost: 1,
+  type: "Command",
+  speed: "Sorcery",
+  art: "placeholder:swarm/spawning-pulse",
+  flavor: "A single signal, and the walls start to crawl.",
+  abilities: [
+    {
+      id: "spawning-pulse-cast",
+      trigger: "onPlay",
+      text: "Summon a 1/1 Swarm Larva. Then, if you control 2 or more units, draw a card.",
+      effects: [
+        {
+          kind: "summon",
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+          count: 1,
+        },
+        {
+          kind: "conditional",
+          condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 2 },
+          then: [
+            { kind: "drawCard", count: 1 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export const hiveRelay: UnitCard = {
+  id: "SW-103",
+  name: "Hive Relay",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  attack: 3,
+  health: 3,
+  keywords: [],
+  art: "placeholder:swarm/hive-relay",
+  flavor: "It hums a frequency only the brood can hear, and the brood answers.",
+  abilities: [
+    {
+      id: "hive-relay-tick",
+      trigger: "onTurnStart",
+      text: "At the start of your turn, if you control 2 or more units, summon a 1/1 Swarm Larva.",
+      condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 2 },
+      effects: [
+        {
+          kind: "summon",
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+          count: 1,
+        },
+      ],
+    },
+  ],
+};
+
+export const acidDrone: UnitCard = {
+  id: "SW-104",
+  name: "Acid Drone",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Unit",
+  attack: 2,
+  health: 2,
+  keywords: [],
+  art: "placeholder:swarm/acid-drone",
+  flavor: "Crush it and it bursts. Everything nearby wishes you hadn't.",
+  abilities: [
+    {
+      id: "acid-drone-death",
+      trigger: "onDeath",
+      text: "When this dies, deal 2 damage to a random enemy unit.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      effects: [
+        { kind: "damage", amount: { mode: "flat", value: 2 } },
+      ],
+    },
+  ],
+};
+
+export const swarmSurge: CommandCard = {
+  id: "SW-105",
+  name: "Swarm Surge",
+  faction: "Swarm",
+  rarity: "Rare",
+  cost: 2,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:swarm/swarm-surge",
+  flavor: "The brood never decides between more and stronger. It just picks the one you didn't plan for.",
+  abilities: [],
+  modes: [
+    {
+      id: "overrun",
+      name: "Overrun",
+      text: "Your units get +2/+1 this turn. Instant speed.",
+      abilities: [
+        {
+          id: "swarm-surge-overrun",
+          trigger: "onPlay",
+          text: "Your units get +2/+1 this turn. Instant speed.",
+          targeting: { scope: "all", filter: { side: "controller", kind: "unit" } },
+          effects: [
+            { kind: "buff", attack: 2, health: 1, duration: "turn" },
+          ],
+        },
+      ],
+    },
+    {
+      id: "brood",
+      name: "Brood",
+      text: "Summon two 1/1 Swarm Larvae. Instant speed.",
+      abilities: [
+        {
+          id: "swarm-surge-brood",
+          trigger: "onPlay",
+          text: "Summon two 1/1 Swarm Larvae. Instant speed.",
+          effects: [
+            {
+              kind: "summon",
+              token: {
+                name: "Swarm Larva",
+                faction: "Swarm",
+                attack: 1,
+                health: 1,
+                keywords: [],
+                art: "placeholder:swarm/swarm-larva",
+                flavor: "One of ten thousand. Ten thousand more where it came from.",
+              },
+              count: 2,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export const broodTyrant: UnitCard = {
+  id: "SW-106",
+  name: "Brood Tyrant",
+  faction: "Swarm",
+  rarity: "Rare",
+  cost: 3,
+  type: "Unit",
+  attack: 0,
+  health: 4,
+  keywords: [],
+  art: "placeholder:swarm/brood-tyrant",
+  flavor: "It is only as large as the colony behind it, and the colony is never small.",
+  abilities: [
+    {
+      id: "brood-tyrant-scale",
+      trigger: "static",
+      text: "This unit's attack equals 1 plus the number of units you control.",
+      staticEffect: {
+        kind: "selfStatFromScaling",
+        attack: { mode: "scaling", base: 1, multiplier: 1, per: "controllerUnitsInPlay" },
+      },
+    },
+  ],
+};
+
+export const colonyOvermind: UnitCard = {
+  id: "SW-107",
+  name: "Colony Overmind",
+  faction: "Swarm",
+  rarity: "Mythic",
+  cost: 6,
+  type: "Unit",
+  attack: 4,
+  health: 5,
+  keywords: [],
+  art: "placeholder:swarm/colony-overmind",
+  flavor: "Ten thousand minds, one appetite.",
+  abilities: [
+    {
+      id: "colony-overmind-play",
+      trigger: "onPlay",
+      text: "When this enters play, summon two 1/1 Swarm Larvae.",
+      effects: [
+        {
+          kind: "summon",
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+          count: 2,
+        },
+      ],
+    },
+    {
+      id: "colony-overmind-tick",
+      trigger: "onTurnEnd",
+      text: "At the end of your turn, if you control 4 or more units, your units get +1/+0 permanently.",
+      condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 4 },
+      targeting: { scope: "all", filter: { side: "controller", kind: "unit" } },
+      effects: [
+        { kind: "buff", attack: 1, health: 0, duration: "permanent" },
+      ],
+    },
+  ],
+};
+
+export const SWARM_BOOSTER_CARDS: readonly (UnitCard | CommandCard | DirectiveCard | ToolCard)[] = [
+  eggCourier,
+  spawningPulse,
+  hiveRelay,
+  acidDrone,
+  swarmSurge,
+  broodTyrant,
+  colonyOvermind,
+];

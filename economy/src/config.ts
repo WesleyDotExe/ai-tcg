@@ -143,17 +143,45 @@ export const PACK_ODDS_V2 = {
   pity: PACK_ODDS.pity,
 } as const;
 
-export type PackOdds = typeof PACK_ODDS | typeof PACK_ODDS_V2;
+/**
+ * The pack odds table S0-odds-3: Season 0's booster cards (owner
+ * 2026-11-14, option B; call 7 "the odds become a new version (S0-odds-3)",
+ * and the same day "starter cards are Standard only ... packs hold booster
+ * cards (plus the 3 Zero-Day cards, unchanged)"). Live since session 97.
+ *
+ * Every number is S0-odds-2's: the 5 slots, a Mythic in 1 Rare slot in 8,
+ * the shine slot's finish table, the special versions' rarity weights, the
+ * Jackpot pack, the Prototype bonus and both pity timers. What changes is
+ * which cards a pack rolls: every slot and every finish draws from the
+ * set's booster cards only (`CardSet.packCards`), the Glitch versions, the
+ * secret illustrations and the Prototype runs sit on booster cards, and the
+ * Zero-Day cards are as they were. A starter card (the 96 cards numbered
+ * 001 to 096) is never in a pack: it comes in its starter deck, or crafted,
+ * in Standard only. S0-odds-1 and S0-odds-2 roll the set as it stood
+ * before (`CardSet.legacy`), so every opening logged under them rolls
+ * again exactly from its seed.
+ */
+export const PACK_ODDS_V3 = {
+  ...PACK_ODDS_V2,
+  version: "S0-odds-3",
+} as const;
+
+export type PackOdds = typeof PACK_ODDS | typeof PACK_ODDS_V2 | typeof PACK_ODDS_V3;
+
+/** The tables with the chase cards (S0-odds-2 on): they share one shape. */
+export type ChasePackOdds = typeof PACK_ODDS_V2 | typeof PACK_ODDS_V3;
 
 /** The table every pack opened now rolls against, whatever its season
- * (owner 2026-10-18, answer 6A: older seasons' packs stay openable). */
-export const LIVE_PACK_ODDS: PackOdds = PACK_ODDS_V2;
+ * (owner 2026-10-18, answer 6A: older seasons' packs stay openable).
+ * S0-odds-3 since session 97 (before it, S0-odds-2 from session 39). */
+export const LIVE_PACK_ODDS: PackOdds = PACK_ODDS_V3;
 
 /** Every table ever live, by version, so a logged opening can be rolled
  * again from its seed. */
 export const PACK_ODDS_TABLES: ReadonlyMap<string, PackOdds> = new Map<string, PackOdds>([
   [PACK_ODDS.version, PACK_ODDS],
   [PACK_ODDS_V2.version, PACK_ODDS_V2],
+  [PACK_ODDS_V3.version, PACK_ODDS_V3],
 ]);
 
 /** Pack points to craft one secret card (owner 2026-10-18, answer 5A):

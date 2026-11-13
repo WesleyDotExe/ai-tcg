@@ -262,6 +262,41 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 97 (the booster cards built: registry, set numbering, S0-odds-3; cards-2, no schema change): what was raised, and what is still thin
+
+Raised: session 96's debt items "draft cards live in `engine/src/dev/`" (now literal cards in the faction files;
+the draft file only names the registered cards, checked identical field for field), "the set-Mythic stand-in throws
+on two Mythics" (it now stands in the starter Mythic; tested per faction), "the pack simulation and the realistic
+collections for a booster set" (`progress/pack-sim-004-booster.txt`, 16 PASS; `collections.json` re-made from
+S0-odds-3). Still thin:
+- **The balance re-run has not been run.** This is the owner's step 4 and call 3's target (+8 to +12 per faction's
+  package, factions within ~4). The only power numbers for the booster cards are still session 96's fixed-swap
+  probe (Null +17.1, above the band). Until the built-deck ring runs with the new collections, the booster cards
+  are live in packs at untuned numbers. Next game session, first.
+- **The three re-pointed chase lists and the Gold numbering are proposals, live in code.** S0-odds-3 is the live
+  table, so the proposed Glitch list, illustrations and Prototype runs are what packs roll today. Nothing real is
+  owned before 5 December, so a change after the owner answers is a list edit and a new pin, not a migration; but
+  if the owner changes a list after 5 December it needs a new odds version (S0-odds-4), and the chase.test pin
+  says so.
+- **Codes reused for new cards.** `S0-SR01`... and `S0-P01`... now name booster cards. A pre-launch file (the dry
+  run's, a test file) that holds an old copy under one of those codes reads it as the new card in the binder and
+  the card viewer. The launch file is fresh (`season:setup`), so no real copy is affected; any existing local file
+  should be thrown away, not carried. Not enforced by code.
+- **The 7 starter-era neutrals that are in no starter deck** (NT-001, NT-002, NT-003, NT-006, NT-007, NT-009,
+  NT-010) are now in no pack either: crafting (Standard) is the only way to get one. Flagged as a call; not tested
+  for how often the builder wanted them.
+- **The rule is enforced in two places, not one.** `rollPack` rolls booster cards only (by the set's
+  `packCards`), and the store's `grantCopy` refuses a pack version of a starter card. A third way to make a copy
+  (a future marketplace, a prize table) must go through `grantCopy` to inherit it.
+- **The render's own pages were regenerated, not reviewed.** `render/output/pack-opening.html` and
+  `card-faces.html` were rebuilt by their scripts so the render tests pass; the booster cards' faces, numbers and
+  the 124-card binder on the website are the render lane's next slice and were not looked at in a browser here.
+- **The dry run (`progress/season0-dry-run-001.txt`) was not re-run** on cards-2 / S0-odds-3 (it was already
+  owed on v29). Fast demos all reproduce (35 same); the slow demos (`npm run demos -- --all`) were not re-run.
+- **Completion pace is fast for a 21-day season:** the median owner holds one of every booster card after 42
+  packs (about 18 days at 2.4 packs a day) and a playable set after 48. Measured and reported; nobody has decided
+  whether that is right.
+
 ## Session 96 (the Season 0 booster-card proposal, test only; no product code or schema change): what is still thin
 
 Raised: 28 proposed booster cards as real card data the engine checks (the lint, a real match for each, every

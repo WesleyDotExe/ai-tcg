@@ -8,51 +8,51 @@ A win is paid by how many of the day's wins were already recorded; GET /api/dail
 recorded by hand: today-0, ended 08:50, Player One paid +30
 recorded by hand: today-1, ended 09:57, Player One paid +10
 the ladder starts at 08:00, before both of those
-by 09:13 Player One has 5 wins today
+by 08:32 Player One has 5 wins today
 
 GET /api/daily as Player One (2026-11-12, Sydney), now numbered in recording (= payment) order:
 
   win  ended  match          paid  schedule for its place
     1  08:50  today-0        +30   +30
     2  09:57  today-1        +10   +10
-    3  08:55  ladder-014     +10   +10
-    4  09:07  ladder-015     +10   +10
-    5  09:12  ladder-018     +5    +5
+    3  08:08  ladder-001     +10   +10
+    4  08:24  ladder-006     +10   +10
+    5  08:31  ladder-007     +5    +5
 
-The old rule (numbered by end time) on the same wins: Win 1 +30, Win 2 +10, Win 3 +10, Win 4 +5, Win 5 +10
-  wins whose paid credits didn't match their place: 2 (ladder-018, today-1)
+The old rule (numbered by end time) on the same wins: Win 1 +10, Win 2 +10, Win 3 +5, Win 4 +30, Win 5 +10
+  wins whose paid credits didn't match their place: 4 (ladder-001, ladder-007, today-0, today-1)
 
 PASS  every win's credits are the schedule's credits for its place
 PASS  the places run 1, 2, 3, ... with no gap or repeat
 PASS  the rewarded wins are the paid ones, in the same order
-PASS  the day's credits (+77) are what the ledger paid for matches (+77)
+PASS  the day's credits (+67) are what the ledger paid for matches (+67)
 PASS  this part does put wins out of end-time order (the case being tested)
 
 ## 2. Real play: the server's clock steps back 90 minutes mid-day
 
-(a) after 2 wins (the last ended 09:15) the clock steps back from 09:16 to 07:46, the server still running
-    the running ladder starts its next round only at 09:17, when the clock is back past the old time: nothing is recorded out of order
-(b) after 2 wins (the last ended 09:15) the clock steps back from 09:22 to 07:52 and the server restarts (0 live matches cancelled)
+(a) after 2 wins (the last ended 09:14) the clock steps back from 09:15 to 07:45, the server still running
+    the running ladder starts its next round only at 09:16, when the clock is back past the old time: nothing is recorded out of order
+(b) after 2 wins (the last ended 09:14) the clock steps back from 09:21 to 07:51 and the server restarts (0 live matches cancelled)
     the new process starts its first round at once, on the new time:
-    by 08:40 Player One has 6 wins today
+    by 08:20 Player One has 6 wins today
 
 GET /api/daily as Player One (2026-11-12, Sydney), now numbered in recording (= payment) order:
 
   win  ended  match          paid  schedule for its place
     1  09:06  ladder-002     +30   +30
-    2  09:15  ladder-003     +10   +10
-    3  07:59  ladder-008     +10   +10
-    4  08:05  ladder-010     +10   +10
-    5  08:35  ladder-018     +5    +5
-    6  08:40  ladder-020     +5    +5
+    2  09:14  ladder-003     +10   +10
+    3  07:58  ladder-008     +10   +10
+    4  08:04  ladder-010     +10   +10
+    5  08:10  ladder-012     +5    +5
+    6  08:20  ladder-013     +5    +5
 
 The old rule (numbered by end time) on the same wins: Win 1 +10, Win 2 +10, Win 3 +5, Win 4 +5, Win 5 +30, Win 6 +10
-  wins whose paid credits didn't match their place: 5 (ladder-008, ladder-018, ladder-020, ladder-002, ladder-003)
+  wins whose paid credits didn't match their place: 5 (ladder-008, ladder-012, ladder-013, ladder-002, ladder-003)
 
 PASS  every win's credits are the schedule's credits for its place
 PASS  the places run 1, 2, 3, ... with no gap or repeat
 PASS  the rewarded wins are the paid ones, in the same order
-PASS  the day's credits (+78) are what the ledger paid for matches (+78)
+PASS  the day's credits (+72) are what the ledger paid for matches (+72)
 PASS  this part does put wins out of end-time order (the case being tested)
 
 All checks pass.

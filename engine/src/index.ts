@@ -60,7 +60,7 @@ export {
   TOP_TIER_COPY_LIMIT,
   withSetMythicSignature,
 } from "./data/decks.js";
-export { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "./data/registry.js";
+export { CARD_REGISTRY, SHIPPED_DECK_LISTS, S0_BOOSTER_CARDS, S0_BOOSTER_CARD_IDS, getCard, isBoosterCard } from "./data/registry.js";
 export {
   chooseDeck,
   buildFaction,

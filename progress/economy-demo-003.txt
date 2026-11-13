@@ -87,14 +87,14 @@ cortex-b  14 matches, 3W 10L 1 void, win rate 23.1%, 65 credits earned for the o
 ## Salvage is manual: house-aegis holds 3 bound starter copies of a Common, then pulls more
 card viewer: Aegis Cadet (Common) x6 owned, 2 salvageable at 5 pack pts each
   can't salvage 3: Account-bound (starter copy): it can be played, never salvaged
-  can't salvage 1: Foil copies are never salvaged
+  can't salvage 1: Promo copies can be kept or sold, never salvaged
   used 3x by deck "Aegis starter" (active)
 nothing was salvaged on its own: pack points still 0
 the owner salvages 1: pack/standard for 5 pack points; decks affected: 0
-salvaging 2 more (only 1 salvageable copy is left): refused (can't salvage 2 of "AG-001": 1 of 5 held can be salvaged (3 x Account-bound (starter copy): it can be played, never salvaged; 1 x Foil copies are never salvaged))
+salvaging 2 more (only 1 salvageable copy is left): refused (can't salvage 2 of "AG-001": 1 of 5 held can be salvaged (3 x Account-bound (starter copy): it can be played, never salvaged; 1 x Promo copies can be kept or sold, never salvaged))
 card viewer: Aegis Cadet (Common) x5 owned, 1 salvageable at 5 pack pts each
   can't salvage 3: Account-bound (starter copy): it can be played, never salvaged
-  can't salvage 1: Foil copies are never salvaged
+  can't salvage 1: Promo copies can be kept or sold, never salvaged
   used 3x by deck "Aegis starter" (active)
 
 ## Salvage below a saved deck: warned first, then the decks are incomplete (never edited)

@@ -4,7 +4,7 @@
 // crafting, and the schema rules behind them.
 
 import { describe, expect, it } from "vitest";
-import { CARD_REGISTRY, COPY_LIMITS, getCard } from "@ai-tcg/engine";
+import { CARD_REGISTRY, COPY_LIMITS, getCard, isBoosterCard } from "@ai-tcg/engine";
 import {
   BULK_OPEN_COUNT,
   CRAFT_PACK_POINTS,
@@ -47,18 +47,26 @@ function seedWhereV1(pity: PityState, want: (roll: ReturnType<typeof rollPack>) 
 }
 
 describe("the Season 0 set", () => {
-  it("numbers every ownable card once, with Gold numbers above the set total", () => {
+  it("numbers every ownable card once: the 96 starter-era cards 001 to 096, the 28 booster cards 097 to 124 with Gold numbers 125 to 152 (session 97)", () => {
     // Every registry card but the Zero-Day cards, which are secret cards.
     expect(S0.cards.length).toBe([...CARD_REGISTRY.values()].filter((c) => !c.topTier).length);
-    expect(S0.cards.length).toBe(96);
-    const total = String(S0.cards.length).padStart(3, "0");
+    expect(S0.cards.length).toBe(124);
     expect(new Set(S0.cards.map((c) => c.cardId)).size).toBe(S0.cards.length);
-    expect(S0.cards[0]!.collectorNumber).toBe(`001/${total}`);
-    expect(S0.cards.at(-1)!.collectorNumber).toBe(`${total}/${total}`);
-    for (const c of S0.cards) {
-      expect(Number(c.goldNumber.split("/")[0])).toBeGreaterThan(S0.cards.length);
-      expect(c.collectorNumber).not.toContain(c.cardId);
-    }
+    expect(S0.cards[0]!.collectorNumber).toBe("001/124");
+    expect(S0.cards.at(-1)!.collectorNumber).toBe("124/124");
+    const starter = S0.cards.slice(0, 96);
+    const booster = S0.cards.slice(96);
+    expect(starter.every((c) => !isBoosterCard(c.cardId) && c.goldNumber === null)).toBe(true);
+    expect(booster.every((c) => isBoosterCard(c.cardId))).toBe(true);
+    expect(booster.map((c) => c.goldNumber)).toEqual(booster.map((_, i) => `${125 + i}/124`));
+    // The 96 keep their order from before the booster cards (call 6 (a)):
+    // the same cards in the same places as the legacy set, only the total moved.
+    expect(starter.map((c) => [c.cardId, c.collectorNumber.split("/")[0]])).toEqual(S0.legacy!.cards.map((c) => [c.cardId, c.collectorNumber.split("/")[0]]));
+    // The booster cards by faction, then rarity, then name.
+    expect(booster.slice(0, 7).map((c) => c.name)).toEqual(["Mutex Lock", "Port Scanner", "Cluster Node", "Hot Swap", "Job Scheduler", "Parity Checker", "Grid Consensus"]);
+    expect(booster.map((c) => getCard(c.cardId)!.faction)).toEqual(["Cortex", "Swarm", "Aegis", "Null"].flatMap((f) => Array(7).fill(f)));
+    expect(S0.packCards).toEqual(booster);
+    for (const c of S0.cards) expect(c.collectorNumber).not.toContain(c.cardId);
   });
 
   it("has the owner's 15-run Prototype pyramid: 1,516 copies, every run a set card", () => {
@@ -69,6 +77,12 @@ describe("the Season 0 set", () => {
     for (const r of S0.prototypes) expect(S0.cards.some((c) => c.cardId === r.cardId), r.cardId).toBe(true);
     // The 1/1 is a Mythic.
     expect(getCard(S0.prototypes.find((r) => r.runSize === 1)!.cardId)!.rarity).toBe("Mythic");
+    // Session 97: every run is on a booster card, the four Mythics at the
+    // top (1/1, /5, /10, /25); the legacy set keeps session 36's runs.
+    expect(S0.prototypes.every((r) => isBoosterCard(r.cardId))).toBe(true);
+    expect(S0.prototypes.slice(0, 4).map((r) => [getCard(r.cardId)!.rarity, r.runSize])).toEqual([["Mythic", 1], ["Mythic", 5], ["Mythic", 10], ["Mythic", 25]]);
+    expect(S0.legacy!.prototypes.map((r) => r.cardId)).toEqual(["NL-014", "AG-014", "CX-024", "SW-006", "NL-013", "SW-004", "AG-013", "CX-007", "SW-020", "NL-011", "NT-008", "CX-003", "AG-011", "SW-010", "NL-019"]);
+    expect(S0.legacy!.prototypes.map((r) => r.code)).toEqual(S0.prototypes.map((r) => r.code));
   });
 });
 
@@ -91,7 +105,7 @@ describe("rollPack under S0-odds-1 (session 36's table, kept so its openings rep
   it("gives a Gold copy its number above the set total", () => {
     const seed = seedWhereV1(NO_PITY, (r) => r.pulls.some((p) => p.finish === "gold"));
     const gold = rollV1(seed, NO_PITY, ALL_RUNS).pulls.find((p) => p.finish === "gold")!;
-    expect(gold.collectorNumber).toBe(S0.cards.find((c) => c.cardId === gold.cardId)!.goldNumber);
+    expect(gold.collectorNumber).toBe(S0.legacy!.cards.find((c) => c.cardId === gold.cardId)!.goldNumber);
   });
 
   it("over 100,000 packs, hits the published rates (no rate raised to test it)", () => {
@@ -159,13 +173,13 @@ describe("opening packs (the store)", () => {
     expect(() => s.packOpening(pack!.packId)).toThrow(/hasn't been opened/); // no seed before opening
     const opened = s.openPack(o, undefined, { seed: 42 });
     expect(opened.packId).toBe(pack!.packId);
-    expect(opened.oddsVersion).toBe("S0-odds-2");
+    expect(opened.oddsVersion).toBe("S0-odds-3");
     expect(opened.cards.map((c) => c.cardId)).toEqual(rollLive(42, NO_PITY, ALL_RUNS).pulls.map((p) => p.cardId));
     expect(s.collection(o)).toHaveLength(opened.cards.length);
     expect(s.balance(o, "packPoints")).toBe(PACK_POINTS_PER_PACK);
     expect(s.unopenedPacks(o)).toHaveLength(0);
     const log = s.packOpening(pack!.packId);
-    expect(log).toMatchObject({ seed: 42, oddsVersion: "S0-odds-2", ownerId: o });
+    expect(log).toMatchObject({ seed: 42, oddsVersion: "S0-odds-3", ownerId: o });
     expect(log.copies.map((c) => c.copyId)).toEqual(opened.cards.map((c) => c.copyId));
     for (const c of log.copies) expect(c).toMatchObject({ origin: "pack", originRef: `pack:${pack!.packId}`, accountBound: false, seriesCode: "S0" });
     expect(() => s.openPack(o, pack!.packId)).toThrow(/no unopened pack/);
@@ -393,7 +407,7 @@ describe("crafting with pack points", () => {
   it("spends pack points on a bound standard copy, up to the card's playable limit", () => {
     const s = store();
     const o = ownerWithPacks(s, 20);
-    const common = S0.cards.find((c) => c.rarity === "Common")!.cardId;
+    const common = S0.packCards.find((c) => c.rarity === "Common")!.cardId; // a booster card: it has a Foil version
     expect(() => s.craftCard(o, common)).toThrow(/costs 40 pack points; you have 0/);
     s.openPacks(o, 10, { seeds: Array.from({ length: 10 }, (_, i) => i) });
     s.openPacks(o, 10, { seeds: Array.from({ length: 10 }, (_, i) => 10 + i) });
@@ -419,7 +433,7 @@ describe("crafting with pack points", () => {
     s.grantCopy({ ownerId: o, cardId: MYTHIC, origin: "pack" });
     expect(COPY_LIMITS.Mythic).toBe(1);
     expect(() => s.craftCard(o, MYTHIC)).toThrow(/playable limit of 1/);
-    const common = S0.cards.find((c) => c.rarity === "Common")!.cardId;
+    const common = S0.packCards.find((c) => c.rarity === "Common")!.cardId; // a booster card: it has a Foil version
     for (let i = 0; i < 3; i++) s.grantCopy({ ownerId: o, cardId: common, origin: "pack", finish: i === 0 ? "foil" : "standard" });
     expect(() => s.craftCard(o, common)).toThrow(/playable limit of 3/);
   });

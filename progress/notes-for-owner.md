@@ -1,5 +1,64 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 97 (game lane; the booster cards built, steps 1 and 2). [OWNER CHECK-IN].**
+Nothing is blocking. Lane: the last merged PR, #174, was "Render:", so this is a game session; no game PR was open.
+Acted on your two entries: the answers to game 96 (keep all 8) and "starter cards are Standard only".
+
+**What I did:**
+1. **The 28 cards are real cards now**, unchanged from the list you approved: in the faction files and the card
+   registry, in no starter deck. Card version `cards-2` (every older card is exactly as it was; old replays still
+   play their own cards).
+2. **The set is 124 cards** (your call 6 (a)): the 96 keep 001 to 096 in their old order; the booster cards are
+   097 to 124, by faction, then rarity, then name.
+3. **Packs are on a new odds version, S0-odds-3**, with the same numbers as S0-odds-2. Every slot and every finish
+   rolls booster cards only, plus the 3 Zero-Day cards as before. Old openings still roll exactly as they did
+   (checked by their seed hashes).
+4. **Starter cards are Standard only**, enforced in two places: packs never roll one, and the store refuses a Foil,
+   Full Art, Glitch, Alt Art, illustration, Gold or Prototype copy of one. A starter card can still be crafted in
+   Standard.
+5. **The ring's set-Mythic stand-in** now picks the starter Mythic when a deck also holds a booster Mythic.
+6. **Measured** (`progress/pack-sim-004-booster.txt`, 16 PASS): no starter card in 200,000 packs; the rates are
+   S0-odds-2's (hits 20.8%, Foil 27%, Zero-Day 1 in 430); each faction is 25% of pulls. The median owner holds one
+   of every booster card after 42 packs (about 18 days) and a playable set after 48 (about 20 days of the 21).
+7. The deck builder's realistic collections were re-made from S0-odds-3 packs. The balance re-run (your step 4)
+   is **not done yet**; it is the next game session's first job.
+
+**Calls for you** (the lists your entry asked to see, plus three smaller points). All are live in code now, and
+nothing real is owned before 5 December, so changing any of them is a list edit.
+1. **The Glitch list (Units only), 16, four per faction** (it was 20 with Neutral; there are no neutral booster
+   cards): Grid Consensus, Parity Checker, Cluster Node, Mutex Lock; Colony Overmind, Brood Tyrant, Hive Relay, Acid
+   Drone; Aegis Overwatch, Mirror Bulwark, Bastion Array, Shield Relay (Aegis has exactly four booster Units);
+   Heat Death, Heap Spray, Decay Engine, Zombie Fork. **Recommended: keep.**
+2. **The secret illustrations, 16, four per faction:** each faction's Mythic, both its Rares and one Common.
+   Cortex: Grid Consensus, Parity Checker, Job Scheduler, Port Scanner. Swarm: Colony Overmind, Swarm Surge, Brood
+   Tyrant, Egg Courier. Aegis: Aegis Overwatch, Mirror Bulwark, Hardening Protocol, Shield Relay. Null: Heat Death,
+   Heap Spray, Decay Engine, Bad Sector. The old list was 33; at the same 1.5% rate each illustration is now about
+   twice as likely a pull. **Recommended: keep 16.** Option: all 28 booster cards (each illustration then about as
+   likely as before).
+3. **The 15 Prototype runs** (the same pyramid and codes S0-P01 to S0-P15): 1/1 Heat Death; /5 Aegis Overwatch;
+   /10 Grid Consensus; /25 Colony Overmind and Heap Spray; /50 Swarm Surge, Mirror Bulwark, Parity Checker; /100
+   Brood Tyrant, Decay Engine, Hardening Protocol; /250 Job Scheduler, Bastion Array, Hive Relay, Reaper Thread.
+   The four Mythics at the top, as before (Null's the 1/1, as before); Cortex has 3 runs, the others 4.
+   **Recommended: keep.**
+4. **Gold numbers only for the booster cards: 125 to 152**, so the secret cards are 153 to 171 (the Zero-Day cards
+   169 to 171). Call 6 had said 125 to 248, a Gold number for every card; with starter cards Standard only, that
+   would print 96 Gold numbers no card can have. **Recommended: keep (booster cards only).** Option: keep 125 to 248
+   with gaps.
+5. **The 7 starter-era neutrals that are in no starter deck** (Spare Cycles, Cache Warmup, Relay Courier, Power
+   Reserve, Commodity Rack, Scrap Recycler, Burst Credit: NT-001, 002, 003, 006, 007, 009, 010) are now in no
+   pack either, so crafting (Standard) is the only way to get one. **(a, recommended)** keep: they are starter-era
+   cards, and your rule says packs hold booster cards. **(b)** let packs roll them too, in Standard only.
+6. **A prize's tournament finish on a starter card is still allowed.** Your list of versions didn't name it, and
+   it isn't a pack version. **Recommended: keep.** Option: starter prizes in Standard too.
+
+**For the render lane:** the booster cards' faces and numbers 097 to 124 are ready (the card registry and
+`cardSet("S0")`); the binder is now 124 base cards, 19 secret cards, 16 Glitch, 28 Gold. I re-made
+`render/output/pack-opening.html` and `card-faces.html` with their own scripts and updated two render tests (the
+modal list gains Swarm Surge; the Zero-Day numbers are 169 to 171/124; and a first-time test that said the same
+packs read differently per faction now checks that no pack card is ever a starter card). Not checked in a browser.
+
+---
+
 **Updated 2026-11-14, session 96 (game lane; your option B: Season 0's booster cards, step 1). [OWNER CHECK-IN].**
 Nothing is blocking. Lane: the last merged PR, #172, was "Render:", so this is a game session; no game PR was open.
 Your answers to game 95 and render 73 (keep all 5) needed nothing.
