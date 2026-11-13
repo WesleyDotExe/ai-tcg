@@ -5428,3 +5428,27 @@ future caller get it with one line and the same words.
 **Thin:** in quality-debt.md (auto-play on still answered while the season is "ending"; a switch left on at the end
 stays on in the archive).
 **Blocked:** nothing.
+
+**2026-11-14 — Session 96 (game lane; the owner's option B: Season 0's pack-only booster cards, step 1, at an
+[OWNER CHECK-IN]; test only, no product code or schema change).**
+Lane: the last merged PR, #172, was "Render:", so this is a game session; no game PR was open. Acted on two owner
+entries: the answers to game 95 and render 73 (all kept, nothing to build) and option B (the first step: propose
+the card list before building it).
+**Built:** 28 booster cards as draft card data (`engine/src/dev/boosterDraft.ts`, not in the registry, not
+ownable), 7 per faction (2C/2U/2R/1M), every mechanism one a shipped card already uses; and the check
+`engine/src/dev/boosterProposal.ts`. It builds each starter deck with the booster cards swapped in (the lint and the
+deck rules), plays it against the four shipped decks, and counts each card's games and each ability's fires from the
+match log. Optional reads: leave one out, a blank-body control, one card at a time. The proposal with 8 calls:
+`progress/booster-proposal-s0.md`.
+**Ran it:** five rounds at 500 games per opponent (`progress/booster-proposal-001.txt` to `-005.txt`, about 80,000
+games each with every read). Final: Cortex +10.8, Swarm +9.3, Aegis +12.7, Null +17.1 points over the starter
+deck. Every card was played (18-52% of games) and every ability fired. The lint caught two things: Port Scanner's
+first version took Cortex over the 25% removal cap, and leaving Hardlight Shell out left Aegis with no draw card.
+The probe now swaps removal for removal and keeps the last draw card. A counting bug (a Tool logs `toolAttached`,
+never `play`) made 001 say Kinetic Buffer was never played; fixed from 002.
+**Found:** the blank-body control gains about as much as the real cards (Cortex +19.6 with blanks), so most of the
+upgrade comes from cutting the starter decks' weakest cards. This is call 5 in the proposal.
+**Worked:** writing the proposal as real card data, so the engine's own rules judged it before the owner did.
+**Thin:** in quality-debt.md (the probe is not the store's builder; one agent and style; Null above the proposed
+band; the ring's set-Mythic stand-in and two Mythics).
+**Blocked:** nothing (the build waits on the owner's answers, by design).

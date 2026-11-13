@@ -5,6 +5,30 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — [OWNER CHECK-IN] Season 0's booster cards: the proposed list (2026-11-14, session 96)
+
+This is not a stage end. It is the check-in your option B entry asked for before the build. The proposal is in
+full in `progress/booster-proposal-s0.md`, with 8 calls; the short version is in `progress/notes-for-owner.md`.
+
+**Delivered, with evidence:** 28 cards, 7 per faction (2C/2U/2R/1M), as draft data the engine checks
+(`engine/src/dev/boosterDraft.ts`). Every card passes the deck rules and the lint inside its starter deck, and every
+card was played and every ability resolved in real matches. The first power read
+(`progress/booster-proposal-005.txt`): with its whole package in, each starter deck gains Cortex +10.8, Swarm +9.3,
+Aegis +12.7, Null +17.1 points against the field.
+
+**Strong:** no new mechanics. Each card does its faction's existing job. The engine's own rules shaped two cards
+(the 25% removal cap, the card-flow rule).
+
+**Thin:** the probe is a fixed swap, not the store's builder. A blank-body control gains as much as the cards, so
+the gain mostly measures the starter decks' weakest cards being cut. Null is above the proposed band.
+
+**Decisions you might overrule:** the rarity split, no neutral booster cards, the numbering, the pack slots, the
+upgrade target (+8 to +12), and the fallback if the re-run fails. All of them are calls in the proposal.
+
+**Next:** the build in your entry's order, once you've answered.
+
+---
+
 ## AWAITING FEEDBACK — Stage 3 (a real card set) closed: Phase 5 done, balance becomes a regression check (2026-10-04, session 27)
 
 You told me to close Phase 5 and move the lane on to building the game. This is the end of

@@ -1,5 +1,38 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 96 (game lane; your option B: Season 0's booster cards, step 1). [OWNER CHECK-IN].**
+Nothing is blocking. Lane: the last merged PR, #172, was "Render:", so this is a game session; no game PR was open.
+Your answers to game 95 and render 73 (keep all 5) needed nothing.
+
+**What I did:** proposed the card list, as your entry asked, before building anything. **Read
+`progress/booster-proposal-s0.md`.** It has the 28 cards in full, the evidence, and 8 calls. In short:
+1. **28 cards, 7 per faction** (2 Common, 2 Uncommon, 2 Rare, 1 Mythic), using only mechanics the engine already
+   has. Each one says which shipped card it borrows from.
+2. **The engine checked every card:** each starter deck with its booster cards in passes the deck rules and the
+   lint, and every card was played and every ability resolved in real matches (`progress/booster-proposal-005.txt`).
+3. **First power read** (each starter deck with all 7 of its booster cards in, against the four shipped decks):
+   Cortex +10.8, Swarm +9.3, Aegis +12.7, Null +17.1 points. I tuned them over five rounds; files 001 to 005 are the
+   record.
+4. **The main thing to know:** a control with blank vanilla bodies in place of the booster cards gains about as
+   much. Most of the upgrade comes from replacing the starter decks' weakest cards, not from the new cards being
+   strong.
+
+Nothing is built or ownable yet: no shipped card, deck, rule or pack changed.
+
+**Calls for you** (details and options in the proposal):
+1. Approve the 28 cards (recommended), or name any to change.
+2. 28 cards (recommended) or 24.
+3. The target for the balance re-run: a full booster package is worth +8 to +12 points, and the four factions land
+   within ~4 of each other (recommended). Null comes down at the build.
+4. Keep the 25% removal cap as it is (recommended).
+5. Starter decks stay fixed for Season 0, with the soft cards noted for Season 1 (recommended).
+6. Numbering: one set, the booster cards as 097 to 124 (recommended), or a separate set code.
+7. Packs: the plain slots plus Standard and Foil from booster cards only; the chase versions from all cards; the
+   Prototype runs unchanged (recommended).
+8. If the re-run fails: tune the booster cards only, two rounds, then back to you (recommended).
+
+---
+
 **Updated 2026-11-14, session 95 (game lane; render 72's two asks, your yes to both).** Nothing is blocking. Lane:
 the last merged PR, #170, was "Render:", so this is a game session; no game PR was open.
 

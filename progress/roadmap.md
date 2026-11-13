@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-14, render session 73 (the season's end on the Store, Packs, Daily rewards and the card viewer); before that game session 95 (render 72's two asks: auto-play on refused once the season has ended, `season` in the site contract check); before that render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-14, game session 96 (the Season 0 booster-card proposal, at an owner check-in); before that render session 73 (the season's end on the Store, Packs, Daily rewards and the card viewer); before that game session 95 (render 72's two asks: auto-play on refused once the season has ended, `season` in the site contract check); before that render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -200,6 +200,13 @@ new ideas go to `progress/season-1-ideas.md`.
      refused (409) once the season has ended, off still works (`server/test/seasonEnd.test.ts`); `GET /api/season`
      in the site contract check, open (with and without an end time), ending and ended, plus a control
      (`progress/site-contract-001.txt`, 0 mismatches, 7 of 7 controls).
+   - [~] Game 96 (owner 2026-11-14, option B: Season 0's pack-only booster cards, an approved exception to the
+     scope lock; launch stays 5 Dec). Step 1 done at an [OWNER CHECK-IN] (session 96, test only): 28 cards, 7 per
+     faction (2C/2U/2R/1M), existing mechanics only, draft data in `engine/src/dev/boosterDraft.ts`; every card
+     legal and every ability resolved in real matches; the first power read (each faction's package +9 to +13,
+     Null +17; the blank-body control) in `progress/booster-proposal-005.txt`; the proposal and 8 calls in
+     `progress/booster-proposal-s0.md`. Left, after the owner's answers: the cards into the registry, the set
+     list and numbering, the pack table, the deck builder's collections, the balance re-run.
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
