@@ -4787,3 +4787,19 @@ Owner decision on the call in `progress/notes-for-owner.md` (PR #164, `progress/
 1. **(a) A macOS launch agent.** The server comes back by itself: a launchd launch agent starts `npm run season` on the Mac mini when the owner logs in and restarts it if it stops, with its output written to a log file the owner can read. Not a start by hand.
 
 **For game session 93 (the dry run and the owner's Mac mini guide):** include the launch agent in the guide, ready to copy (the settings file, where it goes, how to load, check, stop and unload it, and where its log file is), and prove it as far as the session's environment allows. Keep the guide's other steps: set the Mac mini never to sleep and to log in automatically after a power cut; stop with Ctrl-C (or unload the agent) before a switch; check the clock before a restart; `--new` for a first start; the season end and `season:next`. Make sure a restart by the launch agent stops cleanly and takes over the lock as session 92 measured, and that the log file doesn't grow without limit over a season (or say how big it gets).
+
+---
+
+## 2026-11-13 — Owner: answers to render session 70 (the notifications bell), keep all 6; one item for the game lane
+
+**Render session 70** (PR #166, `progress/render/checkpoints.md`, `progress/render/evidence/bell-check-s70.txt`). **Keep all 6 calls:**
+1. **Keep:** opening the panel marks what it shows read (by id), and those lines stay "New" until the panel closes.
+2. **Keep:** the newest 20 per page, grouped Today / Yesterday / Earlier by the viewer's own calendar day (not Sydney's).
+3. **Keep:** on a phone the theme button leaves the top bar (Settings -> Theme has the same choices) and the bar's buttons are 34 px.
+4. **Keep:** clearing one notification has no confirmation; Clear all asks first.
+5. **Keep:** one 0.9 s swing of the bell for each poll that brings a new unread one; no sound (none with reduced motion).
+6. **Keep:** the filter chips use short names and a coloured dot, one row on a desktop window, two on a phone.
+
+**For the game lane (from render 70's notes):** the site contract check doesn't call `clearNotifications` yet. Add it to `server/src/dev/siteContractCheck.ts` (with a shape reached for it, and a control if useful) in the next game hardening pass, **after game 93's dry run**, not before it.
+
+Next session by alternation: game 93 (the Season 0 dry run and the owner's Mac mini guide, with the launch agent per the entry above), then render 71 (Top rated and viewer counts on Watch live).
