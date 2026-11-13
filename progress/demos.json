@@ -41,6 +41,7 @@
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",
     "files": [
       "unattended-run-001.txt",
+      "season0-dry-run-001.txt",
       "demo-reliability-001.txt",
       "ladder-stall-001.txt",
       "pack-sim-001.txt",

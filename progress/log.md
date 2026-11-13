@@ -5343,3 +5343,33 @@ typecheck clean in every workspace; `npm run demos` 32 same; the site contract c
 **Thin:** in quality-debt.md (nothing restarts the server after a crash or reboot; terminal-only output; the
 disk-full case simulated, not real).
 **Blocked:** nothing.
+
+## 2026-11-13 — Session 93 (game lane): the Season 0 dry run and the owner's Mac mini guide (no schema change)
+
+**Lane:** the last merged PR, #166, was "Render:", so this is a game session; no PR from either lane was open.
+Owner feedback: the 2026-11-13 plan's item 4 (this session) and the launch-agent answer (a) to session 92 are
+handled; the render-70 answers' game item (`clearNotifications` in the contract check) is for the next hardening
+pass, after this dry run, as the owner said.
+
+**Built:** `server/src/dev/seasonDryRun.ts` (`npm run dry-run -w server`), the guide followed with its real commands
+as child processes on the real clock, the machine's clock set to 23:30 Sydney by a Date-only preload
+(`server/src/dev/clockShift.mjs`) so it crosses midnight; the guide `progress/mac-mini-guide.md`; the launch
+agents `server/launchd/local.ai-tcg.season.plist` and `local.ai-tcg.site.plist` with `install.sh`; and the fix
+for what the dry run found first: **a new season file had nobody in it** (`--new` makes an empty file; nothing
+made a login, an agent or the house, so the owner couldn't sign in and nothing would play). `npm run season:setup`
+(`server/src/seasonSetup.ts`, `seasonSetupCli.ts`): the owner's admin account with the starter collection and a
+generated agent with its signature card, connected; House Cortex, Swarm, Aegis and Null. Also found: an XML
+comment with "--" made the plist unreadable (fixed; tested); setup didn't make the folder (it does now).
+
+**Ran it:** `progress/season0-dry-run-001.txt`, **49 of 49 PASS**, 45 minutes: setup; the launch agents run as
+launchd runs them (KeepAlive emulated); the site: sign-in, the page; the daily pack, open 1, buy 1 and 10, open 10
+(on a stated 1,100-credit test grant); 15 minutes of auto-play running out mid-match (Finishing match -> Time's
+up); Watch live; midnight Sydney (the day, the earnings, the daily pack, the allowance); kill -9 (back in 1 s, the
+shown matches cancelled, the site up); the admin ends S0, bootout, `season:next`, S1 up with the same password.
+Logs ~150 KB a day; match files ~11 MB a day. The first full run had 3 FAILs, all in the driver's own checks (the
+done state keeps its allowance; the bell writes the daily-pack note only while a pack waits; the restart beat the
+"down" probe); fixed and re-run clean. Tests: `server/test/seasonSetup.test.ts` (7).
+**Worked:** running the guide's commands literally; the first thing they did was fail.
+**Thin:** in quality-debt.md (launchd itself untested; 15 minutes bought one match; no buy on day one; no season-end
+button; the dashboard not in this run).
+**Blocked:** nothing.

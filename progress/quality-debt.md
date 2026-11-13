@@ -262,6 +262,36 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 93 (the Season 0 dry run and the owner's Mac mini guide; no schema change): what was raised, and what is still thin
+
+The dry run (`progress/season0-dry-run-001.txt`, `server/src/dev/seasonDryRun.ts`) follows the guide
+(`progress/mac-mini-guide.md`) with the real commands as child processes on the real clock, the clock set to 23:30
+Sydney so it crosses midnight. What it found broken, and fixed:
+- **A first start had nobody in it.** `npm run season -- <file> --new` made an empty file: no endpoint or command made
+  a login, and no house owner queued, so the owner could neither sign in nor see a match. Every earlier demo built
+  its owners in code. Now `npm run season:setup` (`server/src/seasonSetup.ts`, tests in
+  `server/test/seasonSetup.test.ts`): the owner's admin account, its faction's starter collection, a generated agent
+  with its signature card, connected; the four house owners. It makes the folder, refuses an existing file, leaves
+  nothing behind on a refusal.
+- **The launch agent's file would not have loaded:** an XML comment holding "--" (a command line) makes the whole
+  plist unreadable. Caught by parsing it; the test checks every comment.
+Still thin:
+- **launchd itself was not run** (Linux here). The plists are parsed and their exact command lines run with launchd's
+  KeepAlive rule emulated; `launchctl bootstrap/kill/kickstart/bootout`, the login start, the "Background Items"
+  prompt and macOS's folder privacy (TCC) are untested until the owner's first start.
+- **15 minutes of auto-play bought one match**, both runs: turned on mid-round, the agent waits for the round's
+  slowest match (~11 minutes), then plays one. An owner call (notes-for-owner.md); the rolling queue is after Season 0.
+- **A first day can't buy a pack or open ten** without the test grant (a day's matches pay at most 110 credits; a
+  pack is 100; 4 packs on day one). The dry run's buys ran on a stated `demoGrant`.
+- **No website button ends the season:** the guide uses two `curl` commands with the password on the command line.
+- **The dashboard at every size was not part of this run** (the render lane's browser checks); nor the pack ceremony
+  in a browser. The dry run drives the API through the site host, and loads the page once.
+- **The clock was shifted in JavaScript** (`clockShift.mjs`, Date only), not the machine's; timers ran on the real
+  clock, as on a machine whose clock reads 23:30. A real midnight on the Mac mini is still the owner's to see.
+- **The site host has no stop handler and logs one line** (its start); a proxy failure while the server is down
+  isn't logged. Its log is near empty, so it says nothing after a problem.
+- `clearNotifications` is still not called by the site contract check (owner 2026-11-13: the next hardening pass).
+
 ## Session 92 (the game lane's hardening pass for the 7-day unattended run; no schema change): what was raised, and what is still thin
 
 Measured first: `progress/unattended-run-001.txt` drives the real `npm run season` as a child process on the real
