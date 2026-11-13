@@ -64,8 +64,9 @@ import {
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
+import { BELL_PAGE, bellButton, bellPanelHtml, closed as bellClosed, emptyBell, unreadShown, withCleared, withCounts, withPage, withRead, type BellState } from "./siteBell.js";
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
-import type { SiteLadder, SiteNotifications, SiteStats } from "./siteStanding.js";
+import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
 import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
@@ -373,6 +374,9 @@ function signedOut(message: string): void {
   state.draft = null;
   state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} };
   state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
+  bellSeq++;
+  bell = emptyBell();
+  drawBell();
   closeReplay();
   clearTimeout(livePoll);
   state.shop = { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null };
@@ -460,6 +464,7 @@ async function enter(): Promise<void> {
   route();
   schedulePoll();
   void loadHome();
+  void pollBell().catch((err) => fail(err));
 }
 
 /** Reads what the widgets on the board show (only what they need), then
@@ -497,6 +502,8 @@ async function loadHome(only?: WidgetSource[]): Promise<void> {
     }),
   );
   if (signedOutNow) return signedOut("Your session ended. Sign in again.");
+  // Render session 70: the widget's read keeps the bell's count in step.
+  if (need.includes("notif") && state.home.notif) bellCounts(state.home.notif);
   if (state.page === "home" && !dragging) drawPage();
   // The live widgets keep following the matches (session 50).
   if (need.includes("live") && state.page === "home") {
@@ -576,7 +583,7 @@ async function refresh(): Promise<void> {
     const [play, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err: unknown) => {
       if (err instanceof SiteApiError && err.signedOut) throw err;
       return state.wallet;
-    })]);
+    }), pollBell()]);
     state.play = play;
     state.wallet = wallet;
     drawWallet();
@@ -1235,6 +1242,233 @@ async function markAllRead(): Promise<void> {
   // The button is gone once nothing is unread: keep focus in the widget.
   document.querySelector<HTMLElement>('#wgrid .wg[data-type="notif"] .ntl a')?.focus();
 }
+
+// ---- the notifications bell (render session 70, siteBell.ts) -------------------
+let bell: BellState = emptyBell();
+let bellRungAt = 0;
+/** Each panel read gets a number; an answer to an older one is dropped (a
+ * filter pressed twice quickly, or the panel closed meanwhile). */
+let bellSeq = 0;
+
+/** The bell button (count, accessible name, the swing for a new one) and,
+ * when open, the panel. Focus inside the panel stays on the same control
+ * across the redraw (or on `focusAfter`, or the heading). */
+function drawBell(focusAfter?: string): void {
+  const btn = document.getElementById("bell-btn");
+  const panel = document.getElementById("bell-panel");
+  if (!btn || !panel) return;
+  const b = bellButton(bell);
+  if (btn.innerHTML !== b.html) btn.innerHTML = b.html;
+  btn.setAttribute("aria-label", b.label);
+  btn.title = b.label;
+  btn.setAttribute("aria-expanded", String(bell.open));
+  if (bell.rings > bellRungAt) {
+    bellRungAt = bell.rings;
+    btn.classList.remove("ring");
+    void btn.offsetWidth;
+    btn.classList.add("ring");
+    window.setTimeout(() => btn.classList.remove("ring"), 1000);
+  }
+  if (!bell.open) {
+    panel.hidden = true;
+    panel.innerHTML = "";
+    return;
+  }
+  // Under the bell: the panel's right edge a little past the bell's.
+  const r = btn.getBoundingClientRect();
+  panel.style.setProperty("--br", `${Math.max(12, Math.round(window.innerWidth - r.right - 8))}px`);
+  const active = document.activeElement as HTMLElement | null;
+  const keyOf = (el: HTMLElement) => `${el.dataset.act ?? ""}|${el.dataset.nid ?? ""}|${el.dataset.kind ?? ""}|${el.closest("[data-nid]")?.getAttribute("data-nid") ?? ""}`;
+  const had = active && panel.contains(active) ? keyOf(active) : null;
+  const scroll = panel.querySelector(".bl-scroll")?.scrollTop ?? 0;
+  const fac = new Map((state.home.collection?.cards ?? []).map((x) => [x.cardId, x.faction]));
+  panel.innerHTML = bellPanelHtml(bell, { now: Date.now(), miniCard: (c) => miniCard(c), factionOf: (id) => fac.get(id) ?? null });
+  panel.hidden = false;
+  const sc = panel.querySelector(".bl-scroll");
+  if (sc) sc.scrollTop = scroll;
+  const want = focusAfter ? panel.querySelector<HTMLElement>(focusAfter) : had !== null ? [...panel.querySelectorAll<HTMLElement>("button, a, h2")].find((el) => keyOf(el) === had) ?? null : null;
+  if (want) want.focus({ preventScroll: true });
+  else if (had !== null || focusAfter) panel.querySelector<HTMLElement>("#bell-title")?.focus({ preventScroll: true });
+}
+
+/** A count read for the badge (the status poll, `limit=1`), or any page
+ * the widget read: the two always agree. If a new one came in while the
+ * panel is open, the panel reads its newest page again. */
+function bellCounts(page: SiteNotifications): void {
+  const before = bell.latestId;
+  bell = withCounts(bell, page);
+  drawBell();
+  if (bell.open && !bell.loading && bell.latestId !== null && bell.latestId !== before && before !== null) void bellRead(false, true);
+}
+async function pollBell(): Promise<void> {
+  if (!state.session) return;
+  try {
+    bellCounts(await api.notifications(state.session.token, 1));
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) throw err;
+  }
+}
+
+/** Reads the panel's page for the filter: the first (`append` false), an
+ * older one, or (`merge`) the newest again into what is shown. Then marks
+ * what it shows read. */
+async function bellRead(append: boolean, merge = false): Promise<void> {
+  if (!state.session || !bell.open) return;
+  const seq = ++bellSeq;
+  const before = append ? bell.items[bell.items.length - 1]?.notificationId ?? null : null;
+  if (append) bell = { ...bell, loadingMore: true };
+  else if (!merge) bell = { ...bell, loading: true, error: null };
+  drawBell();
+  try {
+    const page = await api.notifications(state.session.token, BELL_PAGE, { before, kind: bell.filter });
+    if (seq !== bellSeq || !bell.open) return;
+    bell = withPage(bell, page, append || merge);
+  } catch (err) {
+    if (seq !== bellSeq || !bell.open) return;
+    if (err instanceof SiteApiError && err.signedOut) return fail(err);
+    bell = { ...bell, loading: false, loadingMore: false, error: err instanceof SiteApiError ? errorText(err.status, err.message) : "something went wrong" };
+    drawBell();
+    return;
+  }
+  drawBell();
+  await bellMarkShown();
+}
+
+/** The owner's rule (2026-11-12): the bell marks what its panel shows. Only
+ * the shown ids; they stay "New" until the panel closes. */
+async function bellMarkShown(): Promise<void> {
+  const ids = unreadShown(bell);
+  if (!ids.length || !state.session) return;
+  try {
+    const r = await api.markNotificationsRead(state.session.token, { ids });
+    bell = withRead(bell, ids, r.unread, new Date().toISOString());
+  } catch (err) {
+    // A 404: one was cleared elsewhere meanwhile; the next read settles it.
+    if (err instanceof SiteApiError && err.signedOut) return fail(err);
+  }
+  drawBell();
+  if (state.page === "home") void loadHome(["notif"]);
+}
+
+function openBell(): void {
+  if (bell.open) return;
+  const menu = document.getElementById("acct-menu");
+  if (menu) menu.hidden = true;
+  document.getElementById("acct-btn")?.setAttribute("aria-expanded", "false");
+  bell = { ...bell, open: true };
+  drawBell("#bell-title");
+  void bellRead(false);
+}
+function closeBell(refocus: boolean): void {
+  if (!bell.open) return;
+  bellSeq++;
+  bell = bellClosed(bell);
+  drawBell();
+  if (refocus) document.getElementById("bell-btn")?.focus();
+}
+
+async function bellClear(ids: number[] | "all"): Promise<void> {
+  if (!state.session || bell.busy) return;
+  if (ids === "all" && !(await confirmDialog("Clear every notification?", "They leave the bell and the Notifications widget for good. Your matches, packs and cards stay as they are.", "Clear all"))) return;
+  // Focus moves to the next one down (or the one above, or the heading).
+  let focusAfter = "#bell-title";
+  if (ids !== "all") {
+    const i = bell.items.findIndex((n) => n.notificationId === ids[0]);
+    const next = bell.items[i + 1] ?? bell.items[i - 1];
+    if (next) focusAfter = `.bl-x[data-nid="${next.notificationId}"]`;
+  }
+  bell = { ...bell, busy: true };
+  drawBell();
+  try {
+    const r = await api.clearNotifications(state.session.token, ids === "all" ? { all: true } : { ids });
+    bell = withCleared(bell, ids, r.unread);
+    toast(ids === "all" ? "Notifications cleared." : "Cleared.");
+  } catch (err) {
+    bell = { ...bell, busy: false };
+    fail(err);
+  }
+  drawBell(focusAfter);
+  if (state.page === "home") void loadHome(["notif"]);
+  // The page emptied but there are older ones: read the newest again.
+  if (bell.open && !bell.items.length && bell.more) void bellRead(false);
+}
+
+async function bellReadAll(): Promise<void> {
+  if (!state.session || bell.busy) return;
+  bell = { ...bell, busy: true };
+  drawBell();
+  try {
+    const r = await api.markNotificationsRead(state.session.token, { all: true });
+    bell = withRead(bell, "all", r.unread, new Date().toISOString());
+  } catch (err) {
+    bell = { ...bell, busy: false };
+    fail(err);
+  }
+  drawBell("#bell-title");
+  if (state.page === "home") void loadHome(["notif"]);
+}
+
+// Registered before the page's own click handler: the bell's controls are
+// handled here and go no further.
+document.addEventListener("click", (e) => {
+  const t = e.target as HTMLElement;
+  if (t.closest("#bell-btn")) {
+    e.stopImmediatePropagation();
+    return bell.open ? closeBell(false) : openBell();
+  }
+  const a = t.closest("[data-act]") as HTMLElement | null;
+  const act = a?.dataset.act ?? "";
+  if (act === "bell-open") {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return openBell();
+  }
+  if (act.startsWith("bell-") && t.closest("#bell-panel")) {
+    // A link (a notice, Settings) goes where it says; the panel closes.
+    if (act === "bell-go") return closeBell(false);
+    e.stopImmediatePropagation();
+    if ((a as HTMLButtonElement).disabled) return;
+    if (act === "bell-filter") {
+      const k = (a!.dataset.kind || null) as SiteNotificationKind | null;
+      if (k === bell.filter) return;
+      bell = { ...bell, filter: k, items: [], more: false };
+      return void bellRead(false);
+    }
+    if (act === "bell-older") return void bellRead(true);
+    if (act === "bell-retry") return void bellRead(false);
+    if (act === "bell-read-all") return void bellReadAll();
+    if (act === "bell-clear") return void bellClear([Number(a!.dataset.nid)]);
+    if (act === "bell-clear-all") return void bellClear("all");
+    return;
+  }
+  // A click anywhere else closes it (not the Clear all confirmation). A
+  // target no longer in the page was inside something that redrew itself
+  // first (the confirmation's buttons empty it): not a click outside.
+  if (bell.open && t.isConnected && !t.closest("#bell-panel") && !t.closest("#dialog")) closeBell(false);
+});
+document.addEventListener("keydown", (e) => {
+  if (!bell.open || e.defaultPrevented) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    return closeBell(true);
+  }
+  // The panel sits after the top bar in the page: Tab from the bell goes
+  // into it, and Shift+Tab from its heading back to the bell.
+  if (e.key !== "Tab") return;
+  const t = e.target as HTMLElement;
+  if (t.id === "bell-btn" && !e.shiftKey) {
+    e.preventDefault();
+    document.querySelector<HTMLElement>("#bell-title")?.focus();
+  } else if (t.id === "bell-title" && e.shiftKey) {
+    e.preventDefault();
+    document.getElementById("bell-btn")?.focus();
+  }
+});
+// Tabbing out of the panel closes it, as a click outside does.
+document.addEventListener("focusin", (e) => {
+  const t = e.target as HTMLElement;
+  if (bell.open && !t.closest("#bell-panel") && !t.closest("#bell-btn") && !t.closest("#dialog")) closeBell(false);
+});
 
 async function claimDaily(): Promise<void> {
   if (!state.session) return;

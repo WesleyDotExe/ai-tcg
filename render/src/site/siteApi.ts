@@ -18,7 +18,7 @@
 
 import type { SiteBinder, SiteCopy, SiteDeckShortfall, SiteHoldings, SiteSalvagePlan } from "./siteCollection.js";
 import type { BulkOpening, PackOpening } from "@ai-tcg/economy";
-import type { SiteLadder, SiteNotifications, SiteStats } from "./siteStanding.js";
+import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
 import type { SiteCosmeticItem, SiteLoadout, SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { SiteRating } from "./siteAgent.js";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
@@ -404,8 +404,13 @@ export interface SiteApi {
    * `GET /api/notifications` and `POST /api/notifications/read` (game 77). */
   ladder(token: string, limit?: number): Promise<SiteLadder>;
   stats(token: string, opts?: { agent?: string | null; days?: number; recent?: number }): Promise<SiteStats>;
-  notifications(token: string, limit?: number): Promise<SiteNotifications>;
-  markNotificationsRead(token: string, what: { all: true } | { ids: number[] }): Promise<unknown>;
+  /** Render session 70 (the bell): `before` (a notificationId) pages back,
+   * `kind` filters to one kind; the unread counts are always the whole. */
+  notifications(token: string, limit?: number, opts?: { before?: number | null; kind?: SiteNotificationKind | null }): Promise<SiteNotifications>;
+  markNotificationsRead(token: string, what: { all: true } | { ids: number[] }): Promise<{ marked: number; unread: number }>;
+  /** `POST /api/notifications/clear` (game 77; the bell, render session 70):
+   * they leave the feed for good. */
+  clearNotifications(token: string, what: { all: true } | { ids: number[] }): Promise<{ cleared: number; unread: number }>;
   live(token: string): Promise<SiteLive>;
   /** `GET /api/live/:matchId?from=N`: the match now and the moves released from N on. */
   liveFeed(token: string, matchId: string, from: number): Promise<SiteLiveFeed>;
@@ -536,8 +541,12 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
       const q = [opts.agent ? `agent=${encodeURIComponent(opts.agent)}` : "", opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
       return call("GET", `/api/stats${q ? `?${q}` : ""}`, { token });
     },
-    notifications: (token, limit) => call("GET", `/api/notifications${limit ? `?limit=${limit}` : ""}`, { token }),
+    notifications: (token, limit, opts = {}) => {
+      const q = [limit ? `limit=${limit}` : "", opts.before ? `before=${opts.before}` : "", opts.kind ? `kind=${encodeURIComponent(opts.kind)}` : ""].filter(Boolean).join("&");
+      return call("GET", `/api/notifications${q ? `?${q}` : ""}`, { token });
+    },
     markNotificationsRead: (token, what) => call("POST", "/api/notifications/read", { token, body: what }),
+    clearNotifications: (token, what) => call("POST", "/api/notifications/clear", { token, body: what }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
     setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),

@@ -1,0 +1,83 @@
+PASS  setup: the ladder has written over 24 notifications (more than one page)
+      25 notifications, 25 unread (matchResult 24, bigPull 0, dailyPack 1, autoPlayStopped 0)
+
+[A] the bell on every page
+PASS  A. the bell is in the top bar on home
+PASS  A. the bell is in the top bar on stats
+PASS  A. the bell is in the top bar on store
+PASS  A. the bell is in the top bar on collection
+PASS  A. the badge is the server's unread count (25, server 25)
+PASS  A. the button's name: "Notifications, 25 unread"
+PASS  A. aria-expanded false while closed
+
+[B] open: the newest 20, marked read as shown
+PASS  B. the panel opens with 20
+PASS  B. in the server's order, newest first (91, 81, 47, 45, ...)
+PASS  B. grouped by day: Today, Earlier
+PASS  B. aria-expanded true
+PASS  B. focus on the panel's heading (#bell-title)
+PASS  B. the bell marked what it showed
+PASS  B. ...exactly the 20 shown unread ids, not "all"
+PASS  B. the server's unread: 26 -> 6
+PASS  B. every shown one is read on the server
+PASS  B. the 20 that were unread stay marked New
+PASS  B. the badge follows: "6"
+PASS  B. the Home widget agrees (6)
+PASS  B. Mark all read offered only while some are unread elsewhere (6)
+PASS  B. the five filters sit on one row at 1440 (1), with their counts
+PASS  B. Mark all read: the server has none unread
+PASS  B. ...the badge is gone; "All read"
+PASS  B. ...the widget agrees
+PASS  B. ...focus on the heading (#bell-title)
+
+[C] filter by kind
+PASS  C. Match results: the server's 20 of that kind
+PASS  C. the chip is pressed
+PASS  C. Daily pack: 1 (the empty words when none)
+PASS  C. All: the 20 again
+
+[D] show older
+PASS  D. Show older offered (the server says more)
+PASS  D. appended the server's next 6
+PASS  D. nothing twice
+PASS  D. in order
+
+[E] clear one
+PASS  E. #81 left the panel
+PASS  E. ...and the server's feed
+PASS  E. focus on the next one's clear (button[bell-clear]#47)
+
+[F] closing
+PASS  F. Escape closes
+PASS  F. ...focus back on the bell (#bell-btn)
+PASS  F. Enter on the bell opens it
+PASS  F. a click outside closes
+PASS  F. tabbing out closes
+PASS  F. the bell again closes it
+
+[G] a new one arrives
+PASS  G. the ladder recorded a match (a new notification)
+PASS  G. the badge rises to the server's 1 within a status poll
+PASS  G. the bell swung for it
+PASS  G. another arrives with the panel open
+PASS  G. the panel reads its newest again (#235 at the top)
+PASS  G. ...and marks it read (it was shown)
+PASS  G. ...shown New
+
+[H, I] the widget's arrow; Clear all
+PASS  I. the Notifications widget's arrow opens the panel
+PASS  H. opening it marked the rest: none unread, no badge, "All read"
+PASS  H. Cancel keeps them (and the panel open)
+PASS  H. Clear all: the panel says nothing yet
+PASS  H. ...the server's feed is empty
+
+[J] a phone, and dark
+PASS  J. the widget's bell badge shows on a phone (display grid)
+PASS  J. the panel fits the phone (12..378 of 390; page 390 wide)
+PASS  J. the top bar keeps the bell and the account button on screen (bar 314/314, account ends at 374 of 390)
+
+[K] the page
+PASS  K. no external requests
+PASS  K. no page errors
+
+60 PASS, 0 FAIL

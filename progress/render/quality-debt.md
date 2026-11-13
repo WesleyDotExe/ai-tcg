@@ -9,6 +9,19 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **The notifications bell (session 70) is built and checked against the real API with the ladder playing (60
+  PASS), with thin spots.** The badge follows the 15 s status poll (`limit=1`), so a new notification can take up to
+  15 s to show (the server has no push; OWNER_API.md says so). A big pull's cards in the panel are only unit-tested:
+  the demo's ladder never opened a big pull, so the browser drew match results and the daily pack only. Marking an
+  id that was cleared elsewhere meanwhile (a 404) is ignored and the count settles on the next poll: not exercised.
+  The "swing" for a new one was seen as the class going on (a MutationObserver), not watched as motion. Today /
+  Yesterday / Earlier are the viewer's own calendar days, while the game's day (the daily reset) is Sydney's; near
+  midnight they can disagree. A notice links to its page (Agent match, Collection, Store, Home), not to the match or
+  the pack itself, as the widget's do. The panel lives after the top bar in the page (outside it, so its blur reaches
+  the page), so Tab from the bell into the panel and Shift+Tab back are handled by hand; a screen reader's own
+  navigation reads it after the top bar. Phones only emulated (390 and 320 wide), never a real device; at phone
+  width the theme button leaves the top bar to make room (Settings has the same choice). There is no old-code
+  comparison: the bell didn't exist before.
 - **The Stats page (session 68) is built and checked against the real API (44 PASS), with thin spots.** The
   filter's second agent in the demo has no matches, so the check proved an empty agent and "All agents", never two
   agents both with results (the Node test on the real API does: 3 matches of 8). The day columns under the chart are
@@ -193,8 +206,8 @@ items are removed, with the fix in `log.md`.
 - **Ladder, Rating & form and Notifications draw the server's data at S, M and L (session 65), with thin
   spots.** Checked against the real API with the ladder playing (`widgets-check-s65.txt`). **Thin:** a big pull's
   cards in the Notifications widget are only unit-tested (the demo's last eight notifications held no big pull, so
-  the browser never drew one); Mark all read is the only way to mark them read (showing marks nothing; the bell,
-  roadmap item 1, isn't built); a notification's link goes to its page, not to the match or the pack itself; the
+  the browser never drew one); the widget marks nothing by showing (only its Mark all read does; the
+  bell's panel marks what it shows, session 70); a notification's link goes to its page, not to the match or the pack itself; the
   Rating & form chart's 30 days show long flat stretches where the demo's warm-up skipped days (correct, but dull);
   the tier floors on the chart need the ladder read (without it the chart draws without them); Ladder M fits four
   rows by dropping the owner names at M; the widgets were looked at once on a phone; the ladder's "Around you" at L

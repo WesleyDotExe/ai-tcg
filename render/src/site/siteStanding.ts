@@ -92,6 +92,7 @@ export interface SiteStats {
 
 export type SiteNotifications = NotificationPage;
 export type SiteNotification = Notification;
+export type SiteNotificationKind = NotificationKind;
 
 // ---- tiers ---------------------------------------------------------------------------
 
@@ -330,7 +331,7 @@ function amount0(n: number): string {
 
 // ---- the Notifications widget --------------------------------------------------------
 
-const KIND_INFO: Record<NotificationKind, { glyph: string; hue: string; name: string; href: string }> = {
+export const KIND_INFO: Record<NotificationKind, { glyph: string; hue: string; name: string; href: string }> = {
   matchResult: { glyph: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', hue: "#8fb3ff", name: "Match results", href: "#/match" },
   bigPull: { glyph: '<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 21l-2.2-6.8L3.5 12l6.3-2.7z"/>', hue: "#f6c445", name: "Big pulls", href: "#/collection" },
   dailyPack: { glyph: '<path d="M4 8h16l-1.5 12h-13z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/>', hue: "#3cc47c", name: "Daily pack", href: "#/store" },
@@ -400,7 +401,7 @@ export function noticeView(n: SiteNotification, now: number, factionOf: (cardId:
   }
 }
 
-function kindGlyph(kind: NotificationKind, px: number): string {
+export function kindGlyph(kind: NotificationKind, px: number): string {
   const k = KIND_INFO[kind];
   return `<span class="nk" style="--k:${k.hue};width:${px}px;height:${px}px" aria-hidden="true"><svg viewBox="0 0 24 24" width="${Math.round(px * 0.55)}" height="${Math.round(px * 0.55)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${k.glyph}</svg></span>`;
 }

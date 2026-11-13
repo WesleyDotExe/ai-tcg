@@ -202,10 +202,11 @@ new ideas go to `progress/season-1-ideas.md`.
 **Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`).
 Status corrected by the owner 2026-11-08 from `progress/render/log.md` (sessions 44-58). **Every render session
 now ticks this list itself** (TASKS.md, end of session), exactly as the game lane does with its own.
-1. [~] Site layout and the full pages: glass sidebar and top bar, Settings, Connect agent, the admin view (Settings
+1. [x] Site layout and the full pages: glass sidebar and top bar, Settings, Connect agent, the admin view (Settings
    -> Admin), dark mode (session 44); Store and full-screen pack opening (47); Collection, the wide binder (48);
    the loadout picker (49); Agent match, Watch live, match history, auto-play (50); the Stats page on the server's
-   data (68). **Left: the notifications bell** in the top bar (served since game session 77).
+   data (68); the notifications bell in the top bar (70: the unread badge, a panel of the newest 20 by day with
+   kind filters, Show older, clear one / Clear all, Mark all read; what it shows is marked read).
 2. [x] The look: the liquid WebGL backgrounds and picker, saved to the account (session 45); reduce motion and
    transparency rules (44).
 3. [x] Home as the widget board (session 46: 12-column grid, S/M/L, Customise, saved to the account, the twelve
@@ -250,10 +251,11 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      (render 67): Watch live (the score / + health bars and "Watch as" / the live match on the real arena embedded
      in the tile, one per board, silent, kept across redraws, held for its result and boast, then the next match;
      the compact board on a phone), on the real API (`watch-arena-check-s67`)
-   - [~] The Stats page, the ladder page (item 5) and the notifications bell (item 1). Done (render 68): the Stats
+   - [x] The Stats page, the ladder page (item 5) and the notifications bell (item 1). Done (render 68): the Stats
      page on `GET /api/stats` (the agent filter, 7/30/90 days, the rating chart with day columns, totals, factions,
      today's earnings from `today`, recent results with Replay) with the season ladder inside it, on the real API
-     (`stats-check-s68` 44 PASS). Left: the bell
+     (`stats-check-s68` 44 PASS). Done (render 70): the bell, on the real API with the ladder playing
+     (`bell-check-s70` 60 PASS)
    - [x] Render hardening pass, session 69: Agent controls take the server's words (`allowance.label`: "Finishing
      match", "Time's up"; "Done for today" gone from the site), seen on a real 15-minute run to its end at 8x; the
      dial's arrow keys save once when they stop (three arrows: one save, one toast, was three); `patchAround` given a
