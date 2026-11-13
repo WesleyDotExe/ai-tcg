@@ -2,41 +2,37 @@
 
 **Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
-1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec). Session 91 (game lane, the hardening pass) took the site contract
-check past one plain run's shapes: every history result, a live match's boast, the allowance finishing and done,
-a Prototype, a crafted secret, a bought cosmetic. 0 mismatches in 62 calls, 5 of 5 controls. No product code or
-schema change (still v28). Nothing is blocking.**
+1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec). Session 92 (game lane, the hardening pass for the 7-day unattended
+run, owner 2026-11-13 item 2) crashed and stopped the real server mid-match and restarted it on the real clock
+(`progress/unattended-run-001.txt`, 17 PASS): recovery worked. Fixed a real wedge (a match that failed to record
+left its owners live forever; now retried), a log write that threw after the record, and untimed output (every
+line now carries the local time; clock jumps are said). Still schema v28. Nothing is blocking.**
 
-- **The site contract check** (`server/src/dev/siteContractCheck.ts`, `npm run check:site-contract -w server`;
-  record `progress/site-contract-001.txt`; a CI step). Fails on a MISMATCH, a missed control, a stray compiler
-  error, or (session 91) a shape in its "Shapes reached" list the run no longer reaches.
-- Session 89's daily order fix, 88's season-scale record, 87's round read, 86's lock, 85's season-file checks, 83's
-  next-season file and 84's v28 transfer record stand. Season end part 3 (the 2026-11-10 carry-over) is after the
-  5 Dec launch.
+- **Running unattended** (`server/OWNER_API.md`, "Running unattended"): `server/src/logTime.ts` stamps the season
+  server's lines; `LiveLadder` retries a failed record (`RECORD_RETRY_MS`: 30 s doubling to 10 min) and prints
+  `clockJumpLine`. The measure: `server/src/dev/unattendedRunMeasure.ts` (a record, ~10 min of real clock).
+- **The site contract check** (`npm run check:site-contract -w server`; a CI step) and sessions 83-91's season-file,
+  lock, daily-order and scale work stand. Season end part 3 (the 2026-11-10 carry-over) is after the 5 Dec launch.
 
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
 with "Render:", this is a game session; otherwise render. This session's PR is game, so **the next session is
-render**: as planned in `progress/render/log.md` (the render hardening pass, 69, with the server's
-`allowance.label` in Agent controls; then the notifications bell; then Top rated and viewer counts on Watch live).
+render**: render 70, the notifications bell (owner 2026-11-13 plan, item 3).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else note it and stop. Check the last merged PR so a slice isn't built twice. Read owner-feedback.md.
 
-Game lane, when its turn comes (session 92):
-- If the owner answered session 91's small call (notes-for-owner.md), apply it first.
-- A spare session (item 7) unless the owner names something. Candidates: the site host's own readers
-  (`render/src/site/siteHost.ts` / `liveFrames.ts` read the live feed and replays with their own types) in the
-  contract check; the shapes still unreached (`stopped: dailyRewardsMaxed`, a Zero-Day craft, error bodies);
-  `cardId` on `draw` events (ask the render lane first); a seeded season-size file for the clean-up dry run
-  (`seasonScaleMeasure.ts` builds one). Next game hardening pass: 96.
-- If the render lane changes `siteApi.ts` and the CI contract step fails, the message names the call and field.
-- Clean-up (2-4 Dec): write the owner's switch steps: end the season (`POST /api/admin/season/end`), wait for the
-  matches to finish, stop the server with **Ctrl-C**, `npm run season:next -w server -- <old> <new> S1`, start on
-  the new file (`--new` only for a very first start). If a step says "is in use by", a server is still running.
-  Check the Mac mini's clock is right before restarting the server (session 89; owner 2026-11-12).
-- Season end part 3 (the 2026-11-10 carry-over) is after the 5 Dec launch, not before. When built: carry each copy
-  with its id, provenance and transfer rows (v28).
+Game lane, when its turn comes (session 93, owner 2026-11-13 item 4: **start clean-up early**):
+- If the owner answered session 92's call (how the server comes back after a crash or reboot: a launchd launch
+  agent or by hand), follow it in the guide.
+- Run the full Season 0 dry run in `progress/season0-final-brief.md` ("Clean-up days") in the session's own
+  environment: the ladder running, auto-play with an allowance running out mid-match, packs bought and opened (1
+  and 10), the daily reset crossing midnight Sydney, Watch live; report what broke at an [OWNER CHECK-IN].
+- Write the owner's step-by-step Mac mini guide: first start (`--new`), running unattended (output to a log file,
+  `>> season.log 2>&1`; no sleep; log in after a power cut), stopping (Ctrl-C), a restart, checking the clock
+  before a restart, ending the season (`POST /api/admin/season/end`) and the switch (`season:next`). If a step says
+  "is in use by", a server is still running.
+- Still unreached by any check (quality-debt.md, sessions 91-92): a real full disk; a tick that fails every time.
 
 **Blocked:** nothing.

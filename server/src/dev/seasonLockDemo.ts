@@ -25,6 +25,7 @@ import { hostname, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EconomyStore } from "@ai-tcg/economy";
+import { STAMP_RE } from "../logTime.js";
 import { lockPathFor, type LockHolder } from "../seasonLock.js";
 import { demoFetch } from "./demoFetch.js";
 
@@ -45,6 +46,7 @@ const dir = mkdtempSync(join(tmpdir(), "season-lock-demo-"));
 const host = hostname();
 const tidy = (text: string) =>
   text
+    .replace(STAMP_RE, "") // (session 92) the server's time on every line
     .split(dir)
     .join("<dir>")
     .split(` on ${host},`)
@@ -88,7 +90,7 @@ function startSeason(args: string[]): Promise<Running> {
         resolve({
           child,
           port: Number(m[1]),
-          out: tidy(out.split("\n").filter((l) => l.startsWith("[season]") || l.startsWith("[lock]")).join("\n")),
+          out: tidy(tidy(out).split("\n").filter((l) => l.startsWith("[season]") || l.startsWith("[lock]")).join("\n")),
           stop: () =>
             new Promise((done) => {
               if (child.exitCode !== null || child.signalCode !== null) return done();

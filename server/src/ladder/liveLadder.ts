@@ -189,9 +189,16 @@ interface Shown {
   /** The 2× vote, and the pace it gives. */
   vote: SpeedVote;
   rate: SpeedRate;
+  /** (session 92) Failed tries at recording it so far (it stays shown,
+   * held at its end, until one succeeds). */
+  recordTries: number;
 }
 
 const RECENT_LINES = 6;
+
+/** (session 92) After a failed try at recording a finished match, the wait
+ * before the next: 30 s, doubling to at most 10 minutes. */
+export const RECORD_RETRY_MS = { first: 30_000, max: 10 * 60_000 } as const;
 
 export class LiveLadder implements LiveSource {
   readonly ladder: Ladder;
@@ -248,10 +255,31 @@ export class LiveLadder implements LiveSource {
     for (const [id, s] of this.shown) {
       const steps = this.release(s, now);
       if (s.released >= steps && now >= s.nextAt) {
+        let m: LadderMatch | null = null;
+        try {
+          m = this.ladder.recordPlayed(s.played);
+        } catch (err) {
+          // (session 92) Recording is one transaction that also ends the
+          // live match (the store's recordMatch), so a match the store
+          // still holds as live was not recorded: keep it (held at its
+          // end) and try again later. Dropping it here, as before, left
+          // its owners live in the store with nothing showing the match,
+          // so neither was ever paired again until a restart.
+          const why = err instanceof Error ? err.message : String(err);
+          if (this.store.liveMatches().some((x) => x.matchId === id)) {
+            const wait = Math.min(RECORD_RETRY_MS.first * 2 ** s.recordTries, RECORD_RETRY_MS.max);
+            s.recordTries++;
+            s.nextAt = now + wait;
+            console.error(`[ladder] couldn't record ${id} (${why}); it stays live and is tried again in ${wait / 1000} s (try ${s.recordTries})`);
+            continue;
+          }
+          // Recorded; what failed came after (it is said, and the match
+          // is done with).
+          console.error(`[ladder] ${id} was recorded, but what follows recording it failed: ${why}`);
+        }
         this.shown.delete(id);
         this.viewers.forget(id);
-        const m = this.ladder.recordPlayed(s.played);
-        this.opts.onRecorded?.(m, { startedAt: s.startedAt, endedAt: now });
+        if (m !== null) this.opts.onRecorded?.(m, { startedAt: s.startedAt, endedAt: now });
         if (this.shown.size === 0) this.nextRoundAt = now + (this.opts.roundGapMs ?? 60_000);
       }
     }
@@ -327,6 +355,7 @@ export class LiveLadder implements LiveSource {
         nextAt: at + stepHoldMs(played.timeline, 0) / rate,
         vote,
         rate,
+        recordTries: 0,
       });
     }
     if (this.shown.size === 0) this.nextRoundAt = at + (pairs.length === 0 ? (this.opts.idleRetryMs ?? 60_000) : (this.opts.roundGapMs ?? 60_000));
@@ -446,9 +475,16 @@ export class LiveLadder implements LiveSource {
   /** Ticks on a timer until `stop()`. */
   start(): void {
     if (this.timer) return;
+    const every = this.opts.tickMs ?? 250;
+    let last = this.now();
     this.timer = setInterval(() => {
+      // (session 92) Said once when it happens, so the log explains a
+      // stretch with no matches or a round that ended all at once.
+      const line = clockJumpLine(last, this.now(), every);
+      if (line !== null) console.warn(line);
+      last = this.now();
       this.tick().catch((err) => console.error("[ladder] tick failed:", err));
-    }, this.opts.tickMs ?? 250);
+    }, every);
   }
 
   /** Stops ticking and waits for a tick in progress. Matches being shown
@@ -458,4 +494,18 @@ export class LiveLadder implements LiveSource {
     this.timer = null;
     while (this.busy) await this.busy;
   }
+}
+
+/** (session 92) The line the running ladder prints when the clock moved
+ * unlike a timer ticking every `tickMs`, or null. Forward by more than a
+ * minute: the machine slept, or the process was paused, or the clock was
+ * set ahead; every move due in the gap comes out at once, so a match being
+ * shown ends at once. Back by more than a second: the clock was set back;
+ * nothing new is released until it catches up (session 89). */
+export function clockJumpLine(before: number, after: number, tickMs: number): string | null {
+  const gap = after - before;
+  const mins = (ms: number) => (ms >= 120_000 ? `${Math.round(ms / 60_000)} minutes` : `${Math.round(ms / 1000)} s`);
+  if (gap > 60_000 + tickMs) return `[ladder] the clock moved ahead ${mins(gap)} since the last tick (the machine slept, or its clock was changed): moves due in that time are shown at once`;
+  if (gap < -1_000) return `[ladder] the clock went back ${mins(-gap)} (it was changed): no move is shown until it catches up`;
+  return null;
 }

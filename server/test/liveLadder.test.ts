@@ -5,10 +5,10 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DeckFaction } from "@ai-tcg/engine";
 import { EconomyStore } from "@ai-tcg/economy";
-import { LiveLadder } from "../src/ladder/liveLadder.js";
+import { clockJumpLine, LiveLadder } from "../src/ladder/liveLadder.js";
 import type { LadderMatch } from "../src/ladder/ladderRunner.js";
 import { stepHoldMs, WATCH_PACE_MS, watchLengthMs } from "../src/ladder/timeline.js";
 
@@ -167,5 +167,92 @@ describe("the long-lived ladder", () => {
     expect(store.matchHistory()).toHaveLength(1);
     expect(store.matchHistory()[0]!.outcome).toBe("win");
     expect(live.ladder.eligibleOwners()).toEqual([b]);
+  });
+
+  // (session 92) The 7-day unattended run: a write that fails once (a full
+  // disk, a busy file) used to drop the match from the show while the store
+  // still held it live, so its owners were never paired again until a
+  // restart: with four house owners the ladder stopped for good.
+  it("a match that can't be recorded stays live and is tried again (30 s, doubling to 10 min); the ladder carries on once it can", async () => {
+    const { clock, store, make } = setup();
+    const errors: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((...a: unknown[]) => void errors.push(a.join(" ")));
+    try {
+      const live = make();
+      await live.tick();
+      const ids = live.showing().map((s) => s.matchId).sort();
+      expect(ids).toHaveLength(2);
+      let failing = true;
+      const real = store.recordMatch.bind(store);
+      vi.spyOn(store, "recordMatch").mockImplementation((input) => {
+        if (failing) throw new Error("database or disk is full");
+        return real(input);
+      });
+      // Past both matches' ends, then 20 minutes of failing writes.
+      const end = Math.max(...live.showing().map((s) => s.lengthMs));
+      const failFrom = clock.t + end;
+      while (clock.t < failFrom + 20 * 60_000) {
+        clock.t += 1_000;
+        await live.tick();
+      }
+      expect(store.matchHistory()).toEqual([]);
+      // Still shown, still live in the store, nothing else paired.
+      expect(live.showing().map((s) => s.matchId).sort()).toEqual(ids);
+      expect(store.liveMatches().map((m) => m.matchId).sort()).toEqual(ids);
+      // Tried at the end, then 30, 60, 120, 240, 480 s later (15.5 min);
+      // the next would be 10 min on (capped), past the 20 minutes.
+      const tries = (id: string) => errors.filter((e) => e.includes(`couldn't record ${id} `));
+      for (const id of ids) {
+        expect(tries(id).map((e) => /in (\d+) s/.exec(e)![1])).toEqual(["30", "60", "120", "240", "480", "600"]);
+        expect(tries(id)[0]).toContain("database or disk is full");
+      }
+      // The disk is freed: the next try records both, and rounds carry on.
+      failing = false;
+      for (let i = 0; i < 30 * 60; i++) {
+        clock.t += 1_000;
+        await live.tick();
+      }
+      const history = store.matchHistory();
+      for (const id of ids) expect(history.find((h) => h.matchId === id)?.outcome).not.toBe("cancelled");
+      expect(history.length).toBeGreaterThan(2);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("a match recorded whose log can't be written still counts, with no log file", async () => {
+    const { clock, store, make } = setup();
+    const logDir = join(mkdtempSync(join(tmpdir(), "live-ladder-")), "not-a-dir");
+    const warnings: string[] = [];
+    const spy = vi.spyOn(console, "warn").mockImplementation((...a: unknown[]) => void warnings.push(a.join(" ")));
+    try {
+      const recorded: LadderMatch[] = [];
+      const live = make({ logDir, onRecorded: (m) => recorded.push(m) });
+      await live.tick();
+      // The directory goes (as a full or failed disk would make writes fail).
+      rmSync(logDir, { recursive: true, force: true });
+      const end = Math.max(...live.showing().map((s) => s.lengthMs));
+      clock.t += end + 1_000;
+      await live.tick();
+      expect(recorded).toHaveLength(2);
+      for (const m of recorded) {
+        expect(m.logPath).toBeNull();
+        expect(m.replayPath).toBeNull();
+      }
+      expect(store.liveMatches()).toEqual([]);
+      expect(warnings.filter((w) => w.includes("no log file"))).toHaveLength(2);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("the running ladder says when the clock jumps ahead (the machine slept) or goes back, and not on an ordinary tick", () => {
+    const t = Date.parse("2026-12-05T00:00:00.000Z");
+    expect(clockJumpLine(t, t + 250, 250)).toBeNull();
+    expect(clockJumpLine(t, t + 30_000, 250)).toBeNull(); // a slow tick (a rebuild) is not a jump
+    expect(clockJumpLine(t, t + 3 * 3_600_000, 250)).toBe("[ladder] the clock moved ahead 180 minutes since the last tick (the machine slept, or its clock was changed): moves due in that time are shown at once");
+    expect(clockJumpLine(t, t + 90_000, 250)).toContain("ahead 90 s");
+    expect(clockJumpLine(t, t - 500, 250)).toBeNull();
+    expect(clockJumpLine(t, t - 300_000, 250)).toBe("[ladder] the clock went back 5 minutes (it was changed): no move is shown until it catches up");
   });
 });
