@@ -4984,7 +4984,7 @@ Next session by alternation: render 77, then game 101 (a hardening pass, per ses
 
 ---
 
-## 2026-11-14 — Owner: answers to render session 77 (the faction lock on the server's own field, with the plan's pack points), keep both (a)
+## 2026-11-14 — Owner: answers to render session 77 (the faction lock on the server's own field, with the plan's pack points), keep both (a) (HANDLED 2026-11-14, game session 101: both kept as built, nothing for either lane to build; read and marked here; the session was the hardening pass the entry names)
 
 **Render session 77** (PR #181, `progress/render/checkpoints.md`, `progress/render/evidence/faction-lock-check-s77.txt`). **Keep both calls as built:**
 1. **Keep (a):** "N short" names the gap only; it doesn't add how pack points are earned.

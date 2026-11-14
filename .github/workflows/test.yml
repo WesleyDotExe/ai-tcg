@@ -49,7 +49,7 @@ jobs:
       # fields the server sends that the types don't name are listed, never
       # a failure. Either lane's PR can break it: a server answer changed, or
       # a site type that needs a field the server doesn't send. Its last
-      # record: progress/site-contract-001.txt. About 10 seconds.
+      # record: progress/site-contract-003.txt. About 10 seconds.
       - name: site contract check (site types vs served answers)
         run: npm run check:site-contract -w server
       # The same six edges the way a real match plays (owner 2026-10-18,

@@ -3,7 +3,8 @@
 //
 //   npm run check:site-contract -w server > ../progress/site-contract-001.txt
 //   (session 100: the lockable factions' shapes and control; its run is
-//   ../progress/site-contract-002.txt)
+//   ../progress/site-contract-002.txt; session 101: the allowance end set
+//   mid-match, exact, ../progress/site-contract-003.txt)
 //
 // The website's client (`render/src/site/siteApi.ts`, the render lane's) says
 // what every owner API call returns, as TypeScript types. Nothing checked
@@ -159,6 +160,8 @@ const answers: Answer[] = [];
 /** (session 91) The shapes a field can take that a plain run doesn't reach,
  * and whether this run reached each (the report lists them). */
 const shapes: Record<string, boolean> = {};
+/** (session 101) Where the allowance's end was set mid-match, for the record. */
+let forcedEndNote = "the allowance's end was never set mid-match";
 const refusals: string[] = [];
 /** (session 95) The refusals the run asks for (the season has ended). */
 const seasonRefusals: string[] = [];
@@ -316,8 +319,7 @@ try {
   let boastServed = false;
   let finishingRead = false;
   let runningRead = false;
-  const RETRY_MINUTES = [30, 60, 15] as const;
-  let retries = 0;
+  let forcedEnd: { at: number; matchId: string; lengthMs: number } | null = null;
   for (let i = 0; i < 720; i++) {
     await tick(5000);
     if (!finishedRead) {
@@ -340,15 +342,24 @@ try {
       await ask("play", "GET /api/play (two: the allowance finishing)", t2);
     }
     // (session 94) From v29 the window opens at the first pairing, so it
-    // can run out between two matches (straight to "done"); then two is
-    // given another 15 minutes until one runs out mid-match.
-    // (session 99) Each window starts at a pairing, so a retry with the same
-    // 15 minutes ends at the same point of the ladder's round cycle, and
-    // with cards-3's shorter matches that point is the gap between matches
-    // every time (the check never reached "finishing"). The retries go
-    // through the other lengths the site offers, 30 then 60, so the end
-    // lands somewhere else in the cycle.
-    if (!finishingRead && store.autoPlay(two, new Date(clock.t).toISOString()).allowance?.state === "done") store.setAutoPlay(two, true, RETRY_MINUTES[retries++ % RETRY_MINUTES.length]);
+    // can run out between two matches (straight to "done"). Sessions 94 and
+    // 99 retried with other lengths until an end fell mid-match, which
+    // depended on where the ladder's match ends fall (session 99's debt).
+    // (session 101, hardening) Exact instead: the first time two is seen in
+    // a live match that is at least a minute long, the window's end is set
+    // from that match's own clock, to the next tick (5 s on). The match has
+    // at most 5 s shown by then, so the end always lands mid-match. The end
+    // is written into the store's row directly (the site only offers 15, 30
+    // and 60 minutes); everything after it (the "finishing" label, the
+    // match played out, "done", the timeUp stop and its notice) is the
+    // server's own path.
+    if (!finishingRead && forcedEnd === null && al?.state === "running") {
+      const mine = live.showing().find((m) => m.pairing.p1 === two || m.pairing.p2 === two);
+      if (mine && mine.lengthMs >= 60_000) {
+        forcedEnd = { at: clock.t + 5000, matchId: mine.matchId, lengthMs: mine.lengthMs };
+        store.unsafeExec(`UPDATE auto_play SET allowance_ends_at = '${new Date(forcedEnd.at).toISOString()}' WHERE owner_id = '${two}'`);
+      }
+    }
     if (finishingRead && store.liveMatchOf(two) === null && (finishedRead || i > 600)) break;
   }
   const doneAnswer = (await ask("play", "GET /api/play (two: the allowance done, stopped timeUp)", t2)) as { autoPlay: { allowance?: { state: string } | null; stopped: { reason: string } | null } } | undefined;
@@ -356,6 +367,10 @@ try {
   shapes["the live feed's boast, not null (the winner's)"] = boastServed;
   shapes["autoPlay.allowance in \"running\""] = runningRead;
   shapes["autoPlay.allowance in \"finishing\""] = finishingRead;
+  if (forcedEnd) {
+    const f = forcedEnd;
+    forcedEndNote = `the allowance's end set to ${new Date(f.at).toISOString()}, 5 s into Player Two's match ${f.matchId} (shown for ${Math.round(f.lengthMs / 1000)} s)`;
+  }
   shapes["autoPlay.allowance in \"done\""] = doneAnswer?.autoPlay.allowance?.state === "done";
   shapes["autoPlay.stopped (\"timeUp\")"] = doneAnswer?.autoPlay.stopped?.reason === "timeUp";
   for (const k of ["win", "loss", "draw", "cancelled", "abandonedByYou", "abandonedByOpponent"]) shapes[`a history row and match view: ${k}`] = seenKinds.has(k);
@@ -582,6 +597,7 @@ items.forEach((x, i) => {
 say();
 say("Shapes reached (unions and nullable fields a plain run leaves on one side; session 91):");
 for (const [k, v] of Object.entries(shapes)) say(`    ${v ? "reached" : "NOT REACHED"}  ${k}`);
+say(`    (session 101: ${forcedEndNote})`);
 // Every method of the site's client this run didn't get an answer from.
 const HOST_ONLY = new Set(["replayPage", "livePage", "liveFrames"]);
 const asked = new Set(items.map((x) => x.method));
