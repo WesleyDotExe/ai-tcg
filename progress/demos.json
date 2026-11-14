@@ -38,7 +38,8 @@
     { "file": "season-lock-001.txt", "workspace": "server", "script": "src/dev/seasonLockDemo.ts", "plays": false },
     { "file": "live-feed-size-001.txt", "workspace": "server", "script": "src/dev/liveFeedSizeMeasure.ts", "plays": true },
     { "file": "play-time-002.txt", "workspace": "server", "script": "src/dev/playTimeClockDemo.ts", "plays": true },
-    { "file": "season-end-002.txt", "workspace": "server", "script": "src/dev/seasonEndTimeDemo.ts", "plays": true }
+    { "file": "season-end-002.txt", "workspace": "server", "script": "src/dev/seasonEndTimeDemo.ts", "plays": true },
+    { "file": "lockable-api-001.txt", "workspace": "server", "script": "src/dev/lockableApiDemo.ts", "plays": false }
   ],
   "records": {
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",
@@ -54,7 +55,8 @@
       "stats-scale-001.txt",
       "ladder-scale-001.txt",
       "season-scale-001.txt",
-      "site-contract-001.txt"
+      "site-contract-001.txt",
+      "site-contract-002.txt"
     ]
   }
 }

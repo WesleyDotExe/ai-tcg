@@ -484,6 +484,7 @@ Who goes first is the server's coin flip for every match; the coin is only how t
   deckChoice: "agent" | "forced",
   factionLock: faction | null,
   lockableFactions: ["Cortex", "Swarm", "Aegis", "Null"],
+  lockable: [{ faction, buildable: boolean, cards: number, needed: number }],   // session 100: one per lockableFactions entry, in its order
   activeDeck: DeckStatus | null,          // the deck the connected agent plays
   agentDeck: (DeckStatus & { builtFrom: { style, factionLock, rule } | null }) | null,
   rebuild: { reasons: string[], job: RebuildJob | null },
@@ -494,6 +495,8 @@ Who goes first is the server's coin flip for every match; the coin is only how t
   liveMatch: { matchId, startedAt } | null
 }
 ```
+
+`lockable` (session 100; owner 2026-11-14, answer (a) to game 99's call) says, for each lockable faction, whether a deck of it can be built now from the cards held. Packs hold only booster cards, so an owner can lock a faction they hold too few cards of; the lock is allowed, but the ladder sits the agent out until the deck can be built. `cards` is the most cards a deck of that faction can hold from the cards held, by the rule a rebuild checks the deck against (the engine's `largestDeck`: copy limits, at most 10 neutral copies, removal at most 25%, evolutions only with their base); `needed` is the fewest a deck needs (20); `buildable` is `cards >= needed`. A rebuild under a lock marked not buildable fails. It is the store's `lockableFactions(ownerId)`, a read that changes nothing; `PUT /api/play/faction-lock`'s answer carries it too.
 
 `DeckStatus` is the store's: `{ deckId, name, ownerId, active, complete, missing, cards, faction, list }`. `faction` (session 68) is the faction the deck plays (its one non-Neutral faction; `null` only for a deck with none or several, which no legal deck is); `list` is `[{ cardId, copies }]`, each card once, in the order first listed. `rebuild.reasons` is the store's `agentDeckRebuildReasons`: empty when the agent's deck is up to date or a deck is forced.
 

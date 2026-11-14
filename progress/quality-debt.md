@@ -262,6 +262,29 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 100 (game lane: `lockable` on `GET /api/play`, the API half of game 99's call (a); no schema change): what was raised, and what is still thin
+
+Raised: session 99's "nothing in the API says a lock is unbuildable before it is set". `GET /api/play` and the
+faction-lock answer now serve `lockable` (each lockable faction: buildable, cards, needed), the store's
+`lockableFactions` on the engine's `largestDeck` over the same cards a rebuild uses
+(`progress/lockable-api-001.txt` 13 PASS, in the CI demo set; `server/test/lockable.test.ts`; the site contract
+check reaches both sides of `buildable` and catches a broken copy, `progress/site-contract-002.txt` 8 of 8). Still
+thin:
+- **"Buildable" means a legal 20-card deck exists, not that the agent plays this round.** After the owner crafts
+  enough, the ladder's own `rebuildAgentDeckIfNeeded` rebuilds at its next round (existing behaviour); this
+  session's evidence uses Rebuild now instead and does not show a ladder round picking the agent up again.
+- **Computed on every `GET /api/play`** (the collection read and four `largestDeck` calls). Cheap on a 40-to-few-
+  hundred-card collection; not measured at season scale (the Settings page is the only reader, so it is not on the
+  ladder's path).
+- **The site still has its own fallback** (render 76's `largestDeck` on `GET /api/collection`). Two copies of one
+  rule; the browser check passes with the server's field served (`progress/lockable-site-check-001.txt` 14 PASS), but
+  dropping the fallback is the render lane's call, not done.
+- **The craft order in the demo was the starter list's order**, so it never hit a limit the rule enforces (the 25%
+  removal cap, 10 neutral copies, an evolution without its base). Those are pinned by the engine's own
+  `largestDeck` tests, not re-shown through the API.
+- **The 5th-session hardening count has drifted** (81, 86, 91, then 92 as a second; 96 was owner-directed
+  proposal work). The next game session that has no owner work waiting (101) should be a hardening pass.
+
 ## Session 99 (game lane: PR #177's failed check fixed, the site contract check on cards-3; no product code or schema change): what was raised, and what is still thin
 
 Raised: session 98's "the site contract check was not re-run on cards-3". It had not been, and it failed in CI

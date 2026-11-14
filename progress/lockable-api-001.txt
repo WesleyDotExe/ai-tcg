@@ -1,0 +1,80 @@
+# The lockable factions over the owner API (game session 100)
+
+Owner 2026-11-14, answer (a) to game 99's call: the API marks each lockable faction as buildable or not, with
+the cards held and needed, and the site greys out the ones that can't be built yet. The site's half shipped in
+render session 76 (it worked the numbers out from GET /api/collection until the server sent them).
+
+1. A new owner with the Swarm starter only
+------------------------------------------------------------------------
+  cards held: 40
+    Cortex  NOT buildable   0/20
+    Swarm   buildable      40/20
+    Aegis   NOT buildable   0/20
+    Null    NOT buildable   0/20
+  [PASS] one entry per lockableFactions entry, in its order
+  [PASS] every entry is the engine's largestDeck on the cards held (cards, buildable, needed 20)
+  [PASS] Swarm (the starter's faction) is buildable
+  [PASS] Aegis (no Aegis card held) is not
+
+2. The owner locks Aegis anyway
+------------------------------------------------------------------------
+  [PASS] the lock is allowed (200), as before
+  [PASS] the faction-lock answer carries lockable too
+  the rebuild: failed: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
+  [PASS] a rebuild under a lock marked not buildable fails
+
+3. The owner crafts Aegis starter cards, one at a time
+------------------------------------------------------------------------
+  (pack points from a test grant; each craft is POST /api/collection/cards/:cardId/craft)
+  craft  1: Aegis Cadet              -> Aegis  1/20 
+  craft  2: Aegis Cadet              -> Aegis  2/20 
+  craft  3: Aegis Cadet              -> Aegis  3/20 
+  craft  4: Barrier Drone            -> Aegis  4/20 
+  craft  5: Barrier Drone            -> Aegis  5/20 
+  craft  6: Plating Module           -> Aegis  6/20 
+  craft  7: Plating Module           -> Aegis  7/20 
+  craft  8: Plating Module           -> Aegis  8/20 
+  craft  9: Diagnostic Ward          -> Aegis  9/20 
+  craft 10: Perimeter Turret         -> Aegis 10/20 
+  craft 11: Perimeter Turret         -> Aegis 11/20 
+  craft 12: Perimeter Turret         -> Aegis 12/20 
+  craft 13: Guard Directive Chip     -> Aegis 13/20 
+  craft 14: Guard Directive Chip     -> Aegis 14/20 
+  craft 15: Guard Directive Chip     -> Aegis 15/20 
+  craft 16: Aegis Sentinel           -> Aegis 16/20 
+  craft 17: Aegis Sentinel           -> Aegis 17/20 
+  craft 18: Aegis Sentinel           -> Aegis 18/20 
+  craft 19: Static Ward Beacon       -> Aegis 19/20 
+  craft 20: Failover Custodian       -> Aegis 20/20 buildable
+  craft 21: Failover Custodian       -> Aegis 21/20 buildable
+  craft 22: Barrier Shim             -> Aegis 22/20 buildable
+  craft 23: Latent Ward              -> Aegis 23/20 buildable
+  craft 24: Lockdown Field           -> Aegis 24/20 buildable
+  craft 25: Aegis Warden             -> Aegis 25/20 buildable
+  craft 26: Aegis Warden             -> Aegis 26/20 buildable
+  craft 27: Prime Aegis              -> Aegis 27/20 buildable
+  craft 28: Intercept Routine        -> Aegis 28/20 buildable
+  craft 29: Tariff Field             -> Aegis 29/20 buildable
+  craft 30: Feedback Plating         -> Aegis 30/20 buildable
+  craft 31: Breach Charge            -> Aegis 31/20 buildable
+  craft 32: Bulwark Chassis          -> Aegis 32/20 buildable
+  craft 33: Bulwark Chassis          -> Aegis 33/20 buildable
+  craft 34: Bulwark Chassis          -> Aegis 34/20 buildable
+  craft 35: Reinforced Bastion       -> Aegis 35/20 buildable
+  craft 36: Reinforced Bastion       -> Aegis 36/20 buildable
+  craft 37: Salvage Reflex           -> Aegis 37/20 buildable
+  craft 38: Aegis Line Trooper       -> Aegis 38/20 buildable
+  craft 39: Aegis Line Trooper       -> Aegis 39/20 buildable
+  craft 40: Uplink Tower             -> Aegis 40/20 buildable
+  [PASS] every read after a craft is the engine's rule on the cards held
+  [PASS] the count never falls as cards are added
+  [PASS] Aegis turns buildable (at craft 20) and stays so
+
+4. The rebuild, now
+------------------------------------------------------------------------
+  the rebuild: done: Aegis, 40 cards
+  [PASS] it builds an Aegis deck
+  [PASS] of exactly lockable's count (40)
+  [PASS] the agent's deck is the active deck, and it fits the lock
+
+Checks: 13 of 13 PASS.

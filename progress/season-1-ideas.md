@@ -221,3 +221,9 @@ feel* is the Pokémon TCG Pocket battle screen, with our own mechanics on it.
 - Develop rules for card creation that consider all existing cards up to that point, so a new card is almost balanced out of the box.
 - Counters: when a card is developed for a single faction with a unique effect, a card that counters that unique ability is developed for each of the other 3 factions.
 - Timing: not now; added to the list (owner 2026-11-14).
+
+### 2026-11-14 (owner, answer 2 to game session 98): the full-collection column is a deck-builder issue (not now)
+- In session 98's balance re-run (`progress/booster-rerun-s98/summary.md`), the decks built from a **full** collection spread 19.1 points across the factions (cards-3; 24.6 before tuning), while the realistic owners at 3 / 17 / 37 packs sat at 1.2 / 5.2 / 9.5.
+- The owner reads it as a **deck-builder** issue, not a card one: the column is one build per faction, and the builder's pick there is noisy. The full Null build kept the starter deck with no booster card at all; the full Aegis build played only 5 booster copies, but also two Zero-Day cards and starter cards at full copies (72.5% against the shipped decks).
+- No builder change before launch. For Season 1: look again at how the builder picks when it holds every card (more confirm games at the top, several builds per faction, or a check that the booster package is at least tried), and re-measure the full column as a builder test, not a card test.
+- Why it can wait: no real owner holds a full collection in a 21-day season (the median owner holds a playable set after 48 packs).

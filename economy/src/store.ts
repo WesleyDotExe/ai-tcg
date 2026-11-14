@@ -8,6 +8,7 @@ import {
   chooseDeck,
   holdingsOf,
   largestDeck,
+  MIN_DECK_SIZE,
   playableHoldings,
   type DeckBuildOptions,
   type BuiltDeck,
@@ -2716,6 +2717,24 @@ export class EconomyStore {
     }
     const active = this.getOwner(ownerId).activeDeckId;
     return { activeDeckFits: faction === null || (active !== null && this.deckFactionOf(active) === faction) };
+  }
+
+  /**
+   * (session 100; owner 2026-11-14, answer (a) to game 99's call) Each
+   * lockable faction, buildable now or not. Packs hold only booster cards,
+   * so an owner can lock a faction they hold too few cards of for a deck;
+   * the ladder then sits their agent out until they craft the rest. `cards`
+   * is the most cards a deck of that faction can hold from the cards held,
+   * by the rule `buildAgentDeck` checks a deck against (`largestDeck`, on
+   * the same cards); `needed` is the fewest a deck needs. A read only: it
+   * changes nothing and works on every schema.
+   */
+  lockableFactions(ownerId: string): { faction: DeckFaction; buildable: boolean; cards: number; needed: number }[] {
+    const holdings = holdingsOf(this.collection(ownerId).map((c) => c.cardId));
+    return LOCKABLE_FACTIONS.map((faction) => {
+      const cards = largestDeck(faction, holdings);
+      return { faction, buildable: cards >= MIN_DECK_SIZE, cards, needed: MIN_DECK_SIZE };
+    });
   }
 
   // ---- cosmetics (schema v11; owner 2026-10-19, victory boasts) ----

@@ -212,6 +212,8 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       deckChoice: owner.deckChoice,
       factionLock: owner.factionLock,
       lockableFactions: [...LOCKABLE_FACTIONS],
+      // (session 100) Each lockable faction, buildable now or not.
+      lockable: store.lockableFactions(ownerId),
       activeDeck: decks.find((d) => d.deckId === owner.activeDeckId) ?? null,
       agentDeck:
         agentDeckId === null

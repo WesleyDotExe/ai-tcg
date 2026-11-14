@@ -1,5 +1,27 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 100 (game lane: your answer (a) on the faction lock, the API half).** Lane: the last
+merged PR, #179, was "Render:", so this is a game session. Render 76's PR was still running its checks when this
+session started. It merged during the wait, and this session then chose its lane again, as step 0 says.
+
+**What I did:**
+1. **Your answer (a) to session 99's lock call is now on both sides.** `GET /api/play` (and the answer to changing
+   the lock) now says, for each faction, whether a deck can be built from the cards the owner holds now, how many
+   cards a deck could hold, and the 20 it needs. It uses the same rule the agent's rebuild checks against, so the
+   two can't disagree. The site (render 76) already reads it. Shown on a new owner with only the Swarm starter:
+   Aegis read 0/20, turned buildable at the 20th crafted card, and the rebuild then made a 40-card Aegis deck
+   (`progress/lockable-api-001.txt`, 13 PASS). Render 76's own browser check passes with the field served
+   (`progress/lockable-site-check-001.txt`, 14 PASS).
+2. **Your answers to session 98:** cards-3 stays as it is, and round 2 stays out, so there is nothing to tune. Call 2
+   (the full-collection column is a deck-builder issue) is now a Season 1 entry in `progress/season-1-ideas.md`.
+
+**Nothing for you to decide this session.** One thing to know: "buildable" means a legal 20-card deck exists. Once
+the owner has crafted enough, the ladder rebuilds the agent's deck on its own at its next round. That already
+happened before this session; it isn't new. This session's demo pressed Rebuild now rather than waiting for a
+ladder round.
+
+---
+
 **Updated 2026-11-14, session 99 (game lane: open PR #177 had a failed check; fixed, and carried with session 98's
 work in a new PR).** Lane: the last merged PR, #176, was "Render:", and the open game PR #177 (session 98) had a
 failed check, so this session fixed it. Session 98's three calls below (what counts as passing, the full-collection

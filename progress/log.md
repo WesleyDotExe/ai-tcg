@@ -5535,3 +5535,29 @@ of 61 here; `npm run demos -- --all` 38 of 38 after 3 rewrites (each diff read).
 **Thin:** in quality-debt.md (the check still depends on where match ends fall; locks that can't be built; the slow
 demos outside CI).
 **Blocked:** nothing; session 98's three calls and a small lock call are with the owner.
+
+**2026-11-14 — Session 100 (game lane; `lockable` on `GET /api/play`, the API half of the owner's answer (a) to game
+99's lock call; no schema change).**
+Lane: the last merged PR at the start was #178 (game), so this run began as render. Render 76's PR #179 was open
+with its checks running; the run waited, it merged at about 04:30, and the lane was chosen again from it ("Render:"):
+game. Owner feedback: two unhandled entries for this lane, both handled (session 98's answers, (a)/(a)/keep; session
+99's answer (a)).
+**Built:** (1) `EconomyStore.lockableFactions(ownerId)`: each lockable faction `{ faction, buildable, cards, needed }`,
+`cards` = the engine's `largestDeck` on the cards held (what `buildAgentDeck` checks a deck against), `needed` =
+`MIN_DECK_SIZE` (now exported from the engine's barrel with `MAX_DECK_SIZE`). (2) `GET /api/play` and the
+faction-lock answer serve it as `lockable`, the shape render 76 asked for; `server/OWNER_API.md` documents it. (3) The
+site contract check reaches both sides of `buildable` (two new shapes) and has a control for it (`lockable[].cards`
+sent as text). (4) A new demo, `server/src/dev/lockableApiDemo.ts`, in the CI demo set. (5) Session 98's call 2 in
+`progress/season-1-ideas.md`.
+**Ran it:** `progress/lockable-api-001.txt` 13 of 13 PASS (a Swarm-only owner: Swarm 40/20, the others 0/20; Aegis
+locked, the rebuild fails "at most 0 usable cards"; 40 Aegis starter cards crafted over the API, each read equal to
+the engine's rule, buildable at craft 20; the rebuild then makes a 40-card Aegis deck). `server/test/lockable.test.ts`
+(3 tests). The site contract check: 0 mismatches, 8 of 8 controls, every shape reached (`progress/site-contract-002.txt`).
+Render 76's browser check re-run with the field served: 14 of 14 (`progress/lockable-site-check-001.txt`). Typecheck
+clean (engine, economy, server, render); tests all pass (engine 379, economy 306, server 225, render 1,070, agents 17,
+protocol 7); `npm run demos` 36 of 36 the same (the new one included).
+**Worked:** the render lane wrote the shape before the field existed, typed and optional, so the server half was a
+small change and the contract check covered it at once.
+**Thin:** in quality-debt.md ("buildable" isn't "playing this round"; computed per read, unmeasured at scale; the
+site's fallback is a second copy of the rule; the hardening count has drifted, so 101 should be one).
+**Blocked:** nothing.

@@ -4955,7 +4955,7 @@ Next session by alternation: game 98 (the balance re-run, build step 4).
 
 ---
 
-## 2026-11-14 — Owner: answers to game session 98 (the booster cards' balance re-run), keep all 3 as recommended
+## 2026-11-14 — Owner: answers to game session 98 (the booster cards' balance re-run), keep all 3 as recommended (HANDLED 2026-11-14, game session 100: 1 and 3: cards-3 kept as it is, round 2 stays out, nothing to tune (the site contract check and the slow demos were already re-run on cards-3 in session 99); 2: the full-collection column written into `progress/season-1-ideas.md` as a deck-builder issue for Season 1, no builder change)
 
 **Game session 98** (its work merged in PR #178, which superseded #177; `progress/notes-for-owner.md`, `progress/booster-rerun-s98/summary.md`). **Keep all 3 calls, each as recommended:**
 1. **Keep (a):** ship round 1 (cards-3) as it is. The probe is inside call 3's target; the realistic ring's spread (1.2 / 5.2 / 9.5 at 3 / 17 / 37 packs) is accepted.
@@ -4964,7 +4964,7 @@ Next session by alternation: game 98 (the balance re-run, build step 4).
 
 ---
 
-## 2026-11-14 — Owner: answer to game session 99 (a faction lock the owner can't build yet): (a)
+## 2026-11-14 — Owner: answer to game session 99 (a faction lock the owner can't build yet): (a) (HANDLED 2026-11-14: the site half in render session 76 (PR #179); the API half in game session 100: `GET /api/play` and the faction-lock answer serve `lockable: [{ faction, buildable, cards, needed }]`, one per lockable faction, the store's `lockableFactions` on the engine's `largestDeck` (the rule a rebuild checks against), in the shape render 76 asked for; evidence `progress/lockable-api-001.txt` (13 PASS), `server/test/lockable.test.ts`, `progress/site-contract-002.txt` (0 mismatches, 8 of 8 controls), render 76's browser check re-run with the field served, `progress/lockable-site-check-001.txt` (14 PASS))
 
 **Game session 99** (PR #178, `progress/notes-for-owner.md`, session 99).
 1. **Decision (a):** the API marks each lockable faction as buildable or not, with the cards held and needed, and the site greys out the ones that can't be built yet. (Packs now hold only booster cards, so an owner can lock a faction they can't yet build a 20-card deck for; the ladder would sit that agent out every round until the owner crafts the missing cards.)
