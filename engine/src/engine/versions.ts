@@ -154,6 +154,11 @@ export const CARDS_VERSIONS: readonly CardsVersion[] = [
     digest: "841867645a649a6d",
     note: "Session 97: cards-1 plus Season 0's 28 pack-only booster cards (CX-101 to CX-107, SW-101 to SW-107, AG-101 to AG-107, NL-101 to NL-107; owner 2026-11-14, option B). No cards-1 card changed.",
   },
+  {
+    id: "cards-3",
+    digest: "c0dbedef8f83a4f8",
+    note: "Session 98, the balance re-run's kept round (owner 2026-11-14, calls 3 and 8: booster cards only, stats only): Zombie Fork (NL-104) 2/2 to 1/2, Heap Spray (NL-105) 2/4 to 2/3, Decay Engine (NL-106) 2/4 to 2/3, Aegis Overwatch (AG-107) 3/5 to 2/5. No cost, rarity, ability or starter card changed.",
+  },
 ];
 
 /** The card version every match the game plays today is played under. */

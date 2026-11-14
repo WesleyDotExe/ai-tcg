@@ -4,26 +4,27 @@ Every build: 16 one-copy changes tried per faction, 40 games per shipped opponen
 
 ## 1. A new owner: the Swarm starter collection and its 3 starter packs
   ada opens 3 packs; holds 55 copies; deck choice: agent
-  Cortex: can't build: can't build a legal deck from the owned cards (at most 5 usable cards, under 20)
-  Swarm: 45.5% against the four shipped decks on fresh seeds (rating start 47.8%, designed start 45.5%); keeps the designed deck
-  Aegis: can't build: can't build a legal deck from the owned cards (at most 7 usable cards, under 20)
-  Null: can't build: can't build a legal deck from the owned cards (at most 4 usable cards, under 20)
+  Cortex: can't build: can't build a legal deck from the owned cards (at most 1 usable cards, under 20)
+  Swarm: 48.5% against the four shipped decks on fresh seeds (rating start 45.5%, designed start 45.5%); keeps the searched deck, changes: -1 Corrosive Spitter +1 Bloodswarm Alpha: 72 -> 83 of 160
+  Aegis: can't build: can't build a legal deck from the owned cards (at most 4 usable cards, under 20)
+  Null: can't build: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
   -> ada's agent plays Swarm: "Agent's deck", 40 cards, active: true
-     against the Swarm starter list: (the starter list, unchanged)
+     against the Swarm starter list: +1 Acid Drone, +1 Egg Courier, +2 Spawning Pulse, -1 Bloodswarm Alpha, -1 Corrosive Spitter, -2 Reflex Spike
 
 ## 2. An owner with the Cortex starter and 60 more packs: the free pick
   bo opens 63 packs; holds 355 copies
-  Cortex: 59.3% against the four shipped decks on fresh seeds (rating start 58.3%, designed start 59.3%); keeps the designed deck
-  Swarm: 39.3% against the four shipped decks on fresh seeds (rating start 13.0%, designed start 39.3%); keeps the designed deck
-  Aegis: 44.8% against the four shipped decks on fresh seeds (rating start 36.3%, designed start 43.5%); keeps the searched deck, changes: -1 Tariff Field +1 Intercept Routine: 76 -> 78 of 160
-  Null: 56.5% against the four shipped decks on fresh seeds (rating start 42.8%, designed start 56.5%); keeps the designed deck
+  Cortex: 65.0% against the four shipped decks on fresh seeds (rating start 62.7%, designed start 59.3%); keeps the searched deck, changes: -1 Surge Protector +1 Cluster Node: 93 -> 100 of 160; -1 Dormant Exploit +1 Cascade Purge: 100 -> 109 of 160
+  Swarm: can't build: can't build a legal deck from the owned cards (at most 18 usable cards, under 20)
+  Aegis: can't build: can't build a legal deck from the owned cards (at most 19 usable cards, under 20)
+  Null: can't build: can't build a legal deck from the owned cards (at most 17 usable cards, under 20)
   -> bo's agent plays Cortex: "Agent's deck", 40 cards, active: true
-     against the Cortex starter list: (the starter list, unchanged)
+     against the Cortex starter list: +1 Grid Consensus, +3 Cluster Node, +3 Mutex Lock, +3 Port Scanner, -1 Backup Protocol, -1 Dormant Exploit, -1 Interrupt Handler, -1 Mainframe Core, -1 Rollback Point, -1 Surge Protector, -2 Cortex Engineer, -2 Rate Limiter
 
-## 3. The same owner locks Aegis (the forced faction): the agent rebuilds in place
-  Aegis: 44.8% against the four shipped decks on fresh seeds (rating start 36.3%, designed start 43.5%); keeps the searched deck, changes: -1 Tariff Field +1 Intercept Routine: 76 -> 78 of 160
-  -> bo's agent plays Aegis: "Agent's deck", 40 cards, active: true
-     against the Aegis starter list: +1 Commodity Rack, +1 Intercept Routine, +1 Latent Ward, +3 Cache Warmup, -1 Aegis Sentinel, -1 Perimeter Turret, -1 Reinforced Bastion, -1 Tariff Field, -2 Failover Custodian
+## 3. The same owner crafts into Aegis and locks it (the forced faction): the agent rebuilds in place
+  Aegis deck size from the cards held: 19 before, 20 after crafting 1 (Aegis Cadet); pack points left 275
+  Aegis: 51.5% against the four shipped decks on fresh seeds (rating start 51.5%); keeps the rating deck
+  -> bo's agent plays Aegis: "Agent's deck", 20 cards, active: true
+     against the Aegis starter list: +1 Aegis Overwatch, +1 Rollback Point, +1 Surge Protector, +2 Hardening Protocol, +2 Mirror Bulwark, +3 Bastion Array, +3 Hardlight Shell, +3 Kinetic Buffer, +3 Shield Relay, -1 Barrier Shim, -1 Breach Charge, -1 Diagnostic Ward, -1 Feedback Plating, -1 Intercept Routine, -1 Latent Ward, -1 Lockdown Field, -1 Prime Aegis, -1 Salvage Reflex, -1 Static Ward Beacon, -1 Tariff Field, -1 Uplink Tower, -2 Aegis Cadet, -2 Aegis Line Trooper, -2 Aegis Warden, -2 Barrier Drone, -2 Failover Custodian, -2 Reinforced Bastion, -3 Aegis Sentinel, -3 Bulwark Chassis, -3 Guard Directive Chip, -3 Perimeter Turret, -3 Plating Module
   same deck id as before: true; bo's saved decks: 1
 
 ## 4. A forced deck: the owner makes their own deck active
@@ -38,16 +39,16 @@ Every build: 16 one-copy changes tried per faction, 40 games per shipped opponen
      against the Null starter list: (the starter list, unchanged)
 
 ## 5. Real matches with the built decks (startMatch -> runMatch -> recordMatch)
-  s0-d001  ada (Agent's deck) vs bo (Agent's deck)  T16  bo wins
-  s0-d002  bo (Agent's deck) vs cy (Agent's deck)  T14  cy wins
-  s0-d003  cy (Agent's deck) vs ada (Agent's deck)  T14  ada wins
-  s0-d004  ada (Agent's deck) vs bo (Agent's deck)  T16  bo wins
-  s0-d005  bo (Agent's deck) vs cy (Agent's deck)  T16  cy wins
-  s0-d006  cy (Agent's deck) vs ada (Agent's deck)  T13  cy wins
-  s0-d007  ada (Agent's deck) vs bo (Agent's deck)  T17  ada wins
-  s0-d008  bo (Agent's deck) vs cy (Agent's deck)  T15  bo wins
-  s0-d009  cy (Agent's deck) vs ada (Agent's deck)  T19  cy wins
-  s0-d010  ada (Agent's deck) vs bo (Agent's deck)  T16  bo wins
-  s0-d011  bo (Agent's deck) vs cy (Agent's deck)  T14  cy wins
+  s0-d001  ada (Agent's deck) vs bo (Agent's deck)  T20  bo wins
+  s0-d002  bo (Agent's deck) vs cy (Agent's deck)  T12  cy wins
+  s0-d003  cy (Agent's deck) vs ada (Agent's deck)  T13  cy wins
+  s0-d004  ada (Agent's deck) vs bo (Agent's deck)  T20  bo wins
+  s0-d005  bo (Agent's deck) vs cy (Agent's deck)  T22  cy wins
+  s0-d006  cy (Agent's deck) vs ada (Agent's deck)  T12  ada wins
+  s0-d007  ada (Agent's deck) vs bo (Agent's deck)  T19  ada wins
+  s0-d008  bo (Agent's deck) vs cy (Agent's deck)  T21  bo wins
+  s0-d009  cy (Agent's deck) vs ada (Agent's deck)  T14  ada wins
+  s0-d010  ada (Agent's deck) vs bo (Agent's deck)  T22  bo wins
+  s0-d011  bo (Agent's deck) vs cy (Agent's deck)  T25  bo wins
   s0-d012  cy (Agent's deck) vs ada (Agent's deck)  T14  ada wins
-  wins: ada 3, bo 4, cy 5 (12 matches; a showcase, not a measurement)
+  wins: ada 4, bo 5, cy 3 (12 matches; a showcase, not a measurement)

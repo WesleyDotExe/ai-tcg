@@ -1,0 +1,234 @@
+The built-deck ring (pre-launch gate, owner 2026-10-19): the six ring edges with the deck-building agent's decks on both sides
+Lookahead vs Lookahead, Calculator style, ring seeds (2,500 for the win/lose edges, 900 for the even ones, seeds from 1).
+Builds: the store's own (chooseDeck's defaults: 40 games per shipped opponent, 24 one-copy changes, 100-game confirm, search seed 1), forced to the owner's starting faction.
+Realistic owners: 8 per faction, each the faction's starter collection plus packs from the live roller (economy/src/dev/realisticCollections.ts);
+at a pack level each seed seats one owner per side, every owner equally often and on both seats.
+Bands: predator 55-60%, prey 40-45%, even 45-55%. Verdicts on the 95% Wilson interval: IN only when it sits inside the band, OUT only when it misses it.
+Pick rule: keep the designed deck unless beaten by more than 1 SD (keep-designed:1; the store's is keep-designed:1 since session 80, as here).
+No card, deck or rule changed: this only measures.
+
+== REAL-MATCH MODE (how a real match plays: an approved signature card per side; ring:real's mode) ==
+Decks: set Mythic in the deck, an approved menu line as each side's signature card.
+edge (band)                        shipped decks            full (store)                37 packs                17 packs                 3 packs
+Null > Aegis (55-60)        52.1 [50.1-54.0] OUT    34.1 [32.3-36.0] OUT 54.4 [52.4-56.3] unres.    50.7 [48.8-52.7] OUT    52.0 [50.0-54.0] OUT
+Aegis > Cortex (55-60)   56.1 [54.2-58.1] unres.    64.4 [62.5-66.3] OUT    51.8 [49.8-53.7] OUT 55.8 [53.9-57.8] unres. 55.0 [53.0-56.9] unres.
+Cortex > Swarm (55-60)   55.5 [53.5-57.4] unres. 60.7 [58.8-62.6] unres.    52.6 [50.6-54.6] OUT 53.3 [51.4-55.3] unres. 55.0 [53.0-56.9] unres.
+Swarm > Null (55-60)     53.7 [51.8-55.7] unres.    53.0 [51.1-55.0] OUT    50.0 [48.1-52.0] OUT    51.4 [49.5-53.4] OUT 55.7 [53.8-57.7] unres.
+Null ~ Cortex (45-55)    58.0 [54.7-61.2] unres. 53.8 [50.5-57.0] unres.    59.0 [55.8-62.2] OUT 54.8 [51.5-58.0] unres. 56.0 [52.7-59.2] unres.
+Aegis ~ Swarm (45-55)    55.7 [52.4-58.9] unres.    69.2 [66.1-72.2] OUT 55.0 [51.7-58.2] unres. 57.6 [54.3-60.7] unres. 53.8 [50.5-57.0] unres.
+in band / unres. / out                 0 / 5 / 1               0 / 2 / 4               0 / 2 / 4               0 / 4 / 2               0 / 5 / 1
+
+Each faction's mean win rate over its three edges (50 = even with the field; the ring itself is built to be even):
+faction                                  shipped                    full                      37                      17                       3
+Cortex                                      47.1             47.5 (+0.4)             47.3 (+0.2)             47.6 (+0.4)             48.0 (+0.9)
+Swarm                                       47.5             41.0 (-6.5)             47.5 (-0.0)             46.9 (-0.7)             49.0 (+1.5)
+Aegis                                       53.2            66.5 (+13.3)             50.8 (-2.4)             54.2 (+1.0)             52.2 (-1.0)
+Null                                        52.1             45.0 (-7.2)             54.5 (+2.3)             51.4 (-0.8)             50.8 (-1.4)
+
+Each edge's move from the shipped decks (points, first-named side), and how far outside its band it lands:
+  Null > Aegis    full: -18.0 (-20.9 outside)   37: +2.3 (-0.6 outside)   17: -1.4 (-4.3 outside)   3: -0.1 (-3.0 outside)
+  Aegis > Cortex  full: +8.3 (+4.4 outside)   37: -4.4 (-3.2 outside)   17: -0.3   3: -1.2 (-0.0 outside)
+  Cortex > Swarm  full: +5.2 (+0.7 outside)   37: -2.9 (-2.4 outside)   17: -2.2 (-1.7 outside)   3: -0.5
+  Swarm > Null    full: -0.7 (-2.0 outside)   37: -3.7 (-5.0 outside)   17: -2.3 (-3.6 outside)   3: +2.0
+  Null ~ Cortex   full: -4.2   37: +1.0 (+4.0 outside)   17: -3.2   3: -2.0 (+1.0 outside)
+  Aegis ~ Swarm   full: +13.6 (+14.2 outside)   37: -0.7   17: +1.9 (+2.6 outside)   3: -1.9
+
+Spread between owners (the first-named side's win rate per owner of that side; at a pack level every owner plays ~1/8 of the edge):
+  37 packs  Null > Aegis    min 49.7  max 57.3  (55.1 57.3 55.8 49.7 53.8 55.4 53.8 54.2)
+  37 packs  Aegis > Cortex  min 45.2  max 56.1  (50.0 51.9 45.2 53.2 50.3 56.1 53.5 53.8)
+  37 packs  Cortex > Swarm  min 49.7  max 56.7  (54.5 51.0 53.5 49.7 56.7 52.2 52.9 50.3)
+  37 packs  Swarm > Null    min 45.9  max 53.8  (51.9 45.9 51.9 52.9 53.8 48.1 47.1 48.7)
+  37 packs  Null ~ Cortex   min 50.0  max 66.1  (64.0 57.0 50.0 50.9 62.5 62.5 58.9 66.1)
+  37 packs  Aegis ~ Swarm   min 48.2  max 68.4  (68.4 51.8 53.6 58.0 55.4 48.2 55.4 49.1)
+  17 packs  Null > Aegis    min 40.8  max 61.9  (40.8 42.7 45.5 55.1 52.9 51.3 61.9 55.8)
+  17 packs  Aegis > Cortex  min 49.7  max 61.8  (61.8 59.6 54.8 50.6 49.7 51.9 59.9 58.3)
+  17 packs  Cortex > Swarm  min 51.3  max 57.7  (52.5 51.3 52.2 54.5 57.7 51.3 54.2 52.9)
+  17 packs  Swarm > Null    min 47.8  max 53.5  (52.9 51.9 53.5 49.7 53.5 47.8 51.6 50.6)
+  17 packs  Null ~ Cortex   min 36.0  max 64.9  (64.9 36.0 43.8 55.4 60.7 59.8 57.1 60.7)
+  17 packs  Aegis ~ Swarm   min 50.0  max 65.8  (65.8 63.2 50.0 58.9 50.9 54.5 63.4 53.6)
+  3 packs   Null > Aegis    min 44.6  max 56.1  (52.9 51.9 52.6 54.2 56.1 51.9 51.9 44.6)
+  3 packs   Aegis > Cortex  min 50.3  max 59.6  (59.6 58.9 53.5 54.2 50.3 51.6 55.1 56.4)
+  3 packs   Cortex > Swarm  min 49.0  max 60.6  (56.7 56.7 55.8 50.6 49.0 60.6 53.8 56.7)
+  3 packs   Swarm > Null    min 49.7  max 61.5  (56.7 61.5 55.1 55.8 56.1 49.7 55.1 55.8)
+  3 packs   Null ~ Cortex   min 48.2  max 62.5  (58.8 48.2 55.4 60.7 62.5 50.0 56.3 56.3)
+  3 packs   Aegis ~ Swarm   min 47.3  max 62.3  (62.3 48.2 48.2 56.3 47.3 54.5 56.3 57.1)
+
+== GATE MODE (decks only, no signature card; the shipped gate's mode) ==
+Decks: set Mythic in the deck.
+edge (band)                        shipped decks            full (store)                37 packs                17 packs                 3 packs
+Null > Aegis (55-60)         57.8 [55.9-59.8] IN    35.2 [33.3-37.1] OUT     57.0 [55.1-59.0] IN 53.2 [51.2-55.1] unres. 58.7 [56.8-60.6] unres.
+Aegis > Cortex (55-60)      48.2 [46.3-50.2] OUT 59.8 [57.8-61.7] unres.    45.2 [43.2-47.1] OUT    51.6 [49.7-53.6] OUT    46.6 [44.6-48.5] OUT
+Cortex > Swarm (55-60)   61.9 [60.0-63.8] unres.    63.2 [61.3-65.1] OUT     57.9 [55.9-59.8] IN 55.8 [53.9-57.8] unres. 61.0 [59.0-62.9] unres.
+Swarm > Null (55-60)     54.4 [52.4-56.3] unres. 53.4 [51.5-55.4] unres.    47.8 [45.8-49.7] OUT    50.8 [48.8-52.7] OUT    52.8 [50.9-54.8] OUT
+Null ~ Cortex (45-55)        50.9 [47.6-54.1] IN     49.4 [46.2-52.7] IN 54.3 [51.1-57.6] unres.     51.3 [48.1-54.6] IN 48.1 [44.9-51.4] unres.
+Aegis ~ Swarm (45-55)        51.4 [48.2-54.7] IN    70.1 [67.0-73.0] OUT 53.2 [50.0-56.5] unres. 57.9 [54.6-61.1] unres.     50.3 [47.1-53.6] IN
+in band / unres. / out                 3 / 2 / 1               1 / 2 / 3               2 / 2 / 2               1 / 3 / 2               1 / 3 / 2
+
+Each faction's mean win rate over its three edges (50 = even with the field; the ring itself is built to be even):
+faction                                  shipped                    full                      37                      17                       3
+Cortex                                      54.3             51.3 (-2.9)             52.8 (-1.5)             51.0 (-3.3)             55.4 (+1.2)
+Swarm                                       47.0             40.0 (-7.0)             45.6 (-1.5)             45.7 (-1.3)             47.2 (+0.2)
+Aegis                                       47.3            64.9 (+17.6)             47.1 (-0.2)             52.1 (+4.8)             46.1 (-1.2)
+Null                                        51.4             43.7 (-7.7)             54.5 (+3.1)             51.2 (-0.2)             51.3 (-0.1)
+
+Each edge's move from the shipped decks (points, first-named side), and how far outside its band it lands:
+  Null > Aegis    full: -22.7 (-19.8 outside)   37: -0.8   17: -4.7 (-1.8 outside)   3: +0.9
+  Aegis > Cortex  full: +11.5   37: -3.1 (-9.8 outside)   17: +3.4 (-3.4 outside)   3: -1.7 (-8.4 outside)
+  Cortex > Swarm  full: +1.4 (+3.2 outside)   37: -4.0   17: -6.0   3: -0.9 (+1.0 outside)
+  Swarm > Null    full: -1.0 (-1.6 outside)   37: -6.6 (-7.2 outside)   17: -3.6 (-4.2 outside)   3: -1.6 (-2.2 outside)
+  Null ~ Cortex   full: -1.4   37: +3.4   17: +0.4   3: -2.8
+  Aegis ~ Swarm   full: +18.7 (+15.1 outside)   37: +1.8   17: +6.4 (+2.9 outside)   3: -1.1
+
+Spread between owners (the first-named side's win rate per owner of that side; at a pack level every owner plays ~1/8 of the edge):
+  37 packs  Null > Aegis    min 52.6  max 62.4  (54.8 62.4 52.6 52.9 58.3 59.9 58.3 57.1)
+  37 packs  Aegis > Cortex  min 42.4  max 48.1  (42.4 45.5 42.9 48.1 44.6 46.8 44.6 46.5)
+  37 packs  Cortex > Swarm  min 55.1  max 60.3  (58.9 58.6 56.7 55.8 55.1 59.3 60.3 58.3)
+  37 packs  Swarm > Null    min 44.6  max 51.0  (50.0 44.6 49.4 51.0 48.7 47.4 45.2 45.8)
+  37 packs  Null ~ Cortex   min 49.1  max 58.9  (55.3 52.6 50.9 49.1 52.7 57.1 58.0 58.9)
+  37 packs  Aegis ~ Swarm   min 48.2  max 58.8  (58.8 49.1 51.8 57.1 50.9 48.2 58.0 51.8)
+  17 packs  Null > Aegis    min 44.6  max 59.6  (45.9 44.6 49.0 58.0 55.1 58.0 59.6 55.1)
+  17 packs  Aegis > Cortex  min 46.2  max 57.1  (57.0 53.5 54.2 46.8 46.2 50.0 48.4 57.1)
+  17 packs  Cortex > Swarm  min 51.9  max 59.3  (58.3 51.9 55.4 58.3 55.1 53.5 59.3 54.8)
+  17 packs  Swarm > Null    min 45.5  max 53.5  (51.6 51.0 51.6 50.6 52.2 45.5 53.5 50.0)
+  17 packs  Null ~ Cortex   min 36.8  max 61.6  (54.4 36.8 39.3 53.6 58.0 54.5 52.7 61.6)
+  17 packs  Aegis ~ Swarm   min 51.8  max 67.0  (62.3 62.3 53.6 57.1 53.6 51.8 55.4 67.0)
+  3 packs   Null > Aegis    min 57.1  max 60.6  (59.6 58.0 58.7 60.6 57.7 59.3 59.0 57.1)
+  3 packs   Aegis > Cortex  min 40.1  max 58.0  (58.0 46.5 40.1 47.4 45.5 43.3 43.6 48.1)
+  3 packs   Cortex > Swarm  min 57.7  max 63.5  (62.4 61.8 63.5 59.0 57.7 59.3 63.5 60.6)
+  3 packs   Swarm > Null    min 48.1  max 57.0  (57.0 57.0 52.6 50.6 51.0 48.1 55.8 50.6)
+  3 packs   Null ~ Cortex   min 38.4  max 60.7  (53.5 43.0 50.0 50.9 60.7 48.2 40.2 38.4)
+  3 packs   Aegis ~ Swarm   min 42.0  max 59.6  (59.6 44.7 44.6 49.1 42.0 55.4 51.8 55.4)
+
+== The built decks ==
+Confirm-step win rate against the four shipped decks (100 games each, fresh seeds), beside the shipped list on the same seeds:
+-- full collection, the store's build --
+  Cortex built 65.0  shipped 59.3  lift +5.8  kept: searched  sizes: 40
+  Swarm  built 53.3  shipped 45.5  lift +7.7  kept: searched  sizes: 40
+  Aegis  built 73.3  shipped 49.8  lift +23.5  kept: searched  sizes: 40
+  Null   built 58.3  shipped 53.0  lift +5.2  kept: searched  sizes: 40
+-- starter + 37 packs (about two weeks) --
+  Cortex built 65.5 (owners 64.0-68.0)  shipped 59.3  lift +6.3  kept: rating searched searched searched searched searched searched searched  sizes: 40 40 40 40 40 40 40 40
+  Swarm  built 60.2 (owners 57.8-60.5)  shipped 45.5  lift +14.7  kept: rating rating rating rating rating rating rating rating  sizes: 40 40 40 40 40 40 40 40
+  Aegis  built 65.7 (owners 65.8-65.8)  shipped 49.8  lift +16.0  kept: rating rating rating rating rating rating rating rating  sizes: 40 40 40 40 40 40 40 40
+  Null   built 62.2 (owners 61.3-66.0)  shipped 53.0  lift +9.2  kept: rating rating rating rating searched rating searched rating  sizes: 40 40 40 40 40 40 40 40
+-- starter + 17 packs (about a week) --
+  Cortex built 66.8 (owners 65.0-69.0)  shipped 59.3  lift +7.5  kept: rating rating rating rating searched searched searched rating  sizes: 40 40 40 40 40 40 40 40
+  Swarm  built 59.8 (owners 57.3-62.0)  shipped 45.5  lift +14.3  kept: rating rating rating searched rating rating searched rating  sizes: 40 40 40 40 40 40 40 40
+  Aegis  built 65.1 (owners 61.0-68.8)  shipped 49.8  lift +15.3  kept: searched searched searched rating rating searched searched searched  sizes: 40 40 40 40 40 40 40 40
+  Null   built 63.1 (owners 53.0-69.3)  shipped 53.0  lift +10.1  kept: rating designed searched rating rating rating searched searched  sizes: 40 40 40 40 40 40 40 40
+-- starter + its 3 starter packs (day one) --
+  Cortex built 64.6 (owners 59.3-69.0)  shipped 59.3  lift +5.4  kept: rating rating searched designed rating rating rating rating  sizes: 40 40 40 40 40 40 40 40
+  Swarm  built 51.8 (owners 45.5-55.3)  shipped 45.5  lift +6.3  kept: searched rating rating designed rating designed searched searched  sizes: 40 40 40 40 40 40 40 40
+  Aegis  built 53.7 (owners 49.8-59.3)  shipped 49.8  lift +3.9  kept: searched searched designed searched designed rating rating designed  sizes: 40 40 40 40 40 40 40 40
+  Null   built 60.3 (owners 53.0-66.5)  shipped 53.0  lift +7.3  kept: searched rating searched searched rating searched searched searched  sizes: 40 40 40 40 40 40 40 40
+
+keepDesigned: every deck where the plain rule (the most confirm wins) would have kept another deck than the designed start,
+with the paired test on the confirm seeds (challenger's wins the designed start lost, and the reverse; the net it needed):
+  full Cortex #0  searched 260 vs designed 237: +77 -54, net +23 (needs +11.4): searched kept; at 1 SD (needs +11.4): searched
+  full Swarm  #0  searched 213 vs designed 182: +85 -54, net +31 (needs +11.8): searched kept; at 1 SD (needs +11.8): searched
+  full Aegis  #0  searched 293 vs designed 199: +136 -42, net +94 (needs +13.3): searched kept; at 1 SD (needs +13.3): searched
+  full Null   #0  searched 233 vs designed 212: +80 -59, net +21 (needs +11.8): searched kept; at 1 SD (needs +11.8): searched
+  37   Cortex #0  rating 269 vs designed 237: +75 -43, net +32 (needs +10.9): rating kept; at 1 SD (needs +10.9): rating
+  37   Cortex #1  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  37   Cortex #2  searched 272 vs designed 237: +80 -45, net +35 (needs +11.2): searched kept; at 1 SD (needs +11.2): searched
+  37   Cortex #3  searched 256 vs designed 237: +71 -52, net +19 (needs +11.1): searched kept; at 1 SD (needs +11.1): searched
+  37   Cortex #4  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  37   Cortex #5  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  37   Cortex #6  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  37   Cortex #7  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  37   Swarm  #0  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Swarm  #1  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Swarm  #2  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Swarm  #3  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Swarm  #4  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Swarm  #5  rating 231 vs designed 182: +93 -44, net +49 (needs +11.7): rating kept; at 1 SD (needs +11.7): rating
+  37   Swarm  #6  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Swarm  #7  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  37   Aegis  #0  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #1  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #2  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #3  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #4  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #5  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #6  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Aegis  #7  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  37   Null   #0  rating 245 vs designed 212: +93 -60, net +33 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  37   Null   #1  rating 247 vs designed 212: +94 -59, net +35 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  37   Null   #2  rating 245 vs designed 212: +93 -60, net +33 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  37   Null   #3  rating 245 vs designed 212: +93 -60, net +33 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  37   Null   #4  searched 253 vs designed 212: +95 -54, net +41 (needs +12.2): searched kept; at 1 SD (needs +12.2): searched
+  37   Null   #5  rating 245 vs designed 212: +93 -60, net +33 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  37   Null   #6  searched 264 vs designed 212: +111 -59, net +52 (needs +13): searched kept; at 1 SD (needs +13.0): searched
+  37   Null   #7  rating 245 vs designed 212: +93 -60, net +33 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  17   Cortex #0  rating 269 vs designed 237: +75 -43, net +32 (needs +10.9): rating kept; at 1 SD (needs +10.9): rating
+  17   Cortex #1  rating 267 vs designed 237: +74 -44, net +30 (needs +10.9): rating kept; at 1 SD (needs +10.9): rating
+  17   Cortex #2  rating 263 vs designed 237: +72 -46, net +26 (needs +10.9): rating kept; at 1 SD (needs +10.9): rating
+  17   Cortex #3  rating 272 vs designed 237: +75 -40, net +35 (needs +10.7): rating kept; at 1 SD (needs +10.7): rating
+  17   Cortex #4  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  17   Cortex #5  searched 276 vs designed 237: +85 -46, net +39 (needs +11.4): searched kept; at 1 SD (needs +11.4): searched
+  17   Cortex #6  searched 260 vs designed 237: +68 -45, net +23 (needs +10.6): searched kept; at 1 SD (needs +10.6): searched
+  17   Cortex #7  rating 269 vs designed 237: +75 -43, net +32 (needs +10.9): rating kept; at 1 SD (needs +10.9): rating
+  17   Swarm  #0  rating 248 vs designed 182: +111 -45, net +66 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  17   Swarm  #1  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  17   Swarm  #2  rating 240 vs designed 182: +102 -44, net +58 (needs +12.1): rating kept; at 1 SD (needs +12.1): rating
+  17   Swarm  #3  searched 229 vs designed 182: +94 -47, net +47 (needs +11.9): searched kept; at 1 SD (needs +11.9): searched
+  17   Swarm  #4  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  17   Swarm  #5  rating 237 vs designed 182: +103 -48, net +55 (needs +12.3): rating kept; at 1 SD (needs +12.3): rating
+  17   Swarm  #6  searched 235 vs designed 182: +95 -42, net +53 (needs +11.7): searched kept; at 1 SD (needs +11.7): searched
+  17   Swarm  #7  rating 242 vs designed 182: +101 -41, net +60 (needs +11.9): rating kept; at 1 SD (needs +11.9): rating
+  17   Aegis  #0  searched 275 vs designed 199: +106 -30, net +76 (needs +11.7): searched kept; at 1 SD (needs +11.7): searched
+  17   Aegis  #1  searched 258 vs designed 199: +98 -39, net +59 (needs +11.7): searched kept; at 1 SD (needs +11.7): searched
+  17   Aegis  #2  searched 244 vs designed 199: +88 -43, net +45 (needs +11.4): searched kept; at 1 SD (needs +11.4): searched
+  17   Aegis  #3  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  17   Aegis  #4  rating 263 vs designed 199: +110 -46, net +64 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  17   Aegis  #5  searched 260 vs designed 199: +106 -45, net +61 (needs +12.3): searched kept; at 1 SD (needs +12.3): searched
+  17   Aegis  #6  searched 261 vs designed 199: +103 -41, net +62 (needs +12): searched kept; at 1 SD (needs +12.0): searched
+  17   Aegis  #7  searched 258 vs designed 199: +106 -47, net +59 (needs +12.4): searched kept; at 1 SD (needs +12.4): searched
+  17   Null   #0  rating 234 vs designed 212: +89 -67, net +22 (needs +12.5): rating kept; at 1 SD (needs +12.5): rating
+  17   Null   #1  rating 224 vs designed 212: +79 -67, net +12 (needs +12.1): designed kept; at 1 SD (needs +12.1): designed
+  17   Null   #2  searched 255 vs designed 212: +100 -57, net +43 (needs +12.5): searched kept; at 1 SD (needs +12.5): searched
+  17   Null   #3  rating 265 vs designed 212: +100 -47, net +53 (needs +12.1): rating kept; at 1 SD (needs +12.1): rating
+  17   Null   #4  rating 265 vs designed 212: +100 -47, net +53 (needs +12.1): rating kept; at 1 SD (needs +12.1): rating
+  17   Null   #5  rating 245 vs designed 212: +93 -60, net +33 (needs +12.4): rating kept; at 1 SD (needs +12.4): rating
+  17   Null   #6  searched 277 vs designed 212: +106 -41, net +65 (needs +12.1): searched kept; at 1 SD (needs +12.1): searched
+  17   Null   #7  searched 265 vs designed 212: +96 -43, net +53 (needs +11.8): searched kept; at 1 SD (needs +11.8): searched
+  3    Cortex #0  rating 261 vs designed 237: +77 -53, net +24 (needs +11.4): rating kept; at 1 SD (needs +11.4): rating
+  3    Cortex #1  rating 254 vs designed 237: +72 -55, net +17 (needs +11.3): rating kept; at 1 SD (needs +11.3): rating
+  3    Cortex #2  searched 263 vs designed 237: +71 -45, net +26 (needs +10.8): searched kept; at 1 SD (needs +10.8): searched
+  3    Cortex #4  rating 270 vs designed 237: +77 -44, net +33 (needs +11): rating kept; at 1 SD (needs +11.0): rating
+  3    Cortex #5  rating 253 vs designed 237: +57 -41, net +16 (needs +9.9): rating kept; at 1 SD (needs +9.9): rating
+  3    Cortex #6  rating 276 vs designed 237: +82 -43, net +39 (needs +11.2): rating kept; at 1 SD (needs +11.2): rating
+  3    Cortex #7  rating 254 vs designed 237: +55 -38, net +17 (needs +9.6): rating kept; at 1 SD (needs +9.6): rating
+  3    Swarm  #0  searched 218 vs designed 182: +86 -50, net +36 (needs +11.7): searched kept; at 1 SD (needs +11.7): searched
+  3    Swarm  #1  rating 221 vs designed 182: +89 -50, net +39 (needs +11.8): rating kept; at 1 SD (needs +11.8): rating
+  3    Swarm  #2  rating 217 vs designed 182: +82 -47, net +35 (needs +11.4): rating kept; at 1 SD (needs +11.4): rating
+  3    Swarm  #4  rating 202 vs designed 182: +49 -29, net +20 (needs +8.8): rating kept; at 1 SD (needs +8.8): rating
+  3    Swarm  #5  rating 187 vs designed 182: +57 -52, net +5 (needs +10.4): designed kept; at 1 SD (needs +10.4): designed
+  3    Swarm  #6  searched 215 vs designed 182: +88 -55, net +33 (needs +12): searched kept; at 1 SD (needs +12.0): searched
+  3    Swarm  #7  searched 221 vs designed 182: +91 -52, net +39 (needs +12): searched kept; at 1 SD (needs +12.0): searched
+  3    Aegis  #0  searched 227 vs designed 199: +85 -57, net +28 (needs +11.9): searched kept; at 1 SD (needs +11.9): searched
+  3    Aegis  #1  searched 237 vs designed 199: +91 -53, net +38 (needs +12): searched kept; at 1 SD (needs +12.0): searched
+  3    Aegis  #2  searched 199 vs designed 199: +33 -33, net +0 (needs +8.1): designed kept; at 1 SD (needs +8.1): designed
+  3    Aegis  #3  searched 220 vs designed 199: +92 -71, net +21 (needs +12.8): searched kept; at 1 SD (needs +12.8): searched
+  3    Aegis  #5  rating 222 vs designed 199: +85 -62, net +23 (needs +12.1): rating kept; at 1 SD (needs +12.1): rating
+  3    Aegis  #6  rating 215 vs designed 199: +82 -66, net +16 (needs +12.2): rating kept; at 1 SD (needs +12.2): rating
+  3    Aegis  #7  searched 199 vs designed 199: +33 -33, net +0 (needs +8.1): designed kept; at 1 SD (needs +8.1): designed
+  3    Null   #0  searched 238 vs designed 212: +73 -47, net +26 (needs +11): searched kept; at 1 SD (needs +11.0): searched
+  3    Null   #2  searched 266 vs designed 212: +90 -36, net +54 (needs +11.2): searched kept; at 1 SD (needs +11.2): searched
+  3    Null   #3  searched 251 vs designed 212: +90 -51, net +39 (needs +11.9): searched kept; at 1 SD (needs +11.9): searched
+  3    Null   #4  rating 264 vs designed 212: +87 -35, net +52 (needs +11): rating kept; at 1 SD (needs +11.0): rating
+  3    Null   #5  searched 237 vs designed 212: +76 -51, net +25 (needs +11.3): searched kept; at 1 SD (needs +11.3): searched
+  3    Null   #6  searched 239 vs designed 212: +74 -47, net +27 (needs +11): searched kept; at 1 SD (needs +11.0): searched
+  3    Null   #7  searched 224 vs designed 212: +55 -43, net +12 (needs +9.9): searched kept; at 1 SD (needs +9.9): searched
+
+How each full-collection deck differs from its shipped list:
+  full        Cortex +2 Signal Drone, -1 Diagnostic Pulse, -1 Cascade Purge, -1 Backup Protocol, -2 Mainframe Core, +1 Fail-safe Unit, -2 Cortex Engineer, +1 Overload Capacitor, -1 Diagnostic Loop, +1 Retaliation Node, -1 Interrupt Handler, +1 Compiled Daemon, +1 Dormant Exploit, -1 Overclock Shunt, +1 Force Quit, -2 Rate Limiter, -2 Load Balancer, -1 Hotfix, -1 Deadlock Detector, -1 Quorum Arbiter, +3 Port Scanner, +1 Grid Consensus, +1 Spare Cycles, +1 Relay Courier, -1 Rollback Point, -1 Surge Protector, +2 Uplink Tower, +1 Burst Credit, +1 Patient Zero, +1 Root Access
+  full        Swarm  +1 Rollback Point, +1 Uplink Tower, +1 Patient Zero, -2 Swarm Larva, -1 Rally Cry, -2 Overclock Beast, +1 Spore Cluster, -1 Barrier Node, -1 Reflex Spike, +1 Dormant Egg Sac, +1 Molted Stalker, -1 Chitin Plating, +1 Bore Swarm, -1 Brood Reserves, -2 Overgrown Carapace, -3 Brood Skitterer, -3 Carapace Grunt, -2 Warren Guardian, -2 Bloodswarm Alpha, +2 Egg Courier, +3 Spawning Pulse, +3 Hive Relay, +3 Acid Drone, +2 Brood Tyrant, +1 Colony Overmind
+  full        Aegis  +1 Barrier Drone, -3 Plating Module, -1 Diagnostic Ward, -3 Guard Directive Chip, -1 Static Ward Beacon, -1 Failover Custodian, -1 Barrier Shim, +1 Latent Ward, -1 Lockdown Field, -2 Aegis Warden, -1 Intercept Routine, -1 Tariff Field, -1 Feedback Plating, +2 Breach Charge, -3 Bulwark Chassis, +1 Reinforced Bastion, +2 Salvage Reflex, +1 Aegis Line Trooper, +3 Shield Relay, +1 Hardlight Shell, +2 Mirror Bulwark, +1 Aegis Overwatch, +1 Uplink Tower, +1 Burst Credit, +1 Patient Zero, +1 Root Access
+  full        Null   -3 Corruption Patch, -2 Segfault Handler, +1 Corrupted Process, -1 Null Shell, +1 Deprecated Routine, -1 Decay Ward, -1 Segmentation Fault, -2 Kernel Panic, +1 Null Pointer, +1 Zombie Process, -2 Dangling Pointer, -1 Bit Rot, -1 Watchdog Timer, -2 Garbage Collector, +3 Bad Sector, +3 Zombie Fork, +1 Heat Death, +1 Spare Cycles, +1 Relay Courier, -2 Rollback Point, +2 Uplink Tower, +1 Patient Zero, +1 Root Access, +1 Kill Switch
+
+Cards the realistic owners' decks use that their shipped list doesn't (owners of 8 playing it, at the largest pack level):
+  Cortex Port Scanner 8, Mutex Lock 8, Cluster Node 8, Grid Consensus 7, Patient Zero 1
+  Swarm  Egg Courier 8, Spawning Pulse 8, Hive Relay 8, Acid Drone 8, Brood Tyrant 8, Colony Overmind 7
+  Aegis  Shield Relay 8, Bastion Array 8, Hardlight Shell 8, Mirror Bulwark 8, Hardening Protocol 8
+  Null   Bad Sector 8, Memory Leak 8, Reaper Thread 8, Zombie Fork 8, Heap Spray 8, Heat Death 6, Root Access 2, Patient Zero 1

@@ -518,7 +518,7 @@ describe("the binder and the set checklist", () => {
 });
 
 describe("starter cards are Standard only (owner 2026-11-14; session 97)", () => {
-  it("the store refuses every pack version of a starter card, and keeps Standard, crafting and a prize's tournament finish", () => {
+  it("the store refuses every pack version of a starter card, a prize's tournament finish too, and keeps Standard and crafting", () => {
     const s = store();
     const o = ownerWithPacks(s, 0);
     const starterCard = S0.cards.find((c) => !isBoosterCard(c.cardId) && c.rarity === "Common")!;
@@ -533,9 +533,15 @@ describe("starter cards are Standard only (owner 2026-11-14; session 97)", () =>
     ).toThrow(/Standard only/);
     // A starter card's illustration doesn't exist any more: no secret card names one.
     expect(S0.secrets.some((x) => x.kind === "illustration" && !isBoosterCard(x.cardId))).toBe(false);
-    // Standard copies, crafted copies and prize copies are as they were.
+    // Standard copies and crafted copies are as they were.
     expect(s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "pack" }).finish).toBe("standard");
-    expect(s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 1, runSize: 10 }).finish).toBe("tournament");
+    // (owner 2026-11-14, game 97 call 6: "Standard only") a prize's tournament
+    // finish on a starter card is refused; a starter card as a prize is a
+    // Standard copy, and a booster card's tournament finish is as it was.
+    const prize = { ownerId: o, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 1, runSize: 10 } as const;
+    expect(() => s.grantCopy({ ...prize, cardId: starterCard.cardId })).toThrow(/is a starter card; starter cards are Standard only/);
+    expect(s.grantCopy({ ownerId: o, cardId: starterCard.cardId, origin: "prize" }).finish).toBe("standard");
+    expect(s.grantCopy({ ...prize, cardId: boosterUnit }).finish).toBe("tournament");
     // The card viewer offers to craft a starter card (Standard) as before.
     expect(s.cardHoldings(o, starterCard.cardId).craft).not.toBeNull();
   });

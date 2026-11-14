@@ -4925,7 +4925,7 @@ Follows the entry above (answers to game session 96, PR #173, `progress/booster-
 
 ---
 
-## 2026-11-14 — Owner: answers to game session 97 (the booster cards built) and render session 74 (the hardening pass): keep all, except call 6 (game 97): Standard only
+## 2026-11-14 — Owner: answers to game session 97 (the booster cards built) and render session 74 (the hardening pass): keep all, except call 6 (game 97): Standard only (HANDLED 2026-11-14, game session 98: calls 1-5 and the render calls kept, nothing to build; call 6: the store now refuses a tournament (prize) finish on a starter card as it does every other special version (`economy/src/store.ts` `PACK_ONLY_FINISHES`), so a starter card given as a prize is a Standard copy; a booster card's tournament finish is unchanged; test `economy/test/chase.test.ts` "starter cards are Standard only" (fails on the old code: the prize copy was granted))
 
 **Game session 97** (PR #175, `progress/notes-for-owner.md`, `progress/pack-sim-004-booster.txt`). **Keep calls 1–5; call 6 changed:**
 1. **Keep:** the Glitch list: 16 booster Units, four per faction, as listed.
@@ -4944,7 +4944,7 @@ Next session by alternation: render 75 (the booster cards' faces and set numbers
 
 ---
 
-## 2026-11-14 — Owner: answers to render session 75 (Season 0's booster cards on the site), keep all 3
+## 2026-11-14 — Owner: answers to render session 75 (Season 0's booster cards on the site), keep all 3 (HANDLED 2026-11-14, game session 98: all kept, nothing for the game lane to build)
 
 **Render session 75** (PR #176, `progress/render/checkpoints.md`, `progress/render/evidence/booster-cards-check-s75.txt`). **Keep all 3 calls:**
 1. **Keep:** two blocks on the Set tab (starter cards 001–096, booster cards 097–124) rather than one run of 124 with a divider or a filter.

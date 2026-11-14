@@ -1,5 +1,103 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 99 (game lane: open PR #177 had a failed check; fixed, and carried with session 98's
+work in a new PR).** Lane: the last merged PR, #176, was "Render:", and the open game PR #177 (session 98) had a
+failed check, so this session fixed it. Session 98's three calls below (what counts as passing, the full-collection
+column, round 2) are unchanged and still yours.
+
+**What I did:**
+1. **The failed check:** the site contract check, run on cards-3 for the first time, never reached the play-time
+   allowance's "finishing" state (time up with a match still on screen). It was the check's own run, not the
+   server: each window starts at a pairing, so retrying with the same 15 minutes ended at the same point in the
+   ladder's round cycle every time, and with cards-3's shorter matches that point fell between matches every time.
+   The retries now use 30, then 60 minutes. Result: 0 mismatches, 7 of 7 controls, every shape reached
+   (`progress/site-contract-001.txt`). Every CI step re-run here: all pass.
+2. **The slow demos** (`npm run demos -- --all`, last run in session 80): two crashed, and both were stale since
+   session 97. Each demo had an owner with one starter lock another faction and build from packs alone. Packs now
+   hold only booster cards (7 per faction), so that can't reach 20 cards (at most 17 to 19). The demos now do what a
+   real owner has to do: craft the missing starter-list cards with pack points. One Common (Aegis Cadet) was
+   enough. All 38 demos match after 3 rewrites (each diff read).
+
+**A call for you (small, not blocking; recommended answer first):**
+- **Locking a faction the owner can't build yet.** Every owner gets one faction's starter. The site offers all four
+  factions in the lock. If the owner locks one they don't hold enough cards for, the ladder sits them out every
+  round ("the agent's deck couldn't be rebuilt: ... at most 19 usable cards, under 20"). Nothing breaks, but the
+  agent stops playing. Before session 97 enough packs fixed this on its own. Now only crafting fixes it, and a new
+  owner's 3 starter packs give 15 pack points, not enough for one 40-point Common. Options:
+  **(a) recommended:** the API marks each lockable faction with whether a deck can be built now, plus the cards held
+  and needed. The site greys out the ones that can't yet, with "craft N more" beside them. The lock itself stays
+  allowed. (b) Refuse such a lock in the store with a 409. (c) Leave it as it is.
+- **A number for the balance calls below:** in the rewritten demos, a 20-card Aegis deck built almost entirely from
+  booster cards (19 booster copies plus one crafted Cadet) scored 51.5% and 59.3% against the four shipped decks
+  (small builds, 40 games per opponent). That is above the Aegis starter itself (43.5 to 52.8% in the same
+  demos). It is one more sign the booster cards are strong for their cost. A 20-card deck also draws its best cards
+  more often than a 40-card one.
+
+---
+
+**Updated 2026-11-14, session 98 (game lane; the booster cards' balance re-run, build step 4). [OWNER CHECK-IN]:
+your call 8 says "bring it back with the numbers", and this is that.** Nothing is blocking. Lane: the last merged
+PR, #176, was "Render:", so this is a game session; no game PR was open. Acted on your two entries: the answers to
+game 97 (call 6 changed to Standard only) and to render 75 (keep all 3).
+
+**What I did:**
+1. **Call 6, Standard only:** the store now refuses a tournament (prize) finish on a starter card, as it refuses
+   every other special version. A starter card given as a prize is a Standard copy. A booster card's tournament
+   finish is unchanged.
+2. **The balance re-run, two rounds as call 8 allows.** Everything is in `progress/booster-rerun-s98/summary.md`.
+   I measured it two ways each round: the **probe** (each starter deck plus its 7 booster cards against the four
+   shipped decks: the measurement your +8 to +12 target was written against), and the **built-deck ring** (the
+   store's deck builder builds every faction's deck from realistic collections at 3, 17 and 37 packs, and from a
+   full collection, and they play each other: how the season will really play).
+3. **Round 1, kept** (card version `cards-3`; stats only, no cost, rarity or ability changed): Zombie Fork 2/2 to
+   1/2, Heap Spray 2/4 to 2/3, Decay Engine 2/4 to 2/3, Aegis Overwatch 3/5 to 2/5.
+4. **Round 2 was tried and reverted** (Reaper Thread 2/3 to 2/2, Shield Relay 1/3 to 2/3). It was better at 37
+   packs and worse everywhere else.
+
+**The numbers** (points against the field, the probe; a faction's win rate against the other built decks, the ring):
+
+| | Cortex | Swarm | Aegis | Null | spread |
+|---|---|---|---|---|---|
+| Probe, as approved | +10.8 | +9.3 | +12.7 | +17.1 | 7.8 |
+| **Probe, kept** | **+10.8** | **+9.3** | **+9.8** | **+12.3** | **3.0** |
+| Ring at 37 packs, as approved | 46.2 | 46.6 | 45.4 | 61.8 | 16.4 |
+| **Ring at 37 packs, kept** | 48.9 | 49.1 | 46.2 | 55.7 | **9.5** |
+| **Ring at 17 packs, kept** | 50.0 | 49.1 | 47.8 | 53.0 | **5.2** |
+| **Ring at 3 packs, kept** | 49.5 | 49.5 | 50.3 | 50.7 | **1.2** |
+| Ring, full collection, kept | 50.5 | 43.1 | 62.2 | 44.2 | 19.1 |
+| Ring before any booster card (007), 37 / 17 / 3 / full | | | | | 4.5 / 4.3 / 6.4 / 5.1 |
+
+**What it means:** the probe is in your target. The real ring is not "within about 4" late in the season (37
+packs: Null 55.7, Aegis 46.2) or with a full collection. Two things to weigh:
+- the ring was never within 4: before any booster card its spread was 4.3 to 6.4 (the shipped decks 6.1);
+- the full-collection column is one build per faction and the builder is noisy there: its Null build keeps the
+  starter deck with no booster card at all, and its Aegis build (62%) also plays two Zero-Day cards and starter
+  cards at full copies. No real owner has a full collection in 21 days.
+
+**Ring checks:** the ring regression check passes in both modes, unchanged (it plays the starter decks, which
+nothing touched).
+
+**Calls for you:**
+1. **What counts as passing.** **(a, recommended)** Ship round 1 as it is. The probe is in the target. The
+   realistic ring is 1.2 and 5.2 at 3 and 17 packs, near the game's own spread of 4 to 6. At 37 packs it is 9.5:
+   Null a little ahead, Aegis a little behind, and Null is Aegis's designed predator. **(b)** Hold the ring to
+   "within about 6", the game's spread before booster cards, and allow one more round aimed at Null-versus-Aegis
+   late in the season. **(c)** Your fallback: no booster cards in packs for Season 0 (packs as they were before
+   option B).
+2. **The full-collection column.** **(a, recommended)** Read it as a deck-builder issue, not a card one, and put
+   it in the Season 1 notes. The builder's full-collection pick has been flagged since session 71. **(b)** Make the
+   builder search harder from a full collection before launch. That changes every agent's deck, so it needs its own
+   session.
+3. **Round 2 (Shield Relay 2/3, Reaper Thread 2/2) stays out.** **Recommended: keep it out.** It made Aegis's
+   probe +13.1 and widened the ring at 17 and 3 packs.
+
+**Also this session:** the dry run, again, on the tuned cards (`progress/season0-dry-run-002.txt`): **49 of 49
+PASS**. Its step 5 had stopped on session 94's rule that the 15 minutes start at the first pairing. I brought the
+script up to that rule and ran it again. Pressed at 23:30:02, the agent was first paired at 23:39:14, and the
+window ran to 23:54:14. Midnight, the crash and restart, the season's end and the switch to S1 all passed.
+
+---
+
 **Updated 2026-11-14, session 97 (game lane; the booster cards built, steps 1 and 2). [OWNER CHECK-IN].**
 Nothing is blocking. Lane: the last merged PR, #174, was "Render:", so this is a game session; no game PR was open.
 Acted on your two entries: the answers to game 96 (keep all 8) and "starter cards are Standard only".

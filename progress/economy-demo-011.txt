@@ -1,78 +1,78 @@
 # The starter guarantee (session 46)
-database: <temp>/season-0.db  schema v28  odds table S0-odds-2
+database: <temp>/season-0.db  schema v29  odds table S0-odds-3
 hit = Full Art or better: fullArt, glitch, altArt, gold, secret, zeroDay, prototype
 
 ## 1. Starter packs 1 and 2 have no hit: pack 3's shine slot is made a hit
 
 starter pack 1  seed 1
-    Common    001/096  Cortex Engineer          Common    
-    Common    048/096  Bulwark Chassis          Common    
-    Uncommon  095/096  Power Reserve            Uncommon  
-    Rare      023/096  Retaliation Node         Rare      
-    shine     038/096  Reflex Spike             Uncommon  FOIL
+    Common    097/124  Mutex Lock               Common    
+    Common    111/124  Kinetic Buffer           Common    
+    Uncommon  121/124  Zombie Fork              Uncommon  
+    Rare      108/124  Brood Tyrant             Rare      
+    shine     107/124  Hive Relay               Uncommon  FOIL
 starter pack 2  seed 100
-    Common    027/096  Carapace Grunt           Common    
-    Common    048/096  Bulwark Chassis          Common    
-    Uncommon  078/096  Null Shell               Uncommon  
-    Rare      080/096  Decay Ward               Rare      
-    shine     025/096  Brood Skitterer          Common    
+    Common    104/124  Egg Courier              Common    
+    Common    111/124  Kinetic Buffer           Common    
+    Uncommon  121/124  Zombie Fork              Uncommon  
+    Rare      116/124  Mirror Bulwark           Rare      
+    shine     098/124  Port Scanner             Common    
 starter pack 3  seed 201  [starter guarantee: shine slot made a hit]
-    Common    045/096  Aegis Cadet              Common    
-    Common    029/096  Colony Broodling         Common    
-    Uncommon  076/096  Garbage Collector        Uncommon  
-    Rare      024/096  Quorum Arbiter           Mythic    
-    shine     051/096  Aegis Sentinel           Uncommon  FULL ART
-  the same seed without the guarantee: shine slot Barrier Drone (standard), no hit
+    Common    105/124  Spawning Pulse           Common    
+    Common    105/124  Spawning Pulse           Common    
+    Uncommon  120/124  Reaper Thread            Uncommon  
+    Rare      103/124  Grid Consensus           Mythic    
+    shine     113/124  Bastion Array            Uncommon  FULL ART
+  the same seed without the guarantee: shine slot Kinetic Buffer (standard), no hit
   pity afterwards: 0 packs without a hit
 
 ## 2. A hit in starter pack 1: packs 2 and 3 roll as any pack does
 
 starter pack 1  seed 8
-    Common    067/096  Corruption Patch         Common    
-    Common    027/096  Carapace Grunt           Common    
-    Uncommon  058/096  Reinforced Bastion       Uncommon  
-    Rare      061/096  Aegis Warden             Rare      
-    shine     051/096  Aegis Sentinel           Uncommon  FULL ART
+    Common    112/124  Shield Relay             Common    
+    Common    104/124  Egg Courier              Common    
+    Uncommon  114/124  Hardlight Shell          Uncommon  
+    Rare      109/124  Swarm Surge              Rare      
+    shine     113/124  Bastion Array            Uncommon  FULL ART
 starter pack 2  seed 300
-    Common    001/096  Cortex Engineer          Common    
-    Common    071/096  Stray Fragment           Common    
-    Uncommon  054/096  Feedback Plating         Uncommon  
-    Rare      096/096  Uplink Tower             Rare      
-    shine     092/096  Surge Protector          Common    
+    Common    097/124  Mutex Lock               Common    
+    Common    118/124  Bad Sector               Common    
+    Uncommon  113/124  Bastion Array            Uncommon  
+    Rare      123/124  Heap Spray               Rare      
+    shine     119/124  Memory Leak              Common    
 starter pack 3  seed 401
-    Common    071/096  Stray Fragment           Common    
-    Common    045/096  Aegis Cadet              Common    
-    Uncommon  078/096  Null Shell               Uncommon  
-    Rare      066/096  Prime Aegis              Mythic    
-    shine     019/096  Mainframe Core           Rare      
+    Common    118/124  Bad Sector               Common    
+    Common    105/124  Spawning Pulse           Common    
+    Uncommon  121/124  Zombie Fork              Uncommon  
+    Rare      117/124  Aegis Overwatch          Mythic    
+    shine     101/124  Job Scheduler            Rare      
 
 ## 3. Another pack with a hit first, the starters out of order, the store restarted between them
 
 weekly challenge pack (not a starter pack)  seed 501
-    Common    006/096  Init Daemon              Common    
-    Common    071/096  Stray Fragment           Common    
-    Uncommon  093/096  Burst Credit             Uncommon  
-    Rare      062/096  Barrier Shim             Rare      
-    shine     096/096  Uplink Tower             Rare      GLITCH
+    Common    098/124  Port Scanner             Common    
+    Common    118/124  Bad Sector               Common    
+    Uncommon  121/124  Zombie Fork              Uncommon  
+    Rare      115/124  Hardening Protocol       Rare      
+    shine     123/124  Heap Spray               Rare      GLITCH
 starter pack (granted 3rd)  seed 600
-    Common    046/096  Aegis Line Trooper       Common    
-    Common    001/096  Cortex Engineer          Common    
-    Uncommon  032/096  Bore Swarm               Uncommon  
-    Rare      021/096  Rate Limiter             Rare      
-    shine     006/096  Init Daemon              Common    
+    Common    105/124  Spawning Pulse           Common    
+    Common    097/124  Mutex Lock               Common    
+    Uncommon  106/124  Acid Drone               Uncommon  
+    Rare      102/124  Parity Checker           Rare      
+    shine     098/124  Port Scanner             Common    
   -- store closed and reopened --
 starter pack (granted 1st)  seed 701
-    Common    088/096  Relay Courier            Common    
-    Common    087/096  Commodity Rack           Common    
-    Uncommon  036/096  Overgrown Carapace       Uncommon  
-    Rare      081/096  Deprecated Routine       Rare      
-    shine     089/096  Rollback Point           Common    
+    Common    118/124  Bad Sector               Common    
+    Common    118/124  Bad Sector               Common    
+    Uncommon  107/124  Hive Relay               Uncommon  
+    Rare      116/124  Mirror Bulwark           Rare      
+    shine     119/124  Memory Leak              Common    
 starter pack (granted 2nd, the last one opened)  seed 800  [starter guarantee: shine slot made a hit]
-    Common    072/096  Zombie Process           Common    
-    Common    049/096  Diagnostic Ward          Common    
-    Uncommon  095/096  Power Reserve            Uncommon  
-    Rare      080/096  Decay Ward               Rare      
-    shine     043/096  Overclock Beast          Rare      GLITCH
+    Common    118/124  Bad Sector               Common    
+    Common    111/124  Kinetic Buffer           Common    
+    Uncommon  121/124  Zombie Fork              Uncommon  
+    Rare      116/124  Mirror Bulwark           Rare      
+    shine     110/124  Colony Overmind          Mythic    GLITCH
 
 ## 4. What the opening log records (pack_openings.pity_json, raw)
 

@@ -4,12 +4,12 @@ Live feed size 001 — how big GET /api/live/:id gets (session 87, game lane)
 The feed's own part only (start, opening lines and hands, the steps): the live view's fields every read also carries
 (both sides, the board now, the last few lines, the speed) are not counted.
 
-  moves in a match                         min        76  median       125  p90       168  max       244
-  from=0 on the last move (a late page)    min   93.1 KB  median  192.6 KB  p90  273.1 KB  max  437.7 KB
-  per move                                 min    1.2 KB  median    1.5 KB  p90    1.7 KB  max    1.8 KB
-  the largest one-move poll                min    2.0 KB  median    2.8 KB  p90    4.0 KB  max    4.9 KB
+  moves in a match                         min        77  median       127  p90       168  max       250
+  from=0 on the last move (a late page)    min  103.8 KB  median  192.1 KB  p90  261.9 KB  max  459.6 KB
+  per move                                 min    1.2 KB  median    1.5 KB  p90    1.8 KB  max    1.9 KB
+  the largest one-move poll                min    2.1 KB  median    2.8 KB  p90    3.7 KB  max    8.0 KB
 
-Largest read: 437.7 KB, once per page opened; after that each poll carries only the moves released since.
+Largest read: 459.6 KB, once per page opened; after that each poll carries only the moves released since.
 Season 0 runs on one machine for a handful of owners: no cap is needed for it. A cap would make the website's
 first read loop until it has the whole match (it builds the arena from the first move on), so it is a change to
 both lanes, for launch scale (quality-debt.md).

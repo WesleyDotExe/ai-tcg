@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-14, render session 75 (the booster cards on the site: the binder's two blocks, the viewer's origin and versions, the face sheet, the Prototype face fit); before that game session 97 (the booster cards built: the registry, the set 001-124, S0-odds-3); before that render session 74 (the render hardening pass: the season's end's last gaps); before that game session 96 (the Season 0 booster-card proposal, at an owner check-in); before that render session 73 (the season's end on the Store, Packs, Daily rewards and the card viewer); before that game session 95 (render 72's two asks: auto-play on refused once the season has ended, `season` in the site contract check); before that render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-14, game session 99 (PR #177's failed site contract check fixed); before that game session 98 (the booster cards' balance re-run, two rounds; back with the owner per call 8); before that render session 75 (the booster cards on the site: the binder's two blocks, the viewer's origin and versions, the face sheet, the Prototype face fit); before that game session 97 (the booster cards built: the registry, the set 001-124, S0-odds-3); before that render session 74 (the render hardening pass: the season's end's last gaps); before that game session 96 (the Season 0 booster-card proposal, at an owner check-in); before that render session 73 (the season's end on the Store, Packs, Daily rewards and the card viewer); before that game session 95 (render 72's two asks: auto-play on refused once the season has ended, `season` in the site contract check); before that render session 72 (the dry run's fixes on the site: the waiting ring, the season's end); before that game session 94 (the dry run's fixes: the allowance clock at the first pairing, the scheduled season end, `clearNotifications` checked; schema v29); before that game session 93 (the Season 0 dry run and the Mac mini guide); before that game session 92 (the hardening pass for the 7-day unattended run); before that game session 91 (the hardening pass: the site contract check's rarer shapes); before that game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -200,14 +200,28 @@ new ideas go to `progress/season-1-ideas.md`.
      refused (409) once the season has ended, off still works (`server/test/seasonEnd.test.ts`); `GET /api/season`
      in the site contract check, open (with and without an end time), ending and ended, plus a control
      (`progress/site-contract-001.txt`, 0 mismatches, 7 of 7 controls).
-   - [~] Game 97 (the booster-card build, steps 1-2 of 4; the owner kept all 8 calls and made starter cards
+   - [x] Game 99 (PR #177's failed check fixed; session 98's work carried in the same PR): the site contract
+     check on cards-3 missed the allowance "finishing", "done" and stopped "timeUp" (each window starts at a
+     pairing, so the same 15-minute retry kept ending between matches); its retries now go 30, 60, 15 minutes
+     (`server/src/dev/siteContractCheck.ts`); `progress/site-contract-001.txt` 0 mismatches, 7 of 7 controls,
+     every shape reached. Every CI step re-run locally: pass. The slow demos re-run: two stale since session 97 (a
+     non-starter faction lock built from booster-only packs), now craft first; 38 of 38. A lock call to the owner.
+     Session 98's three calls still wait on the owner.
+   - [~] Game 98 (the booster-card build, step 4: the balance re-run; owner calls 3 and 8): two rounds, round 1
+     kept as `cards-3` (Zombie Fork 1/2, Heap Spray 2/3, Decay Engine 2/3, Aegis Overwatch 2/5; stats only),
+     round 2 reverted. Probe in the target (+10.8 / +9.3 / +9.8 / +12.3, spread 3.0); the built-deck ring's
+     spread 9.5 at 37 packs, 5.2 at 17, 1.2 at 3, 19.1 full (before any booster card 4.3-6.4)
+     (`progress/booster-rerun-s98/summary.md`, `built-deck-ring-008/009/010`); the ring regression check PASS,
+     unchanged. Back with the owner per call 8, at an [OWNER CHECK-IN] (notes-for-owner.md, session 98). Also:
+     a starter card's tournament finish refused (owner call 6); the dry run's step 5 updated to the v29 allowance
+     rule and re-run. Left: the owner's answer on what counts as passing.
+   - [x] Game 97 (the booster-card build, steps 1-2 of 4; the owner kept all 8 calls and made starter cards
      Standard only): the 28 cards in the faction files and the registry (`cards-2`); the set 001-096 + 097-124;
      `S0-odds-3` live (booster cards only in every slot and finish; the old tables roll the legacy set, their seed
      hashes unchanged); the store refuses a special version of a starter card; the Glitch list, illustrations and
      Prototype runs re-pointed at booster cards (at an [OWNER CHECK-IN], notes-for-owner.md); the set-Mythic
      stand-in picks the starter Mythic; the realistic collections re-made (`progress/pack-sim-004-booster.txt`,
-     16 PASS). Left: step 4, the balance re-run (the built-deck ring to call 3's target), then the ring regression
-     check; the dry run on cards-2.
+     16 PASS). Step 4 (the balance re-run, the ring regression check, the dry run): game 98.
    - [x] Game 96 (owner 2026-11-14, option B: Season 0's pack-only booster cards, an approved exception to the
      scope lock; launch stays 5 Dec). Step 1 done at an [OWNER CHECK-IN] (session 96, test only): 28 cards, 7 per
      faction (2C/2U/2R/1M), existing mechanics only, draft data in `engine/src/dev/boosterDraft.ts`; every card

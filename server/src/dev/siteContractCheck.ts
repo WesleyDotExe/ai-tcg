@@ -309,6 +309,8 @@ try {
   let boastServed = false;
   let finishingRead = false;
   let runningRead = false;
+  const RETRY_MINUTES = [30, 60, 15] as const;
+  let retries = 0;
   for (let i = 0; i < 720; i++) {
     await tick(5000);
     if (!finishedRead) {
@@ -333,7 +335,13 @@ try {
     // (session 94) From v29 the window opens at the first pairing, so it
     // can run out between two matches (straight to "done"); then two is
     // given another 15 minutes until one runs out mid-match.
-    if (!finishingRead && store.autoPlay(two, new Date(clock.t).toISOString()).allowance?.state === "done") store.setAutoPlay(two, true, 15);
+    // (session 99) Each window starts at a pairing, so a retry with the same
+    // 15 minutes ends at the same point of the ladder's round cycle, and
+    // with cards-3's shorter matches that point is the gap between matches
+    // every time (the check never reached "finishing"). The retries go
+    // through the other lengths the site offers, 30 then 60, so the end
+    // lands somewhere else in the cycle.
+    if (!finishingRead && store.autoPlay(two, new Date(clock.t).toISOString()).allowance?.state === "done") store.setAutoPlay(two, true, RETRY_MINUTES[retries++ % RETRY_MINUTES.length]);
     if (finishingRead && store.liveMatchOf(two) === null && (finishedRead || i > 600)) break;
   }
   const doneAnswer = (await ask("play", "GET /api/play (two: the allowance done, stopped timeUp)", t2)) as { autoPlay: { allowance?: { state: string } | null; stopped: { reason: string } | null } } | undefined;
