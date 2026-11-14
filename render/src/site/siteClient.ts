@@ -763,8 +763,14 @@ function route(): void {
   if (page === "match" || page === "live") void loadLive();
   if (page === "collection") void loadCollection();
   else closeViewer(false);
-  // The lock's buildable marks read the collection (render session 76).
-  if (page === "settings" && !lockCollection()) void loadCollection();
+  // The lock's craft plan reads the collection (render session 76); read
+  // again on every visit (render session 77), since a pack opened from the
+  // top bar or a craft since changes it. The marks themselves are the
+  // server's (`lockable`), drawn at once.
+  if (page === "settings") {
+    void loadCollection();
+    void readWalletForLock();
+  }
   if (page === "stats") void loadStats();
 }
 window.addEventListener("hashchange", () => {
@@ -1057,6 +1063,29 @@ function seg(id: string, options: [string, string][], value: string, label: stri
   return `<div class="seg" id="${id}" role="group" aria-label="${esc(label)}">${options.map(([v, t]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${v === value}">${esc(t)}</button>`).join("")}</div>`;
 }
 
+/** The wallet, read again on entering Settings (render session 77): the
+ * lock's warning says whether the pack points cover the craft plan, and
+ * pack points move outside the page (a pack opened elsewhere, a match's
+ * duplicates). The status poll reads it too, every 15 s. */
+async function readWalletForLock(): Promise<void> {
+  if (!state.session) return;
+  try {
+    state.wallet = await api.wallet(state.session.token);
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    return;
+  }
+  drawWallet();
+  if (state.page === "settings" && !state.busy) {
+    const y = ($("#page") as HTMLElement).scrollTop;
+    drawPage();
+    ($("#page") as HTMLElement).scrollTop = y;
+  }
+}
+
+/** The play read a stale-collection re-read was last started for. */
+let staleLockRead: SitePlay | null = null;
+
 function settingsPage(p: SitePlay): string {
   const rv = rebuildView(p);
   const job = p.rebuild.job ? jobSummary(p.rebuild.job) : [];
@@ -1064,6 +1093,12 @@ function settingsPage(p: SitePlay): string {
   // 2026-11-14, game 99's call (a)): the server's field, else the
   // collection read with the engine's rule.
   const lockViews = lockableView(p, lockCollection());
+  // The collection in hand disagrees with the server's count: read it again
+  // (once per play read, so a lasting disagreement can't loop).
+  if (lockViews?.some((v) => v.stale) && staleLockRead !== p) {
+    staleLockRead = p;
+    void loadCollection();
+  }
   const decks = p.decks.length
     ? p.decks
         .map((d) => {
@@ -1091,7 +1126,7 @@ function settingsPage(p: SitePlay): string {
   <section class="panel glass">
     <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
     <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${lockSegHtml(p.lockableFactions, lockViews, p.factionLock)}</div>
-    ${lockNoteHtml(lockViews, p.factionLock)}
+    ${lockNoteHtml(lockViews, p.factionLock, state.wallet?.packPoints)}
     <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
     ${ask2xField()}
   </section>

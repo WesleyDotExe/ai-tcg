@@ -32,17 +32,16 @@ blocking.**
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (game session 100) is game, so **the next
-session is render** (77).
+with "Render:", this is a game session; otherwise render. The latest PR (render session 77, the faction lock on the
+server's `lockable`) is render, so **the next session is game** (101).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says (if it merges while you wait, choose the lane again). Check the last merged PR so a slice
 isn't built twice. Read owner-feedback.md.
 
-Render lane (77): the server now serves `GET /api/play`'s `lockable` (session 100, the shape render 76 asked for);
-render 76's roadmap item is `[~]` with "re-check once game 100 serves the field". Game 100 re-ran its browser check
-with the field served (14 PASS, `progress/lockable-site-check-001.txt`); the render lane ticks the item, and decides
-whether to keep its own fallback. Otherwise the render lane's own roadmap items.
+Render lane (78): render 77 ticked the faction-lock item (drawn from the server's `lockable`, fallback kept, the
+plan's pack points; `progress/render/evidence/faction-lock-check-s77.txt`) and left two small calls at its
+checkpoint. Next: the owner's answers, then the render debt list; render 79 is a hardening pass.
 
 Game lane (101): **a hardening pass** (the every-5th count drifted: 81, 86, 91, 92, then owner work; see
 quality-debt.md's session 100 entry), unless the owner's feedback says otherwise. Candidates from quality-debt.md:

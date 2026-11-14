@@ -1502,3 +1502,14 @@ season mark) is proposed as a mark, call 1.
    the render lane follows.
 3. **The four cards tuned in cards-3 were looked at in a browser** (`card-faces.html`): Zombie Fork 1/2, Heap Spray
    2/3, Decay Engine 2/3, Aegis Overwatch 2/5, as the registry has them. Nothing to change.
+
+---
+
+## 2026-11-14 — Render session 77
+
+1. **Two small calls on the lock's warning:** see `progress/render/checkpoints.md` (session 77): whether "N short"
+   should say how pack points are earned, and whether the plan should be trimmed to what you can afford.
+2. **Nothing needed from the game lane.** `lockable` is served in the shape asked for (game 100), and the site
+   draws it directly (checked: a reply changed in flight showed the changed number). The only thing the site does
+   on top is make sure its collection agrees with the server before it shows a plan.
+

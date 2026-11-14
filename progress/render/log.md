@@ -6244,3 +6244,52 @@ a short lock; the plan uses starter-list cards only.
 **Next render-lane slice:** after this PR the next session is game (100: the `lockable` field and the owner's other
 answers). Render 77: the owner's answers to this checkpoint; then, once game 100 serves `lockable`, re-run the check
 against it (the site reads it first) and drop nothing; then the debt list.
+
+## 2026-11-14 — Render session 77: the faction lock on the server's own field, with the plan's pack points
+
+**Lane:** render. The last merged PR (#180, "Game lane: lockable factions on GET /api/play ... (session 100)") is
+game, so this session is render; no render PR was open. Read first: owner-feedback.md (the 2026-11-14 answers to
+render 76: keep all 3 (a), nothing to build; marked handled), DESIGN.md, RENDER.md, current.md, this lane's log, debt
+and checkpoints. Not a hardening pass (79 is next).
+
+**Why this slice:** render 76's roadmap item was `[~]` with "re-check once game 100 serves the field". Game 100
+re-ran the s76 check with the field served (14 PASS), but that check can't tell the server's numbers from the site's
+own reading, because they are equal. So this session proves the page draws the server's field, decides whether to
+keep the fallback, and works the s76 debt the field makes reachable: a plan made from a stale collection, and "the
+plan doesn't say whether the owner has the pack points".
+
+**Built (render/ only):**
+- `siteLockable.ts`: `LockableView.stale`. When the server's count and the collection in hand disagree, the server's
+  count is drawn and no plan is made from the stale cards. New `affordLine` ("You have N pack points, enough for all
+  of it." / "..., N short."); `lockNote` and `lockNoteHtml` take the pack points.
+- `siteClient.ts`: Settings reads the collection on every visit (s76 read it once), plus the wallet
+  (`readWalletForLock`). A disagreement re-reads the collection once per play read (`staleLockRead`), so a lasting
+  disagreement can't loop. The note gets `state.wallet.packPoints`.
+- Fallback kept: the server's field comes first. The collection is still needed for the plan, and the engine's rule
+  covers a reply without the field.
+
+**Ran it:** `progress/render/evidence/faction-lock-check-s77.mjs`, headless on the real owner API: **13 PASS**
+(`faction-lock-check-s77.txt`). A: with `GET /api/collection` held back 4 s, the marks drew at about 0.2 s from the
+server's field, every badge equal to it. B: a `GET /api/play` reply changed in flight (Null 10 -> 11) drew 11; the
+disagreement re-read the collection 2 times (bounded); the real reply put 10 back. C: Aegis locked; the warning ends
+"You have 65 pack points, 255 short", which matches `GET /api/wallet`. D: packs opened away from Settings (Aegis 12 ->
+13); straight back to Settings, no Collection visit: badge 13/20, a 7-craft plan, exactly the gap. E: one craft (the
+wallet covers one); straight back: 14/20, the plan is the 6 left, "You have 35". F: 390 px with Null locked: the
+warning fits, nothing sideways. G: no external requests, no errors. **On the old code (src stashed) the same check fails 4:** no pack
+points line; no re-read; D's plan was 8 crafts for a 7 gap; E's plan unchanged after the craft ("craft at least 6
+more" beside an 8-craft, 320-point plan). The first run of this check found its own mistakes, fixed before the
+final run: E crafted the whole plan and hit 409s (the demo owner holds 65 pack points), so E now crafts only what
+the wallet covers; the whole plan to a built deck is s76's real-store test. Unit tests
+`render/test/siteLockable77.test.ts` (6; the real-API one: field equals the site's reading faction by faction; two
+packs opened after the read make the old collection stale with no plan; re-read: fresh). Every workspace's tests
+pass (render 1076); typecheck clean in all six; CI browser check 61 pass; site contract check 0 mismatches, 8 of 8
+controls (`site-contract-s77.txt`); demos 36, 0 stale; `npm run outputs` rebuilt (the site page, and one bundled line
+in first-time and pack-opening).
+
+**Not done (named, in quality-debt):** Agent controls and Agent match still say nothing about a short lock (owner
+call 3: Settings only for Season 0); the plan still uses starter-list cards only; the pack points line doesn't say how
+to earn more (call 1 at this checkpoint).
+
+**Next render-lane slice:** after this PR the next session is game (101, a hardening pass). Render 78: the owner's
+answers to this checkpoint; then the debt list. Render 79 is a hardening pass.
+

@@ -8,8 +8,9 @@
 // faction as buildable or not, with the cards held and needed, and the site
 // greys out the ones that can't be built yet. The lock itself stays allowed.
 //
-// The server's field (`GET /api/play`'s `lockable`, the game lane's half) is
-// read when it is there. Until it is, the site works the same answer out
+// The server's field (`GET /api/play`'s `lockable`, the game lane's half,
+// served since game session 100) is read first. Without it (an older server,
+// or a reply that leaves it out), the site works the same answer out
 // from the owner's collection with the engine's own rule, `largestDeck`,
 // the function the store checks every agent deck against
 // (`economy/src/store.ts` `buildAgentDeck`): the same cards
@@ -75,6 +76,12 @@ export interface LockableView {
   planReaches: boolean;
   /** The largest deck after the plan. */
   planSize: number;
+  /** True when the server's count and the collection in hand disagree
+   * (render session 77): the collection was read before cards were added
+   * (a pack opened from the top bar, a craft) or taken away (salvage). The
+   * server's count is drawn; no plan is made from the stale cards, and the
+   * page reads the collection again. */
+  stale: boolean;
 }
 
 /** The owner's cards as the engine's builder counts them: copies per card
@@ -131,10 +138,15 @@ export function lockableView(
   return play.lockableFactions.map((faction) => {
     const s = fromServer?.find((x) => x.faction === faction);
     const needed = s?.needed ?? MIN_DECK_SIZE;
-    const cards = s ? s.cards : largestDeck(faction, holdings!);
+    const mine = holdings ? largestDeck(faction, holdings) : null;
+    const cards = s ? s.cards : mine!;
     const buildable = s ? s.buildable : cards >= needed;
-    const p = !buildable && holdings ? craftPlan(faction, holdings, needed) : { plan: [], packPoints: 0, reaches: buildable, size: cards };
-    return { faction, buildable, cards, needed, short: buildable ? 0 : Math.max(1, needed - cards), source: s ? "server" : "collection", plan: p.plan, planPackPoints: p.packPoints, planReaches: p.reaches, planSize: p.size };
+    // The plan starts from the collection in hand, so it is made only when
+    // that collection gives the server's own count (else it would plan from
+    // cards the owner no longer has, or miss ones just added).
+    const stale = !!s && mine !== null && mine !== s.cards;
+    const p = !buildable && holdings && !stale ? craftPlan(faction, holdings, needed) : { plan: [], packPoints: 0, reaches: buildable, size: cards };
+    return { faction, buildable, cards, needed, short: buildable ? 0 : Math.max(1, needed - cards), source: s ? "server" : "collection", plan: p.plan, planPackPoints: p.packPoints, planReaches: p.reaches, planSize: p.size, stale };
   });
 }
 
@@ -170,14 +182,27 @@ export function shortLine(v: LockableView, named = true): string {
   return v.planReaches ? `${head}. Cheapest from its starter list: ${planText(v)}.` : `${head}. Its starter list alone doesn't make up the gap: ${planText(v)} gets to ${v.planSize}.`;
 }
 
+/** Whether the owner's pack points cover the plan (render session 77):
+ * "You have 900 pack points, enough for all of it." / "You have 120 pack
+ * points, 200 short." Empty with no plan or no wallet read yet. */
+export function affordLine(v: LockableView, packPoints: number | null | undefined): string {
+  if (!v.plan.length || packPoints == null || !Number.isFinite(packPoints)) return "";
+  const have = Math.max(0, Math.floor(packPoints));
+  const pts = (n: number) => `${n.toLocaleString("en-US")} pack point${n === 1 ? "" : "s"}`;
+  return have >= v.planPackPoints ? `You have ${pts(have)}, enough for all of it.` : `You have ${pts(have)}, ${(v.planPackPoints - have).toLocaleString("en-US")} short.`;
+}
+
 /** What Settings says under the lock: a warning when the lock in place
  * can't be built (the agent sits out every round), else a quiet line when
- * other factions are greyed. Null when every faction can be built. */
-export function lockNote(views: LockableView[] | null, lock: SiteFaction | null): { tone: "warn" | "muted"; text: string } | null {
+ * other factions are greyed. Null when every faction can be built.
+ * `packPoints` (the wallet) adds whether the plan is affordable. */
+export function lockNote(views: LockableView[] | null, lock: SiteFaction | null, packPoints?: number | null): { tone: "warn" | "muted"; text: string } | null {
   if (!views) return null;
   const locked = lock ? views.find((v) => v.faction === lock) : undefined;
-  if (locked && !locked.buildable)
-    return { tone: "warn", text: `Your agent sits out every round: it can't build ${article(locked.faction)} ${locked.faction} deck yet. ${shortLine(locked, false)} Or lock another faction.` };
+  if (locked && !locked.buildable) {
+    const afford = affordLine(locked, packPoints);
+    return { tone: "warn", text: `Your agent sits out every round: it can't build ${article(locked.faction)} ${locked.faction} deck yet. ${shortLine(locked, false)}${afford ? ` ${afford}` : ""} Or lock another faction.` };
+  }
   const short = views.filter((v) => !v.buildable);
   if (!short.length) return null;
   return { tone: "muted", text: `Greyed: you don't hold enough cards for a ${MIN_DECK_SIZE}-card deck yet (${short.map((v) => `${v.faction} ${lockBadge(v)}`).join(", ")}). You can still lock one; your agent sits out until you craft the rest.` };
@@ -208,8 +233,8 @@ export function lockSegHtml(factions: SiteFaction[], views: LockableView[] | nul
 }
 
 /** The note under the lock, as HTML (empty when there is nothing to say). */
-export function lockNoteHtml(views: LockableView[] | null, lock: SiteFaction | null): string {
-  const n = lockNote(views, lock);
+export function lockNoteHtml(views: LockableView[] | null, lock: SiteFaction | null, packPoints?: number | null): string {
+  const n = lockNote(views, lock, packPoints);
   if (!n) return "";
   return `<p class="lock-note ${n.tone}" role="${n.tone === "warn" ? "alert" : "note"}">${esc(n.text)}${n.tone === "warn" ? ' <a href="#/collection">Open the Collection</a>' : ""}</p>`;
 }

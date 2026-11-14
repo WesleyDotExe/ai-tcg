@@ -1,0 +1,25 @@
+# Render session 77: the faction lock on the server's own field (lockable, game 100), the plan's pack points, a stale collection
+
+npx tsx progress/render/evidence/faction-lock-check-s77.mjs, headless Chromium against the real owner API (siteDemo.ts), nothing mocked except B's one changed reply.
+
+PASS  A the greyed marks are drawn 189 ms after entering Settings, before the held-back collection lands (4 s)
+      GET /api/play's lockable: Cortex ok · Swarm 16/20 · Aegis 12/20 · Null 10/20
+PASS  A every badge is the server's own field, faction by faction
+PASS  A the quiet line is there before the collection: "Greyed: you don't hold enough cards for a 20-card deck yet (Swarm 16/20, Aegis 12/20, Null 10/20). You can still lock one; your agent sits out until you craft the rest."
+PASS  B a changed reply (Null 10 -> 11) shows the changed count: the page draws the server's field, not its own reading (10)
+      collection reads after the changed reply: 2 (the visit's own, plus one for the disagreement at most per play read)
+PASS  B the disagreement reads the collection again a bounded number of times (2)
+PASS  B with the real reply back, Null reads 10/20 again
+PASS  C pressing greyed Aegis still locks it
+PASS  C the warning says whether the pack points (GET /api/wallet: 65) cover the plan: "Your agent sits out every round: it can't build an Aegis deck yet. Your cards make at most 12 of the 20 a deck needs, so craft at least 8 more cards. Cheapest from its starter list: Aegis Cadet ×3, Barrier Drone ×2 and Plating Module ×3 (320 pack points). You have 65 pack points, 255 short. Or lock another faction. Open the Collection"
+      opened 2 pack(s) away from Settings: the server's Aegis 12/20 -> 13/20
+PASS  D straight back to Settings (no Collection visit): the badge is the server's 13/20 and the plan is 7 crafts, exactly the gap (7)
+      crafted 1 of 7 through the API, as far as the pack points went (40 spent, 35 left)
+PASS  E after 1 craft(s), straight back to Settings: Aegis reads 14/20, the plan is the 6 left and the pack points are the wallet's now (35): "Your agent sits out every round: it can't build an Aegis deck yet. Your cards make at most 14 of the 20 a deck needs, so craft at least 6 more cards. Cheapest from its starter list: Aegis Cadet ×2, Barrier Drone ×2 and Plating Module ×2 (240 pack points). You have 35 pack points, 205 short. Or lock another faction. Open the Collection"
+      (crafting the whole plan to a built Aegis deck is the unit test's, on the real store: render/test/siteLockable76.test.ts; the demo owner holds too few pack points)
+      phone: the lock's right edge 353, the warning's 353, of 390
+PASS  F at 390 px, Null locked: the lock and the warning with its pack points fit, nothing sideways
+PASS  G no external requests (0)
+PASS  G no page errors
+
+13 PASS, 0 FAIL

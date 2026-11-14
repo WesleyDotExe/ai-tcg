@@ -4973,7 +4973,7 @@ Next session by alternation: render 76.
 
 ---
 
-## 2026-11-14 — Owner: answers to render session 76 (the faction lock marked buildable or not), keep all 3
+## 2026-11-14 — Owner: answers to render session 76 (the faction lock marked buildable or not), keep all 3 (HANDLED 2026-11-14, render session 77: all three kept as they are, nothing to build; the session re-checked the lock on the server's `lockable` (`progress/render/evidence/faction-lock-check-s77.txt`))
 
 **Render session 76** (PR #179, `progress/render/checkpoints.md`, `progress/render/evidence/faction-lock-check-s76.txt`); game session 100 (PR #180) had no calls. **Keep all 3 calls:**
 1. **Keep (a):** the plan is the cheapest crafts from the faction's starter list (Standard copies, Commons first).
