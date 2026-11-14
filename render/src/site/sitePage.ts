@@ -302,6 +302,15 @@ body[data-theme="dark"] .wli { background: rgba(255,255,255,.06); border-color: 
 .seg button { border: 0; background: none; padding: 7px 13px; border-radius: 9px; cursor: pointer; font: 600 13.5px system-ui; }
 .seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 4px rgba(30,30,80,.18); }
 body[data-theme="dark"] .seg button[aria-pressed="true"] { background: rgba(255,255,255,.2); }
+/* The faction lock (render session 76): a faction that can't be built yet is greyed with its count, still pressable. */
+#faction-lock button.short { color: var(--muted); }
+#faction-lock button.short[aria-pressed="true"] { color: var(--warn); }
+#faction-lock .lk { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 99px; border: 1px dashed currentColor; font: 700 11px ui-monospace, monospace; vertical-align: 1px; opacity: .9; }
+.lock-note { margin: -4px 0 12px; font-size: 13px; line-height: 1.45; }
+.lock-note.muted { color: var(--muted); }
+.lock-note.warn { color: var(--warn); padding: 9px 12px; border-radius: 12px; background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.lock-note a { color: inherit; font-weight: 700; }
+@media (max-width: 760px) { .field:has(#faction-lock) { flex-direction: column; align-items: stretch; gap: 10px; } #faction-lock { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } #faction-lock button { text-align: left; white-space: nowrap; } }
 .decks { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
 .decks > p { margin: 2px 6px 6px; }
 .deckrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 14px; border: 1px solid transparent; background: none; cursor: pointer; text-align: left; }

@@ -9,6 +9,16 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **The faction lock's buildable marks (session 76) are checked on the real API (14 PASS), with thin spots.** The
+  server doesn't send `lockable` yet, so every number on the page today is the site's own reading of the collection
+  with the engine's `largestDeck` (proven equal to the server's refusal on one owner and one faction, Aegis at 12, and
+  pinned by a test on the real store); if the store's rule ever changes away from `largestDeck` before the field is
+  served, the page would be wrong until it is. The marks need the collection read (Settings reads it on entry); until
+  it lands the lock draws plain. The craft plan uses only the faction's starter-list cards and Standard prices; it
+  doesn't say whether the owner has the pack points (the viewer's craft line does, per card). Agent controls, Agent
+  match and the Home widgets say nothing when the lock can't be built: the agent just isn't paired. The badge counts
+  the most cards a deck can hold, which is not always "cards of that faction held" (the removal and neutral caps); the
+  hover says "your cards make at most N", but a reader might still expect a plain count. Phones emulated only.
 - **The booster cards on the site (session 75) are checked on the real API (25 PASS), with thin spots.** The
   starter/booster split is read from the engine's registry (`isBoosterCard`, `SHIPPED_DECK_LISTS`), not from the
   server's binder (it sends no such field); a future set would need the same rule. A face itself carries no starter or

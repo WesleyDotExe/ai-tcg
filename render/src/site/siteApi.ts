@@ -24,6 +24,8 @@ import type { SiteRating } from "./siteAgent.js";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
 import type { SiteSeason } from "./siteSeason.js";
 
+import type { SiteLockable } from "./siteLockable.js";
+
 /** A faction the owner can lock the agent to (OWNER_API.md, the play settings). */
 export type SiteFaction = "Cortex" | "Swarm" | "Aegis" | "Null";
 
@@ -79,6 +81,12 @@ export interface SitePlay {
   autoPlay: SiteAutoPlay;
   /** Only on the faction-lock answer. */
   activeDeckFits?: boolean;
+  /** (owner 2026-11-14, game 99's call (a); asked of the game lane in render
+   * session 76) each lockable faction, buildable now or not, with the cards
+   * a deck can hold and the fewest it needs. Absent on an older server: the
+   * site then reads the collection with the engine's rule
+   * (`siteLockable.ts`). */
+  lockable?: SiteLockable[] | null;
 }
 
 /** Auto-play (OWNER_API.md "Auto-play", session 67). */

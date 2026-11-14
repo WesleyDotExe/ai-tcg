@@ -7,6 +7,48 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — Render session 76: the faction lock marked buildable or not — AWAITING FEEDBACK (three small calls)
+
+Your answer (a) to game 99's call: the site greys out the factions you can't build a deck for yet, with what to
+craft, and the lock stays allowed. Try it: `npm run site-demo -w @ai-tcg/render`, sign in as nova, Settings -> Play.
+Nova holds the Cortex starter and 20 opened packs, so the lock reads: Any · Cortex · Swarm 16/20 · Aegis 12/20 ·
+Null 10/20.
+
+**What changed (Settings -> Play only):**
+- **Each faction you can't build yet is greyed** with a dashed "12/20" badge (the most cards a deck of it can hold
+  from what you own, of the 20 it needs). It can still be pressed. A screen reader hears "Aegis: can't build a deck
+  yet, 12 of 20 cards".
+- **Under the lock:** a quiet line naming the greyed factions; or, when the lock you have can't be built, a warning:
+  "Your agent sits out every round: it can't build an Aegis deck yet. Your cards make at most 12 of the 20 a deck
+  needs, so craft at least 8 more cards. Cheapest from its starter list: Aegis Cadet ×3, Barrier Drone ×2 and Plating
+  Module ×3 (320 pack points). Or lock another faction. Open the Collection".
+- **Locking a greyed faction** keeps the lock (the server allows it) and toasts "Locked to Aegis, but your agent sits
+  out every round until it can build an Aegis deck: 12 of 20 cards. What to craft is under the lock."
+
+**Where the numbers come from:** the server doesn't send the field yet (that is the game lane's half, next session).
+Until it does, the site works it out from your collection with the engine's own rule (`largestDeck`, the one the
+store checks every agent deck against). The check proved them equal: the server's own Rebuild now failed with "at most
+12 usable cards, under 20", the page's 12; one Aegis Cadet crafted and the badge read 13/20. When the server sends
+`lockable`, the site reads it instead (typed now, `render/src/site/siteApi.ts`; the shape is in
+`progress/render/notes-for-owner.md`).
+
+**Calls (recommended first):**
+1. **The plan is cheapest crafts from the faction's starter list** (Standard copies, Commons first). (a) keep; (b) no
+   plan, the count only ("craft 8 more"), as your answer's wording had it; (c) also suggest booster cards (they can't
+   be crafted Standard-cheaply in the same way and come from packs, so I left them out).
+2. **The toast is short and points at the note**, rather than repeating the whole plan in a 5-second toast. (a) keep;
+   (b) the full plan in the toast too.
+3. **Only Settings shows it.** The Agent controls widget and Agent match still say nothing when the lock can't be
+   built (the agent just never gets paired). (a) leave it for now; (b) add a line there too (a small slice, next render
+   session).
+
+Evidence: `progress/render/evidence/faction-lock-check-s76.txt` (14 PASS, real owner API), stills
+`v2-s76-settings-1440.jpg`, `v2-s76-settings-aegis-locked.jpg`, `v2-s76-settings-phone.jpg`; tests
+`render/test/siteLockable76.test.ts` (10, one on the real owner API through crafting the plan to a 20-card Aegis
+build).
+
+---
+
 ## 2026-11-14 — Render session 75: Season 0's booster cards on the site — AWAITING FEEDBACK (three small calls)
 
 Game 97 registered the 28 booster cards as 097-124, and your rule made starter cards Standard only. The site already
