@@ -5002,3 +5002,16 @@ Next session by alternation: game 101 (the hardening pass).
 3. **Keep (a):** the versions show only in the viewer, not as a count under each card on the summary.
 
 Next session by alternation: game 102.
+
+---
+
+## 2026-11-14 — Owner: a head start on the Season 1 arena, as a separate prototype page (Season 0 unchanged)
+
+Game session 102 (PR #184) had no calls. The Season 1 arena spec is in `progress/season-1-ideas.md` (2026-11-13, the arena redesign in true 3D and live commentary).
+1. **Decision:** the 3D arena rework stays Season 1 scope. The Season 0 site, its pages and its checks do not change.
+2. **Head start:** the render lane starts the Season 1 arena spec at its build-order step 1 (the new layout) as a separate prototype page, built from `render/reference/season1-arena-3d-test.html`. It is not linked from the Season 0 site; it is brought into the site at the Season 1 build.
+3. **Priority:** Season 0 comes first. Any Season 0 fix, and the 2–4 Dec clean-up, take priority over the prototype.
+4. **The game lane until clean-up:** hardening and fixes only. No new features, and no Season 1 game work (such as commentary).
+5. **Not decided:** how far past step 1 the prototype goes before Season 1.
+
+Next session by alternation: render 79.
