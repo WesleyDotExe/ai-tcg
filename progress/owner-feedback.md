@@ -4961,3 +4961,12 @@ Next session by alternation: game 98 (the balance re-run, build step 4).
 1. **Keep (a):** ship round 1 (cards-3) as it is. The probe is inside call 3's target; the realistic ring's spread (1.2 / 5.2 / 9.5 at 3 / 17 / 37 packs) is accepted.
 2. **Keep (a):** read the full-collection column as a deck-builder issue, not a card one, and put it in the Season 1 notes (`progress/season-1-ideas.md`). No builder change before launch.
 3. **Keep:** round 2 (Shield Relay 2/3, Reaper Thread 2/2) stays out.
+
+---
+
+## 2026-11-14 — Owner: answer to game session 99 (a faction lock the owner can't build yet): (a)
+
+**Game session 99** (PR #178, `progress/notes-for-owner.md`, session 99).
+1. **Decision (a):** the API marks each lockable faction as buildable or not, with the cards held and needed, and the site greys out the ones that can't be built yet. (Packs now hold only booster cards, so an owner can lock a faction they can't yet build a 20-card deck for; the ladder would sit that agent out every round until the owner crafts the missing cards.)
+
+Next session by alternation: render 76.
