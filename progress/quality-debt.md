@@ -262,6 +262,22 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 99 (game lane: PR #177's failed check fixed, the site contract check on cards-3; no product code or schema change): what was raised, and what is still thin
+
+Raised: session 98's "the site contract check was not re-run on cards-3". It had not been, and it failed in CI
+(PR #177): three shapes NOT REACHED (the allowance "finishing", "done", stopped "timeUp"), so its control for
+"finishing" was never made (6 of 7). The cause was the check's run, not the server: each window starts at a
+pairing, so the retry with the same 15 minutes ended at the same point of the round cycle every time, and with
+cards-3's shorter matches that point is always the gap between two matches. The retries now go 30, 60, 15
+minutes; "finishing" is reached at tick 579 of 720 (`progress/site-contract-001.txt`, 0 mismatches, 7 of 7
+controls, every shape reached). Still thin:
+- **The check still depends on where match ends fall.** Rotating the lengths makes it far less likely to miss,
+  not impossible; a card change that shortens matches again could miss all three. The margin is 141 ticks of
+  720. A run that forces a mid-match end (an allowance end set from the live match's own clock) would be exact;
+  it was not built, to keep this a fix of the failed check and not a new feature.
+- **The same cycle effect could hide in the dry run** (`seasonDryRun.ts`, step 5): it passed on cards-3 (49 of
+  49), but it uses one 15-minute window and was not looked at for the same pattern.
+
 ## Session 98 (the booster cards' balance re-run, two rounds; cards-3, no schema change): what was raised, and what is still thin
 
 Raised: session 97's "the balance re-run has not been run" (it ran: two instruments, two rounds, every round's

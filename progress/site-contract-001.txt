@@ -8,7 +8,7 @@ compiler settings.
   UNTYPED   the server sends a field the type doesn't name: harmless; the site could read it.
             (Every one is listed: the check repeats with each reported field taken out.)
 
-Ladder: 19 matches started before the reads; calls made: 70; refused: 0.
+Ladder: 20 matches started before the reads; calls made: 70; refused: 0.
 
 fits  POST /api/session (one)  (SiteApi.signIn)
 fits  POST /api/session (two)  (SiteApi.signIn)
@@ -57,6 +57,17 @@ fits  GET /api/season (open, no end time)  (SiteApi.season)
 fits  GET /api/season (open, the end time set)  (SiteApi.season)
 fits (with untyped fields)  GET /api/live  (SiteApi.live)
     UNTYPED   matches[].boast is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.art is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.attack is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.cardId is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.cost is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.flavor is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.health is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.inZone is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.keywords is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.nextCost is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.rulesText is sent; the type doesn't name it
+    UNTYPED   matches[].now.p2.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   matches[].p1.arena is sent; the type doesn't name it
     UNTYPED   matches[].p1.coin is sent; the type doesn't name it
     UNTYPED   matches[].p1.faction is sent; the type doesn't name it
@@ -232,8 +243,24 @@ fits  POST /api/play/rebuild  (SiteApi.rebuild)
 fits (with untyped fields)  GET /api/play/rebuild (finished)  (SiteApi.rebuildJob)
     UNTYPED   result.rule is sent; the type doesn't name it
 fits  PUT /api/play/auto-play {on, minutes:15} (two)  (SiteApi.setAutoPlay)
+fits (with untyped fields)  GET /api/play (two: the allowance running, from its first pairing)  (SiteApi.play)
+    UNTYPED   activeDeck.list is sent; the type doesn't name it
+    UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
+    UNTYPED   agentDeck.list is sent; the type doesn't name it
+    UNTYPED   decks[].list is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/live (a match with its last move out)  (SiteApi.live)
     UNTYPED   matches[].boast is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.art is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.attack is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.cardId is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.cost is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.flavor is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.health is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.inZone is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.keywords is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.nextCost is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.rulesText is sent; the type doesn't name it
+    UNTYPED   matches[].now.p1.signature.timesPlayed is sent; the type doesn't name it
     UNTYPED   matches[].p1.arena is sent; the type doesn't name it
     UNTYPED   matches[].p1.coin is sent; the type doesn't name it
     UNTYPED   matches[].p1.faction is sent; the type doesn't name it
@@ -251,11 +278,6 @@ fits (with untyped fields)  GET /api/live/:id?from=N (the last move out, the boa
     UNTYPED   p2.faction is sent; the type doesn't name it
     UNTYPED   steps[].events is sent; the type doesn't name it
     UNTYPED   steps[].move is sent; the type doesn't name it
-fits (with untyped fields)  GET /api/play (two: the allowance running, from its first pairing)  (SiteApi.play)
-    UNTYPED   activeDeck.list is sent; the type doesn't name it
-    UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
-    UNTYPED   agentDeck.list is sent; the type doesn't name it
-    UNTYPED   decks[].list is sent; the type doesn't name it
 fits (with untyped fields)  GET /api/play (two: the allowance finishing)  (SiteApi.play)
     UNTYPED   activeDeck.list is sent; the type doesn't name it
     UNTYPED   agentDeck.builtFrom.rule is sent; the type doesn't name it
@@ -313,7 +335,7 @@ caught   control: GET /api/me with `kind` taken out
 caught   control: GET /api/wallet with `credits` sent as text
     at credits: Type 'string' is not assignable to type 'number'.
 caught   control: GET /api/matches with `result` renamed `outcome`
-    at matches[]: Property 'result' is missing in type '{ matchId: string; endedAt: string; seat: "p1"; credits: number; rating: { before: number; after: number; change: number; }; opponent: { ownerId: string; ownerName: string; agentName: string; }; agentName: string; turns: number; hasLog: true; hasReplay: true; }' but required in type 'SiteHistoryRow'. (and 4 more like it)
+    at matches[]: Property 'result' is missing in type '{ matchId: string; endedAt: string; seat: "p2"; credits: number; rating: { before: number; after: number; change: number; }; opponent: { ownerId: string; ownerName: string; agentName: string; }; agentName: string; turns: number; hasLog: true; hasReplay: true; }' but required in type 'SiteHistoryRow'. (and 4 more like it)
 caught   control: GET /api/play with the allowance's state "ending" (not a state the site knows)
     at autoPlay.allowance.state: Type '"ending"' is not assignable to type '"done" | "finishing" | "running" | "waiting"'.
 caught   control: GET /api/play with `autoPlay.stopped` sent as text
@@ -323,4 +345,4 @@ caught   control: GET /api/season with its state "closed" (not a state the site 
 caught   control: POST /api/notifications/clear with `cleared` sent as text
     at cleared: Type 'string' is not assignable to type 'number'.
 
-Totals: 0 call(s) with a mismatch; 192 untyped field line(s); controls caught 7 of 7.
+Totals: 0 call(s) with a mismatch; 214 untyped field line(s); controls caught 7 of 7.
