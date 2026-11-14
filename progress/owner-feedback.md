@@ -4952,3 +4952,12 @@ Next session by alternation: render 75 (the booster cards' faces and set numbers
 3. **Keep:** the versions row shows versions you don't hold (dashed, with their numbers), so the owner can see what exists.
 
 Next session by alternation: game 98 (the balance re-run, build step 4).
+
+---
+
+## 2026-11-14 — Owner: answers to game session 98 (the booster cards' balance re-run), keep all 3 as recommended
+
+**Game session 98** (its work merged in PR #178, which superseded #177; `progress/notes-for-owner.md`, `progress/booster-rerun-s98/summary.md`). **Keep all 3 calls, each as recommended:**
+1. **Keep (a):** ship round 1 (cards-3) as it is. The probe is inside call 3's target; the realistic ring's spread (1.2 / 5.2 / 9.5 at 3 / 17 / 37 packs) is accepted.
+2. **Keep (a):** read the full-collection column as a deck-builder issue, not a card one, and put it in the Season 1 notes (`progress/season-1-ideas.md`). No builder change before launch.
+3. **Keep:** round 2 (Shield Relay 2/3, Reaper Thread 2/2) stays out.
