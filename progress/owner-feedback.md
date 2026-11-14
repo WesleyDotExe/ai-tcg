@@ -4981,3 +4981,13 @@ Next session by alternation: render 76.
 3. **Keep (a):** only Settings shows it for now; Agent controls and Agent match say nothing more about an unbuildable lock in Season 0.
 
 Next session by alternation: render 77, then game 101 (a hardening pass, per session 100's notes).
+
+---
+
+## 2026-11-14 — Owner: answers to render session 77 (the faction lock on the server's own field, with the plan's pack points), keep both (a)
+
+**Render session 77** (PR #181, `progress/render/checkpoints.md`, `progress/render/evidence/faction-lock-check-s77.txt`). **Keep both calls as built:**
+1. **Keep (a):** "N short" names the gap only; it doesn't add how pack points are earned.
+2. **Keep (a):** the plan is shown even when the owner can't afford it, followed by "N short", so they can see what they're saving for.
+
+Next session by alternation: game 101 (the hardening pass).
