@@ -357,6 +357,11 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      fallback kept for the plan; the plan made only from a collection that agrees with the server's count (re-read
      on every visit; s76 could show a stale plan after a pack or craft); the warning says whether the pack points
      cover the plan (`faction-lock-check-s77` 13 PASS; 4 fail on the old code)
+   - [x] (render debt, session 75's) A pulled card's versions in the pack viewer. Done (render 78): a summary
+     tile's viewer lists the card's versions from the binder read after the open (Set, Illustration, Glitch, Gold,
+     Prototype run; held or not; this pull ringed), one pack and ten, on the website and the demo pages; a Zero-Day
+     pull has none. Every row equal to `GET /api/collection/binder/S0` on the real API; the debug panel's Gold,
+     Glitch, Secret and Prototype pulls opened live (`pack-versions-check-s78` 19 PASS)
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause

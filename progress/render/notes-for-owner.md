@@ -1513,3 +1513,14 @@ season mark) is proposed as a mark, call 1.
    draws it directly (checked: a reply changed in flight showed the changed number). The only thing the site does
    on top is make sure its collection agrees with the server before it shows a plan.
 
+
+---
+
+## 2026-11-14 — Render session 78
+
+1. **Three small calls on the pack viewer's versions row:** see `progress/render/checkpoints.md` (session 78):
+   whether the chips should link to the Collection, whether a Gold/Glitch/illustration copy should keep ticking the
+   card's Set place (the binder's rule today, the same on the Collection), and whether to show "2/5" on the summary
+   fan too.
+2. **Nothing needed from the game lane.** The row is built from the binder the server already sends
+   (`GET /api/collection/binder/:setCode`); no new field, no engine or economy change.

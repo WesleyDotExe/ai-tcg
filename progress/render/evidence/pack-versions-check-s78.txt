@@ -1,0 +1,26 @@
+PASS  A Gold: Aegis Overwatch 145/124; the row: Set 117/124 held · Illustration 161/124 · Glitch 117/124 · [Gold 145/124 held] · Prototype /5 S0-P02
+PASS  A   this pull's chip carries its own number (145/124), in the booster range for its version
+PASS  A   the line "You hold 2 of its 5 versions."; the chip says "Gold 145/124, this pull, held"
+PASS  A Glitch: Colony Overmind 110/124; the row: Set 110/124 held · Illustration 157/124 · [Glitch 110/124 held] · Gold 138/124 · Prototype /25 S0-P04
+PASS  A   this pull's chip carries its own number (110/124), in the booster range for its version
+PASS  A   the line "You hold 2 of its 5 versions."; the chip says "Glitch 110/124, this pull, held"
+PASS  A Illustration: Shield Relay 164/124; the row: Set 112/124 held · [Illustration 164/124 held] · Glitch 112/124 · Gold 140/124
+PASS  A   this pull's chip carries its own number (164/124), in the booster range for its version
+PASS  A   the line "You hold 2 of its 4 versions."; the chip says "Illustration 164/124, this pull, held"
+PASS  A Prototype: Job Scheduler S0-P12; the row: Set 101/124 held · Illustration 155/124 · Gold 129/124 · [Prototype /250 S0-P12 held]
+PASS  A   this pull's chip carries its own number (S0-P12), in the booster range for its version
+PASS  A   the line "You hold 2 of its 4 versions."; the chip says "Prototype /250 S0-P12, this pull, held"
+PASS  A Zero-Day (Patient Zero): no versions row (its own kind, one version); caption "ZERO-DAY Patient Zero · 169/124 · Mythic"
+PASS  A   the same pack's Spawning Pulse (standard) has its row: Set, Gold
+      Spawning Pulse (standard 105/124): [Set 105/124 held] · Gold 133/124; "You hold 1 of its 2 versions."
+PASS  B site, one pack (105/124 standard, 119/124 standard, 107/124 standard, 101/124 standard, 114/124 standard): every tile's row equals GET /api/collection/binder/S0 read after the open (5/5), this pull held in 5/5
+      unopened packs before the ten: 10
+      the single summary's buttons: one, done
+      the ten: reached its summary; 25 tiles; beats: bulkStart, bulkGo, bulkPack, tear, sparks, bulkDealt, stop, bulkTap, build, glowStage, reveal, hit
+PASS  C site, ten packs: 25 of 25 summary tiles open a row (Zero-Day tiles have none), this pull held in 25
+      no pack waiting at 390 px: bought one (201)
+PASS  D 390 px: the viewer with its 2-chip row fits (card 106-607, row 648-693, Close to 738 of 844; nothing sideways)
+PASS  E no external requests (0)
+PASS  E no page errors (0)
+
+19 PASS, 0 FAIL
