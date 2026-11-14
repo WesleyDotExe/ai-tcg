@@ -67,6 +67,7 @@ import { miniCard, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } 
 import { BELL_PAGE, bellButton, bellPanelHtml, closed as bellClosed, emptyBell, unreadShown, withCleared, withCounts, withPage, withRead, type BellState } from "./siteBell.js";
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotificationKind, SiteNotifications, SiteStats } from "./siteStanding.js";
+import { lockNoteHtml, lockSegHtml, lockToast, lockableView } from "./siteLockable.js";
 import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
 import { frozenNoteHtml, isSeasonEndedRefusal, seasonClosed, seasonEndHtml, seasonEndView, seasonFrozen, type SiteSeason } from "./siteSeason.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveGroups, liveOrder, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, topRatedHtml, topRatedRank, topRatedWhy, viewersHtml, watchAsHtml } from "./siteMatches.js";
@@ -762,6 +763,8 @@ function route(): void {
   if (page === "match" || page === "live") void loadLive();
   if (page === "collection") void loadCollection();
   else closeViewer(false);
+  // The lock's buildable marks read the collection (render session 76).
+  if (page === "settings" && !lockCollection()) void loadCollection();
   if (page === "stats") void loadStats();
 }
 window.addEventListener("hashchange", () => {
@@ -1057,7 +1060,10 @@ function seg(id: string, options: [string, string][], value: string, label: stri
 function settingsPage(p: SitePlay): string {
   const rv = rebuildView(p);
   const job = p.rebuild.job ? jobSummary(p.rebuild.job) : [];
-  const lockOpts: [string, string][] = [["", "Any"], ...p.lockableFactions.map((f) => [f, f] as [string, string])];
+  // Each faction marked buildable or not (render session 76; owner
+  // 2026-11-14, game 99's call (a)): the server's field, else the
+  // collection read with the engine's rule.
+  const lockViews = lockableView(p, lockCollection());
   const decks = p.decks.length
     ? p.decks
         .map((d) => {
@@ -1084,7 +1090,8 @@ function settingsPage(p: SitePlay): string {
   <h3>Play</h3>
   <section class="panel glass">
     <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
-    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, p.factionLock ?? "", "Faction lock")}</div>
+    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${lockSegHtml(p.lockableFactions, lockViews, p.factionLock)}</div>
+    ${lockNoteHtml(lockViews, p.factionLock)}
     <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
     ${ask2xField()}
   </section>
@@ -1571,6 +1578,13 @@ function face(): FaceRenderer {
 }
 const siteFace = () => (window as unknown as { SITE_FACE: { packFitText(el: Element): number; packTiltAngles(x: number, y: number, max: number): { rx: number; ry: number } } }).SITE_FACE;
 
+/** The collection the lock's marks read: the Collection page's, else
+ * Home's widget's (the same `GET /api/collection`; only the recent pulls'
+ * count differs). */
+function lockCollection(): SiteCollection | null {
+  return state.col.collection ?? state.home.collection;
+}
+
 /** Reads the collection, then the binder of its set (the current season's). */
 async function loadCollection(): Promise<void> {
   if (!state.session) return;
@@ -1583,6 +1597,11 @@ async function loadCollection(): Promise<void> {
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
     state.col = { ...state.col, error: err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong." };
+  }
+  if (state.page === "settings" && !state.busy) {
+    const y = ($("#page") as HTMLElement).scrollTop;
+    drawPage();
+    ($("#page") as HTMLElement).scrollTop = y;
   }
   if (state.page === "collection" && !state.busy) {
     const y = ($("#page") as HTMLElement).scrollTop;
@@ -3076,7 +3095,9 @@ document.addEventListener("click", (e) => {
       void act(async (tok) => {
         const r = await api.setFactionLock(tok, (v || null) as SiteFaction | null);
         // Matches start only with an active deck of the locked faction.
-        if (r.activeDeckFits === false) toast(`The deck that plays now isn't ${v}. Matches wait until a ${v} deck plays: rebuild your agent's deck, or pick a ${v} deck.`, "error");
+        const short = lockToast(lockableView(r, lockCollection()), (v || null) as SiteFaction | null);
+        if (short) toast(short, "error");
+        else if (r.activeDeckFits === false) toast(`The deck that plays now isn't ${v}. Matches wait until a ${v} deck plays: rebuild your agent's deck, or pick a ${v} deck.`, "error");
         return r;
       });
     else if (group === "theme-seg") void saveLook({ theme: v as ThemePref });

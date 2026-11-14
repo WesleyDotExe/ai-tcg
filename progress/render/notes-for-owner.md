@@ -1481,3 +1481,24 @@ season mark) is proposed as a mark, call 1.
 4. **For the game lane, nothing is needed.** No new call or field is read; the site tells starter from booster cards
    with the engine's own `isBoosterCard` and `SHIPPED_DECK_LISTS`. The site contract check still passes (0
    mismatches, 7 of 7 controls, `progress/render/evidence/site-contract-s75.txt`).
+
+---
+
+## 2026-11-14 — Render session 76 (the faction lock, buildable or not)
+
+1. **Your answer (a) to game 99's call is on the site.** Settings -> Play greys each faction you can't build a deck
+   for yet ("12/20"), still pressable; under the lock it says what to craft (the cheapest crafts from that faction's
+   starter list, with the pack points). Three small calls in `progress/render/checkpoints.md` (the newest).
+2. **For the game lane (game 100, the API half of (a)):** the site reads, when present, a field on `GET /api/play`
+   (and so on the faction-lock answer):
+   ```
+   lockable: [{ faction: "Cortex" | "Swarm" | "Aegis" | "Null", buildable: boolean, cards: number, needed: number }]
+   ```
+   `cards` = `largestDeck(faction, holdingsOf(collection))` (the store's own rule in `buildAgentDeck`), `needed` =
+   `MIN_DECK_SIZE` (20), `buildable` = `cards >= needed`. One entry per `lockableFactions` entry. It is typed
+   (`SitePlay.lockable`, optional) so the site contract check will cover it once served. Until it's served, the site
+   works out the same numbers from `GET /api/collection` with the same engine function, proven equal on the real
+   server (the Rebuild now refusal's "at most 12" against the page's 12). If you choose another shape, say so here and
+   the render lane follows.
+3. **The four cards tuned in cards-3 were looked at in a browser** (`card-faces.html`): Zombie Fork 1/2, Heap Spray
+   2/3, Decay Engine 2/3, Aegis Overwatch 2/5, as the registry has them. Nothing to change.

@@ -1,0 +1,21 @@
+PASS  A Settings: the lock has greyed factions once the collection is read
+      the lock: Any [on] · Cortex · Swarm (16/20) · Aegis (12/20) · Null (10/20)
+PASS  A Cortex (the starter) is not greyed
+      the engine's rule on the server's copies: {"Cortex":40,"Swarm":16,"Aegis":12,"Null":10}
+PASS  A every greyed faction's "N/20" is the engine's largestDeck on GET /api/collection's copies
+PASS  A a greyed button keeps its name for a screen reader ("Aegis: can't build a deck yet, 12 of 20 cards")
+PASS  A the quiet line under the lock: "Greyed: you don't hold enough cards for a 20-card deck yet (Swarm 16/20, Aegis 12/20, Null 10/20). You can still lock one; your agent sits out until you craft the rest."
+PASS  B pressing greyed Aegis still locks it (GET /api/play: factionLock "Aegis")
+PASS  B the toast: "Locked to Aegis, but your agent sits out every round until it can build an Aegis deck: 12 of 20 cards. What to craft is under the lock."
+PASS  B the warning under the lock: "Your agent sits out every round: it can't build an Aegis deck yet. Your cards make at most 12 of the 20 a deck needs, so craft at least 8 more cards. Cheapest from its starter list: Aegis Cadet ×3, Barrier Drone ×2 and Plating Module ×3 (320 pack points). Or lock another faction. Open the Collection"
+      Rebuild now (202): failed: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 12 usable cards, under 20)
+PASS  C the server's own build refuses with the page's number (12)
+      crafted one "Aegis Cadet" (AG-001): 201
+PASS  D after crafting one card of the plan the badge reads 13/20
+PASS  E back to Cortex: the warning goes, the quiet line stays
+      phone: the lock's right edge 353 of 390
+PASS  F at 390 px the lock fits and nothing scrolls sideways
+PASS  G no external requests (0)
+PASS  G no page errors
+
+14 PASS, 0 FAIL

@@ -249,6 +249,15 @@ body[data-theme="dark"] .wli { background: rgba(255,255,255,.06); border-color: 
 .seg button { border: 0; background: none; padding: 7px 13px; border-radius: 9px; cursor: pointer; font: 600 13.5px system-ui; }
 .seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 4px rgba(30,30,80,.18); }
 body[data-theme="dark"] .seg button[aria-pressed="true"] { background: rgba(255,255,255,.2); }
+/* The faction lock (render session 76): a faction that can't be built yet is greyed with its count, still pressable. */
+#faction-lock button.short { color: var(--muted); }
+#faction-lock button.short[aria-pressed="true"] { color: var(--warn); }
+#faction-lock .lk { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 99px; border: 1px dashed currentColor; font: 700 11px ui-monospace, monospace; vertical-align: 1px; opacity: .9; }
+.lock-note { margin: -4px 0 12px; font-size: 13px; line-height: 1.45; }
+.lock-note.muted { color: var(--muted); }
+.lock-note.warn { color: var(--warn); padding: 9px 12px; border-radius: 12px; background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.lock-note a { color: inherit; font-weight: 700; }
+@media (max-width: 760px) { .field:has(#faction-lock) { flex-direction: column; align-items: stretch; gap: 10px; } #faction-lock { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } #faction-lock button { text-align: left; white-space: nowrap; } }
 .decks { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
 .decks > p { margin: 2px 6px 6px; }
 .deckrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 14px; border: 1px solid transparent; background: none; cursor: pointer; text-align: left; }
@@ -4633,7 +4642,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     rarity: "Mythic",
     cost: 6,
     type: "Unit",
-    attack: 3,
+    attack: 2,
     health: 5,
     keywords: ["Guard"],
     art: "placeholder:aegis/aegis-overwatch",
@@ -5439,7 +5448,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     rarity: "Uncommon",
     cost: 2,
     type: "Unit",
-    attack: 2,
+    attack: 1,
     health: 2,
     keywords: [],
     art: "placeholder:null/zombie-fork",
@@ -5475,7 +5484,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     cost: 4,
     type: "Unit",
     attack: 2,
-    health: 4,
+    health: 3,
     keywords: [],
     art: "placeholder:null/heap-spray",
     flavor: "It floods memory with junk until nothing else can run at full strength.",
@@ -5499,7 +5508,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     cost: 4,
     type: "Unit",
     attack: 2,
-    health: 4,
+    health: 3,
     keywords: [],
     art: "placeholder:null/decay-engine",
     flavor: "It doesn't attack. It waits, and everything near it gets a little less.",
@@ -6104,6 +6113,11 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       id: "cards-2",
       digest: "841867645a649a6d",
       note: "Session 97: cards-1 plus Season 0's 28 pack-only booster cards (CX-101 to CX-107, SW-101 to SW-107, AG-101 to AG-107, NL-101 to NL-107; owner 2026-11-14, option B). No cards-1 card changed."
+    },
+    {
+      id: "cards-3",
+      digest: "c0dbedef8f83a4f8",
+      note: "Session 98, the balance re-run's kept round (owner 2026-11-14, calls 3 and 8: booster cards only, stats only): Zombie Fork (NL-104) 2/2 to 1/2, Heap Spray (NL-105) 2/4 to 2/3, Decay Engine (NL-106) 2/4 to 2/3, Aegis Overwatch (AG-107) 3/5 to 2/5. No cost, rarity, ability or starter card changed."
     }
   ];
   var CURRENT_CARDS_VERSION = CARDS_VERSIONS[CARDS_VERSIONS.length - 1].id;
@@ -6235,8 +6249,158 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     return { id, name, cards };
   }
 
+  // ../engine/src/deckbuilder/cardRating.ts
+  function vanillaValue(cost) {
+    return 2 * cost + 1;
+  }
+  var KEYWORD_VALUE = { Rush: 1.5, Guard: 1, Barrier: 1.5 };
+  var TRIGGER_WEIGHT = {
+    onPlay: 1,
+    onAttack: 1.5,
+    onDamaged: 1,
+    onDeath: 0.8,
+    onTurnStart: 2,
+    onTurnEnd: 2,
+    onKill: 0.8,
+    onEnemyAttack: 1.2,
+    static: 1,
+    activated: 1.5
+  };
+  function typical(amount3) {
+    if (amount3.mode === "flat") return amount3.value;
+    const sample = amount3.per === "turnNumber" ? 6 : 2;
+    return amount3.base + amount3.multiplier * sample;
+  }
+  function targetCount(targeting) {
+    if (!targeting) return 1;
+    if (targeting.scope === "all") return targeting.filter.kind === "player" ? 1 : 2.5;
+    if (targeting.scope === "random") return targeting.count;
+    return 1;
+  }
+  function hitsOpponent(targeting) {
+    if (!targeting || targeting.scope === "none" || targeting.scope === "self") return false;
+    return targeting.filter.side !== "controller";
+  }
+  function hitsFace(targeting) {
+    if (!targeting || targeting.scope === "none" || targeting.scope === "self") return false;
+    return targeting.filter.kind === "player";
+  }
+  function effectValue(effect, targeting) {
+    var _a4, _b;
+    const n = targetCount(targeting);
+    switch (effect.kind) {
+      case "damage": {
+        const v = typical(effect.amount);
+        if ((targeting == null ? void 0 : targeting.scope) === "self") return -0.8 * v;
+        return (hitsFace(targeting) ? 0.8 : 1.2) * v * n;
+      }
+      case "heal":
+        return 0.4 * typical(effect.amount) * n;
+      case "buff": {
+        const size = effect.attack + 0.7 * effect.health;
+        const lasting = effect.duration === "permanent" ? 1 : 0.4;
+        if (hitsOpponent(targeting)) return Math.abs(size) * lasting * n;
+        return size * lasting * n;
+      }
+      case "drawCard":
+        return 2.5 * effect.count;
+      case "gainEnergy":
+        return 1.2 * effect.amount;
+      case "destroy":
+        return 6 * n;
+      case "applyStatus": {
+        const turns = effect.duration === "untilConsumed" ? 1 : effect.duration;
+        if (effect.status === "Barrier") return 1.5 * n;
+        if (effect.status === "Stasis") return 2 * turns * n;
+        return ((_a4 = effect.amount) != null ? _a4 : 1) * turns * n;
+      }
+      case "conditional":
+        return 0.6 * effectsValue(effect.then, targeting) + 0.4 * effectsValue((_b = effect.else) != null ? _b : [], targeting);
+      case "redirectAttack":
+        return 2;
+      case "summon": {
+        const t = effect.token;
+        const keywords = t.keywords.reduce((s, k) => s + KEYWORD_VALUE[k], 0);
+        return effect.count * (t.attack + t.health + keywords);
+      }
+    }
+  }
+  function effectsValue(effects, targeting) {
+    return effects.reduce((s, e) => s + effectValue(e, targeting), 0);
+  }
+  function staticValue(se) {
+    switch (se.kind) {
+      // An aura over a typical board of 2.5 units, friend or foe, for as
+      // long as its source stays (counted as 1.5 boards' worth).
+      case "buffAllies":
+        return 3.75 * Math.abs(se.attack + 0.7 * se.health);
+      case "selfStatFromScaling":
+        return 0;
+      case "cardCostModifier":
+        return 2 * Math.abs(se.amount);
+    }
+  }
+  function abilityValue(ability) {
+    var _a4, _b, _c;
+    if (ability.trigger === "static") return ability.staticEffect ? staticValue(ability.staticEffect) : 0;
+    const weight = TRIGGER_WEIGHT[ability.trigger];
+    const paid = (_b = (_a4 = ability.cost) == null ? void 0 : _a4.energy) != null ? _b : 0;
+    const value = weight * effectsValue((_c = ability.effects) != null ? _c : [], ability.targeting) - (ability.trigger === "activated" ? paid : 0);
+    return ability.condition ? 0.7 * value : value;
+  }
+  function unitStats(card) {
+    var _a4;
+    let attack = card.attack;
+    let health = card.health;
+    for (const a of card.abilities) {
+      if (a.trigger === "static" && ((_a4 = a.staticEffect) == null ? void 0 : _a4.kind) === "selfStatFromScaling") {
+        if (a.staticEffect.attack) attack = typical(a.staticEffect.attack);
+        if (a.staticEffect.health) health = typical(a.staticEffect.health);
+      }
+    }
+    return attack + health;
+  }
+  function cardValue(card) {
+    var _a4;
+    const abilities = card.abilities.reduce((s, a) => s + abilityValue(a), 0);
+    const modes = card.modes && card.modes.length > 0 ? Math.max(...card.modes.map((m) => m.abilities.reduce((s, a) => s + abilityValue(a), 0))) : 0;
+    const text = abilities + modes;
+    switch (card.type) {
+      case "Unit": {
+        const keywords = card.keywords.reduce((s, k) => s + KEYWORD_VALUE[k], 0);
+        let v = unitStats(card) + keywords + text + ((_a4 = card.baseArmor) != null ? _a4 : 0) * 0.5;
+        if (card.telegraph) v *= 0.85;
+        if (card.evolvesFrom) v *= 0.85;
+        return v;
+      }
+      case "Tool": {
+        const keywords = card.grantedKeywords.reduce((s, k) => s + KEYWORD_VALUE[k], 0);
+        return 0.85 * (card.attackBonus + card.healthBonus + keywords + text);
+      }
+      case "Command":
+        return card.speed === "Instant" ? 1.1 * text : text;
+      case "Directive":
+        return text;
+    }
+  }
+  function cardRating(card) {
+    return cardValue(card) - vanillaValue(card.cost);
+  }
+
   // ../engine/src/deckbuilder/deckBuilder.ts
   var DECK_FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"];
+  var MAX_DECK = MAX_DECK_SIZE;
+  var REMOVAL_SHARE = REMOVAL_DEBUFF_MAX_SHARE;
+  function eligible(card, faction) {
+    return card.faction === faction || card.faction === "Neutral";
+  }
+  function isNeutral(card) {
+    return card.faction === "Neutral";
+  }
+  function playableCopies(card, owned) {
+    const limit = card.topTier ? TOP_TIER_COPY_LIMIT : COPY_LIMITS[card.rarity];
+    return Math.max(0, Math.min(owned, limit));
+  }
   var CURVE = (() => {
     const share = [0, 0, 0, 0, 0, 0, 0];
     for (const f of DECK_FACTIONS) {
@@ -6246,6 +6410,33 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     }
     return share;
   })();
+  function candidates(faction, holdings) {
+    const out = [];
+    for (const [id, owned] of holdings) {
+      const card = getCard(id);
+      if (!card || !eligible(card, faction) || playableCopies(card, owned) === 0) continue;
+      out.push(card);
+    }
+    return out.sort((a, b) => cardRating(b) - cardRating(a) || a.id.localeCompare(b.id));
+  }
+  function largestDeck(faction, holdings) {
+    var _a4;
+    const pool = candidates(faction, holdings);
+    const ids = new Set(pool.map((c) => c.id));
+    const usable = (c, depth = 0) => !(c.type === "Unit" && c.evolvesFrom) || depth < 8 && ids.has(c.evolvesFrom) && usable(getCard(c.evolvesFrom), depth + 1);
+    const n = { factionPlain: 0, factionRemoval: 0, neutralPlain: 0, neutralRemoval: 0 };
+    for (const card of pool) {
+      if (!usable(card)) continue;
+      const copies = playableCopies(card, (_a4 = holdings.get(card.id)) != null ? _a4 : 0);
+      const key = `${isNeutral(card) ? "neutral" : "faction"}${isRemovalOrDebuffCard(card) ? "Removal" : "Plain"}`;
+      n[key] += copies;
+    }
+    const neutralPlain = Math.min(MAX_NEUTRAL_COPIES, n.neutralPlain);
+    const neutralRemoval = Math.min(MAX_NEUTRAL_COPIES - neutralPlain, n.neutralRemoval);
+    const plain = n.factionPlain + neutralPlain;
+    const removal = Math.min(n.factionRemoval + neutralRemoval, Math.floor(plain * REMOVAL_SHARE / (1 - REMOVAL_SHARE) + 1e-9));
+    return Math.min(MAX_DECK, plain + removal);
+  }
   var SHIPPED_SPECS = Object.fromEntries(
     DECK_FACTIONS.map((f) => [
       f,
@@ -10680,6 +10871,106 @@ gl_FragColor=vec4(col,1.);}`;
     return true;
   }
 
+  // src/site/siteLockable.ts
+  function holdingsFromCollection(c) {
+    var _a4;
+    const out = /* @__PURE__ */ new Map();
+    for (const card of c.cards) if (card.owned > 0 && getCard(card.cardId)) out.set(card.cardId, ((_a4 = out.get(card.cardId)) != null ? _a4 : 0) + card.owned);
+    return out;
+  }
+  function craftPlan(faction, holdings, needed = MIN_DECK_SIZE) {
+    var _a4, _b, _c, _d, _e;
+    const held = new Map(holdings);
+    const list = SHIPPED_DECK_LISTS[faction];
+    const steps = /* @__PURE__ */ new Map();
+    let size = largestDeck(faction, held);
+    for (let guard = 0; size < needed && guard < 60; guard++) {
+      let best = null;
+      for (const e of list) {
+        if (((_a4 = held.get(e.cardId)) != null ? _a4 : 0) >= e.copies) continue;
+        const card2 = getCard(e.cardId);
+        if (!card2) continue;
+        const price = CRAFT_PACK_POINTS[card2.rarity];
+        if (best && price >= best.price) continue;
+        const trial = new Map(held);
+        trial.set(e.cardId, ((_b = trial.get(e.cardId)) != null ? _b : 0) + 1);
+        const s = largestDeck(faction, trial);
+        if (s > size) best = { cardId: e.cardId, price, size: s };
+      }
+      if (!best) break;
+      held.set(best.cardId, ((_c = held.get(best.cardId)) != null ? _c : 0) + 1);
+      size = best.size;
+      const card = getCard(best.cardId);
+      const was = steps.get(best.cardId);
+      steps.set(best.cardId, { cardId: best.cardId, name: card.name, rarity: card.rarity, copies: ((_d = was == null ? void 0 : was.copies) != null ? _d : 0) + 1, packPoints: ((_e = was == null ? void 0 : was.packPoints) != null ? _e : 0) + best.price });
+    }
+    const plan = [...steps.values()];
+    return { plan, packPoints: plan.reduce((s, x) => s + x.packPoints, 0), reaches: size >= needed, size };
+  }
+  function lockableView(play2, collection) {
+    var _a4;
+    const holdings = collection ? holdingsFromCollection(collection) : null;
+    const fromServer = (_a4 = play2.lockable) != null ? _a4 : null;
+    if (!fromServer && !holdings) return null;
+    return play2.lockableFactions.map((faction) => {
+      var _a5;
+      const s = fromServer == null ? void 0 : fromServer.find((x) => x.faction === faction);
+      const needed = (_a5 = s == null ? void 0 : s.needed) != null ? _a5 : MIN_DECK_SIZE;
+      const cards = s ? s.cards : largestDeck(faction, holdings);
+      const buildable = s ? s.buildable : cards >= needed;
+      const p = !buildable && holdings ? craftPlan(faction, holdings, needed) : { plan: [], packPoints: 0, reaches: buildable, size: cards };
+      return { faction, buildable, cards, needed, short: buildable ? 0 : Math.max(1, needed - cards), source: s ? "server" : "collection", plan: p.plan, planPackPoints: p.packPoints, planReaches: p.reaches, planSize: p.size };
+    });
+  }
+  var article = (word) => /^[AEIOU]/.test(word) ? "an" : "a";
+  var plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  function lockBadge(v) {
+    return `${v.cards}/${v.needed}`;
+  }
+  function lockAriaLabel(v) {
+    return v.buildable ? v.faction : `${v.faction}: can't build a deck yet, ${v.cards} of ${v.needed} cards`;
+  }
+  function planText(v) {
+    if (!v.plan.length) return "";
+    const parts = v.plan.map((s) => s.copies > 1 ? `${s.name} \xD7${s.copies}` : s.name);
+    const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+    return `${list} (${v.planPackPoints} pack points)`;
+  }
+  function shortLine(v, named = true) {
+    const head = `${named ? `${v.faction}: your` : "Your"} cards make at most ${v.cards} of the ${v.needed} a deck needs, so craft at least ${plural(v.short, "more card")}`;
+    if (!v.plan.length) return `${head}.`;
+    return v.planReaches ? `${head}. Cheapest from its starter list: ${planText(v)}.` : `${head}. Its starter list alone doesn't make up the gap: ${planText(v)} gets to ${v.planSize}.`;
+  }
+  function lockNote(views, lock) {
+    if (!views) return null;
+    const locked = lock ? views.find((v) => v.faction === lock) : void 0;
+    if (locked && !locked.buildable)
+      return { tone: "warn", text: `Your agent sits out every round: it can't build ${article(locked.faction)} ${locked.faction} deck yet. ${shortLine(locked, false)} Or lock another faction.` };
+    const short = views.filter((v) => !v.buildable);
+    if (!short.length) return null;
+    return { tone: "muted", text: `Greyed: you don't hold enough cards for a ${MIN_DECK_SIZE}-card deck yet (${short.map((v) => `${v.faction} ${lockBadge(v)}`).join(", ")}). You can still lock one; your agent sits out until you craft the rest.` };
+  }
+  function lockToast(views, faction) {
+    const v = faction && (views == null ? void 0 : views.find((x) => x.faction === faction));
+    if (!v || v.buildable) return null;
+    return `Locked to ${v.faction}, but your agent sits out every round until it can build ${article(v.faction)} ${v.faction} deck: ${v.cards} of ${v.needed} cards. What to craft is under the lock.`;
+  }
+  function lockSegHtml(factions, views, value) {
+    const btn = (v, label, view) => {
+      const short = view && !view.buildable;
+      const attrs = short ? ` class="short" aria-label="${esc(lockAriaLabel(view))}" title="${esc(shortLine(view))}"` : "";
+      const badge = short ? `<span class="lk" aria-hidden="true">${esc(lockBadge(view))}</span>` : "";
+      return `<button type="button" data-v="${esc(v)}"${attrs} aria-pressed="${v === (value != null ? value : "")}">${esc(label)}${badge}</button>`;
+    };
+    const opts = [btn("", "Any"), ...factions.map((f) => btn(f, f, views == null ? void 0 : views.find((x) => x.faction === f)))];
+    return `<div class="seg" id="faction-lock" role="group" aria-label="Faction lock">${opts.join("")}</div>`;
+  }
+  function lockNoteHtml(views, lock) {
+    const n = lockNote(views, lock);
+    if (!n) return "";
+    return `<p class="lock-note ${n.tone}" role="${n.tone === "warn" ? "alert" : "note"}">${esc(n.text)}${n.tone === "warn" ? ' <a href="#/collection">Open the Collection</a>' : ""}</p>`;
+  }
+
   // src/site/siteStats.ts
   var STATS_DAYS = [7, 30, 90];
   var STATS_RECENT = 20;
@@ -11392,6 +11683,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (page === "match" || page === "live") void loadLive();
     if (page === "collection") void loadCollection();
     else closeViewer(false);
+    if (page === "settings" && !lockCollection()) void loadCollection();
     if (page === "stats") void loadStats();
   }
   window.addEventListener("hashchange", () => {
@@ -11638,14 +11930,14 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="seg" id="${id}" role="group" aria-label="${esc(label)}">${options.map(([v, t]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${v === value}">${esc(t)}</button>`).join("")}</div>`;
   }
   function settingsPage(p) {
-    var _a4, _b;
+    var _a4;
     const rv = rebuildView(p);
     const job = p.rebuild.job ? jobSummary(p.rebuild.job) : [];
-    const lockOpts = [["", "Any"], ...p.lockableFactions.map((f) => [f, f])];
+    const lockViews = lockableView(p, lockCollection());
     const decks = p.decks.length ? p.decks.map((d) => {
-      var _a5, _b2;
+      var _a5, _b;
       const isActive = ((_a5 = p.activeDeck) == null ? void 0 : _a5.deckId) === d.deckId;
-      const agentsOwn = ((_b2 = p.agentDeck) == null ? void 0 : _b2.deckId) === d.deckId;
+      const agentsOwn = ((_b = p.agentDeck) == null ? void 0 : _b.deckId) === d.deckId;
       const miss = d.complete ? "" : `<small class="warn-t">Incomplete: ${d.missing.map((m) => `${esc(m.cardId)} ${m.owned}/${m.uses}`).join(", ")}</small>`;
       return `<button type="button" class="deckrow${isActive ? " on" : ""}" data-deck="${esc(d.deckId)}" ${d.complete ? "" : 'aria-disabled="true"'}><span class="radio" aria-hidden="true"></span><span class="dn"><b>${esc(d.name)}</b><small>${d.cards} cards${agentsOwn ? " \xB7 built by your agent" : ""}</small>${miss}</span>${isActive ? '<span class="pill on">Playing</span>' : ""}</button>`;
     }).join("") : '<p class="muted">No saved decks yet.</p>';
@@ -11662,7 +11954,8 @@ gl_FragColor=vec4(col,1.);}`;
   <h3>Play</h3>
   <section class="panel glass">
     <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
-    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, (_a4 = p.factionLock) != null ? _a4 : "", "Faction lock")}</div>
+    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${lockSegHtml(p.lockableFactions, lockViews, p.factionLock)}</div>
+    ${lockNoteHtml(lockViews, p.factionLock)}
     <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
     ${ask2xField()}
   </section>
@@ -11677,7 +11970,7 @@ gl_FragColor=vec4(col,1.);}`;
     <div class="field"><div><b>Theme</b><small>System follows your computer's setting.</small></div>${seg("theme-seg", [["system", "System"], ["light", "Light"], ["dark", "Dark"]], state.theme, "Theme")}</div>
     <div class="field col"><div><b>Background</b><small>A liquid colour or a plain background. ${state.settings ? "Saved to your account, so it follows you to any browser." : "Couldn't read your account's settings: changes show here but may not be saved."}</small></div>${bgPicker()}<small class="muted">Plain backgrounds always use dark mode. Liquid backgrounds follow your theme.</small></div>
   </section>
-  ${((_b = state.me) == null ? void 0 : _b.isAdmin) ? `<h3>Admin</h3>${waitsBox(["the house agents' admin endpoints"], "The admin view: the house agents, their decks and their matches. You see this because your account is the house admin.")}` : ""}
+  ${((_a4 = state.me) == null ? void 0 : _a4.isAdmin) ? `<h3>Admin</h3>${waitsBox(["the house agents' admin endpoints"], "The admin view: the house agents, their decks and their matches. You see this because your account is the house admin.")}` : ""}
   </div>`;
   }
   function ask2xField() {
@@ -12070,6 +12363,10 @@ gl_FragColor=vec4(col,1.);}`;
     return faceFn;
   }
   var siteFace = () => window.SITE_FACE;
+  function lockCollection() {
+    var _a4;
+    return (_a4 = state.col.collection) != null ? _a4 : state.home.collection;
+  }
   async function loadCollection() {
     var _a4, _b, _c, _d;
     if (!state.session) return;
@@ -12082,6 +12379,11 @@ gl_FragColor=vec4(col,1.);}`;
     } catch (err) {
       if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
       state.col = { ...state.col, error: err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong." };
+    }
+    if (state.page === "settings" && !state.busy) {
+      const y = $("#page").scrollTop;
+      drawPage();
+      $("#page").scrollTop = y;
     }
     if (state.page === "collection" && !state.busy) {
       const y = $("#page").scrollTop;
@@ -13346,7 +13648,9 @@ gl_FragColor=vec4(col,1.);}`;
       else if (group === "faction-lock")
         void act(async (tok) => {
           const r = await api.setFactionLock(tok, v || null);
-          if (r.activeDeckFits === false) toast(`The deck that plays now isn't ${v}. Matches wait until a ${v} deck plays: rebuild your agent's deck, or pick a ${v} deck.`, "error");
+          const short = lockToast(lockableView(r, lockCollection()), v || null);
+          if (short) toast(short, "error");
+          else if (r.activeDeckFits === false) toast(`The deck that plays now isn't ${v}. Matches wait until a ${v} deck plays: rebuild your agent's deck, or pick a ${v} deck.`, "error");
           return r;
         });
       else if (group === "theme-seg") void saveLook({ theme: v });

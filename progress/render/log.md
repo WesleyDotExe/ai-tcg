@@ -6197,3 +6197,50 @@ Collection; the binder thumbnails' small text.
 
 **Next render-lane slice:** after this PR the next session is game (98, the balance re-run). Render 76: the owner's
 answers to this checkpoint; then the debt list (the season-end screen is still the owner's open question).
+
+## 2026-11-14 — Render session 76: the faction lock marked buildable or not
+
+**Lane:** render. The last merged PR (#178, "Game lane: PR #177's failed check fixed, ... (session 99)") is game, so
+this session is render; no render PR was open. Read first: owner-feedback.md (the 2026-11-14 entries: render 75's
+three calls kept; game 98's calls kept; game 99's lock call answered (a), with a site half), DESIGN.md, RENDER.md,
+current.md, this lane's log, debt and checkpoints. Not a hardening pass (74 was; 79 is next).
+
+**Why this slice:** the owner's answer (a): "the API marks each lockable faction as buildable or not, with the cards
+held and needed, and the site greys out the ones that can't be built yet." Packs hold only booster cards now, so an
+owner can lock a faction they can't build, and the ladder then sits the agent out every round with nothing on the
+site saying why. The API half is the game lane's (next session); the site half is this one.
+
+**Built (render/ only):**
+- `siteLockable.ts`: `lockableView` (each lockable faction: buildable, cards, needed, short; the server's `lockable`
+  when sent, else the collection read with the engine's `largestDeck` on `holdingsOf` the copies, the store's own rule
+  in `buildAgentDeck`); `craftPlan` (the cheapest Standard crafts from the faction's starter list, each raising the
+  largest deck by one, by the economy's crafting prices); the words (`shortLine`, `lockNote`, `lockToast`, an/a) and
+  the HTML (`lockSegHtml`, `lockNoteHtml`).
+- `siteApi.ts`: `SitePlay.lockable?` typed, so the contract check covers it once served.
+- `siteClient.ts`: Settings draws the lock with the marks and the note; the collection is read on entering Settings
+  (and Settings redraws when it lands); locking a short faction toasts the short line instead of the old "deck that
+  plays now isn't X" one.
+- `sitePage.ts`: the greyed button and its dashed badge, the note (quiet / warning), the phone layout (the lock under
+  its label, two columns).
+
+**Ran it:** `progress/render/evidence/faction-lock-check-s76.mjs` (run with tsx so it can import the engine for the
+cross-check), headless on the real owner API: **14 PASS** (`faction-lock-check-s76.txt`). A: Swarm 16/20, Aegis 12/20,
+Null 10/20 greyed, Cortex not; every badge equals the engine's `largestDeck` on `GET /api/collection`'s copies. B:
+pressing greyed Aegis saves the lock; the toast; the warning with the plan (Aegis Cadet ×3, Barrier Drone ×2, Plating
+Module ×3, 320 pack points) and the Collection link. C: the server's own Rebuild now fails with "at most 12 usable
+cards, under 20". D: one Aegis Cadet crafted through the API; back on Settings the badge reads 13/20. E: back to
+Cortex, the warning goes. F: 390 px phone, nothing sideways. G: no external requests, no errors. The first runs found
+two things fixed before the last: "a Aegis" (now an/a) and the toast repeating the whole plan (now short, pointing at
+the note); the phone's wrapped lock was ragged (now two columns). Unit tests `render/test/siteLockable76.test.ts`
+(10; the real-API one locks Aegis, matches the store's own refusal, crafts the plan through the API and the store then
+builds a 20-card Aegis deck). Render suite 1070 pass; every workspace's tests pass; typecheck clean; CI browser check
+61 pass; site contract check 0 mismatches, 7 of 7 controls (`site-contract-s76.txt`); `npm run outputs` rebuilt (only
+the site page, first-time and pack-opening changed). The four cards tuned in cards-3 looked at in `card-faces.html`:
+their faces show the registry's stats.
+
+**Not done (named, in quality-debt):** the server's field (game 100); Agent controls and Agent match say nothing about
+a short lock; the plan uses starter-list cards only.
+
+**Next render-lane slice:** after this PR the next session is game (100: the `lockable` field and the owner's other
+answers). Render 77: the owner's answers to this checkpoint; then, once game 100 serves `lockable`, re-run the check
+against it (the site reads it first) and drop nothing; then the debt list.
