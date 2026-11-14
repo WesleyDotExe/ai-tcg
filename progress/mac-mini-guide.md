@@ -101,6 +101,9 @@ What the settings do (`server/launchd/local.ai-tcg.season.plist`):
   saying why (the first line of the problem is what to read).
 - `ExitTimeOut 30`: on a stop, 30 seconds for the clean stop before launchd kills it.
 - The log: `~/ai-tcg-data/season.log` (and `site.log`), appended to, every line timed.
+- An owner who can't play (for example a faction lock with too few cards) gets one "sits out" line with the
+  reason, again only when the reason changes, a "still sits out (60 rounds in a row)" reminder, and a "back in
+  the queue" line when they play again; not one line every round.
 
 ## 5. The website
 

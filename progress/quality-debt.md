@@ -262,6 +262,36 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 102 (game lane, a spare session: two "unmeasured" lines measured, no schema change): what was raised, and what is still thin
+
+Raised:
+- **"A locked owner left out is retried every round ... not measured over a day's rounds" (session 101): measured,
+  and the log fixed.** `progress/sits-out-day-001.txt`: a real day of the live ladder (24 h on a fixed clock, 184
+  rounds, three house owners and a player owner on auto-play with no limit, locked to Aegis with no Aegis card).
+  Left out every round, as expected (the retry is cheap: the whole day ran in seconds). The season log was the
+  real cost: the old printing put the same "sits out" line in it 184 times, a third of the day's 569 lines. The
+  season server's lines now come from `server/src/ladder/ladderLog.ts`: printed the first time and when the
+  reason changes, one reminder every 60 rounds in a row, one "back in the queue after sitting out N rounds"
+  line; 4 lines for the owner that day, 389 in all. `server/test/ladderLog.test.ts` (6 tests). The real
+  `npm run season` was started on a fresh `season:setup` file to see its lines still print.
+- **"'buildable' computed on every GET /api/play, unmeasured at season scale" (session 100): measured, nothing
+  to fix.** Same record, part 2: the whole `GET /api/play` over the real API at 40 / 290 / 1,040 / 2,540 / 5,040
+  copies held is 1.7 / 2.3 / 4.9 / 8.8 / 14.9 ms (median; `lockableFactions` alone 0.15 to 13.9 ms). Linear in
+  copies held; a Season 0 owner is near the first two sizes. No cache added.
+
+Still thin:
+- **The plain `npm run ladder` CLI (`ladderCli.ts`) still prints a line per event**, with no round line. It is a
+  dev tool for N rounds, not the season server; left alone. The two CLIs' event lines are now in two places
+  (`ladderLog.ts` and `ladderCli.ts`).
+- **The reminder is by rounds (60), not by time.** At about 7.8 minutes a round that is a line about every 8
+  hours; a slower or faster ladder moves it. Rounds keep it fixed by the seeds; said here in case the owner
+  would rather read "every hour".
+- **An owner whose auto-play goes off while left out gets no "back" line** (correct: they aren't back) and no line
+  saying the run ended; the auto-play line covers the time-up and rewards cases, but an owner switching it off
+  by hand isn't printed by the ladder at all (it wasn't before either).
+- **Not raised this session:** the dry run's step 5 can still pass without a mid-match end; the contract check's
+  forced end is a direct row write; the slow demos outside CI; the site's second copy of the lockable rule.
+
 ## Session 101 (game lane, a hardening pass: no new features, no schema change): what was raised, and what is still thin
 
 Raised: three items from sessions 99 and 100.

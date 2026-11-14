@@ -5581,3 +5581,25 @@ tests all pass (engine 379, economy 306, server 226, render 1,076, agents 17, pr
 mid-match end; a locked owner is retried and logged every round).
 **Blocked:** nothing.
 
+
+**2026-11-14 — Session 102 (game lane; a spare session: two of quality-debt.md's "unmeasured" lines measured, the
+season log's repeated "sits out" line summed up; no schema change).**
+Lane: the last merged PR at the start was #183 ("Render: ...", render session 78), so game; no open game PR.
+Owner feedback: one unhandled entry (render 78's three calls, keep all), nothing to build; marked handled.
+No Season 0 checklist item was waiting for the game lane, so the session took current.md's debt candidates.
+**Built:** (1) A measure, `server/src/dev/sitsOutDayMeasure.ts` (a record): a real day of the live ladder on a fixed
+clock with a locked owner who can't build. (2) The season server's ladder lines moved out of `seasonCli.ts` into
+`server/src/ladder/ladderLog.ts` (`LadderLog`), unchanged except that a repeat of the same "sits out" reason is
+summed up: printed the first time and on a change of reason, a reminder every 60 rounds in a row, a "back in the
+queue after sitting out N rounds" line; a match that didn't start is always printed. (3) A line in the Mac mini
+guide's log notes saying so.
+**Ran it:** `progress/sits-out-day-001.txt`, 6 of 6 PASS: 184 rounds, 183 matches; the locked owner left out of
+all 184; the old printing would have put 184 "sits out" lines in the log (569 lines that day), now 4 (389 in all),
+the reason shown again when it changed (0 -> 19 usable cards after 19 crafts at 18:00). `GET /api/play` timed over
+the real API at 40 to 5,040 copies held: 1.7 to 14.9 ms median, so `lockable` needs no cache. The real
+`npm run season` started on a fresh `season:setup` file for two minutes: its lines print as before.
+`server/test/ladderLog.test.ts` (6 tests). Typecheck clean (all six workspaces); tests all pass (engine 379,
+economy 306, server 232, render 1,089, agents 17, protocol 7); `npm run demos` 37 of 37 the same.
+**Worked:** counting the old printing alongside the new in the same run gave the before/after from one day.
+**Thin:** in quality-debt.md (`ladderCli.ts` still prints every event; the reminder is by rounds, not time).
+**Blocked:** nothing.
