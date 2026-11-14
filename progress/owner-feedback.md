@@ -5015,3 +5015,10 @@ Game session 102 (PR #184) had no calls. The Season 1 arena spec is in `progress
 5. **Not decided:** how far past step 1 the prototype goes before Season 1.
 
 Next session by alternation: render 79.
+
+---
+
+## 2026-11-14 — Owner: the Season 1 arena prototype is fenced off in its own folder
+
+Adds to the entry above (the head start on the Season 1 arena).
+1. **Decision:** keep the Season 1 arena work fenced off: all of its code and its built page live in a dedicated folder, `render/season1/`. Nothing outside that folder imports it, and no Season 0 page links to it. When Season 1 is built, it is brought over from there.
