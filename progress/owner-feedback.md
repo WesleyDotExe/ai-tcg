@@ -5022,3 +5022,17 @@ Next session by alternation: render 79.
 
 Adds to the entry above (the head start on the Season 1 arena).
 1. **Decision:** keep the Season 1 arena work fenced off: all of its code and its built page live in a dedicated folder, `render/season1/`. Nothing outside that folder imports it, and no Season 0 page links to it. When Season 1 is built, it is brought over from there.
+
+---
+
+## 2026-11-15 — Owner: answers to render session 79 (the Season 1 arena prototype, step 1), keep 1–4 (a), 5 (b); zoom in a little
+
+**Render session 79** (PR #185, `progress/render/checkpoints.md`, `progress/render/evidence/season1-arena-s79/`). The owner: "the new arena looks great, but does need to be zoomed in a little bit, especially on the tile version."
+1. **Keep (a):** six slots per row; hover to read.
+2. **Keep (a):** the standard card back (chevron lattice, rimmed in the side's faction colour).
+3. **Keep (a):** directives in a smaller row behind the units.
+4. **Keep (a):** the turn line in the middle of the board.
+5. **Decision (b):** one prototype session per few render sessions while Season 0 has no fixes waiting; next, the 3D play and attack effects. Season 0 fixes and the 2–4 Dec clean-up still come first.
+6. **Owner's note for the prototype:** zoom the arena in a little, especially the tile version.
+
+Next session by alternation: game 103 (hardening and fixes only), then render 80 (the render hardening pass).
