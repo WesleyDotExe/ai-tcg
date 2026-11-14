@@ -1,0 +1,188 @@
+Season 0 dry run 001 — the owner's Mac mini guide followed step by step (session 93, game lane)
+============================================================================
+Owner 2026-11-13, plan item 4: the full Season 0 dry run in the session's own environment, and the guide.
+Every step is the guide's own command, run as a child process on the real clock. The one change: the
+machine's clock reads 23:30:00 Sydney at the start (clockShift.mjs), so the run crosses midnight.
+launchd is macOS only: each launch agent's plist is run here exactly as launchd would run it.
+
+1. A new season file (guide step 3) — 23:30:00 Sydney
+----------------------------------------------------------------------------
+  $ npm run season:setup -w server -- <dir>/ai-tcg-data/season-0.db --name "The Owner" --login owner --faction Swarm
+  2026-11-13 23:30:00 [setup] season S0 file made: <dir>/ai-tcg-data/season-0.db
+  2026-11-13 23:30:00 [setup] your account: The Owner, sign in as "owner" (the admin); Swarm starter deck and packs; your agent <generated> (signature card <generated>), connected, auto-play off
+  2026-11-13 23:30:00 [setup] the house: House Cortex (Lattice Warden, Cortex), House Swarm (Hive Courier, Swarm), House Aegis (Chrome Bastion, Aegis), House Null (Static Widow, Null)
+  2026-11-13 23:30:00 [setup] the season ends at <time> (Sun 27 Dec 2026 00:00 Sydney): the server stops pairing then, lets the matches on screen finish and ends it
+  2026-11-13 23:30:00 [setup] next: npm run season -w server -- <dir>/ai-tcg-data/season-0.db
+  [PASS] setup made the file and its folder (exit 0)
+  [PASS] setup again on the same file is refused (exit 1), the file untouched
+  (test grant: 1,100 credits written to the owner's ledger as 'demoGrant', for the 1 + 10 pack buys below)
+
+2. The launch agents (guide step 4) — 23:30:01 Sydney
+----------------------------------------------------------------------------
+  $ bash server/launchd/install.sh <dir>/ai-tcg-data/season-0.db
+  wrote <dir>/LaunchAgents/local.ai-tcg.season.plist
+  wrote <dir>/LaunchAgents/local.ai-tcg.site.plist
+  logs: <dir>/ai-tcg-data/season.log and <dir>/ai-tcg-data/site.log
+  load both now (and at every login from now on):
+    launchctl bootstrap gui/$(id -u) <dir>/LaunchAgents/local.ai-tcg.season.plist
+    launchctl bootstrap gui/$(id -u) <dir>/LaunchAgents/local.ai-tcg.site.plist
+  [PASS] install.sh wrote both launch agents
+  season agent runs: <node> --import tsx src/seasonCli.ts <dir>/ai-tcg-data/season-0.db 8081  (in <repo>/server)
+  site agent runs:   <node> --import tsx src/site/siteHost.ts --api http://localhost:8081 --port 8080  (in <repo>/render)
+  [PASS] both parse as property lists, with every path filled in (no @...@ left)
+  [PASS] the season agent's log is the season file's folder/season.log
+  2026-11-13 23:30:01 [season] owner API on http://localhost:8081, the ladder running over <dir>/ai-tcg-data/season-0.db (matches in <dir>/ai-tcg-data/season-0.db.matches)
+  site.log: [site] http://127.0.0.1:8080/  (API: http://localhost:8081)
+  [PASS] the season server came up under its launch agent, the ladder running
+  [PASS] its log lines carry the Sydney time (the machine's clock)
+
+3. The website (guide step 5) — 23:30:02 Sydney
+----------------------------------------------------------------------------
+  [PASS] the page at http://127.0.0.1:8080/ answers (200, 746 KB of HTML)
+  [PASS] signing in as the owner works through the site
+  who am I: The Owner, isAdmin true, login owner
+  [PASS] the owner is the admin (Settings -> Admin, ending the season)
+  [PASS] the ladder lists every owner's row (the house plays from the first start)
+
+4. Packs: the daily pack, open 1, buy 1 and 10, open 10 — 23:30:02 Sydney
+----------------------------------------------------------------------------
+  daily pack: 1 waiting on 2026-11-13, the next at 00:00:00 Sydney
+  [PASS] one daily pack waits on the first day
+  [PASS] claimed (201)
+  [PASS] a second claim the same day is refused (409: no daily pack to claim; the next one comes in at <time>)
+  wallet: 1100 credits, 0 pack points, 4 unopened packs (3 starter + 1 daily)
+  [PASS] open 1: one pack opened (5 cards), no ten-pack summary
+  [PASS] buy 1 and buy 10 (201 each)
+  [PASS] 1,100 credits paid for 11 packs (1100 -> 0)
+  [PASS] open 10: ten packs opened with the summary (10 packs)
+  [PASS] pack points: 5 for each of the 11 opened (0 -> 55)
+  wallet now: 0 credits, 55 pack points, 4 unopened packs
+
+5. Auto-play with 15 minutes (the Agent controls ring) — 23:30:02 Sydney
+----------------------------------------------------------------------------
+  PUT /api/play/auto-play { on: true, minutes: 15 } at 23:30:02: Waiting for the next round, 15 min chosen, no end time yet
+  [PASS] pressed: the allowance waits for the agent's first pairing (or runs, if paired at once), 15 minutes chosen
+  first paired by 23:39:18: Running, 15 min left, the window 23:39:14 to 23:54:14
+  [PASS] the allowance runs from the first pairing: 15 minutes, ending before midnight
+  Watch live: m-1 House Swarm vs The Owner, 0 moves out, 20 s later 6 (6 new steps), viewers 1
+  [PASS] the agent's live match is on Watch live and moves keep coming out
+  [PASS] the owner reading the feed counts as a viewer
+  23:39:18  Running (15 min left), in m-1
+  23:54:24  Time's up (0 min left), between matches
+  [PASS] time up: the ring reads "Time's up" (state done, 0 left), auto-play off with reason timeUp
+  at 23:54:14 (time up) the agent was between matches, so it stopped at once (no "Finishing match" this run)
+  the owner's matches so far: m-2 loss +2, m-1 loss +2
+  [PASS] every match the agent played in the window is in its history
+
+6. Midnight Sydney (the daily reset)
+----------------------------------------------------------------------------
+  23:54:24  daily: 2026-11-13, 0 wins, 2 losses, 4 credits; daily pack 0 waiting; auto-play off, stopped timeUp
+  00:00:30  daily: 2026-11-14, 0 wins, 0 losses, 0 credits, next win pays 30; daily pack 1 waiting; auto-play off, stopped -
+  [PASS] the day turned over at midnight Sydney (13 Nov -> 14 Nov)
+  [PASS] today's earnings start clean: no wins, the first win pays 30
+  [PASS] the allowance's "Time's up" belongs to yesterday: the new day reads clean
+  [PASS] a new daily pack waits, and claims
+  notifications: 4 (dailyPack, autoPlayStopped, matchResult), 4 unread
+  [PASS] the bell has the match results, the time-up stop and the daily pack
+  [PASS] the house ladder plays straight on over midnight
+
+7. A crash (kill -9) — 00:00:30 Sydney
+----------------------------------------------------------------------------
+  kill -9 <pid> at 00:10:21, 2 match(es) being shown: m-3, m-4
+  just after the kill, the website's API answers 502 (the site host is up; the server isn't)
+  2026-11-14 00:10:22 [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): process <pid> is no longer running
+  2026-11-14 00:10:22 [ladder] cancelled 2 match(es) left live by the last run: m-3, m-4
+  2026-11-14 00:10:22 [season] owner API on http://localhost:8081, the ladder running over <dir>/ai-tcg-data/season-0.db (matches in <dir>/ai-tcg-data/season-0.db.matches)
+  back 1 s after the kill (ThrottleInterval counts 60 s from the last start, long past, so launchd starts it again at once)
+  [PASS] the KeepAlive rule started it again (a kill is not a clean exit)
+  [PASS] the stale lock was taken over and the shown matches cancelled
+  [PASS] the owner's sign-in survived the crash (the session is in the file)
+  [PASS] the website's process rode through it (never restarted)
+  [PASS] a new round is paired after the restart
+
+8. The season's end and the switch to S1 (guide step 8) — 00:10:22 Sydney
+----------------------------------------------------------------------------
+  POST /api/admin/season/end { season: "S0" } at 00:10:22: 202 ending
+  [PASS] the admin's end is taken (202 ending: the shown matches finish first)
+  2026-11-14 00:18:11 [season] season S0 ended at <time>: 5 owners in the final standings, 1516 unpulled Prototype copies retired
+  final standings: 1. House Aegis 1789, 2. House Null 1640, 3. House Cortex 1473, 4. House Swarm 1393, -. The Owner 1159
+  [PASS] S0 ended with its final standings
+  season:next while the agent still runs: [season] not made: "<dir>/ai-tcg-data/season-0.db" is in use by npm run season (process <pid> on <host>, since <time>). Stop that first. If you are sure nothing is running on it, delete <dir>/ai-tcg-data/season-0.db.lock.
+  [PASS] season:next is refused while the server runs on the old file
+  launchctl bootout (SIGTERM): exit 0, stays stopped; lock removed
+  [PASS] a clean stop: exit 0, not restarted, the lock removed
+  $ npm run season:next -w server -- <dir>/ai-tcg-data/season-0.db <dir>/ai-tcg-data/season-1.db S1
+  [season] S1 made from S0 (ended <time>) at <time>: <dir>/ai-tcg-data/season-1.db
+  [season] carried: 5 owners, 1 logins, 1 live sessions, 5 agents, 1 signature copies, 26 cosmetics, 10 loadout slots, 15 retired Prototype runs
+  [season] 5 soft-reset ratings; 5 starter grants
+  [season] left in the archive: 315 card copies, 5 unopened packs, 5 decks, 284 credits, 115 pack points, 14 matches, 4 notifications
+  [PASS] S1's file made from S0's archive
+  [PASS] install.sh points the season agent at the new file
+  2026-11-14 00:18:14 [season] season S1 (made from S0's archive) on <dir>/ai-tcg-data/season-1.db; no end time set: it ends only by the admin's end call
+  [PASS] the server is back on S1 (the same log file, the same site)
+  [PASS] the owner signs in on S1 with the same password
+  S1: state open, made from S0; your seed 1329; wallet 0 credits, 3 unopened packs (the starter grant again)
+  [PASS] S1 open, made from S0, the starter packs granted again
+  [PASS] the ladder plays on S1
+  [PASS] both agents unloaded cleanly
+
+9. The logs: what the owner reads after a problem, and how big they get
+----------------------------------------------------------------------------
+  | 2026-11-13 23:30:01 [season] season S0 on <dir>/ai-tcg-data/season-0.db; ends at <time> (Sun 27 Dec 2026 00:00 Sydney), by the server
+  | 2026-11-13 23:30:01 [season] owner API on http://localhost:8081, the ladder running over <dir>/ai-tcg-data/season-0.db (matches in <dir>/ai-tcg-data/season-0.db.matches)
+  | 2026-11-13 23:30:01 [ladder] House Cortex bought 0, opened 3 packs (11 new cards)
+  | 2026-11-13 23:30:01 [ladder] House Swarm bought 0, opened 3 packs (13 new cards)
+  | 2026-11-13 23:30:01 [ladder] House Aegis bought 0, opened 3 packs (13 new cards)
+  | 2026-11-13 23:30:01 [ladder] House Null bought 0, opened 3 packs (13 new cards)
+  | 2026-11-13 23:30:17 [ladder] rebuilt House Cortex's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-13 23:30:17 [ladder] rebuilt House Swarm's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-13 23:30:17 [ladder] rebuilt House Aegis's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-13 23:30:17 [ladder] rebuilt House Null's deck: Null, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-13 23:30:17 [ladder] round 1 since this start: 2 matches
+  | 2026-11-13 23:35:20 [ladder] m-5 House Aegis vs House Swarm: House Aegis wins in 13 turns, +30/+2
+  | 2026-11-13 23:38:06 [ladder] m-6 House Null vs House Cortex: House Null wins in 17 turns, +30/+2
+  | 2026-11-13 23:39:14 [ladder] rebuilt The Owner's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-13 23:39:14 [ladder] round 2 since this start: 2 matches, House Cortex sits out
+  | 2026-11-13 23:44:02 [ladder] m-1 House Swarm vs The Owner: House Swarm wins in 11 turns, +30/+2
+  | 2026-11-13 23:44:48 [ladder] m-7 House Aegis vs House Null: House Aegis wins in 13 turns, +10/+2
+  | 2026-11-13 23:45:48 [ladder] round 3 since this start: 2 matches, House Null sits out
+  | 2026-11-13 23:51:12 [ladder] m-2 House Cortex vs The Owner: House Cortex wins in 13 turns, +30/+2
+  | 2026-11-13 23:52:09 [ladder] m-8 House Swarm vs House Aegis: House Swarm wins in 15 turns, +10/+2
+  | 2026-11-13 23:53:09 [ladder] round 4 since this start: 2 matches, The Owner sits out
+  | 2026-11-13 23:57:58 [ladder] m-9 House Aegis vs House Cortex: House Aegis wins in 13 turns, +10/+2
+  | 2026-11-13 23:59:00 [ladder] m-10 House Swarm vs House Null: House Null wins in 12 turns, +2/+10
+  | 2026-11-14 00:00:00 [ladder] The Owner's auto-play is off: its play time is up
+  | 2026-11-14 00:00:00 [ladder] round 5 since this start: 2 matches
+  | 2026-11-14 00:05:50 [ladder] m-11 House Cortex vs House Swarm: House Cortex wins in 15 turns, +30/+2
+  | 2026-11-14 00:09:11 [ladder] m-12 House Null vs House Aegis: House Aegis wins in 20 turns, +2/+30
+  | 2026-11-14 00:10:11 [ladder] round 6 since this start: 2 matches
+  | 2026-11-14 00:10:22 [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): process <pid> is no longer running
+  | 2026-11-14 00:10:22 [season] season S0 on <dir>/ai-tcg-data/season-0.db; ends at <time> (Sun 27 Dec 2026 00:00 Sydney), by the server
+  | 2026-11-14 00:10:22 [ladder] cancelled 2 match(es) left live by the last run: m-3, m-4
+  | 2026-11-14 00:10:22 [season] owner API on http://localhost:8081, the ladder running over <dir>/ai-tcg-data/season-0.db (matches in <dir>/ai-tcg-data/season-0.db.matches)
+  | 2026-11-14 00:10:22 [ladder] round 1 since this start: 2 matches
+  | 2026-11-14 00:15:40 [ladder] m-13 House Aegis vs House Cortex: House Aegis wins in 13 turns, +10/+2
+  | 2026-11-14 00:18:11 [ladder] m-14 House Swarm vs House Null: House Null wins in 16 turns, +2/+30
+  | 2026-11-14 00:18:11 [season] season S0 ended at <time>: 5 owners in the final standings, 1516 unpulled Prototype copies retired
+  | 2026-11-14 00:18:13 [season] stopping
+  | 2026-11-14 00:18:14 [season] season S1 (made from S0's archive) on <dir>/ai-tcg-data/season-1.db; no end time set: it ends only by the admin's end call
+  | 2026-11-14 00:18:14 [season] owner API on http://localhost:8081, the ladder running over <dir>/ai-tcg-data/season-1.db (matches in <dir>/ai-tcg-data/season-1.db.matches)
+  | 2026-11-14 00:18:14 [ladder] House Cortex bought 0, opened 3 packs (13 new cards)
+  | 2026-11-14 00:18:14 [ladder] House Swarm bought 0, opened 3 packs (12 new cards)
+  | 2026-11-14 00:18:14 [ladder] House Aegis bought 0, opened 3 packs (12 new cards)
+  | 2026-11-14 00:18:14 [ladder] House Null bought 0, opened 3 packs (12 new cards)
+  | 2026-11-14 00:18:31 [ladder] rebuilt House Cortex's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-14 00:18:31 [ladder] rebuilt House Swarm's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-14 00:18:31 [ladder] rebuilt House Aegis's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-14 00:18:31 [ladder] rebuilt House Null's deck: Null, 40 cards (the agent hasn't built a deck yet)
+  | 2026-11-14 00:18:31 [ladder] round 1 since this start: 2 matches
+  | 2026-11-14 00:18:32 [season] stopping
+
+  season.log: 49 lines, 5515 bytes over 49 minutes; site.log: 1 lines, 60 bytes
+  [PASS] every line in season.log says when
+  at this rate: 160 KB a day, 1.1 MB a week, 4.8 MB over a 31-day season
+  match files: 12 matches, 409 KB (34 KB a match); season file 676 KB
+  at S0's rate (12 matches in 48 minutes): ~359 matches a day, ~12 MB of match files a day, ~0.4 GB over a 31-day season
+  [PASS] the log stays small enough for a season without rotating it (under 50 MB a month)
+
+49 of 49 checks PASS

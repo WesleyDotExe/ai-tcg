@@ -12,14 +12,16 @@ finish refused (owner call 6, Standard only); the dry run's step 5 brought up to
 is blocking.**
 
 - **The owner's run book:** `progress/mac-mini-guide.md`; the launch agents `server/launchd/`; setup
-  `server/src/seasonSetup.ts`; the dry run `server/src/dev/seasonDryRun.ts` (its record,
-  `progress/season0-dry-run-001.txt`, predates v29 and cards-2: not re-run).
+  `server/src/seasonSetup.ts`; the dry run `server/src/dev/seasonDryRun.ts` (its records:
+  `progress/season0-dry-run-001.txt`, and `-002.txt` on v29 and cards-3, session 98: 49 of 49 PASS).
 - **The booster cards:** `S0_BOOSTER_CARDS` in `engine/src/data/registry.ts` (the cards themselves at the end of
   `engine/src/data/cards.ts`, `aegisCards.ts`, `nullCards.ts`); the set and the legacy set in
   `economy/src/packs.ts` (`seasonZeroSet`, `CardSet.packCards`, `CardSet.legacy`, `rollingSet`); `PACK_ODDS_V3` in
   `economy/src/config.ts`; the lists in `economy/src/chase.ts` (`S0_ILLUSTRATIONS`, `S0_GLITCH_CARDS`, and the old
   `_V2` lists); the Standard-only refusal in the store's `chaseCopyProblem`.
-- **New evidence:** `progress/pack-sim-004-booster.txt` (`npx tsx src/dev/packSimulation3.ts` in `economy/`, 16 PASS,
+- **Session 98's evidence:** `progress/booster-rerun-s98/` (summary.md, the three probe files, the ring regression
+  checks, the ring script), `progress/built-deck-ring-008/009/010.txt`, `progress/season0-dry-run-002.txt`.
+- **Session 97's evidence:** `progress/pack-sim-004-booster.txt` (`npx tsx src/dev/packSimulation3.ts` in `economy/`, 16 PASS,
   in the demo set); `progress/built-deck-ring/collections.json` re-made from S0-odds-3. The proposal's check
   (`engine/src/dev/boosterProposal.ts`) now reads the registered cards.
 

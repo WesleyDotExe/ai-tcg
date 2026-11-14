@@ -5484,3 +5484,32 @@ two session-39 seed pins held on the first run.
 7 neutrals craft-only; the render's pages rebuilt but not looked at; the dry run not re-run).
 **Blocked:** nothing.
 
+
+**2026-11-14 — Session 98 (game lane; the booster cards' balance re-run, build step 4: two rounds, round 1 kept as
+cards-3; back with the owner per call 8; no schema change).**
+Lane: the last merged PR, #176, was "Render:", so this is a game session; no game PR was open. Acted on the owner's
+two 2026-11-14 entries: the answers to game 97 (calls 1-5 kept; call 6 changed to "Standard only") and to render 75
+(keep all 3, nothing for this lane).
+**Built:** (1) Call 6: `PACK_ONLY_FINISHES` gains "tournament", so the store refuses a prize's tournament finish on a
+starter card; the chase test now checks the refusal, a Standard prize copy and a booster card's tournament finish
+(it fails on the old code: the prize copy was granted); a store test's prize moved to a booster card. (2) The
+balance re-run, two instruments on every round: the probe (`boosterProposal.ts 500`, call 3's own measurement) and
+the built-deck ring (`progress/booster-rerun-s98/run-built-deck-ring.sh`: the store's builder from full and
+realistic collections, the six edges built deck against built deck). Round 0 (cards-2): probe +10.8 / +9.3 / +12.7
+/ +17.1, ring spread 16.4 at 37 packs (Null 61.8). Round 1: Zombie Fork 1/2, Heap Spray 2/3, Decay Engine 2/3,
+Aegis Overwatch 2/5: probe +10.8 / +9.3 / +9.8 / +12.3 (spread 3.0, in the target); ring spread 9.5 / 5.2 / 1.2 at
+37 / 17 / 3 packs, 19.1 full. Round 2 (+ Reaper Thread 2/2, Shield Relay 2/3): probe Aegis +13.1; ring 7.2 / 7.3 /
+4.2 / 25.5; reverted. Round 1 is `cards-3` in `CARDS_VERSIONS`. (3) The dry run's step 5 updated to the v29 rule
+(the 15 minutes start at the first pairing): it had stopped on a null end time, the first time it was run since
+session 94.
+**Ran it:** `progress/booster-rerun-s98/summary.md` with every file (`probe-r0/r1/r2`, `built-deck-ring-008/009/010`);
+the ring regression check, both modes, PASS and identical to the baselines; tests all pass (engine 379, economy 306,
+server 222, render 1,060, agents 17, protocol 7); 35 fast demos the same after 6 rewrites (each diff read: matches
+that play tuned cards, the card-version line, a built deck's confirm score); the render's pack page and face sheet
+rebuilt by their scripts; the dry run on cards-3, `progress/season0-dry-run-002.txt`, 49 of 49 PASS (paired at
+23:39:14, window to 23:54:14, midnight, crash, season end and switch).
+**Worked:** keeping both instruments on every round. The probe alone would have called round 2 a pass on spread,
+and the ring alone would have hidden that the full-collection column is one noisy build.
+**Thin:** in quality-debt.md (the ring outside ~4 at 37 packs and full; the instruments disagree; the
+full-collection builds are noisy; the slow demos and the site contract check not re-run on cards-3).
+**Blocked:** nothing; the owner's answer decides whether more tuning happens.

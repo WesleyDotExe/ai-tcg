@@ -265,7 +265,8 @@ real, but here is where it's thin.
 ## Session 98 (the booster cards' balance re-run, two rounds; cards-3, no schema change): what was raised, and what is still thin
 
 Raised: session 97's "the balance re-run has not been run" (it ran: two instruments, two rounds, every round's
-files kept), "the dry run was not re-run" (re-run, its stale step 5 fixed), and the owner's call 6 (a starter
+files kept), "the dry run was not re-run" (re-run on cards-3, its stale step 5 fixed: 49 of 49 PASS; its header
+still says "dry run 001 ... session 93", the script's own title), and the owner's call 6 (a starter
 card's tournament finish refused, tested against the old code). Still thin:
 - **The real ring is outside "within about 4"** at 37 packs (9.5: Null 55.7, Aegis 46.2) and with a full
   collection (19.1). The probe, the measurement call 3 was written against, is in the target. That is an owner

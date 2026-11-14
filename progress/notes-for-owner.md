@@ -56,8 +56,10 @@ nothing touched).
 3. **Round 2 (Shield Relay 2/3, Reaper Thread 2/2) stays out.** **Recommended: keep it out.** It made Aegis's
    probe +13.1 and widened the ring at 17 and 3 packs.
 
-**Also this session:** the dry run (`progress/season0-dry-run-002.txt`). Its step 5 had stopped on session 94's
-"the 15 minutes start at the first pairing" rule, so I brought the script up to that rule and ran it again.
+**Also this session:** the dry run, again, on the tuned cards (`progress/season0-dry-run-002.txt`): **49 of 49
+PASS**. Its step 5 had stopped on session 94's rule that the 15 minutes start at the first pairing. I brought the
+script up to that rule and ran it again. Pressed at 23:30:02, the agent was first paired at 23:39:14, and the
+window ran to 23:54:14. Midnight, the crash and restart, the season's end and the switch to S1 all passed.
 
 ---
 
