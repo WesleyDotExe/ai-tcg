@@ -1,0 +1,30 @@
+Season 1 arena prototype — browser check (render session 79)
+pages: render/season1/output/arena-cortex-vs-aegis-sig-seed2.html, render/season1/output/arena-swarm-vs-null-seed4.html
+
+== A. Full screen, 1440x900, Cortex vs Aegis (signature cards), as p1
+PASS  A1 the 3D arena draws (WebGL canvas, many colours)  — 214 colour buckets
+PASS  A2 every beat (63) shows its frame: table cards, the far side's held hand, the near hand, HUD health/energy, the deck count, the play-by-play  — 63 beats
+PASS  A3 hover reads a far-side card upright and full size (its name, rules, owner)  — beat 34: Perimeter Turret -> Perimeter Turret
+PASS  A4 hover reads a near-side card  — Cortex Engineer -> Cortex Engineer
+PASS  A5 a held card in the far side's hand can't be read (hidden information)  — hidden
+PASS  A6 a far-side attacker turns to face the viewer mid-attack, then settles back facing its owner  — beat 22: yaw mid-attack 0.89 (viewer 0, rest 3.14), after 3.14
+PASS  A7 Watch as swaps the seats: camera to the other side, HUDs swap, held hand is now p1's, the table's cards don't move  — camera z 8.7 -> -8.7; Watch as: Chiphound's Understudy
+PASS  A8 the Chat tab: an empty room, coming soon (accounts to post, guests read)  — CHAT · COMING SOON A chat room for each live match. Guests will read it; an account is needed to post.
+PASS  A9 played to the end (2x): the last beat names the winner  — Fluxpunk's 8-Bit Trickster WINS
+PASS  A10 no page errors; nothing loaded from outside  — 0 errors, 0 outside requests
+== B. A second replay, Swarm vs Null (no signature cards), every beat stepped with Next
+PASS  B1 Next steps through every beat to the last frame; the table settles to the last frame's cards  — 93 beats, 11 cards on the table
+PASS  B2 a match without signature cards says so in the HUD  — NO SIGNATURE
+PASS  B3 no page errors; nothing loaded from outside  — 0 errors
+== C. A phone (390x844, touch)
+PASS  C1 no sideways scroll; the HUDs above and below the board; the panel under it  — scrollWidth 390, stage 369 px tall, panel at 591
+PASS  C2 every card on the table is inside the board's view  — 8 cards
+PASS  C3 tap a card to read it; the reader fits the screen  — Deadlock Detector -> Deadlock Detector
+PASS  C4 no page errors  — 0 errors
+== D. The Home tile's size (480x300, ?mode=tile)
+PASS  D1 the tile: no panel, no top bar, slim HUDs, the board takes the rest  — {"panel":"none","top":"none","hud":36,"stage":228}
+PASS  D2 the tile plays on its own  — beat 2 -> 5 in 3.5 s
+PASS  D3 the 3D arena draws at tile size  — 264 colour buckets
+PASS  D4 no page errors  — 0 errors
+
+21 PASS, 0 FAIL

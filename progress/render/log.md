@@ -6354,3 +6354,80 @@ it plays (the binder; measured in the check as part of the open, not on its own)
 
 **Next render-lane slice:** after this PR the next session is game (102). Render 79 is a hardening pass: the owner's
 answers to this checkpoint first, then the debt list (stale browser checks first).
+
+## 2026-11-14 — Render session 79: the Season 1 arena prototype, step 1 (the new layout), fenced off in render/season1/
+
+**Lane:** render. The last merged PR (#184, "Game lane: a locked owner's day on the ladder measured ... (session
+102)") is game, so this session is render; no render PR was open. Read first: owner-feedback.md. Two new owner
+entries since game 102 (both 2026-11-14): a head start on the Season 1 arena as a separate prototype page, built from
+`render/reference/season1-arena-3d-test.html` at the spec's build-order step 1 (the new layout), not linked from the
+Season 0 site; and the fence: all of it in `render/season1/`, nothing outside imports it, no Season 0 page links to it.
+The owner's entry ends "Next session by alternation: render 79", so this session did the head start.
+
+**A call the owner may overrule:** current.md had render 79 down as a hardening pass (the every-5th rule: 69, 74,
+79). The owner's newer entry puts the head start on render 79, and its point 3 ("Season 0 comes first: any Season 0
+fix ... takes priority") names fixes; the render debt list has no Season 0 fault open, only thin spots and stale
+checks. So the head start went first and **the render hardening pass moves to render 80**. Said in
+notes-for-owner.md.
+
+**Built (render/season1/ only, plus two lines in render/package.json):**
+- `src/arenaModel.ts` (pure, no DOM): the round arena's world layout (disc radius 5.95; each side's 6 unit slots, its
+  directives behind them, its signature zone on its right, its draw pile and discard on its left; p1 on the +z
+  half, p2 on the -z half), the scene at a frame (`sceneAt`: the table's cards by key, the far side's held hand as a
+  count only, the near hand, the pile counts, the signature zone's state), the HUDs (`hudAt`), the motions between
+  two frames (`motionsBetween`: enter, leave, attack, hurt, face), the playback beats (empty priority passes skipped).
+- `src/arenaClient.ts`: the page, three.js 0.187.0 bundled in (no CDN; the reference's r128 CDN script was for
+  viewing only). Cards are canvas-drawn placeholder faces (faction frame, rarity line, cost, live stats with the
+  above/below-printed colours, keywords and state) on 3D card boxes with the side's back underneath. Cards face their
+  owner; a played or attacking card turns to face the viewer and settles back (the owner's modification 3). The far
+  side's hand is held up behind its side, backs out (modification 2). Each pile shows its count on its top card and
+  the back's name (modification 4: both sides show their own back; Season 0 sells no card back, so it is the
+  "Standard back", rimmed in the side's faction colour). The camera's distance is fitted on every resize so every
+  zone's corners fit across and the held hand fits above. HUDs: far above, near below, 68 px picture (the Season 0
+  placeholder avatar), health bar, energy pips, hand/deck/discard, signature state, coin and boast, whose turn. Right
+  panel: Play-by-play (Season 0's feed entries restyled as a broadcast log; turn markers; signature plays, deaths and
+  the end highlighted) and Chat ("coming soon"; guests read, an account to post). Hover or tap any face-up card to
+  read it upright: rules text from the engine's own Ability.text, keywords, state, owner. Transport: back, play,
+  forward, 1x/2x, scrubber, arrow keys and space.
+- Phone (under 900 px): the panel drops under the board as its own tabbed section, smaller HUDs. Tile
+  (`?mode=tile`): no top bar, panel or transport, slim HUDs, plays on its own.
+- `src/arenaPage.ts`, `src/build.ts` (plays a match through Season 0's `captureReplay`, gathers every card's rules
+  text, writes `render/season1/output/arena-*.html`, 1.1 MB each, three.js included), `README.md`.
+- `render/package.json`: `three` and `@types/three` as dev dependencies (bundled into the page), `typecheck` now
+  also checks `season1/` (its own tsconfig with the DOM lib), and a `season1-arena` script. Nothing else outside the
+  folder changed.
+
+**Ran it:** `render/season1/ci/arena-check.mjs`, headless Chromium (SwiftShader WebGL): **21 PASS**
+(`progress/render/evidence/season1-arena-s79/check.txt`, 7 screenshots). A: full screen 1440x900 on Cortex vs Aegis
+seed 2 with signature cards: the canvas draws; all 63 beats match their frames (table cards, the held hand's count,
+the near hand, HUD health and energy, the far deck's count, the play-by-play's entries); hover reads a far and a near
+card; a held card reads nothing; a far-side attacker's yaw mid-attack is 0.89 (viewer 0, rest 3.14) and back to
+3.14 after; Watch as moves the camera from z +8.7 to -8.7 with the HUDs swapped and the cards unmoved; the Chat tab;
+played to the end at 2x, "... WINS"; no errors, no outside requests. B: Swarm vs Null seed 4 (no signatures): Next
+through all 93 beats, the table settles to the last frame's 11 cards. C: a 390 px phone with touch: no sideways
+scroll, HUDs above and below, every table card inside the board's view, tap to read. D: 480x300 tile. 
+
+**Found by the check, fixed:** (1) the placeholder art's rings used a signed shift of the card id's seed: past 2^31
+the radius went negative, the canvas threw, and the second match's table drew empty (67 of 127 registry ids). Now
+unsigned, moved into the pure model (`artRings`) and tested over every registry card. (2) The pile labels updated
+only on the next animation frame; on a slow GPU a fast step read the old count. Now placed as the frame is shown.
+(3) One check fault (the reader shows the owner's name in capitals). Unit tests `render/season1/test/arenaModel.test.ts`
+(17: every zone on the disc for 1-9 slots and 1-8 directives, no two zones overlapping, each side's left and right,
+the held hand; on two real matches, every frame and both POVs: the table equals the frame's units, directives and
+waiting signature card; Watch as moves no card; the held hand carries no card; the HUDs; every motion agrees with the
+frames and each kind occurs; the beats; the page has no outside URL, bundles three.js and its data parses back; the
+fence).
+
+Render tests 1106 pass (1089 + 17); typecheck clean (render now includes season1). The Season 0 pages, checks and
+outputs are untouched (no Season 0 file changed), so the CI browser check, the site contract check and the demos were
+not re-run.
+
+**Not done (named, in quality-debt):** none of the Season 0 effects, wards, finishes, boasts, coin flip, sound or
+music in 3D (the spec's "done" bar for a 3D build; step 1 is the layout only); played from a sample replay only, not
+the live feed or a recorded match with loadouts and owners; the near hand is DOM, not in the scene; the attack and
+play motions are simple tweens; the card faces are canvas placeholders; WebGL only checked in SwiftShader, not on a
+real GPU or phone.
+
+**Next render-lane slice:** render 80 is the hardening pass (moved from 79): the owner's answers to this checkpoint
+first, then the render debt list (stale browser checks first). The prototype waits for the owner's call on how far
+past step 1 it goes.

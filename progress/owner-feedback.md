@@ -5005,7 +5005,7 @@ Next session by alternation: game 102.
 
 ---
 
-## 2026-11-14 — Owner: a head start on the Season 1 arena, as a separate prototype page (Season 0 unchanged)
+## 2026-11-14 — Owner: a head start on the Season 1 arena, as a separate prototype page (Season 0 unchanged) (render part HANDLED 2026-11-14, render session 79: step 1 built in `render/season1/` as a separate page on a real replay, not linked; `progress/render/evidence/season1-arena-s79/check.txt` 21 PASS; at an [OWNER CHECK-IN] in `progress/render/checkpoints.md`; point 5 left to the owner, asked there as call 5; the render hardening pass moved to render 80)
 
 Game session 102 (PR #184) had no calls. The Season 1 arena spec is in `progress/season-1-ideas.md` (2026-11-13, the arena redesign in true 3D and live commentary).
 1. **Decision:** the 3D arena rework stays Season 1 scope. The Season 0 site, its pages and its checks do not change.
@@ -5018,7 +5018,7 @@ Next session by alternation: render 79.
 
 ---
 
-## 2026-11-14 — Owner: the Season 1 arena prototype is fenced off in its own folder
+## 2026-11-14 — Owner: the Season 1 arena prototype is fenced off in its own folder (HANDLED 2026-11-14, render session 79: all code and the built pages in `render/season1/`; nothing outside imports it, no Season 0 page links to it, a test fails if a Season 0 file names the folder; `render/package.json` only gained the `three` dev dependency, the typecheck of the folder and a build script)
 
 Adds to the entry above (the head start on the Season 1 arena).
 1. **Decision:** keep the Season 1 arena work fenced off: all of its code and its built page live in a dedicated folder, `render/season1/`. Nothing outside that folder imports it, and no Season 0 page links to it. When Season 1 is built, it is brought over from there.
