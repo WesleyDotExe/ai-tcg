@@ -4991,3 +4991,14 @@ Next session by alternation: render 77, then game 101 (a hardening pass, per ses
 2. **Keep (a):** the plan is shown even when the owner can't afford it, followed by "N short", so they can see what they're saving for.
 
 Next session by alternation: game 101 (the hardening pass).
+
+---
+
+## 2026-11-14 — Owner: answers to render session 78 (a pulled card's versions in the pack viewer), keep all 3
+
+**Render session 78** (PR #183, `progress/render/checkpoints.md`, `progress/render/evidence/pack-versions-check-s78.txt`). **Keep all 3 calls as built:**
+1. **Keep (a):** the version chips are labels, not buttons; the opening stays the opening, and the Collection is one click away after Done.
+2. **Keep (a):** a Gold, Glitch or illustration copy also ticks the card's Set place, matching the Collection and the set bar's count.
+3. **Keep (a):** the versions show only in the viewer, not as a count under each card on the summary.
+
+Next session by alternation: game 102.
