@@ -1,0 +1,38 @@
+# A locked owner's day on the ladder, and `lockable` at season scale (game session 102)
+
+Machine: 4 cores, Intel(R) Xeon(R) Processor @ 2.30GHz; node v22.23.4.
+
+1. A day's rounds with a locked owner who can't build (the live ladder, 24 hours on a fixed clock)
+------------------------------------------------------------------------
+  Player Locked holds the Swarm starter only, locks Aegis (activeDeckFits false; lockable Aegis 0/20), auto-play on with no time limit.
+  The day: 184 rounds, 183 matches recorded (in 6 s of real time).
+  Player Locked left out: 184 times (every round); anyone else left out: 0 times.
+
+  The season log over the day (the server's lines for Player Locked, all of them):
+    [ladder] Player Locked sits out: the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
+    [ladder] Player Locked still sits out (60 rounds in a row): the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
+    (the run: Player Locked crafts 19 Aegis starter cards; lockable Aegis 19/20)
+    [ladder] Player Locked sits out: the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 19 usable cards, under 20)
+    [ladder] Player Locked still sits out (60 rounds in a row): the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 19 usable cards, under 20)
+
+  Lines the season log carries for the day: 389 (the old printing: 569).
+  Of those, Player Locked "sits out" lines: 4 (the old printing: 184).
+  [PASS] Player Locked was left out of every round (184 of 184)
+  [PASS] the others played all day (nobody else left out)
+  [PASS] the log says why the first time ("at most 0 usable cards")
+  [PASS] the log says it again when the reason changes ("at most 19 usable cards")
+  [PASS] a repeat is summed up, not printed every round (4 lines, under 30 for the day)
+
+2. `lockable` and GET /api/play at collection sizes (the real owner API)
+------------------------------------------------------------------------
+  Packs opened | copies held | lockableFactions (ms, median / max of 20) | GET /api/play (ms, median / max of 20) [timing, varies per run]
+             0 |          40 |    0.15 /    0.19 |    1.72 /    2.86
+            50 |         290 |    0.83 /    2.95 |    2.28 /    4.33
+           200 |        1040 |    3.09 /    4.99 |    4.85 /    9.39
+           500 |        2540 |    7.06 /    9.87 |    8.75 /   10.09
+          1000 |        5040 |   13.93 /   15.11 |   14.88 /   16.26
+  (A Season 0 owner opens about 5 packs at the grant and at most a pack a day or two after it, so 50 is past
+  a season; 1,000 packs is a margin, not a forecast.)
+  [PASS] GET /api/play stays under 50 ms (median) at every size measured (worst 14.9 ms)
+
+6 of 6 PASS

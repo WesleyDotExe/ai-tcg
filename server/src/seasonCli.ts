@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { EconomyStore } from "@ai-tcg/economy";
 import { workerChooser } from "./deckBuild/workerChooser.js";
 import { LiveLadder } from "./ladder/liveLadder.js";
+import { LadderLog } from "./ladder/ladderLog.js";
 import { startOwnerApi } from "./ownerApi.js";
 import { seasonFileArgs, seasonFileLine, seasonFileProblem } from "./seasonFile.js";
 import { acquireSeasonLock, tookOverLine } from "./seasonLock.js";
@@ -57,23 +58,18 @@ const store = EconomyStore.open(DB_PATH);
 console.log(seasonFileLine(store, DB_PATH));
 const chooser = workerChooser();
 const name = (ownerId: string) => store.getOwner(ownerId).name;
+// (session 102) The ladder's lines are LadderLog's (ladderLog.ts): the same
+// lines as before, except a repeat of the same "sits out" reason is summed up.
+const ladderLog = new LadderLog(name);
 const live = new LiveLadder({
   store,
   chooser: chooser.choose,
   logDir: MATCH_DIR,
-  onRound: (r) => console.log(`[ladder] round ${r.round} since this start: ${r.pairs.length} match${r.pairs.length === 1 ? "" : "es"}${r.sitOut.length ? `, ${r.sitOut.map(name).join(", ")} sits out` : ""}`),
+  onRound: (r) => {
+    for (const line of ladderLog.round(r)) console.log(line);
+  },
   onEvent: (e) => {
-    if (e.kind === "housePacks") console.log(`[ladder] ${name(e.ownerId)} bought ${e.bought}, opened ${e.opened} packs (${e.newCards} new cards)`);
-    if (e.kind === "rebuilt") console.log(`[ladder] rebuilt ${name(e.ownerId)}'s deck: ${e.faction}, ${e.cards} cards (${e.reasons.join("; ")})`);
-    if (e.kind === "excluded") console.log(`[ladder] ${name(e.ownerId)} sits out: ${e.reason}`);
-    if (e.kind === "autoPlayStopped") console.log(`[ladder] ${name(e.ownerId)}'s auto-play is off: ${e.reason === "timeUp" ? "its play time is up" : "today's rewards are maxed"}`);
-    if (e.kind === "seasonEndTime") console.log(`[season] season ${e.season}'s end time ${e.endsAt} has passed: no new round; ${e.live === 0 ? "ending it now" : `ending it once the ${e.live} match${e.live === 1 ? "" : "es"} on screen ${e.live === 1 ? "is" : "are"} recorded`}`);
-    if (e.kind === "seasonEnded") console.log(`[season] season ${e.season} ended at ${e.endedAt}: ${e.standings} owners in the final standings, ${e.retiredCopies} unpulled Prototype copies retired`);
-    if (e.kind === "match") {
-      const r = e.result.record;
-      const who = r.outcome === "win" ? `${name(r.winnerOwnerId!)} wins` : r.outcome;
-      console.log(`[ladder] ${r.matchId} ${name(r.p1OwnerId)} vs ${name(r.p2OwnerId)}: ${who} in ${r.turns ?? "-"} turns, +${r.p1Credits}/+${r.p2Credits}${e.result.note ? ` (${e.result.note})` : ""}`);
-    }
+    for (const line of ladderLog.event(e)) console.log(line);
   },
 });
 const closed = live.recoverOrphans();

@@ -4994,7 +4994,7 @@ Next session by alternation: game 101 (the hardening pass).
 
 ---
 
-## 2026-11-14 — Owner: answers to render session 78 (a pulled card's versions in the pack viewer), keep all 3
+## 2026-11-14 — Owner: answers to render session 78 (a pulled card's versions in the pack viewer), keep all 3 (HANDLED 2026-11-14, game session 102: all three kept as built, nothing for either lane to build; read and marked here)
 
 **Render session 78** (PR #183, `progress/render/checkpoints.md`, `progress/render/evidence/pack-versions-check-s78.txt`). **Keep all 3 calls as built:**
 1. **Keep (a):** the version chips are labels, not buttons; the opening stays the opening, and the Collection is one click away after Done.
