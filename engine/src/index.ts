@@ -56,6 +56,8 @@ export {
   buildDeck,
   deckFaction,
   MAX_NEUTRAL_COPIES,
+  MIN_DECK_SIZE,
+  MAX_DECK_SIZE,
   COPY_LIMITS,
   TOP_TIER_COPY_LIMIT,
   withSetMythicSignature,

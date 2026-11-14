@@ -2,6 +2,8 @@
 // check of the render lane's site types against what the server serves).
 //
 //   npm run check:site-contract -w server > ../progress/site-contract-001.txt
+//   (session 100: the lockable factions' shapes and control; its run is
+//   ../progress/site-contract-002.txt)
 //
 // The website's client (`render/src/site/siteApi.ts`, the render lane's) says
 // what every owner API call returns, as TypeScript types. Nothing checked
@@ -193,7 +195,12 @@ try {
   await ask("me", "GET /api/me", t);
   await ask("accountSettings", "GET /api/account/settings", t);
   await ask("wallet", "GET /api/wallet", t);
-  await ask("play", "GET /api/play", t);
+  const playRead = (await ask("play", "GET /api/play", t)) as { lockable?: { buildable: boolean }[] | null } | undefined;
+  // (session 100) The lockable factions (owner 2026-11-14, answer (a) to
+  // game 99): both sides of `buildable` are served (Player One holds one
+  // starter, so its own faction builds and the others don't).
+  shapes["play's lockable: a faction buildable"] = playRead?.lockable?.some((x) => x.buildable) ?? false;
+  shapes["play's lockable: a faction not buildable"] = playRead?.lockable?.some((x) => !x.buildable) ?? false;
   await ask("board", "GET /api/board", t);
   await ask("daily", "GET /api/daily", t);
   await ask("collection", "GET /api/collection?recentPacks=3", t, 3);
@@ -533,6 +540,9 @@ const seasonClosed = structuredClone(items.find((x) => x.method === "season" && 
 if (seasonClosed) seasonClosed.state = "closed";
 const stoppedText = structuredClone(items.find((x) => x.label.includes("stopped timeUp"))?.value ?? null) as { autoPlay: { stopped: Json } } | null;
 if (stoppedText) stoppedText.autoPlay.stopped = "timeUp";
+// (session 100) The lockable factions' count sent as text.
+const lockableText = pick("play");
+if (Array.isArray(lockableText.lockable)) for (const row of lockableText.lockable as Record<string, Json>[]) row.cards = String(row.cards);
 const controls: Checked[] = [
   { label: "control: GET /api/me with `kind` taken out", method: "me", value: meNoKind },
   { label: "control: GET /api/wallet with `credits` sent as text", method: "wallet", value: walletText },
@@ -540,6 +550,7 @@ const controls: Checked[] = [
   ...(finishing ? [{ label: "control: GET /api/play with the allowance's state \"ending\" (not a state the site knows)", method: "play", value: finishing as unknown as Json }] : []),
   ...(stoppedText ? [{ label: "control: GET /api/play with `autoPlay.stopped` sent as text", method: "play", value: stoppedText as unknown as Json }] : []),
   ...(seasonClosed ? [{ label: "control: GET /api/season with its state \"closed\" (not a state the site knows)", method: "season", value: seasonClosed as unknown as Json }] : []),
+  ...(Array.isArray(lockableText.lockable) ? [{ label: "control: GET /api/play with `lockable[].cards` sent as text", method: "play", value: lockableText as unknown as Json }] : []),
   ...(clearText ? [{ label: "control: POST /api/notifications/clear with `cleared` sent as text", method: "clearNotifications", value: clearText as unknown as Json }] : []),
 ];
 const results = typeCheck([...items, ...controls]);
