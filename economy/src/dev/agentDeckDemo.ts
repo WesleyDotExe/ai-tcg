@@ -14,8 +14,8 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getCard, LookaheadAgent, runMatch, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
-import { EconomyStore, type AgentDeckBuild } from "../index.js";
+import { getCard, holdingsOf, largestDeck, LookaheadAgent, runMatch, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
+import { CRAFT_PACK_POINTS, EconomyStore, type AgentDeckBuild } from "../index.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "agent-deck-demo-"));
 const store = EconomyStore.open(join(tempDir, "season-0.db"), { now: () => new Date("2026-10-19T09:00:00.000Z") });
@@ -38,6 +38,29 @@ function openAll(ownerId: string): number {
     n++;
   }
   return n;
+}
+
+/** (session 99) Since session 97 packs roll booster cards only (7 per
+ * faction), so an owner who holds one faction's starter can't reach a legal
+ * 20-card deck in another faction from packs alone. The real way there is
+ * crafting: the owner spends pack points on Standard copies of that
+ * faction's starter-list cards, cheapest first, until a deck can be built. */
+function craftToBuildable(ownerId: string, faction: DeckFaction): string {
+  const size = () => largestDeck(faction, holdingsOf(store.collection(ownerId).map((c) => c.cardId)));
+  const before = size();
+  const list = [...SHIPPED_DECK_LISTS[faction]].sort((a, b) => CRAFT_PACK_POINTS[getCard(a.cardId)!.rarity] - CRAFT_PACK_POINTS[getCard(b.cardId)!.rarity] || a.cardId.localeCompare(b.cardId));
+  const crafted: string[] = [];
+  for (const { cardId } of list) {
+    while (size() < 20) {
+      try {
+        store.craftCard(ownerId, cardId);
+        crafted.push(getCard(cardId)!.name);
+      } catch {
+        break;
+      }
+    }
+  }
+  return `${faction} deck size from the cards held: ${before} before, ${size()} after crafting ${crafted.length} (${crafted.join(", ") || "none"}); pack points left ${store.balance(ownerId, "packPoints")}`;
 }
 
 /** The built deck against a faction's starter list: what the agent changed. */
@@ -87,7 +110,8 @@ const boBuild = await store.buildAgentDeck(bo.ownerId, BUILD);
 report("bo", boBuild);
 say();
 
-say("## 3. The same owner locks Aegis (the forced faction): the agent rebuilds in place");
+say("## 3. The same owner crafts into Aegis and locks it (the forced faction): the agent rebuilds in place");
+say(`  ${craftToBuildable(bo.ownerId, "Aegis")}`);
 store.setFactionLock(bo.ownerId, "Aegis");
 const boAegis = await store.buildAgentDeck(bo.ownerId, BUILD);
 report("bo", boAegis);

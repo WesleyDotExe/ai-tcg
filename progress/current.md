@@ -6,7 +6,9 @@
 Session 99 (game lane) fixed open PR #177's failed check (session 98's work rides in the same new PR): the site
 contract check on cards-3 never reached the allowance "finishing" (each window starts at a pairing, so the same
 15-minute retry kept ending in the gap between matches); its retries now go 30, 60, 15 minutes, and it passes
-(0 mismatches, 7 of 7 controls, every shape reached). Session 98 ran the booster cards' balance re-run (build step 4): two tuning rounds as call 8 allows,
+(0 mismatches, 7 of 7 controls, every shape reached); the slow demos, re-run, had two crashes (an owner locking a
+non-starter faction can no longer build from booster-only packs), fixed by crafting in the demos; a small owner
+call on such locks is in notes-for-owner.md (session 99). Session 98 ran the booster cards' balance re-run (build step 4): two tuning rounds as call 8 allows,
 round 1 kept as `cards-3` (Zombie Fork 1/2, Heap Spray 2/3, Decay Engine 2/3, Aegis Overwatch 2/5), round 2
 reverted. The probe is in call 3's target (+10.8 / +9.3 / +9.8 / +12.3, spread 3.0); the built-deck ring is not
 within ~4 at 37 packs (9.5) or full (19.1), so it is back with the owner at an [OWNER CHECK-IN]
@@ -41,7 +43,8 @@ Render lane (76): the four tuned cards' faces show the new stats already (the fa
 rebuilt from the registry this session; nobody looked at them in a browser). Otherwise the render lane's own
 roadmap items.
 
-Game lane (100): **apply the owner's answers to session 98's three calls** (notes-for-owner.md). If (a) on call 1:
+Game lane (100): **apply the owner's answers to session 98's three calls and session 99's lock call**
+(notes-for-owner.md; on the lock call, (a) is an API field on `GET /api/play` plus a render-lane ask). If (a) on call 1:
 nothing to tune (the site contract check and the slow demos were re-run on cards-3 in session 99). If (b): one more round aimed at Null-versus-Aegis at 37 packs, same two instruments
 (`progress/booster-rerun-s98/run-built-deck-ring.sh <name>` and `npx tsx src/dev/boosterProposal.ts 500` in
 `engine/`), a new `CARDS_VERSIONS` entry. If (c): packs back to the pre-option-B set (a new odds version, the

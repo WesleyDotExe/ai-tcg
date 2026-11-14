@@ -275,6 +275,11 @@ controls, every shape reached). Still thin:
   not impossible; a card change that shortens matches again could miss all three. The margin is 141 ticks of
   720. A run that forces a mid-match end (an allowance end set from the live match's own clock) would be exact;
   it was not built, to keep this a fix of the failed check and not a new feature.
+- **A faction lock the owner can't build sits the agent out all season** unless they craft (owner call, session 99).
+  Nothing in the API says a lock is unbuildable before it is set; the ladder's round report gives the reason only
+  afterwards.
+- **The slow demos had been stale since session 97 and nobody saw it:** they aren't in CI (minutes each). They were
+  re-run here (38 of 38 after 3 rewrites); the gap is that a card or pack change can break them unseen again.
 - **The same cycle effect could hide in the dry run** (`seasonDryRun.ts`, step 5): it passed on cards-3 (49 of
   49), but it uses one 15-minute window and was not looked at for the same pattern.
 

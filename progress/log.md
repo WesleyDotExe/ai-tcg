@@ -5513,3 +5513,25 @@ and the ring alone would have hidden that the full-collection column is one nois
 **Thin:** in quality-debt.md (the ring outside ~4 at 37 packs and full; the instruments disagree; the
 full-collection builds are noisy; the slow demos and the site contract check not re-run on cards-3).
 **Blocked:** nothing; the owner's answer decides whether more tuning happens.
+
+**2026-11-14 — Session 99 (game lane; open PR #177's failed check fixed, the slow demos re-run; no product code or
+schema change).**
+Lane: the last merged PR, #176, was "Render:", so this is a game session; the game PR #177 (session 98) was open
+with a failed `test` check, so step 0's job was to fix it. Its commits are carried in this session's own branch and
+PR (#177 closed as superseded). Owner feedback: no unhandled entry for this lane.
+**Built:** (1) The failure was `npm run check:site-contract -w server`: three shapes NOT REACHED (the allowance
+"finishing", "done", stopped "timeUp"), so the "finishing" control was never made (6 of 7). Instrumented the run:
+every 15-minute window (started at a pairing, v29) ended between two matches, three times out of three, because
+the same length lands at the same point of the round cycle and cards-3's matches are shorter. The retries now go
+30, 60, 15 minutes (`server/src/dev/siteContractCheck.ts`); "finishing" reached at tick 579 of 720. (2) The slow
+demos, last run in session 80: economy-demo-014 and -016 crashed (an owner with one starter locking Aegis and
+building from packs: at most 19 usable cards since packs are booster-only, session 97); both now craft the missing
+starter-list cards with pack points first (one Aegis Cadet each), a `craftToBuildable` helper in each demo;
+economy-demo-011 was stale on the schema and odds lines and the pulled cards.
+**Ran it:** the site contract check (0 mismatches, 214 untyped lines, 7 of 7 controls, every shape reached;
+`progress/site-contract-001.txt` rewritten); typecheck, the ring regression (real) PASS, the render browser check 61
+of 61 here; `npm run demos -- --all` 38 of 38 after 3 rewrites (each diff read).
+**Worked:** printing the allowance's state every minute of the run found the cause in one go.
+**Thin:** in quality-debt.md (the check still depends on where match ends fall; locks that can't be built; the slow
+demos outside CI).
+**Blocked:** nothing; session 98's three calls and a small lock call are with the owner.

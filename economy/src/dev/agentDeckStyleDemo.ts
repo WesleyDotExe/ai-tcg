@@ -17,8 +17,8 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getCard, LookaheadAgent, PLAY_STYLES, runMatch, type DeckFaction } from "@ai-tcg/engine";
-import { EconomyStore, holdingsFingerprint, type AgentDeckBuild } from "../index.js";
+import { getCard, holdingsOf, largestDeck, LookaheadAgent, PLAY_STYLES, runMatch, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
+import { CRAFT_PACK_POINTS, EconomyStore, holdingsFingerprint, type AgentDeckBuild } from "../index.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "agent-deck-style-demo-"));
 const store = EconomyStore.open(join(tempDir, "season-0.db"), { now: () => new Date("2026-10-20T09:00:00.000Z") });
@@ -41,6 +41,29 @@ function openAll(ownerId: string): number {
     n++;
   }
   return n;
+}
+
+/** (session 99) Since session 97 packs roll booster cards only (7 per
+ * faction), so an owner who holds one faction's starter can't reach a legal
+ * 20-card deck in another faction from packs alone. The real way there is
+ * crafting: the owner spends pack points on Standard copies of that
+ * faction's starter-list cards, cheapest first, until a deck can be built. */
+function craftToBuildable(ownerId: string, faction: DeckFaction): string {
+  const size = () => largestDeck(faction, holdingsOf(store.collection(ownerId).map((c) => c.cardId)));
+  const before = size();
+  const list = [...SHIPPED_DECK_LISTS[faction]].sort((a, b) => CRAFT_PACK_POINTS[getCard(a.cardId)!.rarity] - CRAFT_PACK_POINTS[getCard(b.cardId)!.rarity] || a.cardId.localeCompare(b.cardId));
+  const crafted: string[] = [];
+  for (const { cardId } of list) {
+    while (size() < 20) {
+      try {
+        store.craftCard(ownerId, cardId);
+        crafted.push(getCard(cardId)!.name);
+      } catch {
+        break;
+      }
+    }
+  }
+  return `${faction} deck size from the cards held: ${before} before, ${size()} after crafting ${crafted.length} (${crafted.join(", ") || "none"}); pack points left ${store.balance(ownerId, "packPoints")}`;
 }
 
 function cardsOf(deckId: string): Map<string, number> {
@@ -111,10 +134,11 @@ report("ada", fortress.build);
 say(`  Fortress's deck against Calculator's: ${diff(cardsOf(fortress.build.deck.deckId), calcCards)}`);
 say();
 
-say("## 4. Back to the Rusher agent, 5 more packs, and an Aegis lock: one rebuild for all three");
+say("## 4. Back to the Rusher agent, 5 more packs, crafting into Aegis and an Aegis lock: one rebuild for all three");
 store.connectAgent(ada.ownerId, ada.agentId);
 for (let i = 0; i < 5; i++) store.grantPack(ada.ownerId, "S0", "weeklyChallenge");
 openAll(ada.ownerId);
+say(`  ${craftToBuildable(ada.ownerId, "Aegis")}`);
 store.setFactionLock(ada.ownerId, "Aegis");
 say(`  rebuild reasons: ${reasons(ada.ownerId)}`);
 const locked = (await store.rebuildAgentDeckIfNeeded(ada.ownerId, BUILD))!;

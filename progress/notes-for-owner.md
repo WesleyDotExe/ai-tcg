@@ -1,5 +1,40 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 99 (game lane: open PR #177 had a failed check; fixed, and carried with session 98's
+work in a new PR).** Lane: the last merged PR, #176, was "Render:", and the open game PR #177 (session 98) had a
+failed check, so this session fixed it. Session 98's three calls below (what counts as passing, the full-collection
+column, round 2) are unchanged and still yours.
+
+**What I did:**
+1. **The failed check:** the site contract check, run on cards-3 for the first time, never reached the play-time
+   allowance's "finishing" state (time up with a match still on screen). It was the check's own run, not the
+   server: each window starts at a pairing, so retrying with the same 15 minutes ended at the same point in the
+   ladder's round cycle every time, and with cards-3's shorter matches that point fell between matches every time.
+   The retries now use 30, then 60 minutes. Result: 0 mismatches, 7 of 7 controls, every shape reached
+   (`progress/site-contract-001.txt`). Every CI step re-run here: all pass.
+2. **The slow demos** (`npm run demos -- --all`, last run in session 80): two crashed, and both were stale since
+   session 97. Each demo had an owner with one starter lock another faction and build from packs alone. Packs now
+   hold only booster cards (7 per faction), so that can't reach 20 cards (at most 17 to 19). The demos now do what a
+   real owner has to do: craft the missing starter-list cards with pack points. One Common (Aegis Cadet) was
+   enough. All 38 demos match after 3 rewrites (each diff read).
+
+**A call for you (small, not blocking; recommended answer first):**
+- **Locking a faction the owner can't build yet.** Every owner gets one faction's starter. The site offers all four
+  factions in the lock. If the owner locks one they don't hold enough cards for, the ladder sits them out every
+  round ("the agent's deck couldn't be rebuilt: ... at most 19 usable cards, under 20"). Nothing breaks, but the
+  agent stops playing. Before session 97 enough packs fixed this on its own. Now only crafting fixes it, and a new
+  owner's 3 starter packs give 15 pack points, not enough for one 40-point Common. Options:
+  **(a) recommended:** the API marks each lockable faction with whether a deck can be built now, plus the cards held
+  and needed. The site greys out the ones that can't yet, with "craft N more" beside them. The lock itself stays
+  allowed. (b) Refuse such a lock in the store with a 409. (c) Leave it as it is.
+- **A number for the balance calls below:** in the rewritten demos, a 20-card Aegis deck built almost entirely from
+  booster cards (19 booster copies plus one crafted Cadet) scored 51.5% and 59.3% against the four shipped decks
+  (small builds, 40 games per opponent). That is above the Aegis starter itself (43.5 to 52.8% in the same
+  demos). It is one more sign the booster cards are strong for their cost. A 20-card deck also draws its best cards
+  more often than a 40-card one.
+
+---
+
 **Updated 2026-11-14, session 98 (game lane; the booster cards' balance re-run, build step 4). [OWNER CHECK-IN]:
 your call 8 says "bring it back with the numbers", and this is that.** Nothing is blocking. Lane: the last merged
 PR, #176, was "Render:", so this is a game session; no game PR was open. Acted on your two entries: the answers to

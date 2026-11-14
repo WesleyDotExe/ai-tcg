@@ -204,7 +204,9 @@ new ideas go to `progress/season-1-ideas.md`.
      check on cards-3 missed the allowance "finishing", "done" and stopped "timeUp" (each window starts at a
      pairing, so the same 15-minute retry kept ending between matches); its retries now go 30, 60, 15 minutes
      (`server/src/dev/siteContractCheck.ts`); `progress/site-contract-001.txt` 0 mismatches, 7 of 7 controls,
-     every shape reached. Every CI step re-run locally: pass. Session 98's three calls still wait on the owner.
+     every shape reached. Every CI step re-run locally: pass. The slow demos re-run: two stale since session 97 (a
+     non-starter faction lock built from booster-only packs), now craft first; 38 of 38. A lock call to the owner.
+     Session 98's three calls still wait on the owner.
    - [~] Game 98 (the booster-card build, step 4: the balance re-run; owner calls 3 and 8): two rounds, round 1
      kept as `cards-3` (Zombie Fork 1/2, Heap Spray 2/3, Decay Engine 2/3, Aegis Overwatch 2/5; stats only),
      round 2 reverted. Probe in the target (+10.8 / +9.3 / +9.8 / +12.3, spread 3.0); the built-deck ring's
