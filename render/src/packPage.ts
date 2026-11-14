@@ -332,6 +332,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .face .text { position: absolute; left: 4.5%; right: 4.5%; top: 64%; bottom: 13%; padding: 2.4cqw 3cqw; font-size: calc(4.3cqw * var(--fit, 1)); line-height: 1.32; border-radius: 4px; background: rgba(0,0,0,0.26); color: #dfe5f1; overflow: hidden; z-index: 2; }
 .face .text p { margin: 0 0 1.4cqw; }
 .face .text .flav { color: #9aa6bf; font-style: italic; }
+.face .text.noflav .flav { display: none; }
 .face .stats { position: absolute; right: 5.5%; bottom: 13.8%; display: flex; gap: 2cqw; z-index: 3; }
 .face .stats span { min-width: 11cqw; height: 9cqw; padding: 0 2cqw; border-radius: 5px; display: grid; place-items: center; font-weight: 900; font-size: 5.2cqw; background: #0d0f15; border: 1px solid rgba(255,255,255,0.18); }
 .face .stats .atk { color: #ffd0a0; } .face .stats .hp { color: #b4ffcf; }
@@ -883,9 +884,19 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     var t = face.querySelector('.text');
     if (!t || !t.clientHeight) return 0;
     var stats = face.querySelector('.stats');
-    for (var i = 0; i < PACK_FIT_STEPS.length; i++) {
-      t.style.setProperty('--fit', String(PACK_FIT_STEPS[i]));
-      if (!packTextCrowded(t, stats)) break;
+    // Render session 75: a long booster card's Prototype face (its text box
+    // is shorter, the serial plate sits under it) was still crowded at the
+    // smallest step, its flavor line cut mid-word. The rules are what the
+    // card does; the flavor line is not. So when the smallest step still
+    // doesn't fit, the flavor line goes and the steps run again.
+    t.classList.remove('noflav');
+    for (var pass = 0; pass < 2; pass++) {
+      for (var i = 0; i < PACK_FIT_STEPS.length; i++) {
+        t.style.setProperty('--fit', String(PACK_FIT_STEPS[i]));
+        if (!packTextCrowded(t, stats)) return PACK_FIT_STEPS[i];
+      }
+      if (pass || !t.querySelector('.flav')) break;
+      t.classList.add('noflav');
     }
     return Number(t.style.getPropertyValue('--fit'));
   }

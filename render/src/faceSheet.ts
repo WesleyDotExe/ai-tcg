@@ -19,7 +19,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cardSet } from "@ai-tcg/economy";
 import { openShowcase, type Showcase } from "./packDemo.js";
-import { cardFaceOf, type RevealCard } from "./packOpening.js";
+import { cardFaceOf, revealKindOf, type RevealCard } from "./packOpening.js";
 import { PACK_CSS, PACK_PAGE_PURE_SOURCE } from "./packPage.js";
 
 type FaceCard = Pick<RevealCard, "face" | "finish" | "reveal" | "collectorNumber" | "prototype" | "hit">;
@@ -57,6 +57,34 @@ export function zeroDayEntries(): SheetEntry[] {
   }));
 }
 
+/** Render session 75: Season 0's 28 booster cards (097-124), each in every
+ * version it has: Standard, Full Art, Gold (125-152), its Glitch version and
+ * its secret illustration where the chase lists name it, and its Prototype
+ * run's plate. Numbered as the set numbers them (`cardSet("S0")`). Starter
+ * cards are Standard only (owner 2026-11-14), so none is here. */
+export interface BoosterRow {
+  cardId: string;
+  name: string;
+  number: string;
+  entries: SheetEntry[];
+}
+export function boosterRows(): BoosterRow[] {
+  const set = cardSet("S0");
+  return set.packCards.map((sc) => {
+    const face = cardFaceOf(sc);
+    const e = (finish: string, _reveal: string, collectorNumber: string, source: string, prototype: FaceCard["prototype"] = null): SheetEntry => ({
+      card: { face, finish: finish as FaceCard["finish"], reveal: revealKindOf(finish as FaceCard["finish"]), collectorNumber, prototype, hit: finish !== "standard" && finish !== "foil" },
+      source,
+    });
+    const entries: SheetEntry[] = [e("standard", "standard", sc.collectorNumber, "Standard"), e("fullArt", "fullArt", sc.collectorNumber, "Full Art")];
+    if (sc.goldNumber) entries.push(e("gold", "gold", sc.goldNumber, `Gold ${sc.goldNumber}`));
+    if (set.glitch.includes(sc.cardId)) entries.push(e("glitch", "glitch", sc.collectorNumber, "Glitch"));
+    for (const x of set.secrets) if (x.cardId === sc.cardId && x.kind !== "zeroDay") entries.push(e("secret", "secret", x.collectorNumber, `Secret illustration ${x.code}`));
+    for (const r of set.prototypes) if (r.cardId === sc.cardId) entries.push(e("prototype", "prototype", sc.collectorNumber, `Prototype ${r.code}, serial 1 of ${r.runSize}`, { runCode: r.code, serial: 1, runSize: r.runSize }));
+    return { cardId: sc.cardId, name: sc.name, number: sc.collectorNumber, entries };
+  });
+}
+
 export function faceHtml(c: FaceCard): string {
   const layer = pure.packFinishLayerName(c.reveal);
   return pure.packFaceHtml(c, { settled: true }, "S0").replace('class="face ', `class="face ${layer ? `fx-css-${layer} ` : ""}`);
@@ -87,6 +115,9 @@ h2 { font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform:
 .sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, calc(50vw - 24px)), 1fr)); gap: 18px 14px; }
 .sheet.zdrow { grid-template-columns: repeat(auto-fill, minmax(min(300px, calc(100vw - 32px)), 1fr)); }
 .sc { margin: 0; }
+.bkrow { display: block; margin: 0 0 18px; }
+.bkrow h3 { font-size: 12px; color: var(--dim); margin: 0 0 8px; letter-spacing: .04em; }
+.bkrow .sheet { grid-template-columns: repeat(auto-fill, minmax(min(190px, calc(50vw - 24px)), 1fr)); }
 .sc .mini { position: relative; width: 100%; aspect-ratio: 5 / 7; --cw: 100%; }
 .sc .mini .face { border-radius: 8px; }
 .sc figcaption { margin-top: 6px; font-size: 11px; color: var(--dim); line-height: 1.35; }
@@ -100,6 +131,9 @@ h2 { font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform:
 <p class="note">Every finish's settled face, drawn by the pack page's own face code. Finishes rarer than Full Art show their art across the whole card. A "choose one" card prints each mode's name and rules text. CSS finish looks (no shaders on a static sheet); placeholder art until the art pass.</p>
 <h2>The 3 Zero-Day cards</h2>
 <div class="sheet zdrow">${zeroDayEntries().map(entryHtml).join("\n")}</div>
+<h2>Season 0's booster cards, 097 to 124, in every version they have</h2>
+<p class="note">The only cards packs hold. Each row is one card: Standard, Full Art, Gold (125 to 152), and its Glitch version, secret illustration and Prototype run where the chase lists name it. Starter cards (001 to 096) are Standard only, so they have no row here.</p>
+${boosterRows().map((r) => `<section class="bkrow" data-card="${r.cardId}"><h3>${r.number} · ${r.name}</h3><div class="sheet">${r.entries.map(entryHtml).join("\n")}</div></section>`).join("\n")}
 <h2>One real pull per finish (the pack showcase)</h2>
 <div class="sheet">${showcaseEntries(showcase).map(entryHtml).join("\n")}</div>
 <script>${PACK_PAGE_PURE_SOURCE}

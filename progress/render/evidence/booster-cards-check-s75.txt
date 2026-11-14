@@ -1,0 +1,27 @@
+PASS  A  the Set tab is two blocks: "Starter cards · 001–096", "Booster cards · 097–124"
+PASS  A  Starter cards: 96 places, held 26 / 96 (the server's binder: 26 of 001-096)
+PASS  A  Booster cards: 28 places, held 23 / 28 (the server's: 23 of 097-124)
+PASS  A  every place in the booster block is one of the server's 097-124 entries; the set is 124
+PASS  B  Heat Death's viewer: "Booster card From packs, in every finish. Crafting makes a Standard copy."
+PASS  B  its versions: Set 124/124 | Illustration 165/124 | Glitch 124/124 | Gold 152/124 | Prototype /1 S0-P01
+PASS  B  the place on screen (Set) is marked, the others are buttons
+PASS  B  Gold opens the Gold place: "Gold · 152/124 · Null" (the server's 152/124)
+PASS  B  there, Gold is marked and the line says it only comes from packs
+PASS  B  Set goes back to 124/124
+PASS  C  Cortex Engineer (001/124): "Starter card In the Cortex starter deck. Standard only: never in packs, no other version. Crafting makes a Standard copy.", no versions row
+PASS  C  Spare Cycles (NT-001): "Starter-era card In no starter deck and never in packs: crafting a Standard copy is the only way to get one. Standard only."
+PASS  D  Gold: 28 places, 125-152, every one a booster card
+PASS  D  Glitch: 16 places, every one a booster card
+PASS  D  Secret cards: 19, 153-171 (16 illustrations of booster cards, the Zero-Day cards 169/124, 170/124, 171/124)
+PASS  D  the 15 Prototype runs are all on booster cards
+PASS  E  pack 3caf1aa3: 5 cards, every one a booster card: 118/124 standard, 097/124 standard, 106/124 standard, 124/124 standard, 104/124 foil
+PASS  E  each card's printed number is in its range (097-124; Gold 125-152; secrets 153-171), all /124
+PASS  E  the summary's set bar counts out of 124 (before 49)
+PASS  F  1440 px: the face sheet's 28 booster rows, 131 faces; still crowded after the fit: 0
+PASS  F  1440 px: the flavor line dropped on 12 faces, all Prototype faces (CX-106 CX-105 CX-107 SW-103 SW-106 SW-107 AG-103 AG-106 AG-105 AG-107 NL-106 NL-107)
+PASS  F  390 px: the face sheet's 28 booster rows, 131 faces; still crowded after the fit: 0
+PASS  F  390 px: the flavor line dropped on 11 faces, all Prototype faces (CX-106 CX-105 CX-107 SW-103 SW-106 SW-107 AG-103 AG-106 AG-105 AG-107 NL-106)
+PASS  G  no external requests (0)
+PASS  G  no page errors (0)
+
+25 PASS, 0 FAIL

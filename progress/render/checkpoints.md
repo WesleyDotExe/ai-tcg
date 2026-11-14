@@ -7,6 +7,47 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — Render session 75: Season 0's booster cards on the site — AWAITING FEEDBACK (three small calls)
+
+Game 97 registered the 28 booster cards as 097-124, and your rule made starter cards Standard only. The site already
+read the set's size and numbers from the server, so the numbers were right on day one (the set bar reads /124). What
+it didn't do was tell the two kinds of card apart, or show what the new chase lists mean for one card. Try it:
+`npm run site-demo -w @ai-tcg/render`, sign in as nova, open Collection.
+
+**What changed:**
+- **The Set tab is two blocks:** "Starter cards · 001–096" (Standard only, never in packs, crafting makes a Standard
+  copy) and "Booster cards · 097–124" (the only cards packs hold; every finish; the Glitch, Gold, illustrations and
+  Prototype runs are versions of these). Each block has its own held count. The summary ring still counts all 124.
+- **The card viewer says where a card comes from**, under its number: "Booster card: from packs, in every finish",
+  "Starter card: in the Cortex starter deck. Standard only..." or, for the 7 starter-era neutrals in no deck,
+  "crafting a Standard copy is the only way to get one".
+- **A booster card's versions** are a row of buttons in the viewer: Set, Illustration, Glitch, Gold, Prototype /N,
+  each with its number; solid if you hold it, dashed if not; a press opens that place (Heat Death has all five).
+- **The card-face sheet** (`render/output/card-faces.html`) now shows all 28 booster cards in every version they
+  have: 131 faces.
+- **A fix found by the sheet:** 11 of the 15 Prototype faces were cut mid-word (the serial plate makes the text box
+  shorter, and the booster cards' text is long). Now, when the smallest text size still doesn't fit, the flavor line
+  is dropped and the rules text is fitted again. The rules are never cut.
+
+**Evidence:** `progress/render/evidence/booster-cards-check-s75.txt` (25 PASS, on the real owner API; first run),
+stills `v2-s75-*.jpg`; tests `render/test/siteBoosterCards75.test.ts` (8).
+
+**Calls (each recommended as built):**
+1. **Two blocks on the Set tab** rather than one run of 124 with a divider or a filter. **Recommended: keep.** Option:
+   one block with a "Starter / Booster" filter.
+2. **The flavor line is dropped on a face whose rules don't fit** even at the smallest size (today only Prototype
+   faces of long booster cards). **Recommended: keep:** the rules text is what the card does. Option: smaller text
+   still (below 68%, hard to read on a phone), or a taller text box on Prototype faces (less art).
+3. **The versions row shows versions you don't hold** (dashed, with their numbers), so the owner can see what exists.
+   **Recommended: keep**, as the binder already shows missing places. Option: held versions only.
+
+**Thin spots (in the debt list):** the binder's small faces fit the same way as the big ones (the fit scales with the
+card), but at the binder's thumbnail size some flavor lines are hard to read; the versions row isn't on the pack
+reveal or the summary, only in the Collection; there is no "Starter / Booster" mark on a face itself (the number tells
+you: 001-096 or 097-124).
+
+---
+
 ## 2026-11-14 — Render hardening pass (session 74): the season's end, the last gaps — AWAITING FEEDBACK (three small calls)
 
 A hardening pass (no new features): the season's-end gaps session 73 left in the debt list. After Season 0 ends,

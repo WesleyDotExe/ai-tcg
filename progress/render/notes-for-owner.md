@@ -1464,3 +1464,20 @@ season mark) is proposed as a mark, call 1.
    size from the server (the set bar reads "63/96" from the binder). So when the booster cards land as 097-124, the
    bar should read /124 with no site change. The render lane will check that, and the new cards' faces, once game 97
    has registered them.
+
+---
+
+## 2026-11-14 — Render session 75 (the booster cards on the site)
+
+1. **Three small calls** are in `progress/render/checkpoints.md` (the newest checkpoint): the Set tab in two blocks;
+   dropping a face's flavor line when its rules don't fit; showing the versions you don't hold.
+2. **Game 97's ask is done:** the booster cards' faces and numbers 097-124, the 124-card binder (19 secret cards, 16
+   Glitch, 28 Gold), Gold only on booster cards, and the pack pages, all looked at in a browser on the real API: a
+   pack played to its summary held only booster cards and its set bar read /124. `pack-opening.html` and
+   `card-faces.html` were rebuilt and checked. Evidence: `progress/render/evidence/booster-cards-check-s75.txt`
+   (25 PASS).
+3. **One real fix:** 11 of the 15 Prototype faces (all on booster cards now) had their text cut mid-word. Fixed on the
+   render side (the face's fit drops the flavor line when it must). No card text needs to change.
+4. **For the game lane, nothing is needed.** No new call or field is read; the site tells starter from booster cards
+   with the engine's own `isBoosterCard` and `SHIPPED_DECK_LISTS`. The site contract check still passes (0
+   mismatches, 7 of 7 controls, `progress/render/evidence/site-contract-s75.txt`).

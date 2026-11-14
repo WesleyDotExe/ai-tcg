@@ -324,6 +324,12 @@ html, body {
 .eventlog .ev.now { color: var(--ink); }
 .eventlog .ev.gameover { color: var(--good); font-weight: bold; }
 
+/* Embedded in a Home tile (render session 67): the board, the HUDs and the
+ * hands only; the website scales the frame to the tile. */
+body.embed { min-height: 0; overflow: hidden; }
+body.embed .controls, body.embed #eventlog, body.embed .pov, body.embed .brand { display: none !important; }
+body.embed .lower { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+body.embed .live-badge { cursor: default; pointer-events: none; }
 .controls { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }

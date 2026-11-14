@@ -19,7 +19,9 @@ import {
   copyLines,
   craftView,
   faceOfSlot,
+  originView,
   salvageView,
+  versionsOf,
   slotCaption,
   type BinderBlock,
   type BinderSlot,
@@ -66,7 +68,7 @@ function slotHtml(s: BinderSlot, face: FaceRenderer, setCode: string): string {
 function blockHtml(b: BinderBlock, face: FaceRenderer, setCode: string): string {
   const pct = b.total ? Math.floor((b.held / b.total) * 100) : 0;
   const body = b.slots.length ? `<div class="binder">${b.slots.map((s) => slotHtml(s, face, setCode)).join("")}</div>` : '<p class="muted small bempty">Nothing here with these filters.</p>';
-  return `<section class="col-block" data-block="${b.id}"><div class="bh"><h3>${esc(b.title)}</h3><span class="bheld"><b>${b.held}</b> / ${b.total}</span><span class="bbar" role="img" aria-label="${pct}% held"><i style="width:${pct}%"></i></span></div><p class="muted small">${esc(b.note)}</p>${body}</section>`;
+  return `<section class="col-block" data-block="${b.id}"${b.part ? ` data-part="${b.part}"` : ""}><div class="bh"><h3>${esc(b.title)}</h3><span class="bheld"><b>${b.held}</b> / ${b.total}</span><span class="bbar" role="img" aria-label="${pct}% held"><i style="width:${pct}%"></i></span></div><p class="muted small">${esc(b.note)}</p>${body}</section>`;
 }
 
 /** The whole page: the summary, the set and tab bar, the filters, the blocks. */
@@ -91,6 +93,26 @@ export function collectionPageHtml(b: SiteBinder, c: SiteCollection, f: Collecti
 function seasonOf(setCode: string): string {
   const m = /^S(\d+)$/.exec(setCode);
   return m ? `Season ${m[1]}` : setCode;
+}
+
+/** Render session 75: where the card comes from (a booster card, a starter
+ * card, a starter-era card only crafting makes), under the caption. */
+function originHtml(s: BinderSlot): string {
+  const o = originView(s);
+  return o ? `<p class="cv-origin" data-origin="${o.origin}"><span class="tag org">${esc(o.tag)}</span> <span class="muted small">${esc(o.line)}</span></p>` : "";
+}
+/** Render session 75: the card's versions in the binder, each a button to
+ * its own place (the one on screen marked). Only cards with more than one. */
+function versionsHtml(s: BinderSlot, b: SiteBinder, c: SiteCollection): string {
+  const v = versionsOf(s, b, c);
+  if (!v.length) return "";
+  const chip = (x: (typeof v)[number]) => {
+    const label = `${x.label} · ${x.number}${x.held ? " · held" : " · not held"}`;
+    return x.current
+      ? `<span class="vchip on${x.held ? " held" : ""}" aria-current="true" title="${esc(label)}">${esc(x.label)} <small>${esc(x.number)}</small></span>`
+      : `<button type="button" class="vchip${x.held ? " held" : ""}" data-act="view-slot" data-slot="${esc(x.key)}" title="${esc(label)}" aria-label="${esc(label)}">${esc(x.label)} <small>${esc(x.number)}</small></button>`;
+  };
+  return `<div class="cv-vers" role="group" aria-label="This card's versions"><h4>Versions</h4><div class="vrow">${v.map(chip).join("")}</div></div>`;
 }
 
 /** The card viewer's state the page keeps. */
@@ -142,7 +164,7 @@ export function viewerHtml(s: BinderSlot, b: SiteBinder, c: SiteCollection, v: V
   <div class="cv-stage"><div class="cv-card${s.owned ? "" : " missing"}" id="cv-card"><span class="cface">${face(faceOfSlot(s), b.setCode)}</span></div><small class="muted cv-hint">Move the pointer over the card to tilt it.</small></div>
   <div class="cv-info">
     <h2 id="dlg-t">${esc(s.name)}</h2>
-    <p class="muted">${esc(slotCaption(s, b.base.total, b.setCode))}</p>
+    <p class="muted">${esc(slotCaption(s, b.base.total, b.setCode))}</p>${originHtml(s)}${versionsHtml(s, b, c)}
     <h4>You hold ${copies.length}</h4>${held}${decks}
     <h4>Craft</h4>${craft}
     ${s.section === "base" ? `<h4>Salvage</h4>${salvage}` : ""}
