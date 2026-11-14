@@ -4970,3 +4970,14 @@ Next session by alternation: game 98 (the balance re-run, build step 4).
 1. **Decision (a):** the API marks each lockable faction as buildable or not, with the cards held and needed, and the site greys out the ones that can't be built yet. (Packs now hold only booster cards, so an owner can lock a faction they can't yet build a 20-card deck for; the ladder would sit that agent out every round until the owner crafts the missing cards.)
 
 Next session by alternation: render 76.
+
+---
+
+## 2026-11-14 — Owner: answers to render session 76 (the faction lock marked buildable or not), keep all 3
+
+**Render session 76** (PR #179, `progress/render/checkpoints.md`, `progress/render/evidence/faction-lock-check-s76.txt`); game session 100 (PR #180) had no calls. **Keep all 3 calls:**
+1. **Keep (a):** the plan is the cheapest crafts from the faction's starter list (Standard copies, Commons first).
+2. **Keep (a):** the toast is short and points at the note, rather than repeating the whole plan.
+3. **Keep (a):** only Settings shows it for now; Agent controls and Agent match say nothing more about an unbuildable lock in Season 0.
+
+Next session by alternation: render 77, then game 101 (a hardening pass, per session 100's notes).
