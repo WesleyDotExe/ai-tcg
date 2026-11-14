@@ -7,6 +7,45 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — Render session 77: the faction lock on the server's own field, with the plan's pack points — AWAITING FEEDBACK (two small calls)
+
+Your three answers to session 76 were all "keep (a)", so nothing changed for them. Game 100 now serves `lockable`
+on `GET /api/play`, and this session checks that the site really draws from it. It also fixes one bug that showed up
+along the way and adds one line to the warning. Try it: `npm run site-demo -w @ai-tcg/render`, sign in as nova,
+Settings -> Play, lock Aegis.
+
+**What changed (Settings -> Play only):**
+- **The warning says whether you can afford the plan:** "... Cheapest from its starter list: Aegis Cadet ×3,
+  Barrier Drone ×2 and Plating Module ×3 (320 pack points). You have 65 pack points, 255 short. Or lock another
+  faction." When you have enough it says "You have 900 pack points, enough for all of it." Settings now reads
+  your wallet when you open it, so the number is current.
+- **Fixed: the plan could disagree with the count.** Session 76 read your collection only once. If you then
+  opened a pack from the top bar and came back, the badge showed the new count (14/20) but the plan was still
+  worked out from the old cards: it said "craft at least 6 more" and then listed 8 crafts. Now Settings reads
+  your collection every time you open it. If the collection it has disagrees with the server's count, it leaves the
+  plan out and reads the collection again, once per server reply.
+- **The marks come straight from the server.** The greyed factions appear about 0.2 s after Settings opens, even
+  while the collection is still loading; the plan fills in when it arrives.
+
+**Keeping the site's own fallback:** I kept it. When the server sends `lockable` (it always does now), the site
+uses the server's numbers. The collection is still needed for the plan, and if a reply ever arrives without the
+field, the site works the numbers out with the same engine rule the server uses. The two were checked equal on
+the real API, faction by faction.
+
+**Calls (recommended first):**
+1. **"N short" names the gap only.** It doesn't say how to earn pack points (opening packs and salvaging spare
+   copies). (a) keep it short; (b) add "Pack points come from opening packs and salvaging spare copies".
+2. **The plan is shown even when you can't afford it**, followed by "N short". (a) keep, so you can see what you're
+   saving for; (b) cut the plan down to what you can afford now ("craft Aegis Cadet now, the rest later").
+
+Evidence: `progress/render/evidence/faction-lock-check-s77.txt` (13 PASS, real owner API; the old code fails 4 of
+them: no pack points line, no re-read on a disagreement, a stale plan after a pack, a stale plan after a craft),
+stills `v2-s77-settings-1440.jpg`, `v2-s77-settings-aegis-locked.jpg`, `v2-s77-settings-aegis-crafted.jpg`,
+`v2-s77-settings-phone.jpg`; tests `render/test/siteLockable77.test.ts` (6, one on the real owner API: the field
+equals the site's own reading; a pack opened after the read makes the old collection stale until it is read again).
+
+---
+
 ## 2026-11-14 — Render session 76: the faction lock marked buildable or not — AWAITING FEEDBACK (three small calls)
 
 Your answer (a) to game 99's call: the site greys out the factions you can't build a deck for yet, with what to
