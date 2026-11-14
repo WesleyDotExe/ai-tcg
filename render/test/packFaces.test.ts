@@ -12,12 +12,12 @@
 //  4. the card-face sheet: the 3 Zero-Day cards and one real pull per
 //     finish.
 import { describe, expect, it } from "vitest";
-import { CARD_REGISTRY, getCard } from "@ai-tcg/engine";
-import { FINISHES, LIVE_PACK_ODDS, type Finish } from "@ai-tcg/economy";
+import { CARD_REGISTRY, getCard, isBoosterCard } from "@ai-tcg/engine";
+import { FINISHES, LIVE_PACK_ODDS, cardSet, type Finish } from "@ai-tcg/economy";
 import { BULK_TAP_TIMINGS, BULK_TIMINGS, cardFaceOf, revealKindOf, type RevealCard } from "../src/packOpening.js";
 import { PACK_PAGE_PURE_SOURCE, renderPackOpeningHtml } from "../src/packPage.js";
 import { openBulkShowcase, openShowcase } from "../src/packDemo.js";
-import { renderFaceSheet, showcaseEntries, zeroDayEntries } from "../src/faceSheet.js";
+import { boosterRows, renderFaceSheet, showcaseEntries, zeroDayEntries } from "../src/faceSheet.js";
 
 type FaceCard = Pick<RevealCard, "face" | "finish" | "reveal" | "collectorNumber" | "prototype">;
 const pure = new Function(`${PACK_PAGE_PURE_SOURCE}; return { packFaceHtml, packFullBleed, packRowTap, packFinishLayerName };`)() as {
@@ -156,7 +156,34 @@ describe("the card-face sheet", () => {
     const entries = showcaseEntries(showcase);
     expect(entries.map((e) => e.card.finish)).toEqual(["standard", "foil", "fullArt", "altArt", "glitch", "secret", "gold", "zeroDay", "prototype"]);
     const sheet = renderFaceSheet(showcase);
-    expect((sheet.match(/<figure class="sc"/g) ?? []).length).toBe(12);
-    expect((sheet.match(/data-full="true"/g) ?? []).length).toBe(10);
+    // Render session 75: the 12 showcase and Zero-Day faces, plus the
+    // booster rows (their counts pinned in the test below).
+    const rows = boosterRows();
+    const boosterFaces = rows.reduce((n, r) => n + r.entries.length, 0);
+    expect((sheet.match(/<figure class="sc"/g) ?? []).length).toBe(12 + boosterFaces);
+    const boosterFull = rows.reduce((n, r) => n + r.entries.filter((e) => e.card.reveal !== "plain").length, 0);
+    expect((sheet.match(/data-full="true"/g) ?? []).length).toBe(10 + boosterFull);
+  });
+  it("render session 75: every booster card, 097 to 124, in every version it has; no starter card", () => {
+    const set = cardSet("S0");
+    const rows = boosterRows();
+    expect(rows.map((r) => r.number)).toEqual(set.packCards.map((c) => c.collectorNumber));
+    expect(rows.length).toBe(28);
+    expect(rows[0]!.number).toBe("097/124");
+    expect(rows.at(-1)!.number).toBe("124/124");
+    for (const r of rows) {
+      expect(isBoosterCard(r.cardId), r.cardId).toBe(true);
+      const fins = r.entries.map((e) => e.card.finish);
+      expect(fins.slice(0, 3), r.name).toEqual(["standard", "fullArt", "gold"]);
+      expect(r.entries[0]!.card.reveal).toBe("plain");
+      expect(fins.includes("glitch")).toBe(set.glitch.includes(r.cardId));
+      expect(fins.filter((f) => f === "secret").length).toBe(set.secrets.filter((x) => x.cardId === r.cardId && x.kind !== "zeroDay").length);
+      expect(fins.filter((f) => f === "prototype").length).toBe(set.prototypes.filter((x) => x.cardId === r.cardId).length);
+    }
+    const all = rows.flatMap((r) => r.entries);
+    expect(all.filter((e) => e.card.finish === "gold").map((e) => e.card.collectorNumber)).toEqual(set.packCards.map((c) => c.goldNumber));
+    expect(all.filter((e) => e.card.finish === "glitch").length).toBe(16);
+    expect(all.filter((e) => e.card.finish === "secret").length).toBe(16);
+    expect(all.filter((e) => e.card.finish === "prototype").length).toBe(15);
   });
 });

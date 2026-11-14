@@ -9,6 +9,14 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **The booster cards on the site (session 75) are checked on the real API (25 PASS), with thin spots.** The
+  starter/booster split is read from the engine's registry (`isBoosterCard`, `SHIPPED_DECK_LISTS`), not from the
+  server's binder (it sends no such field); a future set would need the same rule. A face itself carries no starter or
+  booster mark (only its number says it). The versions row is in the Collection's viewer only, not in the pack reveal
+  or its summary. The fit now drops the flavor line when the smallest step crowds (12 Prototype faces today); a
+  Prototype face's rules text is then at 68% size, small on a phone binder thumbnail. Only one pack (5 cards, no
+  hit) was played in the browser; booster Gold/Glitch/illustration reveals were checked on the face sheet, not in a
+  live reveal. The Heat Death viewer was the versions path checked in the browser; the others are unit-tested.
 - **The season's end on the site (sessions 72-74) is checked on the real API through open, ending and ended (60 +
   40 + 36 PASS), with thin spots.** Session 73 drew the Store page, the Store, Packs and Daily rewards widgets, the
   top bar's Open and the card viewer closed once the server says "ended"; session 74 (hardening) finished the rest:

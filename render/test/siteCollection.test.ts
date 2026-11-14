@@ -77,26 +77,29 @@ describe("the binder's slots", () => {
   const b = o.binder();
   const c = o.collection();
   it("the Set tab is the base set in the binder's order, every place numbered, held ones counted as the store counts them", () => {
-    const [base] = binderBlocks(b, c, DEFAULT_FILTERS);
-    expect(base!.id).toBe("base");
-    expect(base!.slots.map((s) => s.number)).toEqual(b.base.entries.map((e) => e.number));
-    expect(base!.slots.length).toBe(b.base.total);
-    for (const s of base!.slots) {
+    // Render session 75: the Set tab is two blocks, the starter cards then
+    // the booster cards; together they are the base set in its order.
+    const parts = binderBlocks(b, c, DEFAULT_FILTERS);
+    expect(parts.map((x) => [x.id, x.part])).toEqual([["base", "starter"], ["base", "booster"]]);
+    const baseSlots = parts.flatMap((x) => x.slots);
+    expect(baseSlots.map((s) => s.number)).toEqual(b.base.entries.map((e) => e.number));
+    expect(baseSlots.length).toBe(b.base.total);
+    for (const s of baseSlots) {
       expect(s.owned).toBe(copiesOfSlot(s, copiesByCard(c)).length);
       expect(s.finish === null).toBe(s.owned === 0);
     }
-    expect(base!.held).toBe(b.base.held);
+    expect(parts[0]!.held + parts[1]!.held).toBe(b.base.held);
     // Every place on every tab: its count is its own copies (a Glitch place counts only Glitch copies, ...).
     for (const s of allSlots(b, c)) expect(s.owned, s.key).toBe(copiesOfSlot(s, copiesByCard(c)).length);
   });
   it("the faction filter keeps the engine's faction; Owned and Missing split the places", () => {
     for (const faction of ["Cortex", "Aegis", "Swarm", "Null", "Neutral"] as const) {
-      const [blk] = binderBlocks(b, c, { ...DEFAULT_FILTERS, faction });
-      expect(blk!.slots.length).toBeGreaterThan(0);
-      for (const s of blk!.slots) expect(getCard(s.cardId)!.faction).toBe(faction);
+      const slots = binderBlocks(b, c, { ...DEFAULT_FILTERS, faction }).flatMap((x) => x.slots);
+      expect(slots.length).toBeGreaterThan(0);
+      for (const s of slots) expect(getCard(s.cardId)!.faction).toBe(faction);
     }
-    const owned = binderBlocks(b, c, { ...DEFAULT_FILTERS, show: "owned" })[0]!.slots;
-    const missing = binderBlocks(b, c, { ...DEFAULT_FILTERS, show: "missing" })[0]!.slots;
+    const owned = binderBlocks(b, c, { ...DEFAULT_FILTERS, show: "owned" }).flatMap((x) => x.slots);
+    const missing = binderBlocks(b, c, { ...DEFAULT_FILTERS, show: "missing" }).flatMap((x) => x.slots);
     expect(owned.length).toBe(b.base.held);
     expect(owned.length + missing.length).toBe(b.base.total);
     expect(owned.every((s) => s.owned > 0) && missing.every((s) => s.owned === 0)).toBe(true);
@@ -116,7 +119,10 @@ describe("the binder's slots", () => {
     const slots = allSlots(b, c);
     expect(new Set(slots.map((s) => s.key)).size).toBe(slots.length);
     const blocks = binderBlocks(b, c, DEFAULT_FILTERS);
-    const keys = blocks[0]!.slots.map((s) => s.key);
+    const keys = blocks.flatMap((x) => x.slots.map((s) => s.key));
+    // The arrows cross from the starter block into the booster block.
+    const last = blocks[0]!.slots.at(-1)!.key;
+    expect(neighbours(blocks, last).next).toBe(blocks[1]!.slots[0]!.key);
     expect(neighbours(blocks, keys[0]!)).toEqual({ prev: null, next: keys[1] });
     expect(neighbours(blocks, keys[5]!)).toEqual({ prev: keys[4], next: keys[6] });
     expect(neighbours(blocks, keys.at(-1)!)).toEqual({ prev: keys.at(-2), next: null });

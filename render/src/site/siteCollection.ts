@@ -23,7 +23,7 @@
 // Not part of the 96-card set.") and says how many of the run were found
 // (2026-10-04).
 
-import { COPY_LIMITS, getCard, type Rarity } from "@ai-tcg/engine";
+import { COPY_LIMITS, getCard, isBoosterCard, SHIPPED_DECK_LISTS, type Rarity } from "@ai-tcg/engine";
 // The economy's config file holds every economy number (owner 2026-10-05:
 // "one economy config file for every number"); it imports only a type from
 // the engine, so it bundles for the browser. The site's esbuild alias maps
@@ -246,6 +246,9 @@ function prototypeSlot(r: SitePrototypeRun): BinderSlot {
 /** One titled block of slots on a tab. */
 export interface BinderBlock {
   id: SlotSection;
+  /** The Set tab's two parts (render session 75): the starter cards and the
+   * booster cards, each its own block. Absent on every other block. */
+  part?: "starter" | "booster";
   title: string;
   /** "61 / 96" style: entries held of the section's total (unfiltered). */
   held: number;
@@ -264,7 +267,28 @@ export function binderBlocks(b: SiteBinder, c: SiteCollection, f: CollectionFilt
     return { id, title: sec.title, held: sec.held, total: sec.total, note, slots: sec.entries.map((e) => slotOf(id, e, copies)).filter(keep) };
   };
   const baseTotal = b.base.total;
-  if (f.tab === "set") return [block("base", `Every card in ${b.setCode}, numbered. A copy of any finish fills its place.`)];
+  if (f.tab === "set") {
+    // Render session 75 (owner 2026-11-14: starter cards are Standard only;
+    // every special version belongs to the booster cards): the set in two
+    // parts, so the line between "never in packs" and "only in packs" is on
+    // the page. A set with no booster cards keeps the one block.
+    const all = b.base.entries.map((e) => slotOf("base", e, copies));
+    const isB = (s: BinderSlot) => cardOrigin(s.cardId) === "booster";
+    if (!all.some(isB)) return [block("base", `Every card in ${b.setCode}, numbered. A copy of any finish fills its place.`)];
+    const part = (which: "starter" | "booster", slots: BinderSlot[], title: string, note: string): BinderBlock => ({
+      id: "base",
+      part: which,
+      title: `${title} · ${numberRange(slots)}`,
+      held: slots.filter((s) => s.owned > 0).length,
+      total: slots.length,
+      note,
+      slots: slots.filter(keep),
+    });
+    return [
+      part("starter", all.filter((s) => !isB(s)), "Starter cards", "The cards of the four starter decks and the starter-era neutrals. Standard only: never in packs, and no other version. Crafting makes a Standard copy."),
+      part("booster", all.filter(isB), "Booster cards", `${b.setCode}'s booster cards: the only cards packs hold. Each comes in every finish; the Glitch, Gold, secret illustrations and Prototype runs are versions of these.`),
+    ];
+  }
   if (f.tab === "secrets") {
     return [
       block("secrets", `Numbered above the set's ${baseTotal}: illustration versions with their own art, then the Zero-Day cards.`),
@@ -287,6 +311,79 @@ export function binderBlocks(b: SiteBinder, c: SiteCollection, f: CollectionFilt
     ];
   }
   return [];
+}
+
+/** "001–096": a run of slots' first and last numbers, without the set
+ * total ("/124"). */
+function numberRange(slots: readonly BinderSlot[]): string {
+  const n = (s: BinderSlot | undefined) => (s ? s.number.split("/")[0]! : "");
+  return slots.length > 1 ? `${n(slots[0])}–${n(slots.at(-1))}` : n(slots[0]);
+}
+
+// ---- where a card comes from (render session 75) --------------------------------
+
+/** Where a set card comes from, by the engine's own registry: a booster card
+ * (packs only, every finish), a starter card (in a starter deck, Standard
+ * only, never in packs), or a starter-era card in no starter deck (crafting
+ * only; owner 2026-11-14, game 97 call 5 (a)). */
+export type CardOrigin = "booster" | "starter" | "craftOnly";
+export function cardOrigin(cardId: string): CardOrigin {
+  if (isBoosterCard(cardId)) return "booster";
+  return starterDecksOf(cardId).length ? "starter" : "craftOnly";
+}
+/** The starter decks (by faction) that hold a card, in the registry's order. */
+export function starterDecksOf(cardId: string): string[] {
+  return Object.entries(SHIPPED_DECK_LISTS).filter(([, list]) => list.some((e) => e.cardId === cardId)).map(([f]) => f);
+}
+
+/** The viewer's "where it comes from" line: a short tag and a sentence. A
+ * Zero-Day card (its own kind, packs only) has none. */
+export interface OriginView {
+  origin: CardOrigin;
+  tag: string;
+  line: string;
+}
+export function originView(s: Pick<BinderSlot, "cardId" | "kind" | "section">): OriginView | null {
+  if (s.kind === "zeroDay" || !getCard(s.cardId)) return null;
+  const origin = cardOrigin(s.cardId);
+  if (origin === "booster") {
+    return {
+      origin,
+      tag: "Booster card",
+      line: s.section === "base"
+        ? "From packs, in every finish. Crafting makes a Standard copy."
+        : "A version of a booster card: it only comes from packs.",
+    };
+  }
+  if (origin === "starter") {
+    const decks = starterDecksOf(s.cardId);
+    const where = decks.length === 1 ? `the ${decks[0]} starter deck` : `the ${decks.slice(0, -1).join(", ")} and ${decks.at(-1)} starter decks`;
+    return { origin, tag: "Starter card", line: `In ${where}. Standard only: never in packs, no other version. Crafting makes a Standard copy.` };
+  }
+  return { origin, tag: "Starter-era card", line: "In no starter deck and never in packs: crafting a Standard copy is the only way to get one. Standard only." };
+}
+
+/** One of a card's versions in the binder, for the viewer's row: the set
+ * place, a secret illustration, the Glitch and Gold versions, a Prototype
+ * run. Each opens its own place. */
+export interface VersionChip {
+  key: string;
+  label: string;
+  number: string;
+  held: boolean;
+  current: boolean;
+}
+export function versionsOf(s: Pick<BinderSlot, "cardId" | "key" | "kind">, b: SiteBinder, c: SiteCollection): VersionChip[] {
+  if (s.kind === "zeroDay") return [];
+  const copies = copiesByCard(c);
+  const out: VersionChip[] = [];
+  const add = (slot: BinderSlot, label: string) => out.push({ key: slot.key, label, number: slot.number, held: slot.owned > 0, current: slot.key === s.key });
+  for (const e of b.base.entries) if (e.cardId === s.cardId) add(slotOf("base", e, copies), "Set");
+  for (const e of b.secrets.entries) if (e.cardId === s.cardId && e.kind !== "zeroDay") add(slotOf("secrets", e, copies), "Illustration");
+  for (const e of b.glitch.entries) if (e.cardId === s.cardId) add(slotOf("glitch", e, copies), "Glitch");
+  for (const e of b.gold.entries) if (e.cardId === s.cardId) add(slotOf("gold", e, copies), "Gold");
+  for (const r of b.prototypes) if (r.cardId === s.cardId) add(prototypeSlot(r), `Prototype /${r.runSize}`);
+  return out.length > 1 ? out : [];
 }
 
 /** The summary panel's numbers: the base set's completion and each chase list's. */

@@ -354,6 +354,16 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .cv-hint { font-size: 12px; }
 .cv-info h2 { margin: 0 0 2px; font: 800 22px system-ui; } .cv-info > p { margin: 0 0 8px; }
 .cv-info h4 { margin: 14px 0 6px; font: 800 13px system-ui; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.cv-origin { margin: 0 0 4px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; line-height: 1.4; }
+.cv-origin .tag.org { font: 800 11px system-ui; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: rgba(120,130,160,.18); color: var(--ink); white-space: nowrap; }
+.cv-origin[data-origin="booster"] .tag.org { background: linear-gradient(110deg, rgba(122,92,255,.25), rgba(255,92,200,.25)); }
+.cv-vers h4 { margin-top: 10px; }
+.cv-vers .vrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.vchip { font: 700 12px system-ui; padding: 4px 9px; border-radius: 999px; border: 1px dashed rgba(128,138,170,.6); background: transparent; color: var(--muted); cursor: pointer; }
+.vchip small { font-weight: 600; opacity: .8; }
+.vchip.held { border-style: solid; color: var(--ink); background: rgba(120,130,160,.14); }
+.vchip.on { cursor: default; border-style: solid; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+button.vchip:hover, button.vchip:focus-visible { border-color: var(--accent); color: var(--ink); }
 .cv-copies { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .tag.bound { display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 99px; font: 700 11px system-ui; background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
 .cv-act { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -697,6 +707,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .cface .face .text { position: absolute; left: 4.5%; right: 4.5%; top: 64%; bottom: 13%; padding: 2.4cqw 3cqw; font-size: calc(4.3cqw * var(--fit, 1)); line-height: 1.32; border-radius: 4px; background: rgba(0,0,0,0.26); color: #dfe5f1; overflow: hidden; z-index: 2; }
 .cface .face .text p { margin: 0 0 1.4cqw; }
 .cface .face .text .flav { color: #9aa6bf; font-style: italic; }
+.cface .face .text.noflav .flav { display: none; }
 .cface .face .stats { position: absolute; right: 5.5%; bottom: 13.8%; display: flex; gap: 2cqw; z-index: 3; }
 .cface .face .stats span { min-width: 11cqw; height: 9cqw; padding: 0 2cqw; border-radius: 5px; display: grid; place-items: center; font-weight: 900; font-size: 5.2cqw; background: #0d0f15; border: 1px solid rgba(255,255,255,0.18); }
 .cface .face .stats .atk { color: #ffd0a0; }
@@ -1262,9 +1273,19 @@ body[data-theme="dark"] #bell-panel { background: rgba(20,24,56,.88); box-shadow
     var t = face.querySelector('.text');
     if (!t || !t.clientHeight) return 0;
     var stats = face.querySelector('.stats');
-    for (var i = 0; i < PACK_FIT_STEPS.length; i++) {
-      t.style.setProperty('--fit', String(PACK_FIT_STEPS[i]));
-      if (!packTextCrowded(t, stats)) break;
+    // Render session 75: a long booster card's Prototype face (its text box
+    // is shorter, the serial plate sits under it) was still crowded at the
+    // smallest step, its flavor line cut mid-word. The rules are what the
+    // card does; the flavor line is not. So when the smallest step still
+    // doesn't fit, the flavor line goes and the steps run again.
+    t.classList.remove('noflav');
+    for (var pass = 0; pass < 2; pass++) {
+      for (var i = 0; i < PACK_FIT_STEPS.length; i++) {
+        t.style.setProperty('--fit', String(PACK_FIT_STEPS[i]));
+        if (!packTextCrowded(t, stats)) return PACK_FIT_STEPS[i];
+      }
+      if (pass || !t.querySelector('.flav')) break;
+      t.classList.add('noflav');
     }
     return Number(t.style.getPropertyValue('--fit'));
   }
@@ -3426,6 +3447,460 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     { card: warrenGuardian, copies: 2 },
     { card: bloodswarmAlpha, copies: 2 }
   ];
+  var portScanner = {
+    id: "CX-101",
+    name: "Port Scanner",
+    faction: "Cortex",
+    rarity: "Common",
+    cost: 1,
+    type: "Unit",
+    attack: 1,
+    health: 1,
+    keywords: [],
+    art: "placeholder:cortex/port-scanner",
+    flavor: "It knocks on every door, just to hear which ones answer.",
+    abilities: [
+      {
+        id: "port-scanner-play",
+        trigger: "onPlay",
+        text: "When this enters play, if you control 3 or more units, recover 1 energy.",
+        condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 3 },
+        effects: [
+          { kind: "gainEnergy", amount: 1 }
+        ]
+      }
+    ]
+  };
+  var mutexLock = {
+    id: "CX-102",
+    name: "Mutex Lock",
+    faction: "Cortex",
+    rarity: "Common",
+    cost: 2,
+    type: "Unit",
+    attack: 1,
+    health: 3,
+    keywords: ["Guard"],
+    art: "placeholder:cortex/mutex-lock",
+    flavor: "One at a time. Everyone else waits at the gate.",
+    abilities: []
+  };
+  var clusterNode = {
+    id: "CX-103",
+    name: "Cluster Node",
+    faction: "Cortex",
+    rarity: "Uncommon",
+    cost: 4,
+    type: "Unit",
+    attack: 1,
+    health: 3,
+    keywords: [],
+    art: "placeholder:cortex/cluster-node",
+    flavor: "Alone it is a server. Racked with the others it is a grid.",
+    abilities: [
+      {
+        id: "cluster-node-aura",
+        trigger: "static",
+        text: "Your other units get +1/+0.",
+        staticEffect: {
+          kind: "buffAllies",
+          attack: 1,
+          health: 0,
+          filter: { side: "controller", kind: "unit" },
+          excludeSelf: true
+        }
+      }
+    ]
+  };
+  var hotSwap = {
+    id: "CX-104",
+    name: "Hot Swap",
+    faction: "Cortex",
+    rarity: "Uncommon",
+    cost: 2,
+    type: "Command",
+    speed: "Instant",
+    art: "placeholder:cortex/hot-swap",
+    flavor: "Pull the failing part, slot the spare, never drop the connection.",
+    abilities: [
+      {
+        id: "hot-swap-cast",
+        trigger: "onPlay",
+        text: "Give target friendly unit +2/+2 this turn. If you control 3 or more units, draw a card. Instant speed.",
+        targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+        effects: [
+          { kind: "buff", attack: 2, health: 2, duration: "turn" },
+          {
+            kind: "conditional",
+            condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 3 },
+            then: [
+              { kind: "drawCard", count: 1 }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  var parityChecker = {
+    id: "CX-105",
+    name: "Parity Checker",
+    faction: "Cortex",
+    rarity: "Rare",
+    cost: 3,
+    type: "Unit",
+    attack: 2,
+    health: 4,
+    keywords: [],
+    art: "placeholder:cortex/parity-checker",
+    flavor: "Every bit that disagrees with the checksum gets corrected, one at a time.",
+    abilities: [
+      {
+        id: "parity-checker-correct",
+        trigger: "activated",
+        text: "Pay 2 energy: deal 1 damage to target enemy unit. Instant speed. Once per turn.",
+        cost: { energy: 2 },
+        speed: "Instant",
+        limit: "oncePerTurn",
+        targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
+        effects: [
+          { kind: "damage", amount: { mode: "flat", value: 1 } }
+        ]
+      }
+    ]
+  };
+  var jobScheduler = {
+    id: "CX-106",
+    name: "Job Scheduler",
+    faction: "Cortex",
+    rarity: "Rare",
+    cost: 3,
+    type: "Directive",
+    art: "placeholder:cortex/job-scheduler",
+    flavor: "Every cycle it looks at the queue and hands the next task to whoever is free.",
+    abilities: [
+      {
+        id: "job-scheduler-tick",
+        trigger: "onTurnStart",
+        text: "At the start of your turn, if you control 3 or more units, draw a card.",
+        condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 3 },
+        effects: [
+          { kind: "drawCard", count: 1 }
+        ]
+      }
+    ]
+  };
+  var gridConsensus = {
+    id: "CX-107",
+    name: "Grid Consensus",
+    faction: "Cortex",
+    rarity: "Mythic",
+    cost: 6,
+    type: "Unit",
+    attack: 1,
+    health: 6,
+    keywords: [],
+    art: "placeholder:cortex/grid-consensus",
+    flavor: "No single node decides. All of them do, and they never disagree.",
+    abilities: [
+      {
+        id: "grid-consensus-scale",
+        trigger: "static",
+        text: "This unit's attack equals 1 plus the number of units you control.",
+        staticEffect: {
+          kind: "selfStatFromScaling",
+          attack: { mode: "scaling", base: 1, multiplier: 1, per: "controllerUnitsInPlay" }
+        }
+      },
+      {
+        id: "grid-consensus-play",
+        trigger: "onPlay",
+        text: "When this enters play, deal 1 damage to all enemy units.",
+        targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+        effects: [
+          { kind: "damage", amount: { mode: "flat", value: 1 } }
+        ]
+      }
+    ]
+  };
+  var CORTEX_BOOSTER_CARDS = [
+    portScanner,
+    mutexLock,
+    clusterNode,
+    hotSwap,
+    parityChecker,
+    jobScheduler,
+    gridConsensus
+  ];
+  var eggCourier = {
+    id: "SW-101",
+    name: "Egg Courier",
+    faction: "Swarm",
+    rarity: "Common",
+    cost: 2,
+    type: "Unit",
+    attack: 2,
+    health: 2,
+    keywords: [],
+    art: "placeholder:swarm/egg-courier",
+    flavor: "It carries the next generation on its back, and drops it when it falls.",
+    abilities: [
+      {
+        id: "egg-courier-death",
+        trigger: "onDeath",
+        text: "When this dies, summon a 1/1 Swarm Larva.",
+        effects: [
+          {
+            kind: "summon",
+            token: {
+              name: "Swarm Larva",
+              faction: "Swarm",
+              attack: 1,
+              health: 1,
+              keywords: [],
+              art: "placeholder:swarm/swarm-larva",
+              flavor: "One of ten thousand. Ten thousand more where it came from."
+            },
+            count: 1
+          }
+        ]
+      }
+    ]
+  };
+  var spawningPulse = {
+    id: "SW-102",
+    name: "Spawning Pulse",
+    faction: "Swarm",
+    rarity: "Common",
+    cost: 1,
+    type: "Command",
+    speed: "Sorcery",
+    art: "placeholder:swarm/spawning-pulse",
+    flavor: "A single signal, and the walls start to crawl.",
+    abilities: [
+      {
+        id: "spawning-pulse-cast",
+        trigger: "onPlay",
+        text: "Summon a 1/1 Swarm Larva. Then, if you control 2 or more units, draw a card.",
+        effects: [
+          {
+            kind: "summon",
+            token: {
+              name: "Swarm Larva",
+              faction: "Swarm",
+              attack: 1,
+              health: 1,
+              keywords: [],
+              art: "placeholder:swarm/swarm-larva",
+              flavor: "One of ten thousand. Ten thousand more where it came from."
+            },
+            count: 1
+          },
+          {
+            kind: "conditional",
+            condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 2 },
+            then: [
+              { kind: "drawCard", count: 1 }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  var hiveRelay = {
+    id: "SW-103",
+    name: "Hive Relay",
+    faction: "Swarm",
+    rarity: "Uncommon",
+    cost: 3,
+    type: "Unit",
+    attack: 3,
+    health: 3,
+    keywords: [],
+    art: "placeholder:swarm/hive-relay",
+    flavor: "It hums a frequency only the brood can hear, and the brood answers.",
+    abilities: [
+      {
+        id: "hive-relay-tick",
+        trigger: "onTurnStart",
+        text: "At the start of your turn, if you control 2 or more units, summon a 1/1 Swarm Larva.",
+        condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 2 },
+        effects: [
+          {
+            kind: "summon",
+            token: {
+              name: "Swarm Larva",
+              faction: "Swarm",
+              attack: 1,
+              health: 1,
+              keywords: [],
+              art: "placeholder:swarm/swarm-larva",
+              flavor: "One of ten thousand. Ten thousand more where it came from."
+            },
+            count: 1
+          }
+        ]
+      }
+    ]
+  };
+  var acidDrone = {
+    id: "SW-104",
+    name: "Acid Drone",
+    faction: "Swarm",
+    rarity: "Uncommon",
+    cost: 2,
+    type: "Unit",
+    attack: 2,
+    health: 2,
+    keywords: [],
+    art: "placeholder:swarm/acid-drone",
+    flavor: "Crush it and it bursts. Everything nearby wishes you hadn't.",
+    abilities: [
+      {
+        id: "acid-drone-death",
+        trigger: "onDeath",
+        text: "When this dies, deal 2 damage to a random enemy unit.",
+        targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+        effects: [
+          { kind: "damage", amount: { mode: "flat", value: 2 } }
+        ]
+      }
+    ]
+  };
+  var swarmSurge = {
+    id: "SW-105",
+    name: "Swarm Surge",
+    faction: "Swarm",
+    rarity: "Rare",
+    cost: 2,
+    type: "Command",
+    speed: "Instant",
+    art: "placeholder:swarm/swarm-surge",
+    flavor: "The brood never decides between more and stronger. It just picks the one you didn't plan for.",
+    abilities: [],
+    modes: [
+      {
+        id: "overrun",
+        name: "Overrun",
+        text: "Your units get +2/+1 this turn. Instant speed.",
+        abilities: [
+          {
+            id: "swarm-surge-overrun",
+            trigger: "onPlay",
+            text: "Your units get +2/+1 this turn. Instant speed.",
+            targeting: { scope: "all", filter: { side: "controller", kind: "unit" } },
+            effects: [
+              { kind: "buff", attack: 2, health: 1, duration: "turn" }
+            ]
+          }
+        ]
+      },
+      {
+        id: "brood",
+        name: "Brood",
+        text: "Summon two 1/1 Swarm Larvae. Instant speed.",
+        abilities: [
+          {
+            id: "swarm-surge-brood",
+            trigger: "onPlay",
+            text: "Summon two 1/1 Swarm Larvae. Instant speed.",
+            effects: [
+              {
+                kind: "summon",
+                token: {
+                  name: "Swarm Larva",
+                  faction: "Swarm",
+                  attack: 1,
+                  health: 1,
+                  keywords: [],
+                  art: "placeholder:swarm/swarm-larva",
+                  flavor: "One of ten thousand. Ten thousand more where it came from."
+                },
+                count: 2
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  var broodTyrant = {
+    id: "SW-106",
+    name: "Brood Tyrant",
+    faction: "Swarm",
+    rarity: "Rare",
+    cost: 3,
+    type: "Unit",
+    attack: 0,
+    health: 4,
+    keywords: [],
+    art: "placeholder:swarm/brood-tyrant",
+    flavor: "It is only as large as the colony behind it, and the colony is never small.",
+    abilities: [
+      {
+        id: "brood-tyrant-scale",
+        trigger: "static",
+        text: "This unit's attack equals 1 plus the number of units you control.",
+        staticEffect: {
+          kind: "selfStatFromScaling",
+          attack: { mode: "scaling", base: 1, multiplier: 1, per: "controllerUnitsInPlay" }
+        }
+      }
+    ]
+  };
+  var colonyOvermind = {
+    id: "SW-107",
+    name: "Colony Overmind",
+    faction: "Swarm",
+    rarity: "Mythic",
+    cost: 6,
+    type: "Unit",
+    attack: 4,
+    health: 5,
+    keywords: [],
+    art: "placeholder:swarm/colony-overmind",
+    flavor: "Ten thousand minds, one appetite.",
+    abilities: [
+      {
+        id: "colony-overmind-play",
+        trigger: "onPlay",
+        text: "When this enters play, summon two 1/1 Swarm Larvae.",
+        effects: [
+          {
+            kind: "summon",
+            token: {
+              name: "Swarm Larva",
+              faction: "Swarm",
+              attack: 1,
+              health: 1,
+              keywords: [],
+              art: "placeholder:swarm/swarm-larva",
+              flavor: "One of ten thousand. Ten thousand more where it came from."
+            },
+            count: 2
+          }
+        ]
+      },
+      {
+        id: "colony-overmind-tick",
+        trigger: "onTurnEnd",
+        text: "At the end of your turn, if you control 4 or more units, your units get +1/+0 permanently.",
+        condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 4 },
+        targeting: { scope: "all", filter: { side: "controller", kind: "unit" } },
+        effects: [
+          { kind: "buff", attack: 1, health: 0, duration: "permanent" }
+        ]
+      }
+    ]
+  };
+  var SWARM_BOOSTER_CARDS = [
+    eggCourier,
+    spawningPulse,
+    hiveRelay,
+    acidDrone,
+    swarmSurge,
+    broodTyrant,
+    colonyOvermind
+  ];
 
   // ../engine/src/data/aegisCards.ts
   var aegisCadet = {
@@ -4019,6 +4494,179 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     { card: salvageReflex, copies: 1 },
     { card: aegisLineTrooper, copies: 2 },
     { card: uplinkTower, copies: 1 }
+  ];
+  var shieldRelay = {
+    id: "AG-101",
+    name: "Shield Relay",
+    faction: "Aegis",
+    rarity: "Common",
+    cost: 2,
+    type: "Unit",
+    attack: 1,
+    health: 3,
+    keywords: [],
+    art: "placeholder:aegis/shield-relay",
+    flavor: "It doesn't block the hit. It makes sure someone else is ready for it.",
+    abilities: [
+      {
+        id: "shield-relay-play",
+        trigger: "onPlay",
+        text: "When this enters play, target friendly unit gains Barrier.",
+        targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+        effects: [
+          { kind: "applyStatus", status: "Barrier", duration: "untilConsumed" }
+        ]
+      }
+    ]
+  };
+  var kineticBuffer = {
+    id: "AG-102",
+    name: "Kinetic Buffer",
+    faction: "Aegis",
+    rarity: "Common",
+    cost: 2,
+    type: "Tool",
+    attackBonus: 1,
+    healthBonus: 2,
+    grantedKeywords: [],
+    art: "placeholder:aegis/kinetic-buffer",
+    flavor: "It stores the force of the last blow and hands it back.",
+    abilities: []
+  };
+  var bastionArray = {
+    id: "AG-103",
+    name: "Bastion Array",
+    faction: "Aegis",
+    rarity: "Uncommon",
+    cost: 3,
+    type: "Unit",
+    attack: 1,
+    health: 4,
+    keywords: ["Guard"],
+    art: "placeholder:aegis/bastion-array",
+    flavor: "Every hit it takes is logged, and every log entry pays the operator back.",
+    abilities: [
+      {
+        id: "bastion-array-damaged",
+        trigger: "onDamaged",
+        text: "Whenever this unit is damaged, restore 1 health to you.",
+        targeting: { scope: "all", filter: { side: "controller", kind: "player" } },
+        effects: [
+          { kind: "heal", amount: { mode: "flat", value: 1 } }
+        ]
+      }
+    ]
+  };
+  var hardlightShell = {
+    id: "AG-104",
+    name: "Hardlight Shell",
+    faction: "Aegis",
+    rarity: "Uncommon",
+    cost: 2,
+    type: "Command",
+    speed: "Instant",
+    art: "placeholder:aegis/hardlight-shell",
+    flavor: "Projected in the instant before impact, gone the instant after.",
+    abilities: [
+      {
+        id: "hardlight-shell-cast",
+        trigger: "onPlay",
+        text: "Target friendly unit gains Barrier. Draw a card. Instant speed.",
+        targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+        effects: [
+          { kind: "applyStatus", status: "Barrier", duration: "untilConsumed" },
+          { kind: "drawCard", count: 1 }
+        ]
+      }
+    ]
+  };
+  var mirrorBulwark = {
+    id: "AG-105",
+    name: "Mirror Bulwark",
+    faction: "Aegis",
+    rarity: "Rare",
+    cost: 3,
+    type: "Unit",
+    attack: 1,
+    health: 5,
+    keywords: ["Guard"],
+    art: "placeholder:aegis/mirror-bulwark",
+    flavor: "Strike the mirror and see who it hurts.",
+    abilities: [
+      {
+        id: "mirror-bulwark-damaged",
+        trigger: "onDamaged",
+        text: "Whenever this unit is damaged, deal 1 damage to a random enemy unit. Once per turn.",
+        limit: "oncePerTurn",
+        targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+        effects: [
+          { kind: "damage", amount: { mode: "flat", value: 1 } }
+        ]
+      }
+    ]
+  };
+  var hardeningProtocol = {
+    id: "AG-106",
+    name: "Hardening Protocol",
+    faction: "Aegis",
+    rarity: "Rare",
+    cost: 3,
+    type: "Directive",
+    art: "placeholder:aegis/hardening-protocol",
+    flavor: "Every morning, one more system gets patched. Nobody gets to skip a day.",
+    abilities: [
+      {
+        id: "hardening-protocol-tick",
+        trigger: "onTurnStart",
+        text: "At the start of your turn, a random friendly unit gets +1/+1 permanently.",
+        targeting: { scope: "random", filter: { side: "controller", kind: "unit" }, count: 1 },
+        effects: [
+          { kind: "buff", attack: 1, health: 1, duration: "permanent" }
+        ]
+      }
+    ]
+  };
+  var aegisOverwatch = {
+    id: "AG-107",
+    name: "Aegis Overwatch",
+    faction: "Aegis",
+    rarity: "Mythic",
+    cost: 6,
+    type: "Unit",
+    attack: 3,
+    health: 5,
+    keywords: ["Guard"],
+    art: "placeholder:aegis/aegis-overwatch",
+    flavor: "It sees the whole perimeter at once, and mends whatever got through.",
+    abilities: [
+      {
+        id: "aegis-overwatch-play",
+        trigger: "onPlay",
+        text: "When this enters play, your units gain Barrier.",
+        targeting: { scope: "all", filter: { side: "controller", kind: "unit" } },
+        effects: [
+          { kind: "applyStatus", status: "Barrier", duration: "untilConsumed" }
+        ]
+      },
+      {
+        id: "aegis-overwatch-tick",
+        trigger: "onTurnEnd",
+        text: "At the end of your turn, restore 1 health to each of your units.",
+        targeting: { scope: "all", filter: { side: "controller", kind: "unit" } },
+        effects: [
+          { kind: "heal", amount: { mode: "flat", value: 1 } }
+        ]
+      }
+    ]
+  };
+  var AEGIS_BOOSTER_CARDS = [
+    shieldRelay,
+    kineticBuffer,
+    bastionArray,
+    hardlightShell,
+    mirrorBulwark,
+    hardeningProtocol,
+    aegisOverwatch
   ];
 
   // ../engine/src/data/nullCards.ts
@@ -4714,6 +5362,212 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     // cap (Segfault Handler is the one removal add; the owner OK'd the cap).
     { card: rollbackPoint, copies: 2 }
   ];
+  var badSector = {
+    id: "NL-101",
+    name: "Bad Sector",
+    faction: "Null",
+    rarity: "Common",
+    cost: 1,
+    type: "Unit",
+    attack: 1,
+    health: 1,
+    keywords: [],
+    art: "placeholder:null/bad-sector",
+    flavor: "Write to it once and the corruption spreads to whatever touched it.",
+    abilities: [
+      {
+        id: "bad-sector-death",
+        trigger: "onDeath",
+        text: "When this dies, a random enemy unit gets -1/-0 permanently.",
+        targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+        effects: [
+          { kind: "buff", attack: -1, health: 0, duration: "permanent" }
+        ]
+      }
+    ]
+  };
+  var memoryLeak = {
+    id: "NL-102",
+    name: "Memory Leak",
+    faction: "Null",
+    rarity: "Common",
+    cost: 2,
+    type: "Command",
+    speed: "Sorcery",
+    art: "placeholder:null/memory-leak",
+    flavor: "Nothing is taken all at once. It just never comes back.",
+    abilities: [
+      {
+        id: "memory-leak-cast",
+        trigger: "onPlay",
+        text: "Target enemy unit gets -1/-1 permanently (it can't take health below 1). Draw a card.",
+        targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
+        effects: [
+          { kind: "buff", attack: -1, health: -1, duration: "permanent" },
+          { kind: "drawCard", count: 1 }
+        ]
+      }
+    ]
+  };
+  var reaperThread = {
+    id: "NL-103",
+    name: "Reaper Thread",
+    faction: "Null",
+    rarity: "Uncommon",
+    cost: 3,
+    type: "Unit",
+    attack: 2,
+    health: 3,
+    keywords: [],
+    art: "placeholder:null/reaper-thread",
+    flavor: "It ends what the others leave running, and reads the leftovers.",
+    abilities: [
+      {
+        id: "reaper-thread-kill",
+        trigger: "onKill",
+        text: "Whenever this destroys a unit, draw a card.",
+        effects: [
+          { kind: "drawCard", count: 1 }
+        ]
+      }
+    ]
+  };
+  var zombieFork = {
+    id: "NL-104",
+    name: "Zombie Fork",
+    faction: "Null",
+    rarity: "Uncommon",
+    cost: 2,
+    type: "Unit",
+    attack: 2,
+    health: 2,
+    keywords: [],
+    art: "placeholder:null/zombie-fork",
+    flavor: "Kill the parent and both children keep running.",
+    abilities: [
+      {
+        id: "zombie-fork-death",
+        trigger: "onDeath",
+        text: "When this dies, create two 1/1 Orphaned Thread tokens.",
+        effects: [
+          {
+            kind: "summon",
+            token: {
+              name: "Orphaned Thread",
+              faction: "Null",
+              attack: 1,
+              health: 1,
+              keywords: [],
+              art: "placeholder:null/orphaned-thread",
+              flavor: "Still running. Still waiting for a join that will never come."
+            },
+            count: 2
+          }
+        ]
+      }
+    ]
+  };
+  var heapSpray = {
+    id: "NL-105",
+    name: "Heap Spray",
+    faction: "Null",
+    rarity: "Rare",
+    cost: 4,
+    type: "Unit",
+    attack: 2,
+    health: 4,
+    keywords: [],
+    art: "placeholder:null/heap-spray",
+    flavor: "It floods memory with junk until nothing else can run at full strength.",
+    abilities: [
+      {
+        id: "heap-spray-play",
+        trigger: "onPlay",
+        text: "When this enters play, enemy units get -1/-0 permanently.",
+        targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+        effects: [
+          { kind: "buff", attack: -1, health: 0, duration: "permanent" }
+        ]
+      }
+    ]
+  };
+  var decayEngine = {
+    id: "NL-106",
+    name: "Decay Engine",
+    faction: "Null",
+    rarity: "Rare",
+    cost: 4,
+    type: "Unit",
+    attack: 2,
+    health: 4,
+    keywords: [],
+    art: "placeholder:null/decay-engine",
+    flavor: "It doesn't attack. It waits, and everything near it gets a little less.",
+    abilities: [
+      {
+        id: "decay-engine-tick",
+        trigger: "onTurnEnd",
+        text: "At the end of your turn, a random enemy unit gets -1/-0 permanently.",
+        targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+        effects: [
+          { kind: "buff", attack: -1, health: 0, duration: "permanent" }
+        ]
+      }
+    ]
+  };
+  var heatDeath = {
+    id: "NL-107",
+    name: "Heat Death",
+    faction: "Null",
+    rarity: "Mythic",
+    cost: 6,
+    type: "Unit",
+    attack: 3,
+    health: 6,
+    keywords: [],
+    art: "placeholder:null/heat-death",
+    flavor: "Not an explosion. Just the slow, even end of every difference.",
+    abilities: [
+      {
+        id: "heat-death-play",
+        trigger: "onPlay",
+        text: "When this enters play, enemy units get -1/-0 permanently.",
+        targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+        effects: [
+          { kind: "buff", attack: -1, health: 0, duration: "permanent" }
+        ]
+      },
+      {
+        id: "heat-death-death",
+        trigger: "onDeath",
+        text: "When this dies, create two 1/1 Orphaned Thread tokens.",
+        effects: [
+          {
+            kind: "summon",
+            token: {
+              name: "Orphaned Thread",
+              faction: "Null",
+              attack: 1,
+              health: 1,
+              keywords: [],
+              art: "placeholder:null/orphaned-thread",
+              flavor: "Still running. Still waiting for a join that will never come."
+            },
+            count: 2
+          }
+        ]
+      }
+    ]
+  };
+  var NULL_BOOSTER_CARDS = [
+    badSector,
+    memoryLeak,
+    reaperThread,
+    zombieFork,
+    heapSpray,
+    decayEngine,
+    heatDeath
+  ];
 
   // ../engine/src/cards/poolLint.ts
   var REMOVAL_DEBUFF_MAX_SHARE = 0.25;
@@ -5070,6 +5924,16 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   }
 
   // ../engine/src/data/registry.ts
+  var S0_BOOSTER_CARDS = {
+    Cortex: CORTEX_BOOSTER_CARDS,
+    Swarm: SWARM_BOOSTER_CARDS,
+    Aegis: AEGIS_BOOSTER_CARDS,
+    Null: NULL_BOOSTER_CARDS
+  };
+  var S0_BOOSTER_CARD_IDS = new Set(Object.values(S0_BOOSTER_CARDS).flatMap((cs) => cs.map((c) => c.id)));
+  function isBoosterCard(id) {
+    return S0_BOOSTER_CARD_IDS.has(id);
+  }
   var CARD_REGISTRY = (() => {
     const map = /* @__PURE__ */ new Map();
     const all = [
@@ -5078,7 +5942,8 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       ...AEGIS_CARDS.map((p) => p.card),
       ...NULL_CARDS.map((p) => p.card),
       ...NEUTRAL_POOL,
-      ...ZERO_DAY_CARDS
+      ...ZERO_DAY_CARDS,
+      ...Object.values(S0_BOOSTER_CARDS).flat()
     ];
     for (const card of all) {
       const existing = map.get(card.id);
@@ -5087,6 +5952,9 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     }
     return map;
   })();
+  for (const f of Object.keys(S0_BOOSTER_CARDS)) {
+    for (const c of S0_BOOSTER_CARDS[f]) if (c.faction !== f) throw new Error(`booster card ${c.id} is listed under ${f} but is ${c.faction}`);
+  }
   var SHIPPED_DECK_LISTS = {
     Cortex: CORTEX_CARDS.map((p) => ({ cardId: p.card.id, copies: p.copies })),
     Swarm: SWARM_CARDS.map((p) => ({ cardId: p.card.id, copies: p.copies })),
@@ -5095,6 +5963,10 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   };
   function getCard(id) {
     return CARD_REGISTRY.get(id);
+  }
+  for (const [f, list] of Object.entries(SHIPPED_DECK_LISTS)) {
+    const booster = list.find((e) => S0_BOOSTER_CARD_IDS.has(e.cardId));
+    if (booster) throw new Error(`the ${f} starter deck holds booster card ${booster.cardId}`);
   }
 
   // ../engine/src/data/cardSnapshots/cards1.ts
@@ -5227,6 +6099,11 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       id: "cards-1",
       digest: "6b0c6e22247bc341",
       note: "The Season 0 cards as they stood for every ai-tcg-replay/1 file (session 67 to session 70): the four faction pools, the neutral pool and the 3 Zero-Day cards."
+    },
+    {
+      id: "cards-2",
+      digest: "841867645a649a6d",
+      note: "Session 97: cards-1 plus Season 0's 28 pack-only booster cards (CX-101 to CX-107, SW-101 to SW-107, AG-101 to AG-107, NL-101 to NL-107; owner 2026-11-14, option B). No cards-1 card changed."
     }
   ];
   var CURRENT_CARDS_VERSION = CARDS_VERSIONS[CARDS_VERSIONS.length - 1].id;
@@ -7282,14 +8159,19 @@ gl_FragColor=vec4(col,1.);}`;
     prototypeBonus: PACK_ODDS.prototypeBonus,
     pity: PACK_ODDS.pity
   };
+  var PACK_ODDS_V3 = {
+    ...PACK_ODDS_V2,
+    version: "S0-odds-3"
+  };
   var PACK_ODDS_TABLES = /* @__PURE__ */ new Map([
     [PACK_ODDS.version, PACK_ODDS],
-    [PACK_ODDS_V2.version, PACK_ODDS_V2]
+    [PACK_ODDS_V2.version, PACK_ODDS_V2],
+    [PACK_ODDS_V3.version, PACK_ODDS_V3]
   ]);
   var SECRET_CRAFT_PACK_POINTS = { illustration: 750, zeroDay: 3e3 };
 
   // ../economy/src/chase.ts
-  var S0_ILLUSTRATIONS = [
+  var S0_ILLUSTRATIONS_V2 = [
     // Cortex
     "CX-024",
     // Quorum Arbiter (Mythic)
@@ -7362,13 +8244,52 @@ gl_FragColor=vec4(col,1.);}`;
     "NT-009"
     // Scrap Recycler (Common)
   ];
+  var S0_ILLUSTRATIONS = [
+    // Cortex
+    "CX-107",
+    // Grid Consensus (Mythic)
+    "CX-105",
+    // Parity Checker (Rare)
+    "CX-106",
+    // Job Scheduler (Rare)
+    "CX-101",
+    // Port Scanner (Common)
+    // Swarm
+    "SW-107",
+    // Colony Overmind (Mythic)
+    "SW-105",
+    // Swarm Surge (Rare)
+    "SW-106",
+    // Brood Tyrant (Rare)
+    "SW-101",
+    // Egg Courier (Common)
+    // Aegis
+    "AG-107",
+    // Aegis Overwatch (Mythic)
+    "AG-105",
+    // Mirror Bulwark (Rare)
+    "AG-106",
+    // Hardening Protocol (Rare)
+    "AG-101",
+    // Shield Relay (Common)
+    // Null
+    "NL-107",
+    // Heat Death (Mythic)
+    "NL-105",
+    // Heap Spray (Rare)
+    "NL-106",
+    // Decay Engine (Rare)
+    "NL-101"
+    // Bad Sector (Common)
+  ];
   var ZERO_DAY_PER_SEASON = 3;
   function secretCards(set, illustrations) {
     var _a4;
     const total = set.cards.length;
-    const width = Math.max(3, String(total * 2 + illustrations.length + ZERO_DAY_PER_SEASON).length);
+    const golds = set.cards.filter((c) => c.goldNumber !== null).length;
+    const width = Math.max(3, String(total + golds + illustrations.length + ZERO_DAY_PER_SEASON).length);
     const pad = (n) => String(n).padStart(width, "0");
-    let next = 2 * total + 1;
+    let next = total + golds + 1;
     const out = illustrations.map((cardId, i) => {
       const card = set.cards.find((c) => c.cardId === cardId);
       if (!card) throw new Error(`illustration of ${cardId}: not a card of ${set.code}`);
@@ -7384,7 +8305,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (new Set(illustrations).size !== illustrations.length) throw new Error("an illustration is listed twice");
     return out;
   }
-  var S0_GLITCH_CARDS = [
+  var S0_GLITCH_CARDS_V2 = [
     "CX-024",
     "CX-003",
     "CX-002",
@@ -7411,34 +8332,124 @@ gl_FragColor=vec4(col,1.);}`;
     "NT-007"
     // Uplink Tower, Relay Courier, Scrap Recycler, Commodity Rack
   ];
+  var S0_GLITCH_CARDS = [
+    "CX-107",
+    "CX-105",
+    "CX-103",
+    "CX-102",
+    // Grid Consensus, Parity Checker, Cluster Node, Mutex Lock
+    "SW-107",
+    "SW-106",
+    "SW-103",
+    "SW-104",
+    // Colony Overmind, Brood Tyrant, Hive Relay, Acid Drone
+    "AG-107",
+    "AG-105",
+    "AG-103",
+    "AG-101",
+    // Aegis Overwatch, Mirror Bulwark, Bastion Array, Shield Relay
+    "NL-107",
+    "NL-105",
+    "NL-106",
+    "NL-104"
+    // Heat Death, Heap Spray, Decay Engine, Zombie Fork
+  ];
 
   // ../economy/src/packs.ts
   var RARITIES = ["Common", "Uncommon", "Rare", "Mythic"];
   var FACTION_ORDER2 = ["Cortex", "Swarm", "Aegis", "Null", "Neutral"];
+  var byFactionRarityName = (a, b) => FACTION_ORDER2.indexOf(a.faction) - FACTION_ORDER2.indexOf(b.faction) || RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) || a.name.localeCompare(b.name);
   function seasonZeroSet() {
-    const cards = [...CARD_REGISTRY.values()].filter((c) => !c.topTier).sort(
-      (a, b) => FACTION_ORDER2.indexOf(a.faction) - FACTION_ORDER2.indexOf(b.faction) || RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) || a.name.localeCompare(b.name)
-    );
-    const total = cards.length;
-    const width = Math.max(3, String(total * 2).length);
+    const owned = [...CARD_REGISTRY.values()].filter((c) => !c.topTier);
+    const starter = owned.filter((c) => !isBoosterCard(c.id)).sort(byFactionRarityName);
+    const booster = owned.filter((c) => isBoosterCard(c.id)).sort(byFactionRarityName);
+    const total = starter.length + booster.length;
+    const width = Math.max(3, String(total + booster.length).length);
     const pad = (n) => String(n).padStart(width, "0");
+    const cards = [
+      ...starter.map((c, i) => ({ cardId: c.id, name: c.name, rarity: c.rarity, collectorNumber: `${pad(i + 1)}/${pad(total)}`, goldNumber: null })),
+      ...booster.map((c, i) => ({
+        cardId: c.id,
+        name: c.name,
+        rarity: c.rarity,
+        collectorNumber: `${pad(starter.length + i + 1)}/${pad(total)}`,
+        goldNumber: `${pad(total + i + 1)}/${pad(total)}`
+      }))
+    ];
     const set = {
       code: "S0",
       name: "Season Zero",
       season: "S0",
       symbol: "S0-boot",
-      cards: cards.map((c, i) => ({
-        cardId: c.id,
-        name: c.name,
-        rarity: c.rarity,
-        collectorNumber: `${pad(i + 1)}/${pad(total)}`,
-        goldNumber: `${pad(total + i + 1)}/${pad(total)}`
-      })),
-      // The pyramid is the owner's (4 x /250, 3 x /100, 3 x /50, 2 x /25, /10,
-      // /5 and one 1/1: 1,516 copies). WHICH cards get a run is session 36's
-      // proposal for the owner's check-in: every faction's Mythic at the top,
-      // Rares below, all five pools represented. The owner checks the art
-      // previews before a season's list goes live.
+      cards,
+      // The owner's pyramid (4 x /250, 3 x /100, 3 x /50, 2 x /25, /10, /5
+      // and one 1/1: 1,516 copies), re-pointed at booster cards (owner
+      // 2026-11-14: "re-points ... the 15 Prototype runs (including the 1/1)
+      // at booster cards"). PROPOSED at session 97's [OWNER CHECK-IN], the old
+      // list's shape: the four Mythics at the top, in the old order of
+      // factions (Null's the 1/1), then the Rares, then three Uncommons. Run
+      // codes are the same 15 (S0-P01 to S0-P15), by run size.
+      prototypes: [
+        ["NL-107", 1],
+        // Heat Death
+        ["AG-107", 5],
+        // Aegis Overwatch
+        ["CX-107", 10],
+        // Grid Consensus
+        ["SW-107", 25],
+        // Colony Overmind
+        ["NL-105", 25],
+        // Heap Spray
+        ["SW-105", 50],
+        // Swarm Surge
+        ["AG-105", 50],
+        // Mirror Bulwark
+        ["CX-105", 50],
+        // Parity Checker
+        ["SW-106", 100],
+        // Brood Tyrant
+        ["NL-106", 100],
+        // Decay Engine
+        ["AG-106", 100],
+        // Hardening Protocol
+        ["CX-106", 250],
+        // Job Scheduler
+        ["AG-103", 250],
+        // Bastion Array
+        ["SW-103", 250],
+        // Hive Relay
+        ["NL-103", 250]
+        // Reaper Thread
+      ].map(([cardId, runSize], i) => ({ code: `S0-P${String(i + 1).padStart(2, "0")}`, cardId, runSize }))
+    };
+    const packCards = cards.filter((c) => isBoosterCard(c.cardId));
+    for (const r of set.prototypes) if (!isBoosterCard(r.cardId)) throw new Error(`Prototype run ${r.code}: ${r.cardId} is not a booster card`);
+    for (const id of [...S0_ILLUSTRATIONS, ...S0_GLITCH_CARDS]) if (!isBoosterCard(id)) throw new Error(`special version of ${id}: not a booster card`);
+    return {
+      ...set,
+      secrets: secretCards(set, S0_ILLUSTRATIONS),
+      glitch: glitchList(set, S0_GLITCH_CARDS),
+      packCards,
+      legacy: legacySeasonZeroSet(starter)
+    };
+  }
+  function legacySeasonZeroSet(cards) {
+    const total = cards.length;
+    const width = Math.max(3, String(total * 2).length);
+    const pad = (n) => String(n).padStart(width, "0");
+    const setCards = cards.map((c, i) => ({
+      cardId: c.id,
+      name: c.name,
+      rarity: c.rarity,
+      collectorNumber: `${pad(i + 1)}/${pad(total)}`,
+      goldNumber: `${pad(total + i + 1)}/${pad(total)}`
+    }));
+    const set = {
+      code: "S0",
+      name: "Season Zero",
+      season: "S0",
+      symbol: "S0-boot",
+      cards: setCards,
       prototypes: [
         ["NL-014", 1],
         ["AG-014", 5],
@@ -7457,7 +8468,7 @@ gl_FragColor=vec4(col,1.);}`;
         ["NL-019", 250]
       ].map(([cardId, runSize], i) => ({ code: `S0-P${String(i + 1).padStart(2, "0")}`, cardId, runSize }))
     };
-    return { ...set, secrets: secretCards(set, S0_ILLUSTRATIONS), glitch: glitchList(set, S0_GLITCH_CARDS) };
+    return { ...set, secrets: secretCards(set, S0_ILLUSTRATIONS_V2), glitch: glitchList(set, S0_GLITCH_CARDS_V2), packCards: setCards };
   }
   function glitchList(set, ids) {
     var _a4;
@@ -8493,7 +9504,24 @@ gl_FragColor=vec4(col,1.);}`;
       return { id, title: sec.title, held: sec.held, total: sec.total, note, slots: sec.entries.map((e) => slotOf(id, e, copies)).filter(keep) };
     };
     const baseTotal = b.base.total;
-    if (f.tab === "set") return [block("base", `Every card in ${b.setCode}, numbered. A copy of any finish fills its place.`)];
+    if (f.tab === "set") {
+      const all = b.base.entries.map((e) => slotOf("base", e, copies));
+      const isB = (s) => cardOrigin(s.cardId) === "booster";
+      if (!all.some(isB)) return [block("base", `Every card in ${b.setCode}, numbered. A copy of any finish fills its place.`)];
+      const part = (which, slots, title, note) => ({
+        id: "base",
+        part: which,
+        title: `${title} \xB7 ${numberRange(slots)}`,
+        held: slots.filter((s) => s.owned > 0).length,
+        total: slots.length,
+        note,
+        slots: slots.filter(keep)
+      });
+      return [
+        part("starter", all.filter((s) => !isB(s)), "Starter cards", "The cards of the four starter decks and the starter-era neutrals. Standard only: never in packs, and no other version. Crafting makes a Standard copy."),
+        part("booster", all.filter(isB), "Booster cards", `${b.setCode}'s booster cards: the only cards packs hold. Each comes in every finish; the Glitch, Gold, secret illustrations and Prototype runs are versions of these.`)
+      ];
+    }
     if (f.tab === "secrets") {
       return [
         block("secrets", `Numbered above the set's ${baseTotal}: illustration versions with their own art, then the Zero-Day cards.`),
@@ -8516,6 +9544,46 @@ gl_FragColor=vec4(col,1.);}`;
       ];
     }
     return [];
+  }
+  function numberRange(slots) {
+    const n = (s) => s ? s.number.split("/")[0] : "";
+    return slots.length > 1 ? `${n(slots[0])}\u2013${n(slots.at(-1))}` : n(slots[0]);
+  }
+  function cardOrigin(cardId) {
+    if (isBoosterCard(cardId)) return "booster";
+    return starterDecksOf(cardId).length ? "starter" : "craftOnly";
+  }
+  function starterDecksOf(cardId) {
+    return Object.entries(SHIPPED_DECK_LISTS).filter(([, list]) => list.some((e) => e.cardId === cardId)).map(([f]) => f);
+  }
+  function originView(s) {
+    if (s.kind === "zeroDay" || !getCard(s.cardId)) return null;
+    const origin = cardOrigin(s.cardId);
+    if (origin === "booster") {
+      return {
+        origin,
+        tag: "Booster card",
+        line: s.section === "base" ? "From packs, in every finish. Crafting makes a Standard copy." : "A version of a booster card: it only comes from packs."
+      };
+    }
+    if (origin === "starter") {
+      const decks = starterDecksOf(s.cardId);
+      const where = decks.length === 1 ? `the ${decks[0]} starter deck` : `the ${decks.slice(0, -1).join(", ")} and ${decks.at(-1)} starter decks`;
+      return { origin, tag: "Starter card", line: `In ${where}. Standard only: never in packs, no other version. Crafting makes a Standard copy.` };
+    }
+    return { origin, tag: "Starter-era card", line: "In no starter deck and never in packs: crafting a Standard copy is the only way to get one. Standard only." };
+  }
+  function versionsOf(s, b, c) {
+    if (s.kind === "zeroDay") return [];
+    const copies = copiesByCard(c);
+    const out = [];
+    const add = (slot, label) => out.push({ key: slot.key, label, number: slot.number, held: slot.owned > 0, current: slot.key === s.key });
+    for (const e of b.base.entries) if (e.cardId === s.cardId) add(slotOf("base", e, copies), "Set");
+    for (const e of b.secrets.entries) if (e.cardId === s.cardId && e.kind !== "zeroDay") add(slotOf("secrets", e, copies), "Illustration");
+    for (const e of b.glitch.entries) if (e.cardId === s.cardId) add(slotOf("glitch", e, copies), "Glitch");
+    for (const e of b.gold.entries) if (e.cardId === s.cardId) add(slotOf("gold", e, copies), "Gold");
+    for (const r of b.prototypes) if (r.cardId === s.cardId) add(prototypeSlot(r), `Prototype /${r.runSize}`);
+    return out.length > 1 ? out : [];
   }
   function collectionSummary(b, c) {
     const protoHeld = b.prototypes.filter((r) => r.serialsHeld.length > 0).length;
@@ -8655,7 +9723,7 @@ gl_FragColor=vec4(col,1.);}`;
   function blockHtml(b, face2, setCode) {
     const pct3 = b.total ? Math.floor(b.held / b.total * 100) : 0;
     const body = b.slots.length ? `<div class="binder">${b.slots.map((s) => slotHtml(s, face2, setCode)).join("")}</div>` : '<p class="muted small bempty">Nothing here with these filters.</p>';
-    return `<section class="col-block" data-block="${b.id}"><div class="bh"><h3>${esc(b.title)}</h3><span class="bheld"><b>${b.held}</b> / ${b.total}</span><span class="bbar" role="img" aria-label="${pct3}% held"><i style="width:${pct3}%"></i></span></div><p class="muted small">${esc(b.note)}</p>${body}</section>`;
+    return `<section class="col-block" data-block="${b.id}"${b.part ? ` data-part="${b.part}"` : ""}><div class="bh"><h3>${esc(b.title)}</h3><span class="bheld"><b>${b.held}</b> / ${b.total}</span><span class="bbar" role="img" aria-label="${pct3}% held"><i style="width:${pct3}%"></i></span></div><p class="muted small">${esc(b.note)}</p>${body}</section>`;
   }
   function collectionPageHtml(b, c, f, packPoints, face2) {
     const sum = collectionSummary(b, c);
@@ -8671,6 +9739,19 @@ gl_FragColor=vec4(col,1.);}`;
   function seasonOf(setCode) {
     const m = /^S(\d+)$/.exec(setCode);
     return m ? `Season ${m[1]}` : setCode;
+  }
+  function originHtml(s) {
+    const o = originView(s);
+    return o ? `<p class="cv-origin" data-origin="${o.origin}"><span class="tag org">${esc(o.tag)}</span> <span class="muted small">${esc(o.line)}</span></p>` : "";
+  }
+  function versionsHtml(s, b, c) {
+    const v = versionsOf(s, b, c);
+    if (!v.length) return "";
+    const chip = (x) => {
+      const label = `${x.label} \xB7 ${x.number}${x.held ? " \xB7 held" : " \xB7 not held"}`;
+      return x.current ? `<span class="vchip on${x.held ? " held" : ""}" aria-current="true" title="${esc(label)}">${esc(x.label)} <small>${esc(x.number)}</small></span>` : `<button type="button" class="vchip${x.held ? " held" : ""}" data-act="view-slot" data-slot="${esc(x.key)}" title="${esc(label)}" aria-label="${esc(label)}">${esc(x.label)} <small>${esc(x.number)}</small></button>`;
+    };
+    return `<div class="cv-vers" role="group" aria-label="This card's versions"><h4>Versions</h4><div class="vrow">${v.map(chip).join("")}</div></div>`;
   }
   function viewerHtml(s, b, c, v, packPoints, nav, face2, frozen = null) {
     var _a4, _b, _c;
@@ -8697,7 +9778,7 @@ gl_FragColor=vec4(col,1.);}`;
   <div class="cv-stage"><div class="cv-card${s.owned ? "" : " missing"}" id="cv-card"><span class="cface">${face2(faceOfSlot(s), b.setCode)}</span></div><small class="muted cv-hint">Move the pointer over the card to tilt it.</small></div>
   <div class="cv-info">
     <h2 id="dlg-t">${esc(s.name)}</h2>
-    <p class="muted">${esc(slotCaption(s, b.base.total, b.setCode))}</p>
+    <p class="muted">${esc(slotCaption(s, b.base.total, b.setCode))}</p>${originHtml(s)}${versionsHtml(s, b, c)}
     <h4>You hold ${copies.length}</h4>${held}${decks}
     <h4>Craft</h4>${craft}
     ${s.section === "base" ? `<h4>Salvage</h4>${salvage}` : ""}

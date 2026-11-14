@@ -407,6 +407,16 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .cv-hint { font-size: 12px; }
 .cv-info h2 { margin: 0 0 2px; font: 800 22px system-ui; } .cv-info > p { margin: 0 0 8px; }
 .cv-info h4 { margin: 14px 0 6px; font: 800 13px system-ui; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.cv-origin { margin: 0 0 4px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; line-height: 1.4; }
+.cv-origin .tag.org { font: 800 11px system-ui; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: rgba(120,130,160,.18); color: var(--ink); white-space: nowrap; }
+.cv-origin[data-origin="booster"] .tag.org { background: linear-gradient(110deg, rgba(122,92,255,.25), rgba(255,92,200,.25)); }
+.cv-vers h4 { margin-top: 10px; }
+.cv-vers .vrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.vchip { font: 700 12px system-ui; padding: 4px 9px; border-radius: 999px; border: 1px dashed rgba(128,138,170,.6); background: transparent; color: var(--muted); cursor: pointer; }
+.vchip small { font-weight: 600; opacity: .8; }
+.vchip.held { border-style: solid; color: var(--ink); background: rgba(120,130,160,.14); }
+.vchip.on { cursor: default; border-style: solid; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+button.vchip:hover, button.vchip:focus-visible { border-color: var(--accent); color: var(--ink); }
 .cv-copies { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .tag.bound { display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 99px; font: 700 11px system-ui; background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
 .cv-act { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }

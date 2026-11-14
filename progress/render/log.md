@@ -6149,3 +6149,51 @@ real 6-minute wait.
 **Next render-lane slice:** after this PR the next session is game (97, the booster-card build). Render 75: the
 booster cards will need card faces and set numbers (097-124) once the game lane registers them; until then, the
 debt list.
+
+## 2026-11-14 — Render session 75: Season 0's booster cards on the site
+
+**Lane:** render. The last merged PR (#175, "Game lane: the Season 0 booster cards built, the set 001-124 and
+S0-odds-3 (session 97)") is game, so this session is render; no render PR was open. Read first: owner-feedback.md
+(the 2026-11-14 entries: render 74's three calls kept, nothing to change; game 97's calls are game-lane), DESIGN.md,
+RENDER.md, current.md, the shared notes (game 97's "for the render lane" note), this lane's log, debt and
+checkpoints. Not a hardening pass (74 was).
+
+**Why this slice:** current.md's render thread and game 97's note: the booster cards' faces and numbers 097-124, the
+124-card binder, Gold only on booster cards, and the pack pages nobody had looked at in a browser. Looking first (the
+real API, the demo owner): the server's binder was right (124 base, 19 secrets 153-171, 16 Glitch, 28 Gold 125-152,
+15 runs on booster cards), and the site drew it right, since it reads numbers and sizes from the server. What was
+missing: nothing on the page told a starter card (Standard only, never in packs, owner 2026-11-14) from a booster
+card, and nothing showed a card's versions now that every chase version belongs to booster cards. And the new
+face sheet found 11 Prototype faces cut mid-word.
+
+**Built (render/ only):**
+- `siteCollection.ts`: `cardOrigin` / `starterDecksOf` / `originView` (booster, starter with its deck(s) named,
+  starter-era craft-only), by the engine's `isBoosterCard` and `SHIPPED_DECK_LISTS`; `versionsOf` (the set place,
+  illustration, Glitch, Gold, Prototype runs of one card, each with its key, number and held); the Set tab's
+  `binderBlocks` returns two blocks (`part: "starter" | "booster"`, titles with the number range, held counts of
+  their own; a set with no booster cards keeps one block).
+- `siteCollectionHtml.ts` / `sitePage.ts`: the viewer's origin line (a tag and a sentence) and the versions row
+  (buttons to their places, the current one marked; solid held, dashed not); `data-part` on the two blocks.
+- `faceSheet.ts`: `boosterRows()`, the 28 booster cards in every version (Standard, Full Art, Gold, Glitch,
+  illustration, Prototype plate; 131 faces), a section of `card-faces.html`.
+- `packPage.ts` `packFitText`: when the smallest step still crowds the text, the flavor line is hidden (`noflav`) and
+  the steps run again. Measured on the sheet before the fix: 11 faces still crowded at 1440 px, 12 at 390 px, all
+  Prototype; after: 0 and 0.
+
+**Ran it:** `progress/render/evidence/booster-cards-check-s75.mjs`, headless on the real owner API: **25 PASS** on the
+first run (`booster-cards-check-s75.txt`). A: the two blocks, 96 and 28 places, held counts equal to the server's. B:
+Heat Death's viewer (booster line; Set, Illustration 165, Glitch, Gold 152, Prototype /1), Gold opens the Gold place,
+Set goes back. C: Cortex Engineer's starter line and no versions; Spare Cycles (NT-001) craft-only. D: the Secrets tab
+against the binder (Gold 125-152, Glitch 16, secrets 153-171, the runs, all booster cards). E: a pack opened from the
+top bar and played to its summary: 5 booster cards, numbers in range, the set bar out of 124. F: the face sheet at 1440
+and 390 px: 0 faces crowded; the flavor dropped only on Prototype faces. G: no external requests, no errors. Unit
+tests: `render/test/siteBoosterCards75.test.ts` (8), `packFaces.test.ts` (+1, the booster rows), `siteCollection.test.ts`
+updated for the two blocks. Render suite 1060 pass; typecheck clean (all workspaces); CI browser check 61 pass; demos
+35 same; the site contract check 0 mismatches, 7 of 7 controls (`site-contract-s75.txt`). `npm run outputs` rebuilt
+every page under `render/output/` (the replays had not been rebuilt since cards-2).
+
+**Not done (named, in quality-debt):** a mark on the face itself for starter vs booster; the versions row only in the
+Collection; the binder thumbnails' small text.
+
+**Next render-lane slice:** after this PR the next session is game (98, the balance re-run). Render 76: the owner's
+answers to this checkpoint; then the debt list (the season-end screen is still the owner's open question).
