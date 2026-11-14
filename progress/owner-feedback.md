@@ -4941,3 +4941,14 @@ Follows the entry above (answers to game session 96, PR #173, `progress/booster-
 3. **Keep:** a summary's "Open another" stays on screen, off, with the reason, rather than leaving only Done.
 
 Next session by alternation: render 75 (the booster cards' faces and set numbers), then game 98 (the balance re-run, build step 4).
+
+---
+
+## 2026-11-14 — Owner: answers to render session 75 (Season 0's booster cards on the site), keep all 3
+
+**Render session 75** (PR #176, `progress/render/checkpoints.md`, `progress/render/evidence/booster-cards-check-s75.txt`). **Keep all 3 calls:**
+1. **Keep:** two blocks on the Set tab (starter cards 001–096, booster cards 097–124) rather than one run of 124 with a divider or a filter.
+2. **Keep:** the flavor line is dropped on a face whose rules don't fit even at the smallest size, so the rules text is never cut.
+3. **Keep:** the versions row shows versions you don't hold (dashed, with their numbers), so the owner can see what exists.
+
+Next session by alternation: game 98 (the balance re-run, build step 4).
