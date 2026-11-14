@@ -7,6 +7,28 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The Season 1 arena prototype (session 79, fenced off in render/season1/; Season 1 scope)
+
+- **Step 1 (the layout) is built and checked headless (21 PASS, 17 unit tests), with thin spots.** None of the
+  Season 0 effects are rebuilt in 3D: no wards or flares, no card finishes, no buff/penalty motes, cast flourishes,
+  barrier, armor, statuses or tokens; no signature-zone effects, coin flip, boasts, sound or music. The spec's bar for
+  a 3D build being "done" is all of them; the prototype has only placeholder motions (a play flies in and settles, an
+  attack lifts and travels, a hit flashes and pops a number, a death lifts and fades). The motions are tweens with no
+  shared timing language; a fast scrub plays none (a jump draws the frame as it stands).
+- It plays sample replays only (`captureReplay`): no owner names, no loadouts (both sides show the Chrome Token and
+  their faction's starter boast), no avatar images (Season 0's placeholder avatar), no live feed, no recorded match.
+  The default POV is p1, not Season 0's higher-rated side (sample replays carry no ratings).
+- The page carries both hands in its data, as Season 0's replays do; only the near hand is drawn face up and the held
+  hand is a count. A live match's hidden-hands rule (CardRef.hidden) draws backs in the near hand (unit-tested, not
+  seen in a browser).
+- The near hand is DOM over the canvas, not in the scene; it is not hoverable for its full text (names and costs only).
+- Board cards are small at six slots (~85-90 px wide at 1440x900): the name and stats read, the rules need the hover
+  (call 1 at the checkpoint). On a phone the board is about 370 px tall and cards ~45 px wide: tap to read.
+- WebGL seen only in headless SwiftShader; no real GPU, no real phone, no frame-rate measure. Each frame re-renders
+  with soft shadows (2048 map); not profiled. The page is 1.1 MB (three.js about 0.6 MB of it).
+- The far side's directives sit under its held hand and are partly hidden by it from the near seat.
+- The check's tile and phone runs are emulated sizes, not the site's real Home tile or a device.
+
 ## The owner website (sessions 44-51)
 
 - **The faction lock's buildable marks (sessions 76-77) are drawn from the server's `lockable` and checked on the

@@ -7,6 +7,53 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — Render session 79: the Season 1 arena prototype, step 1 (the new layout) — AWAITING FEEDBACK [OWNER CHECK-IN] (five calls)
+
+The head start you asked for: the Season 1 arena spec's step 1, as a separate prototype page in `render/season1/`,
+not linked from Season 0 and imported by nothing outside the folder. It plays a real match through the engine as a
+replay, in true 3D (three.js bundled into the page, nothing from a CDN):
+
+- the round arena (a raised disc, glowing rim, each half tinted by its side), each side's 6 unit slots in a row, its
+  directives behind them, its signature zone on its right, its draw pile and discard on its left with their counts;
+- cards face their owner (the far side's read upside down); a card turns to face you while it is played or attacks,
+  then settles back; hover or tap any card to read it upright, full size, with its rules text;
+- the far side's hand held up behind their side, backs out (the page never has those cards' faces);
+- the opponent's HUD above, yours below, with a 68 px picture, health, energy, hand/deck/discard, signature, coin and
+  boast; the turn line between the halves;
+- Play-by-play | Chat on the right (Chat "coming soon"); Watch as moves the camera to the other seat;
+- a phone layout (panel under the board) and the Home tile's size.
+
+Try it: `npx tsx render/season1/src/build.ts Cortex Aegis 2 --signatures`, then open
+`render/season1/output/arena-cortex-vs-aegis-sig-seed2.html` (add `?mode=tile` for the tile, `?pov=p2` to start as
+the other side). Screenshots: `progress/render/evidence/season1-arena-s79/` (`full-p1`, `full-p2`, `full-hover`,
+`full-attack-turns`, `phone`, `phone-read`, `tile`). The browser check: 21 PASS (`check.txt` there).
+
+**Calls (recommended first):**
+1. **Six slots per row make the board cards small.** The reference had four; Season 0's boards have six. At 1440x900
+   a board card is about 85 px wide: the name and stats read, the rest needs the hover. (a) keep six at this size,
+   hover to read; (b) pull the camera in so the rows fill the width and the disc's rim runs off the sides (cards
+   ~15% bigger); (c) a closer camera that pans to the action (more motion, more work).
+2. **The standard card back.** Season 0 sells no card back, so both sides show one "Standard back" (a chevron
+   lattice, rimmed in the side's faction colour, named on the deck). (a) keep; (b) one neutral back for both sides
+   with no faction tint; (c) draw a few code-drawn backs now so the "each side shows its own back" rule can be seen.
+3. **Directives behind the units.** A side's directives sit in a smaller row behind its units (the far side's sit
+   under its held hand). (a) keep; (b) beside the signature zone, stacked; (c) only in the HUD as a count, read by
+   hover there.
+4. **The turn line in the middle.** "TURN 10 · <agent>" sits between the two rows in the middle of the board (the
+   spec said "at the board's edge"; at the edge it covered a deck pile). (a) keep in the middle; (b) at the board's
+   left edge, smaller, with the piles moved in.
+5. **How far past step 1 before Season 1** (your point 5, not decided). (a) stop here until Season 1, Season 0 work
+   only; (b) one prototype session per few render sessions while Season 0 has no fixes waiting, next the 3D play and
+   attack effects; (c) next the live view (the same page on the server's live feed), so it can be watched on real
+   ladder matches.
+
+**Strong:** a real match end to end, every frame checked against the data; the fence is tested; the camera fits the
+zones on any screen; hidden information stays out of the scene.
+**Thin:** no Season 0 effect, ward, finish, boast, coin, sound or music in 3D yet (the spec's bar for "done"); sample
+replays only (no owners, loadouts or live feed); the motions are simple tweens; WebGL seen only in SwiftShader.
+
+---
+
 ## 2026-11-14 — Render session 78: a pulled card's versions in the pack viewer — AWAITING FEEDBACK (three small calls)
 
 When you open a pack and tap a card on the summary, the full-size viewer now lists every version that card has

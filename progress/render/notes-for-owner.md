@@ -1524,3 +1524,17 @@ season mark) is proposed as a mark, call 1.
    fan too.
 2. **Nothing needed from the game lane.** The row is built from the binder the server already sends
    (`GET /api/collection/binder/:setCode`); no new field, no engine or economy change.
+
+---
+
+## 2026-11-14 — Render session 79
+
+1. **Render 79 did the Season 1 arena head start, not the hardening pass.** current.md had 79 down as the render
+   hardening pass (every 5th: 69, 74, 79). Your newer entry put the head start on render 79, and no Season 0 fault is
+   open on the render debt list (only thin spots and stale checks), so the head start went first and **the
+   hardening pass moves to render 80**. If you'd rather 79's slot had stayed hardening, say so and 80 makes up for it.
+2. **The prototype is at the [OWNER CHECK-IN]** in `progress/render/checkpoints.md`: five calls, the last one your
+   own open point 5 (how far past step 1 before Season 1). It waits for that answer; render 80 is Season 0 work.
+3. **One new dev dependency:** `three` 0.187.0 (and its types) in `render/package.json`, bundled into the prototype's
+   page by esbuild; no Season 0 page includes it. Nothing needed from the game lane.
+

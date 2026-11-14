@@ -33,15 +33,18 @@ session 101 was a hardening pass (`progress/lock-pickup-ladder-001.txt`, `progre
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (game session 102, the sits-out log) is
-game, so **the next session is render** (79).
+with "Render:", this is a game session; otherwise render. The latest PR (render session 79, the Season 1 arena
+prototype) is render, so **the next session is game** (103).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says (if it merges while you wait, choose the lane again). Check the last merged PR so a slice
 isn't built twice. Read owner-feedback.md.
 
-Render lane (79): render 78 shipped a pulled card's versions in the pack viewer (three calls, all kept, handled in
-game 102). Next: render 79 is a hardening pass (the render debt list).
+Render lane (80): render 79 did the owner's Season 1 arena head start (step 1, the layout, as a fenced-off prototype
+in `render/season1/`, at an [OWNER CHECK-IN] with five calls in `progress/render/checkpoints.md`). Next: render 80 is
+the hardening pass moved from 79 (the render debt list, stale browser checks first); the prototype waits for the
+owner's call on how far it goes. The game lane has nothing to do for it (owner 2026-11-14 point 4: no Season 1 game
+work).
 
 Game lane (103): the owner's answers first (session 102 has no calls). Then the highest unfinished, unblocked
 Season 0 checklist item in `progress/roadmap.md`; if none is waiting, candidates from quality-debt.md: the dry run's

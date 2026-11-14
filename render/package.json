@@ -10,7 +10,7 @@
     "fx-sheet": "tsx src/fxSheet.ts",
     "effect-survey": "tsx src/effectSurvey.ts",
     "feed-transcript": "tsx src/feedTranscript.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p season1/tsconfig.json",
     "test": "vitest run",
     "pack-opening": "tsx src/packDemo.ts",
     "card-faces": "tsx src/faceSheet.ts",
@@ -25,7 +25,8 @@
     "site": "tsx src/site/siteHost.ts",
     "site-page": "tsx src/site/sitePage.ts",
     "site-demo": "tsx src/site/siteDemo.ts",
-    "outputs": "bash tools/regen-output.sh"
+    "outputs": "bash tools/regen-output.sh",
+    "season1-arena": "tsx season1/src/build.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",
@@ -33,7 +34,9 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
+    "@types/three": "^0.187.0",
     "esbuild": "^0.28.2",
+    "three": "^0.187.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
