@@ -131,6 +131,48 @@ describe("the ladder", () => {
     expect(r.sitOut).toHaveLength(0);
   });
 
+  it("(session 101) a lock the owner can't build leaves them out every round, with the reason; the round after the craft that makes it buildable rebuilds and pairs them", async () => {
+    const { store, owners, ladder } = setup(["Swarm", "Cortex", "Aegis", "Null"]);
+    const locked = owners[0]!.ownerId;
+    const lad = ladder();
+    await lad.runRound(); // the agent builds its Swarm deck and plays
+    const agentDeck = store.agentDeckId(locked)!;
+    expect(store.deckStatus(agentDeck).faction).toBe("Swarm");
+    store.setFactionLock(locked, "Aegis");
+    const aegis = () => store.lockableFactions(locked).find((x) => x.faction === "Aegis")!;
+    const playsIn = (r: Awaited<ReturnType<typeof lad.runRound>>) => r.pairs.some((p) => p.p1 === locked || p.p2 === locked);
+
+    const r2 = await lad.runRound();
+    expect(aegis().buildable).toBe(false);
+    expect(r2.excluded.find((x) => x.ownerId === locked)?.reason).toMatch(/couldn't be rebuilt: .*at most 0 usable cards, under 20/);
+    expect(playsIn(r2)).toBe(false);
+
+    store.unsafeExec(`INSERT INTO ledger (owner_id, currency, delta, reason, created_at) VALUES ('${locked}', 'packPoints', 100000, 'testGrant', '2026-11-01T22:00:00.000Z')`);
+    const crafts = SHIPPED_DECK_LISTS.Aegis.flatMap(({ cardId, copies }) => Array.from({ length: copies }, () => cardId));
+    let i = 0;
+    while (aegis().cards < 19) store.craftCard(locked, crafts[i++]!);
+    expect(aegis().buildable).toBe(false);
+    const r3 = await lad.runRound();
+    expect(r3.excluded.find((x) => x.ownerId === locked)?.reason).toMatch(/at most 19 usable cards, under 20/);
+    expect(playsIn(r3)).toBe(false);
+
+    store.craftCard(locked, crafts[i++]!);
+    expect(aegis()).toMatchObject({ buildable: true, cards: 20 });
+    const r4 = await lad.runRound();
+    const rebuilt = r4.rebuilt.find((b) => b.ownerId === locked);
+    expect(rebuilt).toMatchObject({ faction: "Aegis", cards: 20 });
+    expect(rebuilt!.reasons).toEqual(["the cards held changed", "the faction lock changed (none -> Aegis)"]);
+    expect(r4.excluded.map((x) => x.ownerId)).not.toContain(locked);
+    expect(playsIn(r4)).toBe(true);
+    const m = r4.matches.find((x) => x.record.p1OwnerId === locked || x.record.p2OwnerId === locked)!;
+    expect(m.record.p1OwnerId === locked ? m.record.p1DeckId : m.record.p2DeckId).toBe(agentDeck); // rebuilt in place
+    expect(store.deckStatus(agentDeck).faction).toBe("Aegis");
+
+    const r5 = await lad.runRound();
+    expect(r5.rebuilt.map((b) => b.ownerId)).not.toContain(locked);
+    expect(playsIn(r5)).toBe(true);
+  });
+
   it("an odd queue sits one out, and that owner plays the next round", async () => {
     const { owners, ladder } = setup(["Cortex", "Swarm", "Aegis"]);
     const lad = ladder();

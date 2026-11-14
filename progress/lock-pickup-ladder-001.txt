@@ -1,0 +1,74 @@
+# A faction lock picked up by the ladder once it can be built (game session 101, hardening)
+
+Session 100 served `lockable` (buildable or not) and showed a rebuild over the API (Rebuild now). This run
+shows the other path: the ladder's own between-round rebuild picks the agent up at its next round, with no
+call from the owner, once the crafted cards make a 20-card deck.
+
+1. Round 1, before the lock: the owner's agent plays Swarm
+------------------------------------------------------------------------
+  round 1:
+    rebuilt   aegis   Aegis, 40 cards (the agent hasn't built a deck yet)
+    rebuilt   cortex  Cortex, 40 cards (the agent hasn't built a deck yet)
+    rebuilt   locked  Swarm, 40 cards (the agent hasn't built a deck yet)
+    rebuilt   null    Null, 40 cards (the agent hasn't built a deck yet)
+    paired    cortex v aegis
+    paired    null v locked
+    played    lock-1: win, 18 turns
+    played    lock-2: win, 12 turns
+  [PASS] all four play round 1 (two pairs)
+  [PASS] the owner's agent deck is a Swarm deck
+
+2. Locked to Aegis with no Aegis card: round 2
+------------------------------------------------------------------------
+  setFactionLock: activeDeckFits false
+  lockableFactions: Aegis 0/20 NOT buildable
+  round 2:
+    left out  locked  the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
+    paired    aegis v null
+    sits out  cortex (odd queue)
+    played    lock-3: win, 14 turns
+  [PASS] the locked owner is left out of round 2
+  [PASS] the reason says the agent's deck couldn't be rebuilt
+  [PASS] the other three still play: one pair, one sits out
+
+3. Crafting the Aegis starter's cards, stopping one short: round 3
+------------------------------------------------------------------------
+  (pack points from a test grant; each craft is the store's craftCard, what the API's craft calls)
+  19 crafts: Aegis 19/20 NOT buildable
+  [PASS] one short of a deck (19 of 20), not buildable
+  round 3:
+    left out  locked  the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 19 usable cards, under 20)
+    paired    cortex v null
+    sits out  aegis (odd queue)
+    played    lock-4: win, 14 turns
+  [PASS] round 3 still leaves the owner out
+  [PASS] the old Swarm deck was never played under the lock (no match of theirs in rounds 2-3)
+
+4. One more craft, buildable: round 4
+------------------------------------------------------------------------
+  craft 20: Failover Custodian -> Aegis 20/20 buildable
+  [PASS] lockableFactions now says Aegis is buildable
+  round 4:
+    rebuilt   locked  Aegis, 20 cards (the cards held changed; the faction lock changed (none -> Aegis))
+    paired    aegis v locked
+    paired    null v cortex
+    played    lock-5: win, 14 turns
+    played    lock-6: win, 11 turns
+  [PASS] round 4 rebuilds the agent's deck itself (no Rebuild now)
+  [PASS] for the lock and the crafted cards
+  [PASS] in Aegis, of lockable's count (20)
+  [PASS] the owner is not left out, and is paired
+  [PASS] the match is played and recorded
+  [PASS] with the rebuilt Aegis deck (the agent's deck, rebuilt in place, active)
+
+5. The round after: round 5
+------------------------------------------------------------------------
+  round 5:
+    paired    locked v null
+    paired    aegis v cortex
+    played    lock-7: win, 17 turns
+    played    lock-8: win, 22 turns
+  [PASS] nothing to rebuild for the owner
+  [PASS] and they play again
+
+Checks: 17 of 17 PASS.

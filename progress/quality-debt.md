@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24), and session 79 (the test-only Null builder rule; an auto-merge race found).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24), and session 79 (the test-only Null builder rule; an auto-merge race found), and session 101 (hardening: the lock picked up by the ladder; the contract check's mid-match end made exact).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -261,6 +261,41 @@ real, but here is where it's thin.
 - **Still open from session 71:** the full-collection Null deck pick (measured session 79 with `keepDesigned`, test
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
+
+## Session 101 (game lane, a hardening pass: no new features, no schema change): what was raised, and what is still thin
+
+Raised: three items from sessions 99 and 100.
+- **"A ladder round shown picking up an agent whose lock just became buildable" (session 100): shown.**
+  `progress/lock-pickup-ladder-001.txt` (17 PASS, in the CI demo set) and a test in `server/test/ladder.test.ts`:
+  real ladder rounds, an owner whose agent played Swarm locks Aegis; rounds 2 and 3 leave them out with the
+  reason ("at most 0 usable cards", then "at most 19"), the old Swarm deck is never played under the lock; the
+  round after the 20th craft rebuilds the agent's deck in place in Aegis (reasons "the cards held changed" and
+  "the faction lock changed"), pairs and plays it; the round after rebuilds nothing.
+- **"The site contract check still depends on where match ends fall" (session 99): fixed.** The 30/60/15 retries
+  are gone; the first time Player Two is in a live match at least a minute long, the allowance's end is set to
+  the next tick (5 s on), so it always lands mid-match. `progress/site-contract-003.txt`: 0 mismatches, 8 of 8
+  controls, every shape reached ("finishing" in the first window), the same output on two runs.
+- **"The same cycle effect could hide in the dry run's step 5" (session 99): looked at; it does.** Record 001
+  (session 93) ended mid-match ("Finishing match" shown); record 002 (session 98, cards-3) ended between matches,
+  and its mid-match check is conditional, so it was skipped, not failed. Not re-run or changed (45 minutes on the
+  real clock, child processes, no in-process store to set the end from).
+
+Still thin:
+- **The contract check's "finishing" end is written into the store's row directly** (`UPDATE auto_play SET
+  allowance_ends_at`), since the site only offers 15/30/60 minutes. Everything after it is the server's own path,
+  but the check no longer shows a window of a site length running out mid-match by itself; the store's own tests
+  (`playTimeAllowance.test.ts`) and `progress/play-time-002.txt` cover a real length's end.
+- **The dry run's step 5 can pass without a mid-match time-up**, as 002 did. The mid-match path is covered
+  exactly in-process now (the contract check, above), so the dry run's step is a real-clock smoke; if the owner
+  wants the dry run itself to prove it, it needs a way to end a window from outside (an admin call, or the
+  guide's own "+time" with a shorter length), which is a feature, not hardening.
+- **A locked owner left out is retried every round**: each round re-runs the builder's feasibility check for
+  them and logs the same reason. Cheap (it fails before any games), but the season log will carry one
+  "left out" line per round for such an owner until they craft. Not measured over a day's rounds.
+- **The pickup evidence uses house owners and `build: { games: 0 }`** (no games in the rebuild). A player owner
+  with auto-play on goes through the same `prepare`, but that path is shown only by the existing auto-play tests.
+- **Not raised this session:** "buildable" computed on every `GET /api/play`, unmeasured at season scale; the
+  site's second copy of the rule (the render lane's call); the slow demos outside CI.
 
 ## Session 100 (game lane: `lockable` on `GET /api/play`, the API half of game 99's call (a); no schema change): what was raised, and what is still thin
 

@@ -5561,3 +5561,23 @@ small change and the contract check covered it at once.
 **Thin:** in quality-debt.md ("buildable" isn't "playing this round"; computed per read, unmeasured at scale; the
 site's fallback is a second copy of the rule; the hardening count has drifted, so 101 should be one).
 **Blocked:** nothing.
+
+**2026-11-14 — Session 101 (game lane; a hardening pass, no new features, no schema change).**
+Lane: the last merged PR at the start was #181 ("Render: ...", render session 77), so game; no open game PR.
+Owner feedback: one unhandled entry (render 77's two calls, keep both (a)), nothing to build; marked handled.
+Hardening: the every-5th count had drifted (session 100's note), so this session added no features.
+**Raised:** (1) the ladder picking up a lock once it can be built, shown with real ladder rounds:
+`server/src/dev/lockPickupLadderDemo.ts` (in the CI demo set) and a test in `server/test/ladder.test.ts`. (2) The
+site contract check's "finishing" made exact: the allowance's end is set 5 s into Player Two's first live match
+(replacing session 99's 30/60/15 retries); the CI comment points at the new record. (3) The dry run's step 5
+looked at: record 002 hit the same cycle effect (its mid-match check skipped); recorded as debt, not re-run.
+**Ran it:** `progress/lock-pickup-ladder-001.txt` 17 of 17 PASS (left out at 0/20 and 19/20 with the reason, the
+old Swarm deck never played under the lock, rebuilt in place in Aegis and paired the round after the 20th craft,
+nothing to rebuild the round after; the same output twice). `progress/site-contract-003.txt`: 0 mismatches, 214
+untyped lines, 8 of 8 controls, every shape reached, the same output twice. Typecheck clean (all six workspaces);
+tests all pass (engine 379, economy 306, server 226, render 1,076, agents 17, protocol 7); `npm run demos` 37 of 37.
+**Worked:** the store's rebuild reasons already did the right thing; the hardening was in showing it.
+**Thin:** in quality-debt.md (the forced end is a direct row write; the dry run's step 5 can still pass without a
+mid-match end; a locked owner is retried and logged every round).
+**Blocked:** nothing.
+
