@@ -41,7 +41,7 @@ import { allowanceOf, DIAL_SAVE_MS, dialChoose, dialKeyTarget, dialView, ringOfP
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { balanceHtml, cosmeticGridHtml, cosmeticTiles, freezeTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, clockLeft, type ShopArt } from "./siteShop.js";
-import { recentOpenings, revealOf, shortWhen, withSiteSetBar, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
+import { recentOpenings, revealOf, shortWhen, withSiteSetBar, withSiteVersions, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
   addBlock,
@@ -2007,14 +2007,17 @@ async function openPacks(what: SiteOpenRequest, from?: HTMLElement): Promise<voi
   }
 }
 
-/** The set bar for a single pack: the binder read after the open (the
- * cards are already in it). A failed read plays the opening without a bar
- * rather than hold it up. */
+/** The binder read after the open (the cards are already in it): a single
+ * pack's set bar, and (render session 78) every pulled card's versions in
+ * the viewer, single and ten-pack alike. A failed read plays the opening
+ * without them rather than hold it up. */
 async function withBinderBar(r: SiteReveal): Promise<SiteReveal> {
-  if (r.kind !== "single" || !state.session) return r;
+  if (!state.session) return r;
   try {
-    const binder = await api.binder(state.session.token, r.reveal.setCode);
-    return withSiteSetBar(r, binder.base);
+    const setCode = r.kind === "single" ? r.reveal.setCode : r.reveal.packs[0]?.setCode;
+    if (!setCode) return r;
+    const binder = await api.binder(state.session.token, setCode);
+    return withSiteVersions(withSiteSetBar(r, binder.base), binder);
   } catch {
     return r;
   }

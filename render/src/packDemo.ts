@@ -28,6 +28,7 @@ import { BULK_OPEN_COUNT, cardSet, EconomyStore, FULL_ART_OR_BETTER, LIVE_PACK_O
 import { bestStepOf, DEBUG_STEP_LABEL, DEBUG_STEPS, planBulkReveal, planReveal, withSetBar, type BulkReveal, type PackReveal, type RevealStep } from "./packOpening.js";
 import { renderPackOpeningHtml } from "./packPage.js";
 import { packWardRings } from "./packWards.js";
+import { withBulkPullVersions, withPullVersions } from "./packVersions.js";
 
 /** One showcase pack: what the picker calls it, and what its roll must have. */
 export interface ShowcaseWant {
@@ -81,7 +82,9 @@ export function openShowcase(wants: readonly ShowcaseWant[] = SHOWCASE): Showcas
       // A Prototype run's copy is taken once opened: the next search sees it.
       for (const c of opening.cards) if (c.prototype) runs.set(c.prototype.runCode, runs.get(c.prototype.runCode)! - 1);
       // The set bar: the binder's base count after the open (render 61).
-      out.push({ label: w.label, reveal: withSetBar(planReveal(opening), store.binder(owner, "S0").base) });
+      // Render session 78: each card's versions, from the same binder.
+      const binder = store.binder(owner, "S0");
+      out.push({ label: w.label, reveal: withPullVersions(withSetBar(planReveal(opening), binder.base), binder) });
     }
     return out;
   } finally {
@@ -125,7 +128,7 @@ export function openBulkShowcase(wants: readonly BulkWant[] = BULK_SHOWCASE): Bu
         const owner = store.createOwner({ name: "pack-demo" }).ownerId;
         for (let i = 0; i < BULK_OPEN_COUNT; i++) store.grantPack(owner, "S0", "weeklyChallenge");
         const bulk = store.openPacks(owner, BULK_OPEN_COUNT, { seeds: Array.from({ length: BULK_OPEN_COUNT }, (_, k) => base + k) });
-        if (w.want(bulk)) return { label: w.label, reveal: planBulkReveal(bulk) };
+        if (w.want(bulk)) return { label: w.label, reveal: withBulkPullVersions(planBulkReveal(bulk), store.binder(owner, "S0")) };
       } finally {
         store.close();
       }
@@ -198,7 +201,8 @@ export function openDebugPacks(steps: readonly Exclude<RevealStep, "snap">[] = D
         store.grantPack(owner, "S0", "weeklyChallenge");
         const opening = store.openPack(owner, undefined, { seed });
         if (bestStepOf(opening.cards) !== step) throw new Error(`seed ${seed} opened without its ${step}`);
-        single.push({ step, label, reveal: withSetBar(planReveal(opening), store.binder(owner, "S0").base) });
+        const binder = store.binder(owner, "S0");
+        single.push({ step, label, reveal: withPullVersions(withSetBar(planReveal(opening), binder.base), binder) });
       } finally {
         store.close();
       }
@@ -210,7 +214,7 @@ export function openDebugPacks(steps: readonly Exclude<RevealStep, "snap">[] = D
         for (let i = 0; i < BULK_OPEN_COUNT; i++) store.grantPack(owner, "S0", "weeklyChallenge");
         const open = store.openPacks(owner, BULK_OPEN_COUNT, { seeds: Array.from({ length: BULK_OPEN_COUNT }, (_, k) => seed + k) });
         if (bestStepOf(open.packs[0]!.cards) !== step) throw new Error(`seed ${seed} opened as pack 1 without its ${step}`);
-        bulk.push({ step, label, reveal: planBulkReveal(open) });
+        bulk.push({ step, label, reveal: withBulkPullVersions(planBulkReveal(open), store.binder(owner, "S0")) });
       } finally {
         store.close();
       }

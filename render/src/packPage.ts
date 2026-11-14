@@ -104,7 +104,7 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   <div class="bctl"><button class="bauto" id="bauto" role="switch" aria-checked="false" hidden title="Plays the packs by themselves, as fast as the speed says">Auto</button><span class="speed" id="speed" role="group" aria-label="Auto speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead past packs of plain cards to the next stop: every Rare, Mythic, special finish and Prototype still waits for its reveal; with none left, to the summary">Skip ahead</button></div>
 </main>
 <div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>${flow ? '\n<div class="mint" id="mint" hidden></div>' : ""}
-<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Card viewer"><div class="vcard" id="vcard"></div><div class="vcap" id="vcap"></div><button class="vclose" id="vclose">Close</button></div>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Card viewer"><div class="vcard" id="vcard"></div><div class="vcap" id="vcap"></div><div class="vvers" id="vvers" role="group" aria-label="This card's versions" hidden></div><button class="vclose" id="vclose">Close</button></div>
 <p class="sr" id="announce" aria-live="assertive"></p>
 <footer class="foot" id="foot"></footer>${data.debug && !site ? `\n<aside class="dbg" id="dbg" aria-label="Debug panel"><button id="dbg-tog" aria-expanded="false" title="Owner-only, demo pages: force the next pack's best card">DEBUG</button><div class="dpan" id="dbg-pan" hidden><h4>FORCE THE NEXT PACK</h4><p>The best card of the next pack you open (one, or pack 1 of ten) becomes the kind you pick. Each is a real opening, found by seed; nothing is made up.</p><div class="dk" id="dbg-kinds" role="group" aria-label="Best card kind"></div><div class="dst" id="dbg-st"></div><div class="dgo"><button id="dbg-one">Open one now</button><button id="dbg-ten">Open ten now</button><button id="dbg-off">Disarm</button></div></div></aside>` : ""}
 <script type="application/json" id="pack-data">${embed(data)}</script>
@@ -476,6 +476,19 @@ body.takeover .bar { opacity: 0.18; transition: opacity 0.45s; }
 .vcap { font-size: 12px; color: var(--dim); text-align: center; max-width: var(--cw); }
 .vcap .fin { display: inline-block; font-weight: 800; letter-spacing: 0.08em; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1a2342; color: #cfe0ff; }
 .vcap .fin.hit { background: linear-gradient(110deg, #7a5cff, #ff5cc8); color: #fff; }
+/* Render session 78: the pull's versions under the viewer's caption (the
+   set place, illustration, Glitch, Gold, Prototype run), from the binder read
+   after the open. Held ones solid, the rest dashed; this pull ringed. */
+.viewer.hasv .vcard { --cw: min(calc(100vw - 32px), 360px, calc((100dvh - 220px) * 0.714)); }
+.vvers { max-width: min(calc(100vw - 32px), 460px); display: grid; gap: 6px; justify-items: center; }
+.vvers[hidden] { display: none; }
+.vvers .vrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+.vvers .vchip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; border: 1px dashed #4a5a8a; color: #8b97b8; background: transparent; white-space: nowrap; }
+.vvers .vchip small { font-weight: 600; opacity: 0.8; margin-left: 3px; }
+.vvers .vchip.held { border-style: solid; border-color: #6a8cff; color: #dfe8ff; background: #17204a; }
+.vvers .vchip.on { box-shadow: 0 0 0 2px #ffd36a; border-color: #ffd36a; color: #fff; }
+.vvers .vchip.held::before { content: "\\2713"; margin-right: 4px; color: #7dffb0; }
+.vvers .vline { font-size: 11px; color: var(--dim); }
 .vclose { border: 1px solid #6a8cff; background: #17204a; border-radius: 8px; padding: 6px 18px; font-weight: 700; }
 .tile .mini { cursor: zoom-in; }
 
@@ -2550,12 +2563,26 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     vcard.innerHTML = '<div class="tiltv">' + faceHtml(c, { settled: true }) + '</div>';
     var lab = packFinishLabel(c.finish);
     vcap.innerHTML = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span> ' : '') + esc(c.face.name) + ' · ' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + ' · ' + esc(c.face.rarity);
+    viewerVersions(c.versions);
     viewer.hidden = false;
     var face = vcard.querySelector('.face');
     var l = FXGL.layer(face, packFinishLayerName(c.reveal), { amt: packFinishLayerAmt(c.reveal), seed: 11 });
     if (l) { l.ptr(0.5, 0.4); vLayers.push(l); } else if (packFinishLayerName(c.reveal)) face.classList.add('fx-css-' + packFinishLayerName(c.reveal));
     document.getElementById('vclose').focus({ preventScroll: true });
-    log('viewer', { name: c.face.name, finish: c.finish, full: face.classList.contains('full'), modes: (c.face.modes || []).length });
+    log('viewer', { name: c.face.name, finish: c.finish, full: face.classList.contains('full'), modes: (c.face.modes || []).length,
+      versions: c.versions ? { held: c.versions.held, total: c.versions.total, current: (c.versions.chips.filter(function (v) { return v.current; })[0] || {}).label || null } : null });
+  }
+  // Render session 78: the card's versions (packVersions.ts), when the page
+  // was given the binder read after the open; nothing otherwise.
+  var vvers = document.getElementById('vvers');
+  function viewerVersions(v) {
+    if (!v || !v.chips || v.chips.length < 2) { vvers.hidden = true; vvers.innerHTML = ''; viewer.classList.remove('hasv'); return; }
+    var chips = v.chips.map(function (x) {
+      var words = x.words;
+      return '<span class="vchip' + (x.held ? ' held' : '') + (x.current ? ' on' : '') + '" role="listitem" title="' + esc(words) + '" aria-label="' + esc(words) + '"' + (x.current ? ' aria-current="true"' : '') + '>' + esc(x.label) + ' <small>' + esc(x.number) + '</small></span>';
+    }).join('');
+    vvers.innerHTML = '<div class="vrow" role="list">' + chips + '</div><div class="vline">' + esc(v.line) + '</div>';
+    vvers.hidden = false; viewer.classList.add('hasv');
   }
   function closeViewer() { if (viewer.hidden) return; vLayers.forEach(function (l) { l.stop(); }); vLayers = []; viewer.hidden = true; vcard.innerHTML = ''; log('viewerClosed', {}); }
   document.getElementById('vclose').addEventListener('click', closeViewer);

@@ -18,6 +18,7 @@
 // server's answers, never restated.
 
 import { planBulkReveal, planReveal, withSetBar, type BulkReveal, type PackReveal } from "../packOpening.js";
+import { withBulkPullVersions, withPullVersions, type VersionsBinder } from "../packVersions.js";
 import type { SiteAudio, SiteDailyPack, SiteOpenAnswer } from "./siteApi.js";
 import { untilText, type MiniCard, type SiteCollection, type SitePacks } from "./siteBoard.js";
 
@@ -46,6 +47,14 @@ export function revealOf(answer: Pick<SiteOpenAnswer, "packs" | "summary">): Sit
 export function withSiteSetBar(r: SiteReveal, base: { held: number; total: number } | null | undefined): SiteReveal {
   if (r.kind !== "single" || !base) return r;
   return { ...r, reveal: withSetBar(r.reveal, base) };
+}
+
+/** Render session 78: every pulled card's versions for the pack viewer
+ * (packVersions.ts), from the same binder read. A single pack's cards, or a
+ * ten-pack open's packs and summary tiles. */
+export function withSiteVersions(r: SiteReveal, binder: VersionsBinder | null | undefined): SiteReveal {
+  if (!binder) return r;
+  return r.kind === "single" ? { ...r, reveal: withPullVersions(r.reveal, binder) } : { ...r, reveal: withBulkPullVersions(r.reveal, binder) };
 }
 
 export type SummaryAction = "one" | "ten" | "done";

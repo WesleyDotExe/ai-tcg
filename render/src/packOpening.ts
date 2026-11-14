@@ -18,6 +18,7 @@
 import { getCard, type Card } from "@ai-tcg/engine";
 import { cardSet, FULL_ART_OR_BETTER, type BulkOpening, type Finish, type OpenedCard, type PackOpening } from "@ai-tcg/economy";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
+import type { PullVersions } from "./packVersions.js";
 
 /** How a card is revealed. One per finish: the owner's 2026-10-18 list
  * (Foil, Full Art, Glitch, secret illustration, Gold, Zero-Day, Prototype),
@@ -131,6 +132,9 @@ export interface RevealCard {
    * part 2): a snap flip, or a build-up and a hit sized by its step on the
    * reveal ladder. */
   build: RevealBuild;
+  /** Render session 78: the card's versions for the viewer (packVersions.ts),
+   * added once the binder read after the open is in hand. */
+  versions?: PullVersions | null;
 }
 
 export interface PackReveal {
@@ -388,6 +392,8 @@ export interface SummaryTile {
   ownedAfter: number;
   prototype: OpenedCard["prototype"];
   secret: OpenedCard["secret"];
+  /** Render session 78: as RevealCard's. */
+  versions?: PullVersions | null;
 }
 
 export interface BulkReveal {

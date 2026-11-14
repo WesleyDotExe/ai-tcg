@@ -7,6 +7,39 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-14 — Render session 78: a pulled card's versions in the pack viewer — AWAITING FEEDBACK (three small calls)
+
+When you open a pack and tap a card on the summary, the full-size viewer now lists every version that card has
+in the set, which ones you hold, and which one you just pulled. Example (a Gold Aegis Overwatch):
+
+    GOLD Aegis Overwatch · 145/124 · Mythic
+    [✓ Set 117/124]  [Illustration 161/124]  [Glitch 117/124]  (✓ Gold 145/124)  [Prototype /5 S0-P02]
+    You hold 2 of its 5 versions.
+
+Held versions are solid with a tick, the rest dashed, the one in your hand ringed in gold. It works for one pack and
+for ten (every tile of the ten's grid), on the website and the demo pages. A Zero-Day card has no row (it has only
+one version). The list comes from your binder, read just after the open, so it's what the Collection shows. Try it:
+`npm run site-demo -w @ai-tcg/render`, sign in as nova, open a pack, tap a card on the summary. Or open
+`render/output/pack-opening.html`, press DEBUG, pick Gold, Open one now.
+
+**Calls (recommended first):**
+1. **The chips are labels, not buttons.** Tapping "Gold 145/124" does nothing. (a) keep: the opening stays the
+   opening; the Collection is one click away after Done. (b) make each chip go to that place in the Collection
+   (closing the opening).
+2. **A Gold, Glitch or illustration copy also ticks the card's Set place.** Your binder counts any copy of a card in
+   its set place (the Collection works the same way), so a first Gold pull reads "You hold 2 of its 5". (a) keep,
+   matching the Collection; (b) tick only the exact version held (this would change the Collection too, and the
+   set bar's count).
+3. **Only in the viewer.** (a) keep; (b) also a small "2/5" under each card on the summary fan, so you see it without
+   tapping.
+
+Evidence: `progress/render/evidence/pack-versions-check-s78.txt` (19 PASS: the debug panel's Gold, Glitch, Secret,
+Prototype and Zero-Day pulls on the demo page; the website on the real owner API, one pack and ten, every row equal
+to the binder the server sends; a 390 px phone), stills `v2-s78-demo-viewer-gold.jpg`, `v2-s78-demo-viewer-prototype.jpg`,
+`v2-s78-site-viewer-1440.jpg`, `v2-s78-site-viewer-phone.jpg`; tests `render/test/packVersions78.test.ts` (13).
+
+---
+
 ## 2026-11-14 — Render session 77: the faction lock on the server's own field, with the plan's pack points — AWAITING FEEDBACK (two small calls)
 
 Your three answers to session 76 were all "keep (a)", so nothing changed for them. Game 100 now serves `lockable`

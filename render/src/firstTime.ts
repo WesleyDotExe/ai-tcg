@@ -29,6 +29,7 @@ import { SHIPPED_DECK_LISTS, getCard, type DeckFaction } from "@ai-tcg/engine";
 import { EconomyStore, EconomyError, LIVE_PACK_ODDS, STARTER_PACKS, SIGNATURE_ART_POOL_SIZE, cardSet } from "@ai-tcg/economy";
 import { avatarSvg } from "./avatar.js";
 import { faceOfCard, planReveal, type CardFace, type PackReveal } from "./packOpening.js";
+import { withPullVersions } from "./packVersions.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 
 /** The order the faction picker shows them in. */
@@ -149,7 +150,9 @@ export function factionStart(faction: DeckFaction, seeds = FIRST_TIME_SEEDS): Fa
       .sort((a, b) => RARITY_ORDER[a.face.rarity]! - RARITY_ORDER[b.face.rarity]! || (b.face.cost ?? 0) - (a.face.cost ?? 0));
     const packs = grant.packs.map((p, i) => ({
       label: `Starter pack ${i + 1} of ${grant.packs.length}`,
-      reveal: planReveal(store.openPack(owner, p.packId, { seed: seeds.packs[i] })),
+      // Render session 78: each card's versions, from the binder read
+      // right after this pack's open.
+      reveal: ((r) => withPullVersions(r, store.binder(owner, "S0")))(planReveal(store.openPack(owner, p.packId, { seed: seeds.packs[i] }))),
     }));
     const held = store.collection(owner);
     return {

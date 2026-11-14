@@ -355,6 +355,19 @@ body.takeover .bar { opacity: 0.18; transition: opacity 0.45s; }
 .vcap { font-size: 12px; color: var(--dim); text-align: center; max-width: var(--cw); }
 .vcap .fin { display: inline-block; font-weight: 800; letter-spacing: 0.08em; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1a2342; color: #cfe0ff; }
 .vcap .fin.hit { background: linear-gradient(110deg, #7a5cff, #ff5cc8); color: #fff; }
+/* Render session 78: the pull's versions under the viewer's caption (the
+   set place, illustration, Glitch, Gold, Prototype run), from the binder read
+   after the open. Held ones solid, the rest dashed; this pull ringed. */
+.viewer.hasv .vcard { --cw: min(calc(100vw - 32px), 360px, calc((100dvh - 220px) * 0.714)); }
+.vvers { max-width: min(calc(100vw - 32px), 460px); display: grid; gap: 6px; justify-items: center; }
+.vvers[hidden] { display: none; }
+.vvers .vrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+.vvers .vchip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; border: 1px dashed #4a5a8a; color: #8b97b8; background: transparent; white-space: nowrap; }
+.vvers .vchip small { font-weight: 600; opacity: 0.8; margin-left: 3px; }
+.vvers .vchip.held { border-style: solid; border-color: #6a8cff; color: #dfe8ff; background: #17204a; }
+.vvers .vchip.on { box-shadow: 0 0 0 2px #ffd36a; border-color: #ffd36a; color: #fff; }
+.vvers .vchip.held::before { content: "\2713"; margin-right: 4px; color: #7dffb0; }
+.vvers .vline { font-size: 11px; color: var(--dim); }
 .vclose { border: 1px solid #6a8cff; background: #17204a; border-radius: 8px; padding: 6px 18px; font-weight: 700; }
 .tile .mini { cursor: zoom-in; }
 

@@ -23,11 +23,20 @@ items are removed, with the fix in `log.md`.
 - **The booster cards on the site (session 75) are checked on the real API (25 PASS), with thin spots.** The
   starter/booster split is read from the engine's registry (`isBoosterCard`, `SHIPPED_DECK_LISTS`), not from the
   server's binder (it sends no such field); a future set would need the same rule. A face itself carries no starter or
-  booster mark (only its number says it). The versions row is in the Collection's viewer only, not in the pack reveal
-  or its summary. The fit now drops the flavor line when the smallest step crowds (12 Prototype faces today); a
-  Prototype face's rules text is then at 68% size, small on a phone binder thumbnail. Only one pack (5 cards, no
-  hit) was played in the browser; booster Gold/Glitch/illustration reveals were checked on the face sheet, not in a
-  live reveal. The Heat Death viewer was the versions path checked in the browser; the others are unit-tested.
+  booster mark (only its number says it). The fit now drops the flavor line when the smallest step crowds (12
+  Prototype faces today); a Prototype face's rules text is then at 68% size, small on a phone binder thumbnail.
+  Since session 78 the versions row is also in the pack page's viewer (below). The booster Gold, Glitch,
+  illustration and Prototype pulls were opened live on the demo page in session 78, but each reveal was skipped to
+  its summary once the cards were up: the build and the hit on a booster card were not watched in that check.
+- **A pulled card's versions in the pack viewer (session 78) are checked headless (19 PASS), with thin spots.** The
+  chips are labels, not links (call 1). The row is in the viewer only (a tile tapped), not on the fan or the ten's
+  grid (call 3). A Gold, Glitch or illustration copy also ticks the Set place (the store's binder rule; call 2).
+  It needs the binder read after the open: a failed read plays the opening without the row (silently, as the set
+  bar does), and a ten-pack open now waits for that one extra read before it plays (it was single-pack only before);
+  that wait was not timed on its own. The demo's debug pulls are the same pack per kind every time; the website
+  check saw two real opens (one pack, ten packs) with no Gold, Glitch or illustration among them, so those kinds on
+  the site are unit-tested on the real owner API, not seen in its browser. The first-time demo's packs carry the
+  row; no browser check opened its viewer. Phones emulated only (390 px).
 - **The season's end on the site (sessions 72-74) is checked on the real API through open, ending and ended (60 +
   40 + 36 PASS), with thin spots.** Session 73 drew the Store page, the Store, Packs and Daily rewards widgets, the
   top bar's Open and the card viewer closed once the server says "ended"; session 74 (hardening) finished the rest:

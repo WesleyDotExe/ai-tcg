@@ -9132,6 +9132,67 @@ gl_FragColor=vec4(col,1.);}`;
   }
   var DEBUG_STEPS = REVEAL_LADDER.filter((s) => s !== "snap");
 
+  // src/packVersions.ts
+  function currentKind(p) {
+    switch (p.finish) {
+      case "zeroDay":
+        return null;
+      case "secret":
+        return "illustration";
+      case "glitch":
+        return "glitch";
+      case "gold":
+        return "gold";
+      case "prototype":
+        return "prototype";
+      default:
+        return "set";
+    }
+  }
+  function pullVersionsOf(p, b) {
+    var _a4, _b;
+    const kind = currentKind(p);
+    if (!kind) return null;
+    const chips2 = [];
+    for (const e of b.base.entries) if (e.cardId === p.cardId) chips2.push({ kind: "set", label: "Set", number: e.number, held: e.owned > 0, current: kind === "set", words: "" });
+    for (const e of b.secrets.entries) {
+      if (e.cardId !== p.cardId || e.kind === "zeroDay") continue;
+      chips2.push({ kind: "illustration", label: "Illustration", number: e.number, held: e.owned > 0, current: kind === "illustration" && ((_a4 = p.secret) == null ? void 0 : _a4.code) === e.secretCode, words: "" });
+    }
+    for (const e of b.glitch.entries) if (e.cardId === p.cardId) chips2.push({ kind: "glitch", label: "Glitch", number: e.number, held: e.owned > 0, current: kind === "glitch", words: "" });
+    for (const e of b.gold.entries) if (e.cardId === p.cardId) chips2.push({ kind: "gold", label: "Gold", number: e.number, held: e.owned > 0, current: kind === "gold", words: "" });
+    for (const r of b.prototypes) {
+      if (r.cardId !== p.cardId) continue;
+      chips2.push({ kind: "prototype", label: `Prototype /${r.runSize}`, number: r.runCode, held: r.serialsHeld.length > 0, current: kind === "prototype" && ((_b = p.prototype) == null ? void 0 : _b.runCode) === r.runCode, words: "" });
+    }
+    if (chips2.length < 2) return null;
+    for (const c of chips2) c.words = versionWords(c);
+    const held = chips2.filter((c) => c.held).length;
+    return { chips: chips2, held, total: chips2.length, line: versionsLine({ held, total: chips2.length }) };
+  }
+  function versionWords(v) {
+    return `${v.label} ${v.number}${v.current ? ", this pull" : ""}${v.held ? ", held" : ", not held"}`;
+  }
+  function versionsLine(v) {
+    if (v.held >= v.total) return `You hold all ${v.total} of its versions.`;
+    return `You hold ${v.held} of its ${v.total} versions.`;
+  }
+  function withPullVersions(reveal, b) {
+    if (!b || b.setCode !== reveal.setCode) return reveal;
+    return { ...reveal, cards: reveal.cards.map((c) => ({ ...c, versions: pullVersionsOf(c, b) })) };
+  }
+  function withBulkPullVersions(bulk, b) {
+    var _a4;
+    if (!b) return bulk;
+    const setCode = (_a4 = bulk.packs[0]) == null ? void 0 : _a4.setCode;
+    if (!setCode || b.setCode !== setCode) return bulk;
+    return {
+      ...bulk,
+      packs: bulk.packs.map((p) => withPullVersions(p, b)),
+      tiles: bulk.tiles.map((t) => ({ ...t, versions: pullVersionsOf(t, b) }))
+    };
+  }
+
   // src/site/siteBoard.ts
   var WIDGET_INFO = {
     agent: { name: "My agent", desc: "Your agent, its rating, today and its streak", icon: "link", grad: "linear-gradient(135deg,#7a5cff,#3d7bff)", large: "wide", page: "connect" },
@@ -9357,6 +9418,10 @@ gl_FragColor=vec4(col,1.);}`;
   function withSiteSetBar(r, base) {
     if (r.kind !== "single" || !base) return r;
     return { ...r, reveal: withSetBar(r.reveal, base) };
+  }
+  function withSiteVersions(r, binder) {
+    if (!binder) return r;
+    return r.kind === "single" ? { ...r, reveal: withPullVersions(r.reveal, binder) } : { ...r, reveal: withBulkPullVersions(r.reveal, binder) };
   }
   function summaryButtons(kind, unopened, bulkCount, frozenWhy = null) {
     if (frozenWhy) {
@@ -12736,10 +12801,13 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   async function withBinderBar(r) {
-    if (r.kind !== "single" || !state.session) return r;
+    var _a4;
+    if (!state.session) return r;
     try {
-      const binder = await api.binder(state.session.token, r.reveal.setCode);
-      return withSiteSetBar(r, binder.base);
+      const setCode = r.kind === "single" ? r.reveal.setCode : (_a4 = r.reveal.packs[0]) == null ? void 0 : _a4.setCode;
+      if (!setCode) return r;
+      const binder = await api.binder(state.session.token, setCode);
+      return withSiteVersions(withSiteSetBar(r, binder.base), binder);
     } catch {
       return r;
     }

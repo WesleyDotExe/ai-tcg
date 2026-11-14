@@ -6293,3 +6293,64 @@ to earn more (call 1 at this checkpoint).
 **Next render-lane slice:** after this PR the next session is game (101, a hardening pass). Render 78: the owner's
 answers to this checkpoint; then the debt list. Render 79 is a hardening pass.
 
+
+## 2026-11-14 — Render session 78: a pulled card's versions in the pack viewer
+
+**Lane:** render. The last merged PR (#182, "Game lane: a hardening pass ... (session 101)") is game, so this session
+is render; no render PR was open. Read first: owner-feedback.md (the newest entry, answers to render 77, was already
+handled by game 101; nothing new for this lane), DESIGN.md, RENDER.md, current.md, this lane's log, debt and
+checkpoints. Not a hardening pass (79 is next).
+
+**Why this slice:** render 77 left "the debt list" as the next move, and the Season 0 render checklist is otherwise
+ticked. The most product-facing item on it was session 75's: "the versions row is in the Collection's viewer only, not
+in the pack reveal or its summary", with "booster Gold/Glitch/illustration reveals were checked on the face sheet, not
+in a live reveal". Since S0-odds-3 every pack card is a booster card, and every booster card has 2-5 versions (its set
+place, and for some a secret illustration, a Glitch, a Gold and a Prototype run). The moment a pull is in your hand is
+when you want to know what else exists of it and which you hold: the chase.
+
+**Built (render/ only):**
+- `render/src/packVersions.ts` (new, pure, no DOM, no engine): `pullVersionsOf(pull, binder)` lists every binder
+  place of the pulled card (Set, Illustration, Glitch, Gold, `Prototype /N`), each with its number, held or not, and
+  which one this pull is (the set place covers Standard, Foil, Full Art, Alt Art and a prize's finish; a secret
+  matches by its code, a Prototype by its run). A Zero-Day card, or a card with one place, gets none. The words for
+  the chip and the line under the row ("You hold 2 of its 5 versions.") are made here, not in the page's script.
+  `withPullVersions` / `withBulkPullVersions` add it to a reveal's cards and a ten-pack's packs and tiles. The binder
+  is the only source: nothing restates which cards have which versions.
+- `packPage.ts`: the viewer (a summary tile tapped) shows the row under its caption: held versions solid with a
+  tick, the rest dashed, this pull ringed in gold; `aria-current` and a spoken label per chip; the card shrinks a
+  little when the row is there so Close stays on screen.
+- Fed from the binder read AFTER the open (the pull already counted): the demo page (`packDemo.ts`: the showcase, the
+  tens, the debug panel's packs), the first-time demo (`firstTime.ts`, each starter pack), and the website
+  (`siteClient.ts` `withBinderBar`, now for ten-pack opens too, via `siteStore.withSiteVersions`). A failed binder read
+  plays the opening without the row, as the set bar already did.
+
+**Ran it:** `progress/render/evidence/pack-versions-check-s78.mjs`, headless: **19 PASS**
+(`pack-versions-check-s78.txt`). A: the demo page's debug panel, real openings for Gold (Aegis Overwatch 145/124:
+Set 117 held · Illustration 161 · Glitch 117 · [Gold 145 held] · Prototype /5 S0-P02), Glitch (Colony Overmind),
+Secret (Shield Relay 164/124) and Prototype (Job Scheduler S0-P12 /250), each torn, revealed and skipped to its
+summary, the best tile opened: one chip ringed, held, with the pull's own number in its booster range; a Zero-Day pull
+(Patient Zero 169/124) has no row while the same pack's other card has one. B: the website on the real owner API, one
+pack from the top bar: every tile's row equals `GET /api/collection/binder/S0` read after the open (5/5). C: ten packs
+from the Store: 25 of 25 summary tiles open a row, this pull held in each. D: a 390 px phone: card, row and Close
+inside the window, nothing sideways. E: no external requests, no errors. The first runs found three faults in the
+check, not the page: the single summary has no "Open 10" (the ten now opens from the Store), the phone run had no
+pack left after the desktop's ten (it buys one through the API), and the phone's card was measured mid-rise (it waits
+now). On the old code the row doesn't exist (`#vvers` is new), so A-D fail by construction; not re-run.
+Unit tests `render/test/packVersions78.test.ts` (13: each version kind on real store openings; every chip a binder
+place; the same row as the Collection viewer's `versionsOf` for the same card; a binder read BEFORE the open says the
+pull isn't held; another set's binder leaves the reveal alone; the ten's tiles; the demo page; the real owner API,
+single and ten). A test first expected a Gold pull to raise the held count by one; it rose by two: the store's binder
+counts any copy in the card's set place, so a first Gold copy fills Set and Gold. The test was wrong, not the page:
+it matches the Collection.
+
+Every workspace's tests pass (render 1089); typecheck clean in all six; CI browser check 61 pass; site contract check
+0 mismatches, 8 of 8 controls; `npm run outputs` rebuilt (pack-opening, first-time, card-faces and the site page:
+the pack page's code is embedded in each).
+
+**Not done (named, in quality-debt):** the chips are labels, not links to the Collection (a call at the checkpoint);
+the row is in the viewer only, not on the fan or the ten's grid; the reveal itself (the Gold build, the hit) was
+skipped in the check, only the summary and the viewer were live; a ten-pack open now waits for one more read before
+it plays (the binder; measured in the check as part of the open, not on its own).
+
+**Next render-lane slice:** after this PR the next session is game (102). Render 79 is a hardening pass: the owner's
+answers to this checkpoint first, then the debt list (stale browser checks first).
