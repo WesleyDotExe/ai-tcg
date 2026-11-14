@@ -6344,8 +6344,8 @@ counts any copy in the card's set place, so a first Gold copy fills Set and Gold
 it matches the Collection.
 
 Every workspace's tests pass (render 1089); typecheck clean in all six; CI browser check 61 pass; site contract check
-0 mismatches, 8 of 8 controls; `npm run outputs` rebuilt (pack-opening, first-time, card-faces and the site page:
-the pack page's code is embedded in each).
+0 mismatches, 8 of 8 controls; demos 37, 0 stale; `npm run outputs` rebuilt (pack-opening, first-time, card-faces and
+the site page: the pack page's code is embedded in each).
 
 **Not done (named, in quality-debt):** the chips are labels, not links to the Collection (a call at the checkpoint);
 the row is in the viewer only, not on the fan or the ten's grid; the reveal itself (the Gold build, the hit) was
