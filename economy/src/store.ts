@@ -1312,9 +1312,10 @@ function chaseCopyProblem(cardId: string, finish: Finish, secretCode: string | n
 
 /** The versions a starter card never has (owner 2026-11-14: "no Foil, Full
  * Art, Glitch, Alt Art, secret illustration, Gold or Prototype copy of a
- * starter card"). A prize's tournament finish is not a pack version and is
- * not in the list. */
-const PACK_ONLY_FINISHES: readonly Finish[] = ["foil", "fullArt", "glitch", "altArt", "secret", "gold", "prototype"];
+ * starter card"; and, answering game 97's call 6, "Standard only": a prize's
+ * tournament finish on a starter card is not allowed either, so a starter
+ * card given as a prize is a Standard copy). */
+const PACK_ONLY_FINISHES: readonly Finish[] = ["foil", "fullArt", "glitch", "altArt", "secret", "gold", "prototype", "tournament"];
 
 /** A Season 0 starter card: a base-set card that is not a booster card. */
 function isStarterSetCard(cardId: string): boolean {

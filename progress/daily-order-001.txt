@@ -30,29 +30,29 @@ PASS  this part does put wins out of end-time order (the case being tested)
 
 ## 2. Real play: the server's clock steps back 90 minutes mid-day
 
-(a) after 2 wins (the last ended 09:14) the clock steps back from 09:15 to 07:45, the server still running
-    the running ladder starts its next round only at 09:16, when the clock is back past the old time: nothing is recorded out of order
-(b) after 2 wins (the last ended 09:14) the clock steps back from 09:21 to 07:51 and the server restarts (0 live matches cancelled)
+(a) after 2 wins (the last ended 09:16) the clock steps back from 09:17 to 07:47, the server still running
+    the running ladder starts its next round only at 09:18, when the clock is back past the old time: nothing is recorded out of order
+(b) after 2 wins (the last ended 09:16) the clock steps back from 09:23 to 07:53 and the server restarts (0 live matches cancelled)
     the new process starts its first round at once, on the new time:
-    by 08:20 Player One has 6 wins today
+    by 08:43 Player One has 6 wins today
 
 GET /api/daily as Player One (2026-11-12, Sydney), now numbered in recording (= payment) order:
 
   win  ended  match          paid  schedule for its place
     1  09:06  ladder-002     +30   +30
-    2  09:14  ladder-003     +10   +10
-    3  07:58  ladder-008     +10   +10
-    4  08:04  ladder-010     +10   +10
-    5  08:10  ladder-012     +5    +5
-    6  08:20  ladder-013     +5    +5
+    2  09:16  ladder-003     +10   +10
+    3  08:00  ladder-008     +10   +10
+    4  08:06  ladder-010     +10   +10
+    5  08:37  ladder-018     +5    +5
+    6  08:42  ladder-020     +5    +5
 
 The old rule (numbered by end time) on the same wins: Win 1 +10, Win 2 +10, Win 3 +5, Win 4 +5, Win 5 +30, Win 6 +10
-  wins whose paid credits didn't match their place: 5 (ladder-008, ladder-012, ladder-013, ladder-002, ladder-003)
+  wins whose paid credits didn't match their place: 5 (ladder-008, ladder-018, ladder-020, ladder-002, ladder-003)
 
 PASS  every win's credits are the schedule's credits for its place
 PASS  the places run 1, 2, 3, ... with no gap or repeat
 PASS  the rewarded wins are the paid ones, in the same order
-PASS  the day's credits (+72) are what the ledger paid for matches (+72)
+PASS  the day's credits (+78) are what the ledger paid for matches (+78)
 PASS  this part does put wins out of end-time order (the case being tested)
 
 All checks pass.

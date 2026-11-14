@@ -262,6 +262,33 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 98 (the booster cards' balance re-run, two rounds; cards-3, no schema change): what was raised, and what is still thin
+
+Raised: session 97's "the balance re-run has not been run" (it ran: two instruments, two rounds, every round's
+files kept), "the dry run was not re-run" (re-run, its stale step 5 fixed), and the owner's call 6 (a starter
+card's tournament finish refused, tested against the old code). Still thin:
+- **The real ring is outside "within about 4"** at 37 packs (9.5: Null 55.7, Aegis 46.2) and with a full
+  collection (19.1). The probe, the measurement call 3 was written against, is in the target. That is an owner
+  call (notes-for-owner.md, session 98), not a pass. The booster cards ship at round-1 numbers until the owner
+  answers.
+- **The two instruments disagree, and only one was tuned against cleanly.** The probe swaps cards in by a fixed
+  rule (lowest-rated copy out); the ring uses the store's builder, which takes 3x of the strong Commons and
+  Uncommons. Round 2's Shield Relay buff moved the probe 3.3 points and the 17-pack ring the other way. A tuning
+  rule that reads both at once (the ring at 17 and 37 packs as the primary, the probe as a check) would be the
+  better process for any further round.
+- **The full-collection column is one build per faction, and the builder is noisy there.** The full Null build
+  keeps the starter deck (no booster cards); the full Aegis build plays two Zero-Day cards. The builder's
+  full-collection pick has been named as debt since session 71. Not fixed; it is an owner call (session 98, call 2).
+- **Noise:** each ring cell has a 95% interval of about ±2 points (±3.3 on the even edges), and each build's
+  400-game confirm about ±5. Round-to-round moves of 1 to 2 points on one faction are inside the noise. Nothing
+  here was re-run on a second seed block.
+- **Round 2's cards are not kept anywhere but in the record files** (`probe-r2-not-kept.txt`,
+  `built-deck-ring-010`). If the owner picks (b), start from round 1 and choose again; round 2 is not a draft.
+- **The slow demos (`npm run demos -- --all`) and the site contract check were not re-run** on cards-3. The 35
+  fast demos match after 6 were rewritten (each diff read).
+- **The render's face sheet and pack page were rebuilt** from the registry so the render tests pass (the four
+  tuned cards' stats); nobody looked at them in a browser.
+
 ## Session 97 (the booster cards built: registry, set numbering, S0-odds-3; cards-2, no schema change): what was raised, and what is still thin
 
 Raised: session 96's debt items "draft cards live in `engine/src/dev/`" (now literal cards in the faction files;

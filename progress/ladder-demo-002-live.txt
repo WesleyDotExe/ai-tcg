@@ -22,133 +22,121 @@ Mon 09:00:00 GET /api/live as Player One: 2 live; mine = null (five queued: one 
   s0-live-001  Chrome Bastion vs Static Widow  turn 1, 0 moves out
   s0-live-002  Hive Courier vs Lattice Warden  turn 1, 0 moves out
 
-### Watching s0-live-001 (its moves add up to 7.2 min at 1x)
+### Watching s0-live-001 (its moves add up to 8.2 min at 1x)
 
 Mon 09:00:05 + 0 min    0 moves out, turn  1  Chrome Bastion 20 hp (0 on board) vs Static Widow 24 hp (0)  history has it: no
 Mon 09:01:00 + 1 min   18 moves out, turn  5  Chrome Bastion 19 hp (2 on board) vs Static Widow 22 hp (2)  history has it: no
-Mon 09:02:00 + 2 min   37 moves out, turn  7  Chrome Bastion 19 hp (4 on board) vs Static Widow 16 hp (2)  history has it: no
-Mon 09:03:00 + 3 min   56 moves out, turn  9  Chrome Bastion 19 hp (5 on board) vs Static Widow 12 hp (3)  history has it: no
-Mon 09:04:00 + 4 min   75 moves out, turn 11  Chrome Bastion 15 hp (5 on board) vs Static Widow 10 hp (3)  history has it: no
-Mon 09:05:00 + 5 min   96 moves out, turn 12  Chrome Bastion 9 hp (5 on board) vs Static Widow 9 hp (4)  history has it: no
-Mon 09:06:00 + 6 min  117 moves out, turn 13  Chrome Bastion 9 hp (6 on board) vs Static Widow 7 hp (4)  history has it: no
-Mon 09:07:00 + 7 min  138 moves out, turn 15  Chrome Bastion 9 hp (6 on board) vs Static Widow 1 hp (4)  history has it: no
-Mon 09:07:05 + 7 min  140 moves out, turn 15  Chrome Bastion 9 hp (6 on board) vs Static Widow 0 hp (4)  winner: p1  history has it: no
-Mon 09:07:10 GET /api/live/s0-live-001 -> 404: match "s0-live-001" has ended; see /api/matches/s0-live-001
+Mon 09:02:00 + 2 min   37 moves out, turn  7  Chrome Bastion 19 hp (3 on board) vs Static Widow 18 hp (4)  history has it: no
+Mon 09:03:00 + 3 min   56 moves out, turn  9  Chrome Bastion 19 hp (4 on board) vs Static Widow 14 hp (5)  history has it: no
+Mon 09:04:00 + 4 min   75 moves out, turn 10  Chrome Bastion 14 hp (4 on board) vs Static Widow 12 hp (5)  history has it: no
+Mon 09:05:00 + 5 min   96 moves out, turn 12  Chrome Bastion 10 hp (5 on board) vs Static Widow 10 hp (5)  history has it: no
+Mon 09:06:00 + 6 min  117 moves out, turn 13  Chrome Bastion 8 hp (6 on board) vs Static Widow 9 hp (4)  history has it: no
+Mon 09:07:00 + 7 min  138 moves out, turn 15  Chrome Bastion 4 hp (6 on board) vs Static Widow 9 hp (5)  history has it: no
+Mon 09:08:00 + 8 min  160 moves out, turn 16  Chrome Bastion 1 hp (6 on board) vs Static Widow 3 hp (5)  history has it: no
+Mon 09:08:05 + 8 min  163 moves out, turn 16  Chrome Bastion -1 hp (6 on board) vs Static Widow 3 hp (5)  winner: p2  history has it: no
+Mon 09:08:10 + 8 min  163 moves out, turn 16  Chrome Bastion -1 hp (6 on board) vs Static Widow 3 hp (5)  winner: p2  history has it: no
+Mon 09:08:15 GET /api/live/s0-live-001 -> 404: match "s0-live-001" has ended; see /api/matches/s0-live-001
 
-recorded at Mon 09:07:10, 7.2 min after it started; the lines fetched add up to the match log exactly: yes
+recorded at Mon 09:08:15, 8.3 min after it started; the lines fetched add up to the match log exactly: yes
 the last lines released:
-    p2 passes priority
-  >>> resolving: Latent Ward's attack
-    Latent Ward deals 1 damage to Static Widow
-  === GAME OVER: p1 wins (p2's health reached 0) ===
+    p1 passes priority
+  >>> resolving: Garbage Collector's attack
+    Garbage Collector deals 2 damage to Chrome Bastion
+  === GAME OVER: p2 wins (p1's health reached 0) ===
 
 ## 2. The ladder runs on until Player One's day is maxed
 
-Mon 13:52:10 Player One's auto-play: on=false, stopped={"reason":"dailyRewardsMaxed","day":"2026-11-02"}, canTurnOn=false
-its day: 10 wins (10 rewarded), 14 losses, +110 credits; next win pays 0
+Mon 13:04:15 Player One's auto-play: on=false, stopped={"reason":"dailyRewardsMaxed","day":"2026-11-02"}, canTurnOn=false
+its day: 10 wins (10 rewarded), 10 losses, +110 credits; next win pays 0
 PUT /api/play/auto-play {on: true} -> 409: today's rewards are maxed; auto-play can go back on after midnight Sydney
-queued now: Chrome Bastion, Lattice Warden, Static Widow, Hive Courier
+queued now: Static Widow, Hive Courier
 
 matches so far:
-  s0-live-001 Mon 09:00:00-Mon 09:07:10 Chrome Bastion vs Static Widow: Chrome Bastion wins, T15, +30/+2
   s0-live-002 Mon 09:00:00-Mon 09:07:45 Hive Courier vs Lattice Warden: Hive Courier wins, T15, +30/+2
-  s0-live-003 Mon 09:08:45-Mon 09:14:05 Hive Courier vs Night Relay: Hive Courier wins, T11, +10/+2
-  s0-live-004 Mon 09:08:45-Mon 09:19:35 Lattice Warden vs Chrome Bastion: Lattice Warden wins, T21, +30/+2
-  s0-live-005 Mon 09:20:35-Mon 09:25:40 Night Relay vs Static Widow: Static Widow wins, T12, +2/+30
-  s0-live-006 Mon 09:20:35-Mon 09:29:05 Hive Courier vs Lattice Warden: Lattice Warden wins, T18, +2/+10
-  s0-live-008 Mon 09:30:05-Mon 09:36:20 Hive Courier vs Lattice Warden: Hive Courier wins, T13, +10/+2
-  s0-live-007 Mon 09:30:05-Mon 09:38:05 Static Widow vs Chrome Bastion: Chrome Bastion wins, T18, +2/+10
-  s0-live-010 Mon 09:39:05-Mon 09:43:00 Hive Courier vs Static Widow: Hive Courier wins, T11, +10/+2
-  s0-live-009 Mon 09:39:05-Mon 09:45:05 Chrome Bastion vs Night Relay: Chrome Bastion wins, T13, +10/+2
-  s0-live-012 Mon 09:46:05-Mon 09:52:45 Night Relay vs Hive Courier: Night Relay wins, T13, +30/+2
-  s0-live-011 Mon 09:46:05-Mon 09:53:35 Chrome Bastion vs Lattice Warden: Chrome Bastion wins, T17, +10/+2
-  s0-live-013 Mon 09:54:35-Mon 10:00:30 Night Relay vs Static Widow: Static Widow wins, T14, +2/+10
-  s0-live-014 Mon 09:54:35-Mon 10:00:35 Chrome Bastion vs Hive Courier: Hive Courier wins, T16, +2/+5
-  s0-live-015 Mon 10:01:35-Mon 10:07:30 Lattice Warden vs Static Widow: Static Widow wins, T14, +2/+10
-  s0-live-016 Mon 10:01:35-Mon 10:10:25 Hive Courier vs Chrome Bastion: Chrome Bastion wins, T18, +2/+5
-  s0-live-017 Mon 10:11:25-Mon 10:17:35 Lattice Warden vs Night Relay: Lattice Warden wins, T15, +10/+2
-  s0-live-018 Mon 10:11:25-Mon 10:18:25 Chrome Bastion vs Static Widow: Static Widow wins, T16, +2/+10
-  s0-live-020 Mon 10:19:25-Mon 10:25:50 Lattice Warden vs Chrome Bastion: Chrome Bastion wins, T14, +2/+5
-  s0-live-019 Mon 10:19:25-Mon 10:26:10 Hive Courier vs Static Widow: Static Widow wins, T14, +2/+5
-  s0-live-021 Mon 10:27:10-Mon 10:33:20 Hive Courier vs Night Relay: Hive Courier wins, T13, +5/+2
-  s0-live-022 Mon 10:27:10-Mon 10:34:25 Static Widow vs Chrome Bastion: Chrome Bastion wins, T18, +2/+5
-  s0-live-023 Mon 10:35:25-Mon 10:42:25 Lattice Warden vs Static Widow: Static Widow wins, T16, +2/+5
-  s0-live-024 Mon 10:35:25-Mon 10:42:25 Hive Courier vs Chrome Bastion: Hive Courier wins, T15, +5/+2
-  s0-live-026 Mon 10:43:25-Mon 10:49:25 Static Widow vs Hive Courier: Static Widow wins, T13, +5/+2
-  s0-live-025 Mon 10:43:25-Mon 10:50:10 Night Relay vs Lattice Warden: Lattice Warden wins, T14, +2/+10
-  s0-live-028 Mon 10:51:10-Mon 10:56:15 Hive Courier vs Static Widow: Hive Courier wins, T11, +5/+2
-  s0-live-027 Mon 10:51:10-Mon 10:59:10 Lattice Warden vs Chrome Bastion: Chrome Bastion wins, T16, +2/+5
-  s0-live-030 Mon 11:00:10-Mon 11:07:05 Chrome Bastion vs Hive Courier: Chrome Bastion wins, T15, +5/+2
-  s0-live-029 Mon 11:00:10-Mon 11:07:55 Night Relay vs Static Widow: Night Relay wins, T17, +10/+2
-  s0-live-031 Mon 11:08:55-Mon 11:15:45 Static Widow vs Lattice Warden: Lattice Warden wins, T16, +2/+5
-  s0-live-032 Mon 11:08:55-Mon 11:16:30 Chrome Bastion vs Hive Courier: Chrome Bastion wins, T15, +5/+2
-  s0-live-033 Mon 11:17:30-Mon 11:22:00 Night Relay vs Hive Courier: Night Relay wins, T11, +10/+2
-  s0-live-034 Mon 11:17:30-Mon 11:24:20 Static Widow vs Chrome Bastion: Static Widow wins, T15, +5/+0
-  s0-live-035 Mon 11:25:20-Mon 11:31:05 Lattice Warden vs Hive Courier: Lattice Warden wins, T13, +5/+2
-  s0-live-036 Mon 11:25:20-Mon 11:32:30 Night Relay vs Chrome Bastion: Night Relay wins, T13, +10/+0
-  s0-live-038 Mon 11:33:30-Mon 11:38:45 Chrome Bastion vs Lattice Warden: Lattice Warden wins, T14, +0/+5
-  s0-live-037 Mon 11:33:30-Mon 11:39:00 Static Widow vs Hive Courier: Static Widow wins, T11, +5/+2
-  s0-live-040 Mon 11:40:00-Mon 11:45:25 Static Widow vs Chrome Bastion: Chrome Bastion wins, T12, +2/+0
-  s0-live-039 Mon 11:40:00-Mon 11:46:05 Lattice Warden vs Night Relay: Lattice Warden wins, T17, +5/+2
-  s0-live-041 Mon 11:47:05-Mon 11:52:20 Night Relay vs Hive Courier: Night Relay wins, T11, +5/+0
-  s0-live-042 Mon 11:47:05-Mon 11:54:35 Chrome Bastion vs Lattice Warden: Chrome Bastion wins, T15, +0/+2
-  s0-live-043 Mon 11:55:35-Mon 11:59:40 Lattice Warden vs Static Widow: Static Widow wins, T12, +2/+5
-  s0-live-044 Mon 11:55:35-Mon 12:04:10 Night Relay vs Chrome Bastion: Chrome Bastion wins, T22, +2/+0
-  s0-live-045 Mon 12:05:10-Mon 12:12:10 Lattice Warden vs Hive Courier: Hive Courier wins, T16, +2/+5
-  s0-live-046 Mon 12:05:10-Mon 12:12:20 Chrome Bastion vs Static Widow: Chrome Bastion wins, T19, +0/+0
-  s0-live-047 Mon 12:13:20-Mon 12:18:45 Night Relay vs Lattice Warden: Lattice Warden wins, T12, +2/+5
-  s0-live-048 Mon 12:13:20-Mon 12:19:45 Chrome Bastion vs Hive Courier: Chrome Bastion wins, T15, +0/+0
-  s0-live-050 Mon 12:20:45-Mon 12:26:55 Lattice Warden vs Chrome Bastion: Lattice Warden wins, T15, +5/+0
-  s0-live-049 Mon 12:20:45-Mon 12:28:20 Hive Courier vs Static Widow: Static Widow wins, T14, +0/+0
-  s0-live-051 Mon 12:29:20-Mon 12:34:55 Night Relay vs Hive Courier: Night Relay wins, T11, +5/+0
-  s0-live-052 Mon 12:29:20-Mon 12:37:15 Static Widow vs Chrome Bastion: Static Widow wins, T17, +0/+0
-  s0-live-054 Mon 12:38:15-Mon 12:44:35 Night Relay vs Chrome Bastion: Chrome Bastion wins, T14, +0/+0
-  s0-live-053 Mon 12:38:15-Mon 12:45:45 Lattice Warden vs Static Widow: Lattice Warden wins, T17, +0/+0
-  s0-live-055 Mon 12:46:45-Mon 12:53:50 Lattice Warden vs Hive Courier: Lattice Warden wins, T15, +0/+0
-  s0-live-056 Mon 12:46:45-Mon 12:54:30 Static Widow vs Chrome Bastion: Static Widow wins, T19, +0/+0
-  s0-live-058 Mon 12:55:30-Mon 13:00:40 Chrome Bastion vs Hive Courier: Hive Courier wins, T12, +0/+5
-  s0-live-057 Mon 12:55:30-Mon 13:03:10 Lattice Warden vs Night Relay: Night Relay wins, T18, +0/+5
-  s0-live-059 Mon 13:04:10-Mon 13:09:25 Static Widow vs Night Relay: Static Widow wins, T11, +0/+0
-  s0-live-060 Mon 13:04:10-Mon 13:10:50 Chrome Bastion vs Lattice Warden: Chrome Bastion wins, T17, +0/+0
-  s0-live-061 Mon 13:11:50-Mon 13:17:35 Night Relay vs Hive Courier: Night Relay wins, T11, +5/+0
-  s0-live-062 Mon 13:11:50-Mon 13:19:20 Lattice Warden vs Static Widow: Static Widow wins, T14, +0/+0
-  s0-live-064 Mon 13:20:20-Mon 13:24:50 Lattice Warden vs Night Relay: Lattice Warden wins, T11, +0/+0
-  s0-live-063 Mon 13:20:20-Mon 13:26:00 Chrome Bastion vs Static Widow: Static Widow wins, T16, +0/+0
-  s0-live-066 Mon 13:27:00-Mon 13:33:05 Night Relay vs Static Widow: Static Widow wins, T14, +0/+0
-  s0-live-065 Mon 13:27:00-Mon 13:34:45 Lattice Warden vs Hive Courier: Lattice Warden wins, T17, +0/+0
-  s0-live-068 Mon 13:35:45-Mon 13:43:40 Lattice Warden vs Static Widow: Static Widow wins, T18, +0/+0
-  s0-live-067 Mon 13:35:45-Mon 13:45:00 Chrome Bastion vs Night Relay: Night Relay wins, T16, +0/+5
-  s0-live-070 Mon 13:46:00-Mon 13:51:35 Static Widow vs Night Relay: Night Relay wins, T12, +0/+5
-  s0-live-069 Mon 13:46:00-Mon 13:52:00 Chrome Bastion vs Hive Courier: Hive Courier wins, T16, +0/+0
+  s0-live-001 Mon 09:00:00-Mon 09:08:15 Chrome Bastion vs Static Widow: Static Widow wins, T16, +2/+30
+  s0-live-003 Mon 09:09:15-Mon 09:14:35 Hive Courier vs Night Relay: Hive Courier wins, T11, +10/+2
+  s0-live-004 Mon 09:09:15-Mon 09:16:35 Lattice Warden vs Static Widow: Static Widow wins, T18, +2/+10
+  s0-live-005 Mon 09:17:35-Mon 09:23:40 Night Relay vs Chrome Bastion: Chrome Bastion wins, T14, +2/+30
+  s0-live-006 Mon 09:17:35-Mon 09:23:45 Hive Courier vs Static Widow: Static Widow wins, T12, +2/+10
+  s0-live-007 Mon 09:24:45-Mon 09:30:10 Night Relay vs Lattice Warden: Night Relay wins, T13, +30/+2
+  s0-live-008 Mon 09:24:45-Mon 09:32:05 Chrome Bastion vs Static Widow: Chrome Bastion wins, T17, +10/+2
+  s0-live-009 Mon 09:33:05-Mon 09:38:55 Chrome Bastion vs Hive Courier: Chrome Bastion wins, T13, +10/+2
+  s0-live-010 Mon 09:33:05-Mon 09:40:00 Static Widow vs Night Relay: Static Widow wins, T15, +10/+2
+  s0-live-011 Mon 09:41:00-Mon 09:47:10 Hive Courier vs Lattice Warden: Lattice Warden wins, T12, +2/+30
+  s0-live-012 Mon 09:41:00-Mon 09:50:15 Static Widow vs Chrome Bastion: Static Widow wins, T21, +5/+2
+  s0-live-013 Mon 09:51:15-Mon 09:58:30 Hive Courier vs Night Relay: Night Relay wins, T14, +2/+10
+  s0-live-014 Mon 09:51:15-Mon 09:58:45 Static Widow vs Chrome Bastion: Static Widow wins, T15, +5/+2
+  s0-live-016 Mon 09:59:45-Mon 10:06:20 Static Widow vs Chrome Bastion: Chrome Bastion wins, T16, +2/+10
+  s0-live-015 Mon 09:59:45-Mon 10:07:10 Lattice Warden vs Night Relay: Lattice Warden wins, T19, +10/+2
+  s0-live-017 Mon 10:08:10-Mon 10:13:55 Lattice Warden vs Hive Courier: Lattice Warden wins, T15, +10/+2
+  s0-live-018 Mon 10:08:10-Mon 10:14:45 Static Widow vs Chrome Bastion: Static Widow wins, T13, +5/+2
+  s0-live-019 Mon 10:15:45-Mon 10:20:25 Night Relay vs Hive Courier: Hive Courier wins, T12, +2/+10
+  s0-live-020 Mon 10:15:45-Mon 10:21:30 Lattice Warden vs Static Widow: Static Widow wins, T12, +2/+5
+  s0-live-022 Mon 10:22:30-Mon 10:27:00 Static Widow vs Hive Courier: Static Widow wins, T11, +5/+2
+  s0-live-021 Mon 10:22:30-Mon 10:30:50 Lattice Warden vs Chrome Bastion: Chrome Bastion wins, T18, +2/+5
+  s0-live-023 Mon 10:31:50-Mon 10:36:55 Night Relay vs Hive Courier: Night Relay wins, T11, +10/+2
+  s0-live-024 Mon 10:31:50-Mon 10:38:10 Chrome Bastion vs Static Widow: Chrome Bastion wins, T19, +5/+2
+  s0-live-025 Mon 10:39:10-Mon 10:45:50 Lattice Warden vs Night Relay: Night Relay wins, T14, +2/+10
+  s0-live-026 Mon 10:39:10-Mon 10:47:40 Static Widow vs Chrome Bastion: Static Widow wins, T19, +5/+2
+  s0-live-027 Mon 10:48:40-Mon 10:53:05 Lattice Warden vs Hive Courier: Lattice Warden wins, T11, +10/+2
+  s0-live-028 Mon 10:48:40-Mon 10:57:55 Chrome Bastion vs Static Widow: Static Widow wins, T22, +2/+0
+  s0-live-030 Mon 10:58:55-Mon 11:04:35 Static Widow vs Lattice Warden: Static Widow wins, T15, +0/+2
+  s0-live-029 Mon 10:58:55-Mon 11:05:10 Night Relay vs Hive Courier: Hive Courier wins, T14, +2/+10
+  s0-live-031 Mon 11:06:10-Mon 11:13:25 Lattice Warden vs Chrome Bastion: Chrome Bastion wins, T16, +2/+5
+  s0-live-032 Mon 11:06:10-Mon 11:13:40 Static Widow vs Night Relay: Static Widow wins, T17, +0/+2
+  s0-live-033 Mon 11:14:40-Mon 11:20:35 Hive Courier vs Lattice Warden: Lattice Warden wins, T12, +2/+5
+  s0-live-034 Mon 11:14:40-Mon 11:22:30 Chrome Bastion vs Static Widow: Static Widow wins, T20, +2/+0
+  s0-live-035 Mon 11:23:30-Mon 11:29:30 Night Relay vs Lattice Warden: Night Relay wins, T13, +5/+2
+  s0-live-036 Mon 11:23:30-Mon 11:34:10 Chrome Bastion vs Static Widow: Static Widow wins, T20, +2/+0
+  s0-live-037 Mon 11:35:10-Mon 11:41:15 Hive Courier vs Night Relay: Night Relay wins, T12, +2/+5
+  s0-live-038 Mon 11:35:10-Mon 11:44:40 Static Widow vs Lattice Warden: Lattice Warden wins, T20, +0/+5
+  s0-live-040 Mon 11:45:40-Mon 11:51:10 Static Widow vs Night Relay: Static Widow wins, T13, +0/+2
+  s0-live-039 Mon 11:45:40-Mon 11:51:50 Lattice Warden vs Chrome Bastion: Chrome Bastion wins, T16, +2/+5
+  s0-live-041 Mon 11:52:50-Mon 11:59:15 Lattice Warden vs Hive Courier: Lattice Warden wins, T13, +5/+0
+  s0-live-042 Mon 11:52:50-Mon 12:02:15 Static Widow vs Chrome Bastion: Static Widow wins, T21, +0/+2
+  s0-live-043 Mon 12:03:15-Mon 12:10:05 Lattice Warden vs Night Relay: Lattice Warden wins, T15, +5/+2
+  s0-live-044 Mon 12:03:15-Mon 12:11:15 Chrome Bastion vs Static Widow: Chrome Bastion wins, T25, +5/+0
+  s0-live-045 Mon 12:12:15-Mon 12:17:25 Night Relay vs Hive Courier: Night Relay wins, T11, +5/+0
+  s0-live-046 Mon 12:12:15-Mon 12:18:45 Static Widow vs Lattice Warden: Static Widow wins, T15, +0/+0
+  s0-live-048 Mon 12:19:45-Mon 12:24:50 Static Widow vs Night Relay: Night Relay wins, T12, +0/+5
+  s0-live-047 Mon 12:19:45-Mon 12:27:05 Chrome Bastion vs Lattice Warden: Lattice Warden wins, T16, +2/+5
+  s0-live-050 Mon 12:28:05-Mon 12:34:40 Lattice Warden vs Static Widow: Static Widow wins, T16, +0/+0
+  s0-live-049 Mon 12:28:05-Mon 12:35:35 Chrome Bastion vs Hive Courier: Chrome Bastion wins, T17, +5/+0
+  s0-live-052 Mon 12:36:35-Mon 12:43:05 Chrome Bastion vs Static Widow: Static Widow wins, T14, +0/+0
+  s0-live-051 Mon 12:36:35-Mon 12:44:05 Night Relay vs Lattice Warden: Lattice Warden wins, T20, +2/+5
+  s0-live-053 Mon 12:45:05-Mon 12:49:45 Hive Courier vs Lattice Warden: Hive Courier wins, T13, +5/+0
+  s0-live-054 Mon 12:45:05-Mon 12:51:05 Chrome Bastion vs Static Widow: Chrome Bastion wins, T17, +0/+0
+  s0-live-055 Mon 12:52:05-Mon 12:56:20 Hive Courier vs Night Relay: Night Relay wins, T10, +0/+5
+  s0-live-056 Mon 12:52:05-Mon 12:57:15 Lattice Warden vs Static Widow: Lattice Warden wins, T13, +0/+0
+  s0-live-058 Mon 12:58:15-Mon 13:03:45 Static Widow vs Night Relay: Night Relay wins, T12, +0/+5
 
 ## 3. A restart mid-match
 
-Mon 13:54:00 live: s0-live-071 (18 moves out), s0-live-072 (16 moves out)
-Mon 13:54:00 the process stops (the ladder, the API and the store closed)
-Mon 13:59:00 a new process on the same file cancels what was live: s0-live-071, s0-live-072
-  s0-live-071: cancelled, +0/+0, rated: false
-  s0-live-072: cancelled, +0/+0, rated: false
-Mon 13:59:00 and starts the next round: s0-live-073 Static Widow vs Chrome Bastion; s0-live-074 Lattice Warden vs Hive Courier
+Mon 13:05:15 live: s0-live-057 (134 moves out)
+Mon 13:05:15 the process stops (the ladder, the API and the store closed)
+Mon 13:10:15 a new process on the same file cancels what was live: s0-live-057
+  s0-live-057: cancelled, +0/+0, rated: false
+Mon 13:10:15 and starts the next round: s0-live-059 Chrome Bastion vs Static Widow; s0-live-060 Lattice Warden vs Hive Courier
 
 ## 4. Match history over the API (as Player One)
 
-GET /api/matches?limit=5 -> 5 of 24, more: true
-  s0-live-070 vs Static Widow    win   +5   rating +31.5  T12  replay: true
-  s0-live-067 vs Chrome Bastion  win   +5   rating +29.5  T16  replay: true
-  s0-live-066 vs Static Widow    loss  +0   rating -12.2  T14  replay: true
-  s0-live-064 vs Lattice Warden  loss  +0   rating -21.6  T11  replay: true
-  s0-live-061 vs Hive Courier    win   +5   rating +23.3  T11  replay: true
-GET /api/matches/s0-live-001/log -> 200, 276 lines; the first:
+GET /api/matches?limit=5 -> 5 of 20, more: true
+  s0-live-058 vs Static Widow    win   +5   rating +43.9  T12  replay: true
+  s0-live-055 vs Hive Courier    win   +5   rating +15.6  T10  replay: true
+  s0-live-051 vs Lattice Warden  loss  +2   rating -24.4  T20  replay: true
+  s0-live-048 vs Static Widow    win   +5   rating +55.8  T12  replay: true
+  s0-live-045 vs Hive Courier    win   +5   rating +19.6  T11  replay: true
+GET /api/matches/s0-live-001/log -> 200, 319 lines; the first:
   --- Turn 1 (p1) ---
-GET /api/matches/s0-live-001/replay -> ai-tcg-replay/2, 140 moves; rebuilt in the engine, its log equals the served log: yes
+GET /api/matches/s0-live-001/replay -> ai-tcg-replay/2, 163 moves; rebuilt in the engine, its log equals the served log: yes
 
 ## 5. The pacing and the checks
 
-73 matches shown at 1x: median 6.7 min, 10th-90th percentile 5.3 min-7.9 min, shortest 3.9 min, longest 10.8 min
-within 4-7 minutes: 46 of 73
+61 matches shown at 1x: median 6.5 min, 10th-90th percentile 5.1 min-8.3 min, shortest 4.3 min, longest 10.7 min
+within 4-7 minutes: 39 of 61
 
 PASS  the followed match was not in the history before its last move was shown
-PASS  every match is recorded once (75)
+PASS  every match is recorded once (62)
 PASS  each shown match was recorded at its start plus its watch length (to the 5 s tick)
 PASS  Player Two (auto-play off) never played
 PASS  Player One's auto-play went off on its 10th rewarded win, and only then

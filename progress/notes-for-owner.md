@@ -1,5 +1,66 @@
 # Notes for the owner
 
+**Updated 2026-11-14, session 98 (game lane; the booster cards' balance re-run, build step 4). [OWNER CHECK-IN]:
+your call 8 says "bring it back with the numbers", and this is that.** Nothing is blocking. Lane: the last merged
+PR, #176, was "Render:", so this is a game session; no game PR was open. Acted on your two entries: the answers to
+game 97 (call 6 changed to Standard only) and to render 75 (keep all 3).
+
+**What I did:**
+1. **Call 6, Standard only:** the store now refuses a tournament (prize) finish on a starter card, as it refuses
+   every other special version. A starter card given as a prize is a Standard copy. A booster card's tournament
+   finish is unchanged.
+2. **The balance re-run, two rounds as call 8 allows.** Everything is in `progress/booster-rerun-s98/summary.md`.
+   I measured it two ways each round: the **probe** (each starter deck plus its 7 booster cards against the four
+   shipped decks: the measurement your +8 to +12 target was written against), and the **built-deck ring** (the
+   store's deck builder builds every faction's deck from realistic collections at 3, 17 and 37 packs, and from a
+   full collection, and they play each other: how the season will really play).
+3. **Round 1, kept** (card version `cards-3`; stats only, no cost, rarity or ability changed): Zombie Fork 2/2 to
+   1/2, Heap Spray 2/4 to 2/3, Decay Engine 2/4 to 2/3, Aegis Overwatch 3/5 to 2/5.
+4. **Round 2 was tried and reverted** (Reaper Thread 2/3 to 2/2, Shield Relay 1/3 to 2/3). It was better at 37
+   packs and worse everywhere else.
+
+**The numbers** (points against the field, the probe; a faction's win rate against the other built decks, the ring):
+
+| | Cortex | Swarm | Aegis | Null | spread |
+|---|---|---|---|---|---|
+| Probe, as approved | +10.8 | +9.3 | +12.7 | +17.1 | 7.8 |
+| **Probe, kept** | **+10.8** | **+9.3** | **+9.8** | **+12.3** | **3.0** |
+| Ring at 37 packs, as approved | 46.2 | 46.6 | 45.4 | 61.8 | 16.4 |
+| **Ring at 37 packs, kept** | 48.9 | 49.1 | 46.2 | 55.7 | **9.5** |
+| **Ring at 17 packs, kept** | 50.0 | 49.1 | 47.8 | 53.0 | **5.2** |
+| **Ring at 3 packs, kept** | 49.5 | 49.5 | 50.3 | 50.7 | **1.2** |
+| Ring, full collection, kept | 50.5 | 43.1 | 62.2 | 44.2 | 19.1 |
+| Ring before any booster card (007), 37 / 17 / 3 / full | | | | | 4.5 / 4.3 / 6.4 / 5.1 |
+
+**What it means:** the probe is in your target. The real ring is not "within about 4" late in the season (37
+packs: Null 55.7, Aegis 46.2) or with a full collection. Two things to weigh:
+- the ring was never within 4: before any booster card its spread was 4.3 to 6.4 (the shipped decks 6.1);
+- the full-collection column is one build per faction and the builder is noisy there: its Null build keeps the
+  starter deck with no booster card at all, and its Aegis build (62%) also plays two Zero-Day cards and starter
+  cards at full copies. No real owner has a full collection in 21 days.
+
+**Ring checks:** the ring regression check passes in both modes, unchanged (it plays the starter decks, which
+nothing touched).
+
+**Calls for you:**
+1. **What counts as passing.** **(a, recommended)** Ship round 1 as it is. The probe is in the target. The
+   realistic ring is 1.2 and 5.2 at 3 and 17 packs, near the game's own spread of 4 to 6. At 37 packs it is 9.5:
+   Null a little ahead, Aegis a little behind, and Null is Aegis's designed predator. **(b)** Hold the ring to
+   "within about 6", the game's spread before booster cards, and allow one more round aimed at Null-versus-Aegis
+   late in the season. **(c)** Your fallback: no booster cards in packs for Season 0 (packs as they were before
+   option B).
+2. **The full-collection column.** **(a, recommended)** Read it as a deck-builder issue, not a card one, and put
+   it in the Season 1 notes. The builder's full-collection pick has been flagged since session 71. **(b)** Make the
+   builder search harder from a full collection before launch. That changes every agent's deck, so it needs its own
+   session.
+3. **Round 2 (Shield Relay 2/3, Reaper Thread 2/2) stays out.** **Recommended: keep it out.** It made Aegis's
+   probe +13.1 and widened the ring at 17 and 3 packs.
+
+**Also this session:** the dry run (`progress/season0-dry-run-002.txt`). Its step 5 had stopped on session 94's
+"the 15 minutes start at the first pairing" rule, so I brought the script up to that rule and ran it again.
+
+---
+
 **Updated 2026-11-14, session 97 (game lane; the booster cards built, steps 1 and 2). [OWNER CHECK-IN].**
 Nothing is blocking. Lane: the last merged PR, #174, was "Render:", so this is a game session; no game PR was open.
 Acted on your two entries: the answers to game 96 (keep all 8) and "starter cards are Standard only".

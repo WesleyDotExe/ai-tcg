@@ -5,6 +5,12 @@ faction files and the registry (`cards-2`), the set is 001-124, packs roll S0-od
 step 4) is next. The chase lists moved to booster cards (owner 2026-11-14, "starter cards are Standard only"):
 `progress/notes-for-owner.md`, session 97.
 
+**Status (session 98):** the balance re-run ran (`progress/booster-rerun-s98/summary.md`). Four cards changed
+stats in the kept round, `cards-3`: Zombie Fork 2/2 to 1/2, Heap Spray 2/4 to 2/3, Decay Engine 2/4 to 2/3, Aegis
+Overwatch 3/5 to 2/5 Guard. The table below is the proposal as approved (cards-2 numbers); the registry is the
+truth. After two rounds the probe is in the target and the built-deck ring is not at 37 packs, so it is back with
+the owner (call 8).
+
 Game session 96, 2026-11-14. Your 2026-11-14 entry (option B) asked the game lane to propose the card list first,
 for your approval, before building it. This is that proposal. **Nothing is built:** the cards are draft data in
 `engine/src/dev/boosterDraft.ts`. They are not in the registry, any set, pack or starter deck, and nobody can own

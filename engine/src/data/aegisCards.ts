@@ -843,7 +843,7 @@ export const aegisOverwatch: UnitCard = {
   rarity: "Mythic",
   cost: 6,
   type: "Unit",
-  attack: 3,
+  attack: 2,
   health: 5,
   keywords: ["Guard"],
   art: "placeholder:aegis/aegis-overwatch",

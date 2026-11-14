@@ -509,8 +509,9 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
     const s = open();
     const a = player(s, "a");
     const b = player(s, "b");
-    const promo = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
-    const prize = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 3, runSize: 10 });
+    const promo = s.grantCopy({ ownerId: a.ownerId, cardId: BOOSTER_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
+    // One booster card throughout: a prize's tournament finish is a booster card's (owner 2026-11-14, game 97 call 6: starter cards are Standard only).
+    const prize = s.grantCopy({ ownerId: a.ownerId, cardId: BOOSTER_COMMON, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 3, runSize: 10 });
     expect([promo.accountBound, prize.accountBound]).toEqual([false, false]);
     // Unbound means it can change owner (the future marketplace's sale),
     // and (v28) only through a transfer record, so its chain of owners is kept.
@@ -522,11 +523,11 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
     expect(s.getCopy(promo.copyId).ownerId).toBe(b.ownerId);
     expect(s.copyProvenance(promo.copyId).owners.map((o) => o.ownerId)).toEqual([a.ownerId, b.ownerId]);
     // A promo can still be granted bound on purpose (the signature card), and then it stays bound.
-    const bound = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-002", stamp: "SIGNATURE", accountBound: true });
+    const bound = s.grantCopy({ ownerId: a.ownerId, cardId: BOOSTER_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-002", stamp: "SIGNATURE", accountBound: true });
     expect(bound.accountBound).toBe(true);
     expect(() => s.unsafeExec(`UPDATE card_copies SET account_bound = 0 WHERE copy_id = '${bound.copyId}'`)).toThrow(/stays bound/);
     // Neither salvages, through the store or raw SQL.
-    expect(() => s.salvage(a.ownerId, AEGIS_COMMON, 1)).toThrow(/0 of 2 held can be salvaged.*Prize copies can be kept or sold, never salvaged/);
+    expect(() => s.salvage(a.ownerId, BOOSTER_COMMON, 1)).toThrow(/0 of 2 held can be salvaged.*Prize copies can be kept or sold, never salvaged/);
     expect(() =>
       s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE copy_id = '${prize.copyId}'`),
     ).toThrow(/CHECK/);

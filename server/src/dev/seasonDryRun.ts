@@ -294,10 +294,21 @@ try {
 
   section(`5. Auto-play with 15 minutes (the Agent controls ring) — ${sydney()} Sydney`);
   const on = await api("PUT", "/api/play/auto-play", { on: true, minutes: 15 });
-  const a0 = on.json.autoPlay.allowance;
-  say(`  PUT /api/play/auto-play { on: true, minutes: 15 } at ${sydney()}: ${a0.label}, ${a0.minutesLeft} min left, ends ${sydney(Date.parse(a0.endsAt))}`);
-  check("the allowance runs: 15 minutes, ending before midnight", a0.state === "running" && a0.totalMinutes === 15 && a0.endsAtReset === false);
-  const endsAt = Date.parse(a0.endsAt);
+  // (v29, session 94) the 15 minutes start at the agent's first pairing:
+  // until then the ring reads "Waiting for the next round", with no end time.
+  // Session 98 brought this step up to that rule (the run had stopped here on
+  // the null end time); the wait is polled as the widget polls, every 15 s.
+  const pressedAt = clockNow();
+  let a0 = on.json.autoPlay.allowance;
+  say(`  PUT /api/play/auto-play { on: true, minutes: 15 } at ${sydney()}: ${a0.label}, ${a0.minutesLeft} min${a0.endsAt ? ` left, ends ${sydney(Date.parse(a0.endsAt))}` : " chosen, no end time yet"}`);
+  check("pressed: the allowance waits for the agent's first pairing (or runs, if paired at once), 15 minutes chosen", (a0.state === "waiting" && a0.endsAt === null) || a0.state === "running");
+  while (a0.state === "waiting" && clockNow() < pressedAt + 12 * 60_000) {
+    await wait(15_000);
+    a0 = (await api("GET", "/api/play")).json.autoPlay.allowance;
+  }
+  say(`  first paired by ${sydney()}: ${a0.label}, ${a0.minutesLeft} min left, the window ${a0.startedAt ? sydney(Date.parse(a0.startedAt)) : "-"} to ${a0.endsAt ? sydney(Date.parse(a0.endsAt)) : "-"}`);
+  check("the allowance runs from the first pairing: 15 minutes, ending before midnight", a0.state === "running" && a0.totalMinutes === 15 && a0.endsAtReset === false && a0.startedAt !== null && Date.parse(a0.startedAt) >= pressedAt - 1000);
+  const endsAt = a0.endsAt ? Date.parse(a0.endsAt) : clockNow();
   const states: string[] = [];
   let lastState = "";
   let watched = false;
