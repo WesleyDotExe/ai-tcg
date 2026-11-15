@@ -5603,3 +5603,25 @@ economy 306, server 232, render 1,089, agents 17, protocol 7); `npm run demos` 3
 **Worked:** counting the old printing alongside the new in the same run gave the before/after from one day.
 **Thin:** in quality-debt.md (`ladderCli.ts` still prints every event; the reminder is by rounds, not time).
 **Blocked:** nothing.
+
+**2026-11-15 — Session 103 (game lane; hardening and fixes only (owner 2026-11-14 point 4): `npm run ladder` on the
+season server's ladder lines; no schema change).**
+Lane: the last merged PR at the start was #185 ("Render: ...", render session 79), so game; no open game PR.
+Owner feedback: the one new entry (2026-11-15, render 79's answers) is the render lane's; nothing for this lane.
+No Season 0 checklist item waits for the game lane, so the session took current.md's debt candidates.
+**Built:** (1) `server/src/ladderCli.ts` prints through `LadderLog` (session 102's season-server lines) instead of
+its own copy. The old copy printed four event kinds only, so a player owner whose play time ran out was switched
+off with nothing printed: a real gap, now printed. (2) `Ladder.runRound(queue?, onPaired?)`: the CLI's round line is
+printed once the round is paired, before its matches. (3) A record, `server/src/dev/ladderCliLogDemo.ts`.
+**Ran it:** `progress/ladder-cli-log-001.txt`, 9 of 9 PASS: the real CLI as a child process on a real file, 6
+rounds with a locked owner (one "sits out" line, a round line before each round's matches with the count it gives),
+then a round after Player Timed's window has passed (written into the file, since a plain round takes seconds):
+"Player Timed's auto-play is off: its play time is up", the store agreeing. The same demo against the pre-change
+CLI (taken from git, run once, not committed): 5 of 9 (the locked reason 6 times, no round lines, no auto-play
+line). New test in `server/test/ladder.test.ts`. Typecheck clean (all six workspaces); tests all pass (engine 379,
+economy 306, server 233, render 1,106, agents 17, protocol 7); the site contract check 0 mismatches, 8 of 8 controls;
+`npm run demos -- --all`: 40 of 40 the same (the slow three included; last run session 99).
+**Worked:** checking the new demo against the old CLI showed it really discriminates, and turned up the dropped
+auto-play line.
+**Thin:** in quality-debt.md (the record isn't reproducible line for line; the time-up is a row write).
+**Blocked:** nothing.

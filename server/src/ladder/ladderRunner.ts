@@ -245,9 +245,13 @@ export class Ladder {
   }
 
   /** One round: rebuild what needs it, pair, play and record every pair.
-   * `queue` defaults to every eligible owner. */
-  async runRound(queue: readonly string[] = this.eligibleOwners()): Promise<RoundReport> {
+   * `queue` defaults to every eligible owner. `onPaired` (session 103, the
+   * `npm run ladder` CLI's round line) is called once the round is paired,
+   * before its matches are played; the report's `matches` are still empty
+   * then. */
+  async runRound(queue: readonly string[] = this.eligibleOwners(), onPaired?: (r: RoundReport) => void): Promise<RoundReport> {
     const { report, pairs } = await this.startRound(queue);
+    onPaired?.(report);
     for (const p of pairs) {
       const played = await this.playPair(p);
       if (played === null) continue;
