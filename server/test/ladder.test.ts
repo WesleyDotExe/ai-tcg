@@ -131,6 +131,17 @@ describe("the ladder", () => {
     expect(r.sitOut).toHaveLength(0);
   });
 
+  it("(session 103) runRound's onPaired sees the paired round before any match is played or recorded", async () => {
+    const { store, ladder } = setup();
+    const lad = ladder();
+    const seen: { pairs: number; matches: number; recorded: number }[] = [];
+    const r = await lad.runRound(undefined, (paired) => {
+      seen.push({ pairs: paired.pairs.length, matches: paired.matches.length, recorded: store.matchHistory().length });
+    });
+    expect(seen).toEqual([{ pairs: 2, matches: 0, recorded: 0 }]);
+    expect(r.matches).toHaveLength(2);
+  });
+
   it("(session 101) a lock the owner can't build leaves them out every round, with the reason; the round after the craft that makes it buildable rebuilds and pairs them", async () => {
     const { store, owners, ladder } = setup(["Swarm", "Cortex", "Aegis", "Null"]);
     const locked = owners[0]!.ownerId;

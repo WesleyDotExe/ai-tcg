@@ -1,0 +1,65 @@
+# `npm run ladder` on the season server's ladder lines (game session 103)
+
+The season file
+------------------------------------------------------------------------
+  Three house owners; Player Timed on auto-play for 15 minutes; Player Locked on auto-play with no limit,
+  holding the Swarm starter only and locked to Aegis (no Aegis card held, so no deck can be built).
+
+1. $ npm run ladder -- <dir>/season-0.db 6
+------------------------------------------------------------------------
+    [ladder] House Cortex bought 0, opened 3 packs (12 new cards)
+    [ladder] House Aegis bought 0, opened 3 packs (12 new cards)
+    [ladder] House Null bought 0, opened 3 packs (14 new cards)
+    [ladder] rebuilt House Cortex's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+    [ladder] rebuilt House Aegis's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+    [ladder] rebuilt House Null's deck: Null, 40 cards (the agent hasn't built a deck yet)
+    [ladder] rebuilt Player Timed's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+    [ladder] Player Locked sits out: the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
+    [ladder] round 1 since this start: 2 matches
+    [ladder] m-edb915bd-8a6c-44e4-9510-08cd06fdf3d6 Player Timed vs House Cortex: House Cortex wins in 10 turns, +2/+30
+    [ladder] m-1c05d87d-d314-43f1-a79f-b4909404b2ba House Aegis vs House Null: House Aegis wins in 13 turns, +30/+2
+    [ladder] round 2 since this start: 2 matches
+    [ladder] m-49197ed2-3d04-477e-9c61-134d355dafdd House Aegis vs House Cortex: House Cortex wins in 12 turns, +2/+10
+    [ladder] m-03ebf45b-2e0a-4125-8388-f1256cfdd50d Player Timed vs House Null: House Null wins in 14 turns, +2/+30
+    [ladder] round 3 since this start: 2 matches
+    [ladder] m-466272dd-08b7-40f7-aaee-adcad2912186 House Cortex vs House Null: House Cortex wins in 15 turns, +10/+2
+    [ladder] m-2e194ef9-4a38-4095-893c-18ae377989bd Player Timed vs House Aegis: Player Timed wins in 11 turns, +30/+2
+    [ladder] round 4 since this start: 2 matches
+    [ladder] m-05067f9e-9e74-49bf-b33c-20289597151d Player Timed vs House Cortex: House Cortex wins in 14 turns, +2/+10
+    [ladder] m-74fa17bc-2d83-41c7-aebd-7749b0340a81 House Null vs House Aegis: House Null wins in 13 turns, +10/+2
+    [ladder] round 5 since this start: 2 matches
+    [ladder] m-b453e191-df77-4af9-ac05-9c9b183c2f19 House Null vs House Cortex: House Null wins in 13 turns, +10/+2
+    [ladder] m-b33486a3-1bbf-4ddf-b5bb-5dcbca5b482d House Aegis vs Player Timed: Player Timed wins in 12 turns, +2/+10
+    [ladder] round 6 since this start: 2 matches
+    [ladder] m-abfa6354-b8bd-4e48-a37e-c2c01942b2cb House Cortex vs House Null: House Cortex wins in 17 turns, +5/+2
+    [ladder] m-583da206-6f95-4a04-93a2-70f0fba5586c Player Timed vs House Aegis: Player Timed wins in 13 turns, +10/+2
+      1 House Cortex             1764±181 Platinum 5-1-0
+      2 House Null               1582±173 Gold 3-3-0
+      3 Player Timed             1477±178 Silver 3-3-0
+      4 House Aegis              1172±171 Bronze 1-5-0
+
+  [PASS] the CLI ran to its end (exit 0, the standings printed)
+  [PASS] one line per round (6 of 6)
+  [PASS] each round's line comes before its own matches, with the count it gives
+  [PASS] Player Locked's reason printed once, not every round (1 line; the old CLI printed 6)
+  [PASS] nobody else sits out with a reason
+
+2. Player Timed's 15 minutes run out; $ npm run ladder -- <dir>/season-0.db 1
+------------------------------------------------------------------------
+  Player Timed's allowance after part 1: running (the window opened at their first pairing).
+  (the run: the window's end written into the file as one second after it opened, so it has passed)
+    [ladder] Player Timed's auto-play is off: its play time is up
+    [ladder] Player Locked sits out: the agent's deck couldn't be rebuilt: no deck can be built: Aegis: can't build a legal deck from the owned cards (at most 0 usable cards, under 20)
+    [ladder] round 1 since this start: 1 match, House Aegis sits out
+    [ladder] m-40432607-8fb5-40c2-bb47-28c6e69d13d6 House Null vs House Cortex: House Cortex wins in 18 turns, +2/+5
+      1 House Cortex             1804±168 Diamond 6-1-0
+      2 House Null               1545±162 Gold 3-4-0
+      3 Player Timed             1477±178 Silver 3-3-0
+      4 House Aegis              1172±171 Bronze 1-5-0
+
+  [PASS] the CLI says Player Timed's auto-play is off because the play time is up
+  [PASS] Player Timed isn't in the round's matches
+  [PASS] Player Locked's reason printed once again (a new run starts a new log)
+  [PASS] the store agrees: auto-play off, stopped for "timeUp"
+
+9 of 9 checks PASS

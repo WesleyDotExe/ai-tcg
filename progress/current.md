@@ -3,11 +3,11 @@
 **Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
-Session 102 (game lane) was a spare session on two "unmeasured" debt lines: a locked owner's day on the live
-ladder (`progress/sits-out-day-001.txt`, 6 PASS: left out of all 184 rounds; the season log's same "sits out"
-line now summed up, 4 lines that day instead of 184, `server/src/ladder/ladderLog.ts`), and `lockable` on
-`GET /api/play` timed at season scale (1.7 to 14.9 ms at 40 to 5,040 copies held; no cache needed). Before that,
-session 101 was a hardening pass (`progress/lock-pickup-ladder-001.txt`, `progress/site-contract-003.txt`). Nothing is blocking.**
+Session 103 (game lane, hardening and fixes only per the owner's 2026-11-14 point 4) moved the plain
+`npm run ladder` CLI onto the season server's ladder lines (`LadderLog`): a round line before each round's matches,
+a repeated "sits out" reason printed once, and the auto-play lines it used to drop entirely
+(`progress/ladder-cli-log-001.txt`, 9 PASS; the old CLI 5 of 9); the slow demo set re-run. Before that, session 102
+measured a locked owner's day on the ladder and summed up the season log's repeated line. Nothing is blocking.**
 
 - **The owner's run book:** `progress/mac-mini-guide.md`; the launch agents `server/launchd/`; setup
   `server/src/seasonSetup.ts`; the dry run `server/src/dev/seasonDryRun.ts` (its records:
@@ -17,6 +17,9 @@ session 101 was a hardening pass (`progress/lock-pickup-ladder-001.txt`, `progre
   `economy/src/packs.ts` (`seasonZeroSet`, `CardSet.packCards`, `CardSet.legacy`, `rollingSet`); `PACK_ODDS_V3` in
   `economy/src/config.ts`; the lists in `economy/src/chase.ts` (`S0_ILLUSTRATIONS`, `S0_GLITCH_CARDS`, and the old
   `_V2` lists); the Standard-only refusal in the store's `chaseCopyProblem`.
+- **Session 103's work:** `server/src/ladderCli.ts` (on `LadderLog`), `Ladder.runRound`'s `onPaired`
+  (`server/src/ladder/ladderRunner.ts`), the record `server/src/dev/ladderCliLogDemo.ts`, the test in
+  `server/test/ladder.test.ts`.
 - **Session 102's work:** `server/src/ladder/ladderLog.ts` (used by `seasonCli.ts`), its test
   `server/test/ladderLog.test.ts`, the measure `server/src/dev/sitsOutDayMeasure.ts` (a record).
 - **Session 101's work:** `server/src/dev/lockPickupLadderDemo.ts`; the ladder test "(session 101) a lock the
@@ -33,23 +36,22 @@ session 101 was a hardening pass (`progress/lock-pickup-ladder-001.txt`, `progre
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (render session 79, the Season 1 arena
-prototype) is render, so **the next session is game** (103).
+with "Render:", this is a game session; otherwise render. The latest PR (game session 103) is game, so **the next
+session is render** (80).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says (if it merges while you wait, choose the lane again). Check the last merged PR so a slice
 isn't built twice. Read owner-feedback.md.
 
-Render lane (80): render 79 did the owner's Season 1 arena head start (step 1, the layout, as a fenced-off prototype
-in `render/season1/`, at an [OWNER CHECK-IN] with five calls in `progress/render/checkpoints.md`). Next: render 80 is
-the hardening pass moved from 79 (the render debt list, stale browser checks first); the prototype waits for the
-owner's call on how far it goes. The game lane has nothing to do for it (owner 2026-11-14 point 4: no Season 1 game
-work).
+Render lane (80): the render hardening pass moved from 79 (the render debt list, stale browser checks first). The
+owner answered render 79 (2026-11-15): keep 1-4 (a), 5 (b): one prototype session per few render sessions while
+Season 0 has no fixes waiting, next the 3D play and attack effects; and zoom the prototype arena in a little,
+especially the tile version. That entry is the render lane's to mark handled.
 
-Game lane (103): the owner's answers first (session 102 has no calls). Then the highest unfinished, unblocked
-Season 0 checklist item in `progress/roadmap.md`; if none is waiting, candidates from quality-debt.md: the dry run's
-step 5 passing without a mid-match end (needs a way to end a window from outside: a feature, ask first); the slow
-demos re-run (outside CI, last run session 99); `ladderCli.ts` onto `LadderLog` if it is kept. Hardening count: 101
-was one; the next is due around 106.
+Game lane (104): hardening and fixes only until clean-up (owner 2026-11-14 point 4). Read the owner's answers first
+(session 103 has no calls). Candidates from quality-debt.md: the dry run's step 5 passing without a mid-match end
+(needs a way to end a window from outside: a feature, ask first); an owner switching auto-play off by hand isn't
+printed by the ladder (a one-line event, small); the slow demos (re-run session 103). Hardening count: 101 was one,
+103 hardening-only too; the next dedicated pass is due around 106.
 
 **Blocked:** nothing.
