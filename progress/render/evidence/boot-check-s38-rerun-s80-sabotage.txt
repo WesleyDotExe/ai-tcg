@@ -1,0 +1,70 @@
+
+[A] cortex-vs-swarm-seed6.html: Play at move 0, sound and music on
+  PASS A. the seed's saying: "ENGAGE"
+  PASS A. all 30 intro sounds queued on the audio clock, none dropped (30 queued, 0 late)
+  PASS A. every sound after the first queued ahead at its exact planned time (lead 131-150 ms)
+  PASS A. the power-on at 0 goes out as Play is pressed (2 ms in: the audio can't start in the past)
+  PASS A. its own power-on, not the boast's tube: {"bootOn":1,"type":24,"handshake":1,"coinFlick":1,"coinWhir":1,"coinClink":1,"bootHit":1}
+  PASS A. the recording path's own delay: 8 ms (the thump's rough 8 ms, plus the common 0 ms)
+  PASS A. every later sound HEARD at its planned distance from the others: 24 onsets (all but the 4 clicks under the chirp and the coin's whir under its flick), spread -1 to 2 ms (1 ms windows), weakest rise x8.3
+  PASS A. left and right equal over the intro: 0.000 dB (dead centre)
+  PASS A. no clipping: peak 0.449
+  PASS A. the music silent under the intro (at 2.35 s: 0 steps, bus 0.0000)
+  PASS A. and playing after it (0.9 s later: 8 steps, bus 0.288)
+  (planned 30: [{"kind":"bootOn","t":0,"at":2,"lead":-2},{"kind":"type","t":560,"at":560,"lead":149},{"kind":"type","t":596,"at":596,"lead":144}] ...)
+
+[B] a 100 ms main-thread stall mid-typing
+  PASS B. none dropped or late through the stall (30/30)
+  PASS B. all 20 typing clicks HEARD at their planned distances through the stall: spread 0 to 1 ms
+  (this page, onsets found without the plan: 20, intervals [36,36,37,36,34,37,37,35,36,36,37,36,34,38,35,36,35,37,36]; on the 36 ms grid: 19/19)
+
+[C] aegis-vs-null-seed3.html: escape at about 1 s
+  PASS escape: the intro's sounds cut once (cuts 1)
+  PASS escape: nothing of the intro queued past its lookahead (last queued at 1128 ms, escape at 1005 ms)
+  PASS escape: the music starts at once (waiting false; 4 steps 0.46 s later)
+
+[D] aegis-vs-null-seed3.html: pause at about 1 s
+  PASS pause: the intro's sounds cut once (cuts 1)
+  PASS pause: nothing of the intro queued past its lookahead (last queued at 1166 ms, pause at 1005 ms)
+  PASS pause: the music starts at once (waiting false; 4 steps 0.46 s later)
+
+[D2] pause at about 1 s with the music off: silence follows (the cut, heard)
+  PASS D2. the intro's sound gone 40 ms after the pause: level 0.00e+0 after vs 2.53e-3 before (-240 dB)
+
+[E] effects muted, music on
+  PASS E. no intro sound with effects muted (0 queued)
+  PASS E. the music still waits under the intro (0 steps)
+  PASS E. and starts after it
+
+[F] music muted, switched on mid-intro
+  PASS F. switched on at 941 ms, it waits: 0 steps at 2408 ms
+  PASS F. and the intro was not skipped by the press (the music button is an audio control)
+  PASS F. it starts after the intro
+
+[G] a phone, portrait (390 x 844): cortex-vs-swarm-seed6.html
+  (halves: top 366 x 320, bottom 366 x 320)
+  PASS G. the agent lines on two rows at 20.0 px (one row would be 13.5 px)
+  PASS G. laid out with no grammar problem (lines inside their screens, mirror images)
+  PASS G. Skip is finger-sized: 88 x 44 px
+  PASS G. no sideways scroll (390 <= 390)
+  PASS G. the sounds on the phone too: 30/30 queued, none late
+
+[H] a phone, landscape (844 x 390): aegis-vs-cortex-seed1.html
+  (halves: top 820 x 174, bottom 820 x 174; rows false, 15.0 px, still false)
+  PASS H. laid out with no grammar problem
+  PASS H. no sideways scroll (844 <= 844)
+
+[I] desktop: one row
+  PASS I. the desktop lines stay on one row at 15.0 px
+
+[J] reduced motion
+  PASS J. the still: bootOn@0, coinClink@0, bootHit@600
+  PASS J. the music waits under the still
+  PASS J. and starts after it
+
+[K] match-boot-sheet.html: the rare saying, and the phone-rows scene
+  FAIL K. > SUDO FIGHT queues root access granted at undefined ms, over the hit at 2400
+  FAIL K. the flourish heard: -0.1 dB more around 2.2 kHz from 2.46 to 2.90 s than "FIGHT", which has none
+  PASS K. the phone-rows scene breaks its lines (11.1 px), no grammar problem
+
+2 FAILED

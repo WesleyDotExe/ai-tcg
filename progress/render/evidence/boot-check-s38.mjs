@@ -26,7 +26,7 @@
 //   J  reduced motion: the still's two sounds at 0, the music waits 1 s.
 //   K  the sheet: the rare saying's flourish heard over the hit; the
 //      phone-rows scene breaks its lines.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
@@ -187,8 +187,13 @@ async function heard(page, base) {
   // the rest; see the queue check).
   const hs = s.sched.find((x) => x.kind === 'handshake');
   const underChirp = (x) => x.kind === 'type' && hs && x.t >= hs.t && x.t < hs.t + 200;
-  const res = s.sched.slice(1).filter((x) => !underChirp(x)).map((x) => ({ kind: x.kind, t: x.t, ...onset(BAND_KINDS[x.kind] ? A.band : A.full, off + x.at + lag) }));
-  return { s, A, res: spread(res), lag, hidden: s.sched.filter(underChirp).length };
+  // (Render session 80.) The coin's whir (render session 53, after this
+  // check was written) starts 40 ms into the flick's ring, its ticks a
+  // third as loud: it has no onset of its own in the recording either, so
+  // it is left out of the timing the same way (it is queued like the rest).
+  const underFlick = (x) => /^coinWhir/.test(x.kind);
+  const res = s.sched.slice(1).filter((x) => !underChirp(x) && !underFlick(x)).map((x) => ({ kind: x.kind, t: x.t, ...onset(BAND_KINDS[x.kind] ? A.band : A.full, off + x.at + lag) }));
+  return { s, A, res: spread(res), lag, hidden: s.sched.filter(underChirp).length, masked: s.sched.filter(underFlick).length };
 }
 {
   log('\n[A] cortex-vs-swarm-seed6.html: Play at move 0, sound and music on');
@@ -207,10 +212,10 @@ async function heard(page, base) {
   check(s.sched[0].kind === 'bootOn' && s.sched[0].at <= 5, `A. the power-on at 0 goes out as Play is pressed (${s.sched[0].at} ms in: the audio can't start in the past)`);
   const kinds = {}; s.sched.forEach((x) => { kinds[x.kind] = (kinds[x.kind] || 0) + 1; });
   check(kinds.bootOn === 1 && !kinds.crt && kinds.handshake === 1 && kinds.bootHit === 1 && kinds.type > 10, `A. its own power-on, not the boast's tube: ${JSON.stringify(kinds)}`);
-  const { A, res, lag, hidden } = await heard(page, s.audioBase);
+  const { A, res, lag, hidden, masked } = await heard(page, s.audioBase);
   const devs = res.map((r) => r.dev), bad = res.filter((r) => r.dev == null || Math.abs(r.dev) > 3 || r.rise < 1.5);
   check(lag != null && lag + res[0].common < 30, `A. the recording path's own delay: ${lag + res[0].common} ms (the thump's rough ${lag} ms, plus the common ${res[0].common} ms)`);
-  check(bad.length === 0 && hidden === 4, `A. every later sound HEARD at its planned distance from the others: ${res.length} onsets (all but the ${hidden} clicks under the chirp), spread ${Math.min(...devs)} to ${Math.max(...devs)} ms (1 ms windows), weakest rise x${Math.min(...res.map((r) => r.rise)).toFixed(1)}` + (bad.length ? ' BAD ' + JSON.stringify(bad.slice(0, 4)) : ''));
+  check(bad.length === 0 && hidden === 4 && masked === 1, `A. every later sound HEARD at its planned distance from the others: ${res.length} onsets (all but the ${hidden} clicks under the chirp and the coin's whir under its flick), spread ${Math.min(...devs)} to ${Math.max(...devs)} ms (1 ms windows), weakest rise x${Math.min(...res.map((r) => r.rise)).toFixed(1)}` + (bad.length ? ' BAD ' + JSON.stringify(bad.slice(0, 4)) : ''));
   check(Math.abs(A.balanceDb) < 0.2, `A. left and right equal over the intro: ${A.balanceDb.toFixed(3)} dB (dead centre)`);
   check(A.peak < 1, `A. no clipping: peak ${A.peak.toFixed(3)}`);
   check(m1.waiting && m1.steps === 0 && m1.busGain < 0.01, `A. the music silent under the intro (at 2.35 s: ${m1.steps} steps, bus ${m1.busGain.toFixed(4)})`);
@@ -358,6 +363,9 @@ async function layout(page) {
   await page.screenshot({ path: resolve(outDir, `${TAG}-phone-rows.jpg`), quality: 80 });
   await waitIntroT(page, 1900);
   await page.screenshot({ path: resolve(outDir, `${TAG}-phone-saying.jpg`), quality: 80 });
+  // (Render session 80.) Since render 53 the saying's hit is at 2.4 s (it
+  // was 1.6 s): wait past it before counting what was queued.
+  await waitIntroT(page, 2700);
   const s2 = await stats(page);
   check(s2.sched.length === s2.planned && s2.late === 0, `G. the sounds on the phone too: ${s2.sched.length}/${s2.planned} queued, none late`);
   await ctx.close();
@@ -394,7 +402,11 @@ async function layout(page) {
   await playAndTap(page);
   await page.waitForTimeout(500);
   const s = await stats(page), m = await mus(page);
-  check(s.still && s.sched.map((x) => x.kind).sort().join() === 'bootHit,bootOn' && s.sched.every((x) => x.t === 0), `J. the still: ${s.sched.map((x) => x.kind + '@' + x.t).join(', ')}`);
+  // (Render session 80.) Since render 53 the still sounds the coin's clink
+  // with the power-on at 0, and the saying's hit when the saying shows
+  // (BOOT_STILL_SAY_AT, 600 ms), not at 0.
+  const atOf = (k) => s.sched.filter((x) => x.kind === k).map((x) => x.t).join();
+  check(s.still && s.sched.map((x) => x.kind).sort().join() === 'bootHit,bootOn,coinClink' && atOf('bootOn') === '0' && atOf('coinClink') === '0' && atOf('bootHit') === '600', `J. the still: ${s.sched.map((x) => x.kind + '@' + x.t).join(', ')}`);
   check(m.waiting && m.steps === 0, 'J. the music waits under the still');
   await waitEnd(page); await page.waitForTimeout(600);
   check((await mus(page)).steps > 0, 'J. and starts after it');
@@ -410,15 +422,18 @@ async function layout(page) {
   await page.locator('#say-9').scrollIntoViewIfNeeded();
   await page.click('button.go[data-scene="say-9"]');
   await page.waitForFunction(() => window.__boot.stats().active, null, { timeout: 5000 });
-  await waitIntroT(page, 2100);
+  // (Render session 80.) The hit moved from 1.6 s to 2.4 s in render 53:
+  // the times are read from the queue, the flourish expected 60 ms after it.
+  await waitIntroT(page, 2900);
   const s = await stats(page);
-  const root = s.sched.find((x) => x.kind === 'bootRoot');
-  check(s.saying === '> SUDO FIGHT' && root && root.t === 1660, `K. > SUDO FIGHT queues root access granted at ${root && root.t} ms, over the hit at 1600`);
+  const root = s.sched.find((x) => x.kind === 'bootRoot'), hit = s.sched.find((x) => x.kind === 'bootHit');
+  check(s.saying === '> SUDO FIGHT' && root && hit && root.t === hit.t + 60, `K. > SUDO FIGHT queues root access granted at ${root && root.t} ms, over the hit at ${hit && hit.t}`);
   // Heard: the flourish's square blips add energy around 2.2 kHz over the
   // hit's chord; the same window of a plain saying (FIGHT, played next) is
   // the comparison. The chord shares the blips' pitches, so their onsets
   // aren't timed one by one.
-  const bandE = async (st) => { const A = await page.evaluate(ANALYSE, [st.audioBase - 0.03, st.audioBase + 2.4]); const lag = tapDelay(A, 30 + st.sched[0].at); let e = 0; for (let j = 30 + 1660 + lag; j < 30 + 2100 + lag; j++) e += A.band[j] * A.band[j]; return e; };
+  const W0 = hit ? hit.t + 60 : 2460, W1 = W0 + 440;
+  const bandE = async (st) => { const A = await page.evaluate(ANALYSE, [st.audioBase - 0.03, st.audioBase + W1 / 1000 + 0.3]); const lag = tapDelay(A, 30 + st.sched[0].at); let e = 0; for (let j = 30 + W0 + lag; j < 30 + W1 + lag; j++) e += A.band[j] * A.band[j]; return e; };
   const eRare = await bandE(s);
   await page.screenshot({ path: resolve(outDir, `${TAG}-sheet-rare.jpg`), quality: 80, clip: await page.locator('#say-9').boundingBox() });
   await waitEnd(page);
@@ -426,10 +441,10 @@ async function layout(page) {
   await page.locator('#say-1').scrollIntoViewIfNeeded();
   await page.click('button.go[data-scene="say-1"]');
   await page.waitForFunction(() => window.__boot.stats().active, null, { timeout: 5000 });
-  await waitIntroT(page, 2300);
+  await waitIntroT(page, W1 + 100);
   const s1 = await stats(page);
   const ePlain = await bandE(s1);
-  check(!s1.sched.some((x) => x.kind === 'bootRoot') && eRare > ePlain * 3, `K. the flourish heard: ${(10 * Math.log10(eRare / ePlain)).toFixed(1)} dB more around 2.2 kHz from 1.66 to 2.1 s than ${s1.last ? '' : ''}"${s1.saying}", which has none`);
+  check(!s1.sched.some((x) => x.kind === 'bootRoot') && eRare > ePlain * 3, `K. the flourish heard: ${(10 * Math.log10(eRare / ePlain)).toFixed(1)} dB more around 2.2 kHz from ${(W0 / 1000).toFixed(2)} to ${(W1 / 1000).toFixed(2)} s than ${s1.last ? '' : ''}"${s1.saying}", which has none`);
   await waitEnd(page);
   await page.locator('#phone-rows').scrollIntoViewIfNeeded();
   await page.click('button.go[data-scene="phone-rows"]');

@@ -1,0 +1,5 @@
+cortex-vs-aegis-sig-seed2.html @1280px: 20 moves checked, raw 194 lines vs feed — ok
+cortex-vs-aegis-sig-seed2.html @390px: 20 moves checked, raw 194 lines vs feed — ok
+swarm-vs-null-seed4.html @1280px: 29 moves checked, raw 283 lines vs feed — ok
+swarm-vs-null-seed4.html @390px: 29 moves checked, raw 283 lines vs feed — ok
+all passed

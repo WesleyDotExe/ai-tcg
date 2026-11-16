@@ -32,6 +32,10 @@ From a real match played through the engine, as a replay:
 - a phone layout (the panel drops under the board) and the Home tile's size (`?mode=tile`: no panel, slim HUDs,
   plays on its own).
 
+The camera is fitted to the board's size (render 80, the owner's "zoom in a little, especially the tile"): its
+distance and aim together, so the far side's held hand meets the top, the near directive row clears the near hand
+(measured in px) and every zone fits across.
+
 Placeholder art throughout: no Season 0 effect, ward or finish is rebuilt in 3D yet (that is the spec's later work).
 
 ## Build and check

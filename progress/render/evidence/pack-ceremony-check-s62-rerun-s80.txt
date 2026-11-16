@@ -1,0 +1,93 @@
+== desktop 1280x800
+  PASS panel: on the page, collapsed, kinds rare mythic foil fullArt altArt glitch gold secret prototype zeroDay, nothing armed ("Not armed · packs open as the showcase rolled them")
+  PASS panel: opened, inside the screen (10..350 x 532..766)
+  PASS panel: arming Gold ("Armed: Gold · the next pack you open")
+  PASS panel: Disarm clears it
+  PASS one rare: forced (seed 2), best card rare, disarmed
+  PASS one rare: snap · snap · snap · rare · snap: 1 build(s) and hit(s), 4 snap(s), summary in 9.3 s
+  PASS one mythic: forced (seed 4), best card mythic, disarmed
+  PASS one mythic: snap · snap · snap · rare · mythic: 2 build(s) and hit(s), 3 snap(s), summary in 19.4 s
+  PASS one foil: forced (seed 1), best card foil, disarmed
+  PASS one foil: snap · snap · snap · rare · foil: 2 build(s) and hit(s), 3 snap(s), summary in 31.0 s
+  PASS one fullArt: forced (seed 8), best card fullArt, disarmed
+  PASS one fullArt: snap · snap · snap · rare · fullArt: 2 build(s) and hit(s), 3 snap(s), summary in 25.2 s
+  PASS one altArt: forced (seed 81), best card altArt, disarmed
+  PASS one altArt: snap · snap · snap · mythic · altArt: 2 build(s) and hit(s), 3 snap(s), summary in 22.8 s
+  PASS one glitch: forced (seed 15), best card glitch, disarmed
+  PASS one glitch: snap · snap · snap · rare · glitch: 2 build(s) and hit(s), 3 snap(s), summary in 24.3 s
+  PASS one gold: forced (seed 65), best card gold, disarmed
+  PASS one gold: snap · snap · snap · rare · gold: 2 build(s) and hit(s), 3 snap(s), summary in 28.0 s
+  PASS one secret: forced (seed 26), best card secret, disarmed
+  PASS one secret: snap · snap · snap · rare · secret: 2 build(s) and hit(s), 3 snap(s), summary in 27.5 s
+  PASS one prototype: forced (seed 551), best card prototype, disarmed
+  PASS one prototype: snap · snap · snap · rare · snap · prototype: 2 build(s) and hit(s), 4 snap(s), summary in 28.0 s
+  PASS one prototype: its takeover played
+  PASS one zeroDay: forced (seed 624), best card zeroDay, disarmed
+  PASS one zeroDay: snap · snap · snap · rare · zeroDay: 2 build(s) and hit(s), 3 snap(s), summary in 25.5 s
+  PASS one zeroDay: its takeover played
+  PASS disarmed: the picker's first pack is the showcase's (seed 2)
+  PASS ten rare: forced (pack 1 seed 2), pack 1's best card rare; 15 stops, 35 snaps, big pulls at none
+  PASS ten rare: Skip at a stop only points at it (pack 1 stays, the card stays face down)
+  PASS ten rare: every stop built and hit, in order (15 of 15; 15 in the row, 0 in a big pull's stack), none on a snap; summary in 36.3 s
+  PASS ten rare: each row stop waited face down for its tap (15 stop(s) logged for 15 row build(s))
+  PASS ten mythic: forced (pack 1 seed 4), pack 1's best card mythic; 16 stops, 34 snaps, big pulls at none
+  PASS ten mythic: Skip at a stop only points at it (pack 1 stays, the card stays face down)
+  PASS ten mythic: every stop built and hit, in order (16 of 16; 16 in the row, 0 in a big pull's stack), none on a snap; summary in 38.9 s
+  PASS ten mythic: each row stop waited face down for its tap (16 stop(s) logged for 16 row build(s))
+  PASS ten foil: forced (pack 1 seed 1), pack 1's best card foil; 16 stops, 34 snaps, big pulls at none
+  PASS ten foil: Skip at a stop only points at it (pack 1 stays, the card stays face down)
+  PASS ten foil: every stop built and hit, in order (16 of 16; 16 in the row, 0 in a big pull's stack), none on a snap; summary in 38.5 s
+  PASS ten foil: each row stop waited face down for its tap (16 stop(s) logged for 16 row build(s))
+  PASS ten fullArt: forced (pack 1 seed 8), pack 1's best card fullArt; 16 stops, 34 snaps, big pulls at none
+  PASS ten fullArt: Skip at a stop only points at it (pack 1 stays, the card stays face down)
+  PASS ten fullArt: every stop built and hit, in order (16 of 16; 16 in the row, 0 in a big pull's stack), none on a snap; summary in 43.7 s
+  PASS ten fullArt: each row stop waited face down for its tap (16 stop(s) logged for 16 row build(s))
+  PASS ten altArt: forced (pack 1 seed 81), pack 1's best card altArt; 13 stops, 37 snaps, big pulls at none
+  PASS ten altArt: Skip at a stop only points at it (pack 1 stays, the card stays face down)
+  PASS ten altArt: every stop built and hit, in order (13 of 13; 13 in the row, 0 in a big pull's stack), none on a snap; summary in 38.2 s
+  PASS ten altArt: each row stop waited face down for its tap (13 stop(s) logged for 13 row build(s))
+  PASS ten glitch: forced (pack 1 seed 15), pack 1's best card glitch; 17 stops, 33 snaps, big pulls at none
+  PASS ten glitch: Skip at a stop only points at it (pack 1 stays, the card stays face down)
+  PASS ten glitch: every stop built and hit, in order (17 of 17; 17 in the row, 0 in a big pull's stack), none on a snap; summary in 45.2 s
+  PASS ten glitch: each row stop waited face down for its tap (17 stop(s) logged for 17 row build(s))
+  PASS ten gold: forced (pack 1 seed 65), pack 1's best card gold; 15 stops, 35 snaps, big pulls at 1
+  PASS ten gold: Skip at a stop only points at it (pack 2 stays, the card stays face down)
+  PASS ten gold: every stop built and hit, in order (15 of 15; 13 in the row, 2 in a big pull's stack), none on a snap; summary in 55.4 s
+  PASS ten gold: each row stop waited face down for its tap (13 stop(s) logged for 13 row build(s))
+  PASS ten secret: forced (pack 1 seed 26), pack 1's best card secret; 13 stops, 37 snaps, big pulls at 1
+  PASS ten secret: Skip at a stop only points at it (pack 2 stays, the card stays face down)
+  PASS ten secret: every stop built and hit, in order (13 of 13; 11 in the row, 2 in a big pull's stack), none on a snap; summary in 49.3 s
+  PASS ten secret: each row stop waited face down for its tap (11 stop(s) logged for 11 row build(s))
+  PASS ten prototype: forced (pack 1 seed 551), pack 1's best card prototype; 16 stops, 35 snaps, big pulls at 1
+  PASS ten prototype: Skip at a stop only points at it (pack 2 stays, the card stays face down)
+  PASS ten prototype: every stop built and hit, in order (16 of 16; 14 in the row, 2 in a big pull's stack), none on a snap; summary in 60.4 s
+  PASS ten prototype: each row stop waited face down for its tap (14 stop(s) logged for 14 row build(s))
+  PASS ten zeroDay: forced (pack 1 seed 624), pack 1's best card zeroDay; 14 stops, 36 snaps, big pulls at 1
+  PASS ten zeroDay: Skip at a stop only points at it (pack 2 stays, the card stays face down)
+  PASS ten zeroDay: every stop built and hit, in order (14 of 14; 12 in the row, 2 in a big pull's stack), none on a snap; summary in 52.9 s
+  PASS ten zeroDay: each row stop waited face down for its tap (12 stop(s) logged for 12 row build(s))
+  PASS auto rare at 4x: waited untouched at all 15 of 15 stop(s) (0 in a big pull's stack) for 1.5 s each (15 still)
+  PASS auto rare at 4x: every row stop's hit came no sooner than its 1x time (lateness 3..13 ms over 15 stops)
+  PASS auto rare: the packs tore by themselves (10 auto tears)
+  PASS auto prototype at 4x: waited untouched at all 16 of 16 stop(s) (2 in a big pull's stack) for 1.5 s each (16 still)
+  PASS auto prototype at 4x: every row stop's hit came no sooner than its 1x time (lateness 6..30 ms over 14 stops)
+  PASS auto prototype: the packs tore by themselves (10 auto tears)
+  PASS desktop: no horizontal scroll
+  PASS desktop: no network requests (0)
+  PASS desktop: no page errors
+== phone 390x844
+  PASS panel: on the page, collapsed, kinds rare mythic foil fullArt altArt glitch gold secret prototype zeroDay, nothing armed ("Not armed · packs open as the showcase rolled them")
+  PASS panel: opened, inside the screen (10..350 x 576..810)
+  PASS panel: arming Gold ("Armed: Gold · the next pack you open")
+  PASS panel: Disarm clears it
+  PASS one prototype: forced (seed 551), best card prototype, disarmed
+  PASS one prototype: snap · snap · snap · rare · snap · prototype: 2 build(s) and hit(s), 4 snap(s), summary in 19.0 s
+  PASS one prototype: its takeover played
+  PASS disarmed: the picker's first pack is the showcase's (seed 2)
+  PASS ten gold: forced (pack 1 seed 65), pack 1's best card gold; 15 stops, 35 snaps, big pulls at 1
+  PASS ten gold: every stop built and hit, in order (15 of 15; 13 in the row, 2 in a big pull's stack), none on a snap; summary in 50.4 s
+  PASS ten gold: each row stop waited face down for its tap (13 stop(s) logged for 13 row build(s))
+  PASS phone: no horizontal scroll
+  PASS phone: no network requests (0)
+  PASS phone: no page errors
+90 PASS, 0 FAIL

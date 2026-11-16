@@ -6,9 +6,9 @@
 //   - no feed or turn-bar text names a seat (p1 / p2) or a priority pass;
 //   - the page never scrolls sideways; no page errors;
 //   - the "engine log" switch shows the raw lines (one per engine event).
-import { chromium } from 'playwright-core';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 const [shotDir, ...files] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch(launchOpts());
 let fails = 0;
 for (const file of files) {
   for (const w of [1280, 390]) {

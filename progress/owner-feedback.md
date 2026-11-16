@@ -5025,7 +5025,7 @@ Adds to the entry above (the head start on the Season 1 arena).
 
 ---
 
-## 2026-11-15 — Owner: answers to render session 79 (the Season 1 arena prototype, step 1), keep 1–4 (a), 5 (b); zoom in a little
+## 2026-11-15 — Owner: answers to render session 79 (the Season 1 arena prototype, step 1), keep 1–4 (a), 5 (b); zoom in a little (HANDLED 2026-11-16, render session 80: 1-4 kept as built; 5 noted (the next prototype session: the 3D play and attack effects, when Season 0 has no fixes waiting); 6: zoomed in, the tile most: a unit slot 89 -> 106 px at 1440x900, 64 -> 72 px at 1280x720, 31 -> 42 px on the 480x300 tile (the phone unchanged: it is bound by its width); every zone still on the board and the near directive row clear of the near hand at all four sizes; `progress/render/evidence/season1-arena-s80/check.txt` 33 PASS, the s79 framing measured the same way in `check-before-s79-framing.txt`)
 
 **Render session 79** (PR #185, `progress/render/checkpoints.md`, `progress/render/evidence/season1-arena-s79/`). The owner: "the new arena looks great, but does need to be zoomed in a little bit, especially on the tile version."
 1. **Keep (a):** six slots per row; hover to read.

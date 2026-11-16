@@ -16,9 +16,15 @@
 //     each one, drawn into a readable canvas, lights real pixels;
 //   - no horizontal scroll, the card fits on screen, no page errors.
 // Stills of each reveal at both widths go to shotDir.
-import { chromium } from 'playwright-core';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
+// RETIRED in render session 80 (a hardening pass): this check drove the tear, sparks and reveals of the pack page before the ceremony (sessions 22-25). Replaced by pack-ceremony-check-s58.mjs (the pack, the drag tear, the burst), -s60/-s61/-s62 (the reveals by kind) and pack-bulk-check-s64.mjs (the ten).
+// Since the ceremony (render sessions 58-64) the page it was written for no
+// longer exists (re-run in session 80: it fails on the old page's rules, not
+// on a fault; the record is pack-checks-retired-s80.txt). Kept for the record;
+// RUN_RETIRED=1 runs it anyway.
+if (!process.env.RUN_RETIRED) { console.log('pack-opening-check.mjs: retired in render session 80 (written for the pack page before the ceremony); see its header for the checks that replace it.'); process.exit(0); }
 const [shotDir, file, prefix = 'v2-s24'] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const b = await chromium.launch(launchOpts({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] }));
 let fails = 0;
 const out = [];
 const say = (s) => { out.push(s); console.log(s); };

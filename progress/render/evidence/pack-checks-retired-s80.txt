@@ -1,0 +1,88 @@
+Render session 80 (hardening): the three pre-ceremony pack checks re-run on today's page (render/output/pack-opening.html), then retired.
+They fail on the old page's rules (a plain card with no reveal, the old tap flow, the old tilt), not on faults of today's page.
+
+== pack-opening-check.mjs
+desktop: shader foil: ok (100.0% of pixels lit)
+desktop: shader gold: ok (100.0% of pixels lit)
+desktop: shader glitch: ok (80.5% of pixels lit)
+desktop: shader zeroDay: ok (33.4% of pixels lit)
+desktop: shader signature: ok (93.7% of pixels lit)
+desktop: shader pack: ok (97.8% of pixels lit)
+desktop: No hit     torn by drag, sparks no  (hit no ), 5 cards, reveals [], 0 early taps ignored, shaders pack: FAIL card 3: plain card got a reveal
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "file:///home/user/ai-tcg/render/output/pack-opening.html?pack=2", waiting until "load"[22m
+
+    at /home/user/ai-tcg/progress/render/evidence/pack-opening-check.mjs:67:13 {
+  log: [
+    '  - navigating to "file:///home/user/ai-tcg/render/output/pack-opening.html?pack=2", waiting until "load"'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.4
+
+== pack-tap-check.mjs
+desktop 0: Auto off by default, the speeds hidden until it is on: ok
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "file:///home/user/ai-tcg/render/output/pack-opening.html?bulk=1", waiting until "load"[22m
+
+    at /home/user/ai-tcg/progress/render/evidence/pack-tap-check.mjs:218:13 {
+  log: [
+    '  - navigating to "file:///home/user/ai-tcg/render/output/pack-opening.html?bulk=1", waiting until "load"'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.4
+
+== pack-tilt-check.mjs
+
+== desktop (1280 x 800, mouse) ==
+  A pack: leaned rx -15 ry 15, released untorn, back flat (560ms cubic-bezier(0.3, 1.7, 0.5, 1))
+  A strip: tearStart, tear:drag
+  C stack: corner lean 15/15, release kept the card, tap moved on, flick -> cardLeft:r
+  D shine: finger at [0.1, 0.9] -> light at [undefined], card leaned rx 0 ry 0
+  E viewer: leaned rx 9 ry 13.5; released over the backdrop, still open; a tap closed it
+  B tell: no hit / Gold / Zero-Day leaned identically over 8 steps (peak 14.6, 14.6, 14.6); last rotateX(-12.3deg) rotateY(-14.6deg)
+  F fan: front pack leaned rx 6.6 ry 15, 9 others still, release kept the fan, a tap tore pack 1
+  FAIL
+    A: pack did not come back flat
+    C: a face-down card leaned
+    C: the face-down card was not revealed by the press (tiltStart,tiltEnd)
+    D: the shine's light ended at undefined, the finger at [0.1, 0.9]
+    B: Gold pack leaned differently from a pack with no hit
+    B: Zero-Day pack leaned differently from a pack with no hit
+
+== phone (390 x 844, touch) ==
+  A pack: leaned rx -15 ry 15, released untorn, back flat (560ms cubic-bezier(0.3, 1.7, 0.5, 1))
+  A strip: tearStart, tear:drag
+  C stack: corner lean 15/15, release kept the card, tap moved on, flick -> cardLeft:r
+  D shine: finger at [0.1, 0.9] -> light at [undefined], card leaned rx 0 ry 0
+  E viewer: leaned rx 7.5 ry 11.3; released over the backdrop, still open; a tap closed it
+  B tell: no hit / Gold / Zero-Day leaned identically over 8 steps (peak 14.5, 14.5, 14.6); last rotateX(-12.4deg) rotateY(-14.5deg)
+  F fan: front pack leaned rx 6.7 ry 15, 9 others still, release kept the fan, a tap tore pack 1
+  FAIL
+    C: a face-down card leaned
+    C: the face-down card was not revealed by the press (tiltStart,tiltEnd)
+    D: the shine's light ended at undefined, the finger at [0.1, 0.9]
+    E: viewer card leaned rotateX(7.5deg) rotateY(11.3deg), want rx 9 ry 13.5
+    B: Gold pack leaned differently from a pack with no hit
+    B: Zero-Day pack leaned differently from a pack with no hit
+
+== phone-reduced (390 x 844, touch, reduced motion) ==
+  A pack: leaned rx -6 ry 6, released untorn, back flat (150ms ease-out)
+  A strip: tearStart, tear:drag
+  C stack: corner lean 6/6, release kept the card, tap moved on, flick -> cardLeft:r
+  D shine: finger at [0.1, 0.9] -> light at [undefined], card leaned rx 0 ry 0
+  E viewer: leaned rx 3 ry 4.5; released over the backdrop, still open; a tap closed it
+  B tell: no hit / Gold / Zero-Day leaned identically over 8 
