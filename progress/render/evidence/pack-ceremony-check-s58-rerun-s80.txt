@@ -1,0 +1,163 @@
+== desktop 1280x800
+ No hit: best plain (rung 0 calm), backdrop calm, burst #ff7d24
+  PASS No hit: the backdrop never above the best card (0 <= 0)
+      backdrop settled in 3 ms
+  PASS No hit: the backdrop is on rung calm
+  PASS No hit: its core colour computed rgb(29, 35, 80) = #1d2350
+  PASS the pack is bigger: 300 px wide (was at most 230)
+  PASS No hit: the burst in the best card's colour (#ff7d24), rung 0
+  PASS No hit: then the cards rise
+ Foil: best foil (rung 1 shimmer), backdrop shimmer, burst #9fe0ff
+  PASS Foil: the backdrop never above the best card (1 <= 1)
+      backdrop settled in 3582 ms
+  PASS Foil: the backdrop is on rung shimmer
+  PASS Foil: its core colour computed rgb(15, 74, 114) = #0f4a72
+  PASS Foil: the burst in the best card's colour (#9fe0ff), rung 1
+  PASS Foil: then the cards rise
+ Full Art: best fullArt (rung 2 charged), backdrop charged, burst #c9a2ff
+  PASS Full Art: the backdrop never above the best card (2 <= 2)
+      backdrop settled in 4451 ms
+  PASS Full Art: the backdrop is on rung charged
+  PASS Full Art: its core colour computed rgb(67, 32, 122) = #43207a
+  PASS Full Art: the tear follows the mouse: 41% after a 40% drag
+  PASS Full Art: let go part way, it holds ("The tear holds at 41%. Pull the rest of the strip to open it")
+  PASS Full Art: the flap is peeled to the same place (--tp 0.405225)
+  PASS Full Art: foil scraps flew off the tear (15)
+  PASS Full Art: the rip sound ran while dragging (scrub voices: 1)
+  PASS Full Art: picked up again, it carries on from 40% (now 51%)
+      drag frames: 89 in 10293 ms (9 fps, software rendering)
+  PASS Full Art: the rip's level rose with the drag (peak gain 0.126)
+  PASS Full Art: the burst in the best card's colour (#c9a2ff), rung 2
+  PASS Full Art: then the cards rise
+ Gold: best gold (rung 3 radiant), backdrop radiant, burst #f6d77a
+  PASS Gold: the backdrop never above the best card (3 <= 3)
+      backdrop settled in 1499 ms
+  PASS Gold: the backdrop is on rung radiant
+  PASS Gold: its core colour computed rgb(106, 67, 16) = #6a4310
+  PASS Gold: the tear follows the mouse: 41% after a 40% drag
+  PASS Gold: let go part way, it holds ("The tear holds at 41%. Pull the rest of the strip to open it")
+  PASS Gold: the flap is peeled to the same place (--tp 0.406527)
+  PASS Gold: foil scraps flew off the tear (15)
+  PASS Gold: the rip sound ran while dragging (scrub voices: 3)
+  PASS Gold: picked up again, it carries on from 40% (now 51%)
+      drag frames: 89 in 10616 ms (8 fps, software rendering)
+  PASS Gold: the rip's level rose with the drag (peak gain 0.117)
+  PASS Gold: the burst in the best card's colour (#f6d77a), rung 3
+  PASS Gold: then the cards rise
+ Prototype: best prototype (rung 4 overload), backdrop overload, burst #fff1b8
+  PASS Prototype: the backdrop never above the best card (4 <= 4)
+      backdrop settled in 1401 ms
+  PASS Prototype: the backdrop is on rung overload
+  PASS Prototype: its core colour computed rgb(122, 42, 74) = #7a2a4a
+  PASS Prototype: the tear follows the mouse: 41% after a 40% drag
+  PASS Prototype: let go part way, it holds ("The tear holds at 41%. Pull the rest of the strip to open it")
+  PASS Prototype: the flap is peeled to the same place (--tp 0.40621)
+  PASS Prototype: foil scraps flew off the tear (15)
+  PASS Prototype: the rip sound ran while dragging (scrub voices: 5)
+  PASS Prototype: picked up again, it carries on from 40% (now 51%)
+      drag frames: 86 in 9797 ms (9 fps, software rendering)
+  PASS Prototype: the rip's level rose with the drag (peak gain 0.111)
+  PASS Prototype: the burst in the best card's colour (#fff1b8), rung 4
+  PASS Prototype: then the cards rise
+ Zero-Day: best zeroDay (rung 4 overload), backdrop overload, burst #ff3b3b
+  PASS Zero-Day: the backdrop never above the best card (4 <= 4)
+      backdrop settled in 3 ms
+  PASS Zero-Day: the backdrop is on rung overload
+  PASS Zero-Day: its core colour computed rgb(122, 42, 74) = #7a2a4a
+  PASS Zero-Day: the tear follows the mouse: 40% after a 40% drag
+  PASS Zero-Day: let go part way, it holds ("The tear holds at 40%. Pull the rest of the strip to open it")
+  PASS Zero-Day: the flap is peeled to the same place (--tp 0.4)
+  PASS Zero-Day: foil scraps flew off the tear (15)
+  PASS Zero-Day: the rip sound ran while dragging (scrub voices: 7)
+  PASS Zero-Day: picked up again, it carries on from 40% (now 50%)
+      drag frames: 91 in 5132 ms (18 fps, software rendering)
+  PASS Zero-Day: the rip's level rose with the drag (peak gain 0.163)
+  PASS Zero-Day: the burst in the best card's colour (#ff3b3b), rung 4
+  PASS Zero-Day: then the cards rise
+  PASS the burst grows with the rung: No hit r0 x36/24, Foil r1 x44/58, Full Art r2 x54/92, Gold r3 x62/126, Prototype r4 x70/160, Zero-Day r4 x70/160
+  PASS the mouse leans the pack, the same for every pack (rotateX(-2.5deg) rotateY(3.5deg) / rotateX(-2.5deg) rotateY(3.5deg) / rotateX(-2.5deg) rotateY(3.5deg) / rotateX(-2.4deg) rotateY(3.5deg) / rotateX(-2.4deg) rotateY(3.5deg) / rotateX(-2.5deg) rotateY(3.5deg))
+  PASS no horizontal scroll
+  PASS no network requests (0)
+  PASS no page errors
+== phone 390x844
+ No hit: best plain (rung 0 calm), backdrop calm, burst #ff7d24
+  PASS No hit: the backdrop never above the best card (0 <= 0)
+      backdrop settled in 5 ms
+  PASS No hit: the backdrop is on rung calm
+  PASS No hit: its core colour computed rgb(29, 35, 80) = #1d2350
+  PASS the pack is bigger: 257 px wide (was at most 230)
+  PASS No hit: the burst in the best card's colour (#ff7d24), rung 0
+  PASS No hit: then the cards rise
+ Foil: best foil (rung 1 shimmer), backdrop shimmer, burst #9fe0ff
+  PASS Foil: the backdrop never above the best card (1 <= 1)
+      backdrop settled in 943 ms
+  PASS Foil: the backdrop is on rung shimmer
+  PASS Foil: its core colour computed rgb(16, 71, 111) = #0f4a72
+  PASS Foil: the burst in the best card's colour (#9fe0ff), rung 1
+  PASS Foil: then the cards rise
+ Full Art: best fullArt (rung 2 charged), backdrop charged, burst #c9a2ff
+  PASS Full Art: the backdrop never above the best card (2 <= 2)
+      backdrop settled in 995 ms
+  PASS Full Art: the backdrop is on rung charged
+  PASS Full Art: its core colour computed rgb(64, 34, 122) = #43207a
+  PASS Full Art: the tear follows the mouse: 40% after a 40% drag
+  PASS Full Art: let go part way, it holds ("The tear holds at 40%. Pull the rest of the strip to open it")
+  PASS Full Art: the flap is peeled to the same place (--tp 0.404234)
+  PASS Full Art: foil scraps flew off the tear (13)
+  PASS Full Art: the rip sound ran while dragging (scrub voices: 1)
+  PASS Full Art: picked up again, it carries on from 40% (now 51%)
+      drag frames: 98 in 3009 ms (33 fps, software rendering)
+  PASS Full Art: the rip's level rose with the drag (peak gain 0.139)
+  PASS Full Art: the burst in the best card's colour (#c9a2ff), rung 2
+  PASS Full Art: then the cards rise
+ Gold: best gold (rung 3 radiant), backdrop radiant, burst #f6d77a
+  PASS Gold: the backdrop never above the best card (3 <= 3)
+      backdrop settled in 1109 ms
+  PASS Gold: the backdrop is on rung radiant
+  PASS Gold: its core colour computed rgb(105, 66, 19) = #6a4310
+  PASS Gold: the tear follows the mouse: 41% after a 40% drag
+  PASS Gold: let go part way, it holds ("The tear holds at 40%. Pull the rest of the strip to open it")
+  PASS Gold: the flap is peeled to the same place (--tp 0.404852)
+  PASS Gold: foil scraps flew off the tear (13)
+  PASS Gold: the rip sound ran while dragging (scrub voices: 3)
+  PASS Gold: picked up again, it carries on from 40% (now 51%)
+      drag frames: 97 in 2787 ms (35 fps, software rendering)
+  PASS Gold: the rip's level rose with the drag (peak gain 0.149)
+  PASS Gold: the burst in the best card's colour (#f6d77a), rung 3
+  PASS Gold: then the cards rise
+ Prototype: best prototype (rung 4 overload), backdrop overload, burst #fff1b8
+  PASS Prototype: the backdrop never above the best card (4 <= 4)
+      backdrop settled in 1197 ms
+  PASS Prototype: the backdrop is on rung overload
+  PASS Prototype: its core colour computed rgb(122, 42, 73) = #7a2a4a
+  PASS Prototype: the tear follows the mouse: 41% after a 40% drag
+  PASS Prototype: let go part way, it holds ("The tear holds at 41%. Pull the rest of the strip to open it")
+  PASS Prototype: the flap is peeled to the same place (--tp 0.405226)
+  PASS Prototype: foil scraps flew off the tear (13)
+  PASS Prototype: the rip sound ran while dragging (scrub voices: 5)
+  PASS Prototype: picked up again, it carries on from 40% (now 51%)
+      drag frames: 98 in 2755 ms (36 fps, software rendering)
+  PASS Prototype: the rip's level rose with the drag (peak gain 0.132)
+  PASS Prototype: the burst in the best card's colour (#fff1b8), rung 4
+  PASS Prototype: then the cards rise
+ Zero-Day: best zeroDay (rung 4 overload), backdrop overload, burst #ff3b3b
+  PASS Zero-Day: the backdrop never above the best card (4 <= 4)
+      backdrop settled in 4 ms
+  PASS Zero-Day: the backdrop is on rung overload
+  PASS Zero-Day: its core colour computed rgb(122, 42, 74) = #7a2a4a
+  PASS Zero-Day: the tear follows the mouse: 40% after a 40% drag
+  PASS Zero-Day: let go part way, it holds ("The tear holds at 40%. Pull the rest of the strip to open it")
+  PASS Zero-Day: the flap is peeled to the same place (--tp 0.4)
+  PASS Zero-Day: foil scraps flew off the tear (12)
+  PASS Zero-Day: the rip sound ran while dragging (scrub voices: 7)
+  PASS Zero-Day: picked up again, it carries on from 40% (now 50%)
+      drag frames: 97 in 2733 ms (35 fps, software rendering)
+  PASS Zero-Day: the rip's level rose with the drag (peak gain 0.147)
+  PASS Zero-Day: the burst in the best card's colour (#ff3b3b), rung 4
+  PASS Zero-Day: then the cards rise
+  PASS the burst grows with the rung: No hit r0 x36/24, Foil r1 x44/58, Full Art r2 x54/92, Gold r3 x62/126, Prototype r4 x70/160, Zero-Day r4 x70/160
+  PASS no horizontal scroll
+  PASS no network requests (0)
+  PASS no page errors
+
+127 PASS, 0 FAIL

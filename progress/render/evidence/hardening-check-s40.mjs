@@ -16,7 +16,7 @@
 //   C  Skip on a touch screen: an emulated phone (coarse pointer): every
 //      boast's Skip and the intro's at least 88 x 44 px; on a desktop the
 //      boast's Skip is the size it was.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';

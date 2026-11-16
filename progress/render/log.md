@@ -6431,3 +6431,58 @@ real GPU or phone.
 **Next render-lane slice:** render 80 is the hardening pass (moved from 79): the owner's answers to this checkpoint
 first, then the render debt list (stale browser checks first). The prototype waits for the owner's call on how far
 past step 1 it goes.
+
+## 2026-11-16 — Render session 80: a hardening pass (the owner's zoom on the Season 1 prototype; the stale browser checks)
+
+**Lane:** render. The last merged PR (#186, "Game lane: npm run ladder on the season server's ladder lines ...
+(session 103)") is game, so this session is render; no render PR was open. Read first: owner-feedback.md (one new
+entry for this lane, 2026-11-15: answers to render 79, keep 1-4 (a), 5 (b), and "zoom in a little, especially on the
+tile version"), DESIGN.md, RENDER.md, current.md, this lane's log, debt and checkpoints. **A hardening pass** (moved
+from 79): no new features. The owner's zoom is a fix to existing work, so it went first.
+
+**1. The owner's zoom (render/season1/ only).** The s79 camera fitted its distance with the look-at point fixed, and
+the far side's held hand at the top was always the bound, leaving empty board under the near rows. Now
+`fitCamera` fits the aim with the distance: at each distance the aim is moved until the held hand's top sits on the
+top bound, then the near directive row must clear the near hand and every zone must fit across. The bottom bound is
+the near hand's real reach in px (a hidden probe card measured at fit time), since the hand is DOM at a fixed size and
+takes a bigger share of a shorter board; the near discard must stay on the board. The tile's margins are tighter (its
+held hand's top edge may run off: backs only). The fit is keyed on the board's size in px, not its aspect.
+Measured before (the s79 code with the same measuring hooks) and after: a unit slot **89 -> 106 px** at 1440x900,
+**64 -> 72 px** at 1280x720, **31 -> 42 px** on the 480x300 tile, 44 px on the phone both times (bound by width).
+A first try balanced the frame against a fixed bottom bound and slid the near directive row under the near hand
+(seen in the screenshot, then caught by the new check at 1280x720: edge 400 px, hand 397): hence the measured reach.
+`render/season1/ci/arena-check.mjs` gained section E (four sizes: every zone corner on the board, the near directive
+row clear of the hand, no errors, the framing printed): **33 PASS** (`progress/render/evidence/season1-arena-s80/`,
+with `check-before-s79-framing.txt`, the s79 framing measured the same way, and `frame-*.jpg`). Season 1 unit tests
+17 pass.
+
+**2. The stale by-hand browser checks.** `render/ci/pw.mjs` (new): one Playwright lookup for the by-hand checks (the
+same as `browser-check.mjs`, Playwright's own Chromium; `PW_CHROME` to name another). Seven old checks now import it
+instead of a bare `playwright-core` (doesn't resolve from the evidence folder) or a chromium-1194 path (gone).
+- `feed-check`: re-run on two replays at 1280 and 390 px, all passed (`feed-check-rerun-s80.txt`).
+- `hardening-check-s40`: all pass (`hardening-check-s40-rerun-s80.txt`).
+- `boast-check-s39`: all pass, 83 lines, 4 min (`boast-check-s39-rerun-s80.txt`).
+- `boot-check-s38`: 5 fails, every one the check's own, all from render 53 (the coin, the intro from 2.6 to 3.4 s):
+  the coin's whir has no onset of its own under the flick's ring (now left out of the timing like the clicks under
+  the chirp, still counted in the queue check); the phone's queue was counted at 1.9 s, before the hit (now 2.4 s);
+  the still now sounds the coin's clink at 0 and the hit at 600 ms by design; the rare flourish was looked for at
+  1.66 s (now read from the queue: the hit + 60). Then **all pass** (`boot-check-s38-rerun-s80.txt`), and a sabotage
+  run with the flourish removed from the built pages fails K twice (`boot-check-s38-rerun-s80-sabotage.txt`).
+- `pack-opening-check`, `pack-tap-check`, `pack-tilt-check`: written for the pack page before the ceremony (render
+  22-27). Re-run, they fail on its old rules ("plain card got a reveal", timeouts waiting for the old tap flow, the
+  old tilt), not on faults. **Retired**: each exits with a note unless RUN_RETIRED=1; its header names the checks
+  that replace it; the run is recorded in `pack-checks-retired-s80.txt`. The replacements re-run this session:
+  `pack-ceremony-check-s58` (**127 PASS**) and `-s62` (**90 PASS**) (`pack-ceremony-check-s58-rerun-s80.txt`, `-s62-rerun-s80.txt`).
+
+**Ran:** render typecheck clean (both configs); render unit tests 1105 of 1106 with two browser checks running beside
+them; the one failure, `siteLockable77.test.ts` (the real owner API), passed 6 of 6 alone, and the full suite re-run
+with nothing beside it passed **1106 of 1106**: a timing failure under load, named in the debt. No Season 0 page or source changed, so the CI browser check,
+the site contract check and the outputs were not re-run.
+
+**Not done (named in quality-debt):** s45's liquid check (its 20 fps bar fails in software WebGL by measure, an open
+owner call since s46); the superseded older check versions still name chromium-1194; the framing never seen on a real
+Home tile or device.
+
+**Next render-lane slice:** after this PR the next session is game (104, hardening and fixes only). Render 81: the
+debt list, unless Season 0 has a fix waiting; per the owner's 5 (b), a prototype session (the 3D play and attack
+effects) after a few render sessions. Next render hardening pass: 85.

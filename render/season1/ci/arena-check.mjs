@@ -4,7 +4,7 @@
 // attacks, every beat to the end, the tabs, a phone, and the Home tile's size.
 //   node render/season1/ci/arena-check.mjs [outDir]
 // Writes check.txt and the screenshots to outDir
-// (default progress/render/evidence/season1-arena-s79/).
+// (default progress/render/evidence/season1-arena-s80/).
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const renderDir = resolve(here, "..", "..");
-const outDir = resolve(process.argv[2] ?? join(renderDir, "..", "progress", "render", "evidence", "season1-arena-s79"));
+const outDir = resolve(process.argv[2] ?? join(renderDir, "..", "progress", "render", "evidence", "season1-arena-s80"));
 mkdirSync(outDir, { recursive: true });
 
 const MATCHES = [
@@ -258,8 +258,40 @@ say("== D. The Home tile's size (480x300, ?mode=tile)");
   await ctx.close();
 }
 
+// ---------------------------------------------------------------------------
+// Render session 80: the owner's "zoom in a little, especially the tile".
+// At each size: the camera's distance, a unit slot's width on screen (the zoom,
+// measured), every zone corner inside the board, and the near directive row
+// clear of the near hand (the zoom must not slide the board under the hand).
+say("== E. The framing (render session 80: zoomed in a little, the tile most)");
+const framings = [];
+for (const [label, viewport, query, extra] of [
+  ["full 1440x900", { width: 1440, height: 900 }, "", {}],
+  ["full 1280x720", { width: 1280, height: 720 }, "", {}],
+  ["tile 480x300", { width: 480, height: 300 }, "?mode=tile", {}],
+  ["phone 390x844", { width: 390, height: 844 }, "", { isMobile: true, hasTouch: true }],
+]) {
+  const { ctx, page, errors } = await open(MATCHES[0].file, viewport, query, extra);
+  await page.evaluate(() => { if (document.body.classList.contains("tile")) document.getElementById("play")?.click(); });
+  const beats = await page.evaluate(() => window.__s1.beats);
+  // a beat where the near side holds cards, so the hand is drawn
+  let b = Math.floor(beats * 0.55), edge = null;
+  for (; b < beats; b++) { await gotoBeat(page, b); edge = await page.evaluate(() => window.__s1.nearEdge()); if (edge.handTop !== null) break; }
+  await page.waitForTimeout(300);
+  const fr = await page.evaluate(() => ({ ...window.__s1.framing(), slot: window.__s1.slotWidth() }));
+  const box = await page.locator("#stage").boundingBox();
+  const out = fr.zones.filter(([x, y]) => x < 0 || x > box.width || y < 0 || y > box.height);
+  framings.push(`${label}: camera ${fr.d.toFixed(2)}, aim ${fr.look.toFixed(2)}, slot ${fr.slot.toFixed(0)} px`);
+  check(`E ${label}: every zone corner on the board`, out.length === 0, `${fr.zones.length - out.length} of ${fr.zones.length} corners in a ${Math.round(box.width)}x${Math.round(box.height)} board`);
+  check(`E ${label}: the near directive row clear of the near hand`, edge.handTop !== null && edge.dirEdge <= edge.handTop + 1, `directive edge y ${edge.dirEdge.toFixed(0)}, hand top y ${edge.handTop?.toFixed(0)} (beat ${b})`);
+  check(`E ${label}: no page errors`, errors.length === 0, errors.slice(0, 2).join(" | ") || "0 errors");
+  await page.screenshot({ path: join(outDir, `frame-${label.split(" ")[0]}-${viewport.width}.jpg`), type: "jpeg", quality: 82 });
+  await ctx.close();
+}
+for (const f of framings) say(`   ${f}`);
+
 await browser.close();
-const out = [`Season 1 arena prototype — browser check (render session 79)`, `pages: ${MATCHES.map((m) => "render/season1/output/" + m.file).join(", ")}`, "", ...lines, "", `${pass} PASS, ${fail} FAIL`].join("\n");
+const out = [`Season 1 arena prototype — browser check (render sessions 79-80)`, `pages: ${MATCHES.map((m) => "render/season1/output/" + m.file).join(", ")}`, "", ...lines, "", `${pass} PASS, ${fail} FAIL`].join("\n");
 writeFileSync(join(outDir, "check.txt"), out + "\n");
 console.log(out);
 process.exitCode = fail ? 1 : 0;

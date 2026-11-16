@@ -22,6 +22,7 @@ import * as THREE from "three";
 import {
   SEATS, otherSeat, seatSign, restYaw, viewerYaw, sceneAt, hudAt, motionsBetween, beatFrames, beatMs,
   deckPlace, discardPlace, sigPlace, heldPlace, slotPlace, footprint, ARENA_RADIUS, CARD_W, CARD_H, DISCARD_SCALE, ROW_Z,
+  DIRECTIVE_Z, DIRECTIVE_SCALE,
   artRings, type Seat, type CardFace, type SceneModel, type TableCard, type Loadout, type Motion,
 } from "./arenaModel.js";
 import type { MatchReplay, Frame } from "../../src/types.js";
@@ -323,40 +324,80 @@ const FIT_POINTS = SEATS.flatMap((seat) => [
 ]);
 let fittedFor = "";
 let fitDist = 12;
-function fitCamera(aspect: number) {
+let fitLook = 0.55;
+// The framing's bounds, in clip space (-1..1). Zoomed in a little (owner
+// 2026-11-15, after render 79: "does need to be zoomed in a little bit,
+// especially on the tile version"): the camera's look-at point is now fitted
+// with its distance, so the top bound (the far side's held hand) and the bottom
+// bound (the near row) are both met, instead of the held hand alone setting the
+// distance with empty board under the near row. The tile lets the held hand's
+// top edge run off the board (backs only, nothing to read there) and its rim
+// margins are tighter: it has no panel and no hover.
+// "bottom" is for the near side's directive row, the nearest thing the near
+// hand could cover: the hand is DOM at a fixed size in px along the bottom
+// edge, so its share of the board (and the bound) is measured, not fixed.
+// "floor" keeps the near discard (beside the hand, lower) on the board.
+const FRAME = {
+  full: { side: 0.97, top: 0.92, gap: 12, floor: -0.97 },
+  phone: { side: 0.97, top: 0.92, gap: 12, floor: -0.97 },
+  tile: { side: 0.985, top: 1.06, gap: 6, floor: -0.98 },
+};
+/** How far the near hand's tallest card reaches up into the board, px. */
+function handReach(): number {
+  const hand = $("hand"), stageBottom = stage.getBoundingClientRect().bottom;
+  const probe = document.createElement("div");
+  probe.className = "hc"; probe.style.visibility = "hidden";
+  hand.appendChild(probe);
+  const reach = stageBottom - probe.getBoundingClientRect().top;
+  probe.remove();
+  return Math.max(0, reach);
+}
+function frameFor(aspect: number) { return mode === "tile" ? FRAME.tile : aspect < 1 ? FRAME.phone : FRAME.full; }
+function aim(d: number, look: number) {
   const s = seatSign(pov);
   const tilt = 0.8;
-  const probe = (d: number) => {
-    camera.position.set(0, Math.sin(tilt) * d, Math.cos(tilt) * d * s);
-    camera.lookAt(0, 0, 0.55 * s);
-    camera.updateProjectionMatrix(); camera.updateMatrixWorld();
-    for (const c of FIT_POINTS) {
-      const p = new THREE.Vector3(c.x, 0, c.z).project(camera);
-      if (Math.abs(p.x) > 0.97) return false;
-    }
-    const top = new THREE.Vector3(0, HELD_TOP, -s * (HELD_Z_ABS + 0.3)).project(camera);
-    if (top.y > 0.9) return false;
-    const bottom = new THREE.Vector3(0, 0, s * (ROW_Z + CARD_H / 2 + 0.2)).project(camera);
-    return bottom.y > (aspect < 1 ? -0.72 : -0.82);
-  };
-  let lo = 6, hi = 40;
-  for (let k = 0; k < 24; k++) { const mid = (lo + hi) / 2; if (probe(mid)) hi = mid; else lo = mid; }
-  return hi;
+  camera.position.set(0, Math.sin(tilt) * d, Math.cos(tilt) * d * s);
+  camera.lookAt(0, 0, look * s);
+  camera.updateProjectionMatrix(); camera.updateMatrixWorld();
 }
+function fitCamera(aspect: number): { d: number; look: number } {
+  const s = seatSign(pov);
+  const f = frameFor(aspect);
+  const h = Math.max(1, stage.getBoundingClientRect().height);
+  const bottom = -1 + (2 * (handReach() + f.gap)) / h;
+  const topY = () => new THREE.Vector3(0, HELD_TOP, -s * (HELD_Z_ABS + 0.3)).project(camera).y;
+  const bottomY = () => new THREE.Vector3(0, 0, s * NEAR_DIR_EDGE).project(camera).y;
+  const floorY = () => Math.min(...footprint(discardPlace(pov), DISCARD_SCALE).map((c) => new THREE.Vector3(c.x, 0, c.z).project(camera).y));
+  const sidesFit = () => FIT_POINTS.every((c) => Math.abs(new THREE.Vector3(c.x, 0, c.z).project(camera).x) <= f.side);
+  // At a distance d: aim the camera where the held hand's top sits exactly on
+  // the top bound (the further the aim, the lower the scene on screen), then
+  // ask whether the near row still clears the bottom bound and every zone fits
+  // across. The aim stays between the arena's middle and its near rows.
+  const probe = (d: number): number | null => {
+    let lo = -2, hi = 3; // look-at z (towards the viewer = larger)
+    aim(d, lo); if (topY() > f.top) return null; // even aimed far, the hand is too high
+    aim(d, hi);
+    if (topY() <= f.top) { lo = hi; }
+    else for (let k = 0; k < 24; k++) { const mid = (lo + hi) / 2; aim(d, mid); if (topY() <= f.top) lo = mid; else hi = mid; }
+    aim(d, lo);
+    return bottomY() >= bottom && floorY() >= f.floor && sidesFit() ? lo : null;
+  };
+  let lo = 4, hi = 40;
+  for (let k = 0; k < 28; k++) { const mid = (lo + hi) / 2; if (probe(mid) !== null) hi = mid; else lo = mid; }
+  return { d: hi, look: probe(hi) ?? 0.55 };
+}
+/** The near directive row's edge nearest the viewer (z, unsigned). */
+const NEAR_DIR_EDGE = DIRECTIVE_Z + (CARD_H * DIRECTIVE_SCALE) / 2;
 const HELD_TOP = heldPlace("p1", 0, 1).pos.y + CARD_H / 2;
 const HELD_Z_ABS = Math.abs(heldPlace("p1", 0, 1).pos.z);
 function placeCamera() {
-  const s = seatSign(pov);
   const r = stage.getBoundingClientRect();
   const aspect = Math.max(0.3, r.width / Math.max(1, r.height));
   camera.aspect = aspect;
   camera.fov = aspect < 1 ? 52 : 44;
-  const keyNow = `${pov}:${aspect.toFixed(3)}`;
-  if (keyNow !== fittedFor) { fitDist = fitCamera(aspect); fittedFor = keyNow; }
-  const tilt = 0.8;
-  camera.position.set(0, Math.sin(tilt) * fitDist, Math.cos(tilt) * fitDist * s);
-  camera.lookAt(0, 0, 0.55 * s);
-  camera.updateProjectionMatrix();
+  const keyNow = `${pov}:${Math.round(r.width)}x${Math.round(r.height)}`;
+  if (keyNow !== fittedFor) { const fit = fitCamera(aspect); fitDist = fit.d; fitLook = fit.look; fittedFor = keyNow; }
+  aim(fitDist, fitLook);
 }
 function resize() {
   const r = stage.getBoundingClientRect();
@@ -658,6 +699,12 @@ addEventListener("keydown", (ev) => {
   screenOfCard: (key: string) => { const l = live.get(key); return l ? screenOf(new THREE.Vector3(l.card.pos.x, 0.05, l.card.pos.z)) : null; },
   heldScreen: (k: number) => { const m = held[k]; return m ? screenOf(m.position.clone()) : null; },
   cameraZ: () => camera.position.z,
+  /** The camera's fitted distance and aim, and every zone corner on screen (px in the stage). */
+  framing: () => ({ d: fitDist, look: fitLook, zones: FIT_POINTS.map((c) => screenOf(new THREE.Vector3(c.x, 0, c.z))) }),
+  /** A unit slot's width on screen, px: the zoom, measured. */
+  /** The near directive row's near edge on screen (y px) and the near hand's top (y px, in the stage). */
+  nearEdge: () => ({ dirEdge: screenOf(new THREE.Vector3(0, 0, seatSign(pov) * NEAR_DIR_EDGE))[1], handTop: $("hand").children.length ? Math.min(...[...$("hand").children].map((c) => c.getBoundingClientRect().top)) - stage.getBoundingClientRect().top : null }),
+  slotWidth: () => { const a = slotPlace(pov, 0, 6).pos, b = slotPlace(pov, 1, 6).pos; const pa = screenOf(new THREE.Vector3(a.x, 0, a.z)), pb = screenOf(new THREE.Vector3(b.x, 0, b.z)); return Math.abs(pb[0] - pa[0]); },
   yawOf: (key: string) => { const l = live.get(key); return l ? l.mesh.rotation.y : null; },
   restOf: (key: string) => { const l = live.get(key); return l ? l.card.yaw : null; },
 };

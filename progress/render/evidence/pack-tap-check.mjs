@@ -28,9 +28,15 @@
 // Each run also checks the honest tell (sparks iff a hit), the summary
 // (tile counts add up to the store's cards, its NEW count and pack points),
 // no reveal overlays left, no horizontal scroll and no page errors.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
+// RETIRED in render session 80 (a hardening pass): this check drove the tap-driven ten-pack opening of session 26 (plain Rares face up, a big pull with no sealed pack). Replaced by pack-bulk-check-s54.mjs and pack-bulk-check-s64.mjs (Open 10 stops on every held card) and pack-ceremony-check-s60/-s61/-s62.mjs.
+// Since the ceremony (render sessions 58-64) the page it was written for no
+// longer exists (re-run in session 80: it fails on the old page's rules, not
+// on a fault; the record is pack-checks-retired-s80.txt). Kept for the record;
+// RUN_RETIRED=1 runs it anyway.
+if (!process.env.RUN_RETIRED) { console.log('pack-tap-check.mjs: retired in render session 80 (written for the pack page before the ceremony); see its header for the checks that replace it.'); process.exit(0); }
 const [shotDir, file, facesFile] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const b = await chromium.launch(launchOpts({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] }));
 let fails = 0;
 const say = (s) => console.log(s);
 const S = (p, fn, arg) => p.evaluate(fn, arg);

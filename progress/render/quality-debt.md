@@ -22,8 +22,15 @@ items are removed, with the fix in `log.md`.
   hand is a count. A live match's hidden-hands rule (CardRef.hidden) draws backs in the near hand (unit-tested, not
   seen in a browser).
 - The near hand is DOM over the canvas, not in the scene; it is not hoverable for its full text (names and costs only).
-- Board cards are small at six slots (~85-90 px wide at 1440x900): the name and stats read, the rules need the hover
-  (call 1 at the checkpoint). On a phone the board is about 370 px tall and cards ~45 px wide: tap to read.
+- Board cards are still small at six slots, after the owner's zoom (render 80): a slot ~106 px wide at 1440x900
+  (was 89), 72 px at 1280x720 (was 64), 42 px on the 480x300 tile (was 31): the name and stats read, the rules need
+  the hover (kept, call 1). On a phone the board is about 370 px tall and a slot ~44 px: unchanged by the zoom (the
+  phone is bound by its width: the piles and signature zones must fit across), tap to read.
+- The framing (render 80) is fitted at load and on resize only, for an empty-board layout: it is not re-fitted as
+  cards are played (no need today: every zone is a fixed place). On the tile the far side's held hand may run off
+  the top edge by design (backs only). The near hand's reach is measured from a hidden probe card at fit time; a
+  hand that fans higher (more cards) still clears the directive row in the check's beats, not proven for every hand
+  size. Only checked at 1440x900, 1280x720, the 480x300 tile and a 390x844 phone; never on a real Home tile.
 - WebGL seen only in headless SwiftShader; no real GPU, no real phone, no frame-rate measure. Each frame re-renders
   with soft shadows (2048 map); not profiled. The page is 1.1 MB (three.js about 0.6 MB of it).
 - The far side's directives sit under its held hand and are partly hidden by it from the near seat.
@@ -176,7 +183,22 @@ items are removed, with the fix in `log.md`.
   group's rule) but nothing says when it saved except the toast; the deck switcher is still mouse-checked only; at narrow widths (the one-column board) the L layouts stack but were not looked at; the demo's history
   is mostly `recordMatch` rows with no replay, so the trend's shape there comes from those made-up results, not
   real play (the numbers are still the server's).
-- **Most by-hand browser checks are never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
+- **Render 80 (hardening) re-ran the stale ones.** One Playwright lookup for the by-hand checks
+  (`render/ci/pw.mjs`; Playwright's own Chromium, `PW_CHROME` for another). Re-run on today's pages and passing:
+  `feed-check` (two replays, both widths), `hardening-check-s40` (all pass), `boast-check-s39` (all pass, 4 min),
+  `boot-check-s38` (5 fails, all the check's own: it predated render 53's coin and 3.4 s intro; fixed to read the
+  hit's time from the queue, the coin's whir left out of the onset timing as the clicks under the chirp are; then all
+  pass, and a sabotage run with the rare flourish removed fails K twice). `pack-opening-check`, `pack-tap-check` and
+  `pack-tilt-check` were written for the pack page before the ceremony: re-run, they fail on its old rules, so they
+  are retired (each exits with a note unless RUN_RETIRED=1; their record is `pack-checks-retired-s80.txt`) and their
+  replacements named in their headers. **Still not re-run:** s45's liquid check (its 20 fps bar fails in software
+  WebGL by measure, below), the superseded older versions (`boast-check-s32..s37`, `boot-check-s35`,
+  `board-fit-check`, `narrow-overflow-check`, `first-time-check`, `pack-bulk-check` (pre-s54); they still name
+  chromium-1194 by path and won't start). Only `render/ci/browser-check.mjs` runs on every PR.
+- **A real-API unit test is timing-sensitive under load (seen render 80):** `siteLockable77.test.ts` ("a pack opened
+  after the read makes it stale") failed once while two headless browser checks ran beside the suite; it passed alone
+  and in a quiet full run (1106 of 1106). Not investigated: likely a test timeout on a busy machine, which CI could hit.
+- **(Before render 80) Most by-hand browser checks were never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
   and loadout checks up to date (`pack-bulk-check-s54.mjs`, `loadout-check-s54.mjs`) and found the older
   ones break the same way: written against the page as it was that session, and against one machine's
   Chromium path. Session 38's boot check still expects the 2.6 s intro (render 53 made it 3.4 s), and other

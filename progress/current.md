@@ -36,17 +36,17 @@ measured a locked owner's day on the ladder and summed up the season log's repea
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (game session 103) is game, so **the next
-session is render** (80).
+with "Render:", this is a game session; otherwise render. The latest PR (render session 80, a hardening pass) is
+render, so **the next session is game** (104).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says (if it merges while you wait, choose the lane again). Check the last merged PR so a slice
 isn't built twice. Read owner-feedback.md.
 
-Render lane (80): the render hardening pass moved from 79 (the render debt list, stale browser checks first). The
-owner answered render 79 (2026-11-15): keep 1-4 (a), 5 (b): one prototype session per few render sessions while
-Season 0 has no fixes waiting, next the 3D play and attack effects; and zoom the prototype arena in a little,
-especially the tile version. That entry is the render lane's to mark handled.
+Render lane (81): render 80 was the render hardening pass: the owner's zoom on the Season 1 prototype (the
+2026-11-15 entry, handled) and the stale by-hand browser checks (re-run, fixed or retired; `render/ci/pw.mjs`). Next:
+the render debt list unless Season 0 has a fix waiting; per the owner's 5 (b), a prototype session (the 3D play and
+attack effects) after a few render sessions. Next render hardening pass: 85.
 
 Game lane (104): hardening and fixes only until clean-up (owner 2026-11-14 point 4). Read the owner's answers first
 (session 103 has no calls). Candidates from quality-debt.md: the dry run's step 5 passing without a mid-match end

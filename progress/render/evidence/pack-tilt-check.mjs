@@ -27,10 +27,16 @@
 // With "video", also records a short desktop and phone clip of the tilt
 // (pack, tear, a Gold card, the Zero-Day card, the viewer), with a dot
 // drawn where the finger is.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
+// RETIRED in render session 80 (a hardening pass): this check drove session 27's hold-to-tilt on the pre-ceremony page. The lean is checked on today's page by pack-ceremony-check-s58.mjs (the pack leans, the same lean whatever it holds) and -s60/-s61/-s62.mjs (the cards).
+// Since the ceremony (render sessions 58-64) the page it was written for no
+// longer exists (re-run in session 80: it fails on the old page's rules, not
+// on a fault; the record is pack-checks-retired-s80.txt). Kept for the record;
+// RUN_RETIRED=1 runs it anyway.
+if (!process.env.RUN_RETIRED) { console.log('pack-tilt-check.mjs: retired in render session 80 (written for the pack page before the ceremony); see its header for the checks that replace it.'); process.exit(0); }
 import { mkdirSync, renameSync } from 'node:fs';
 const [outDir, file, video] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const b = await chromium.launch(launchOpts({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] }));
 let fails = 0;
 const say = (s) => console.log(s);
 const S = (p, fn, arg) => p.evaluate(fn, arg);

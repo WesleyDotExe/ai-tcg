@@ -35,7 +35,7 @@
 //   I  the loadout picker: the loop's repeats stay silent (no sequence); a
 //      pass the viewer asks for (a tap on a tile) queues its sounds on the
 //      audio clock at their planned times.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
