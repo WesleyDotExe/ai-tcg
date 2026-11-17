@@ -321,6 +321,80 @@ describe("the ladder", () => {
   });
 });
 
+describe("(session 104) an owner switching auto-play off by hand", () => {
+  type Ev = import("../src/ladder/ladderRunner.js").LadderEvent;
+  const offs = (events: Ev[]) => events.filter((e) => e.kind === "autoPlaySwitchedOff").map((e) => e.ownerId);
+
+  it("is said once, at the next round's start, with when the switch moved; not again after", async () => {
+    const { store, owners, ladder } = setup(["Cortex", "Swarm", "Aegis", "Null"], ["house", "house", "player", "player"]);
+    const [a, b] = [owners[2]!.ownerId, owners[3]!.ownerId];
+    for (const o of [a, b]) store.setAutoPlay(o, true);
+    const events: Ev[] = [];
+    const lad = ladder(houseSeater, { onEvent: (e) => events.push(e) });
+    await lad.runRound();
+    expect(offs(events)).toEqual([]);
+    const changedAt = store.setAutoPlay(a, false).changedAt;
+    const r2 = await lad.runRound();
+    expect(events.filter((e) => e.kind === "autoPlaySwitchedOff")).toEqual([{ kind: "autoPlaySwitchedOff", ownerId: a, changedAt }]);
+    expect(r2.pairs.flatMap((p) => [p.p1, p.p2])).not.toContain(a);
+    await lad.runRound();
+    expect(offs(events)).toEqual([a]);
+  });
+
+  it("off and back on between two rounds says nothing (they are still queued)", async () => {
+    const { store, owners, ladder } = setup(["Cortex", "Swarm"], ["player", "player"]);
+    for (const o of owners) store.setAutoPlay(o.ownerId, true);
+    const events: Ev[] = [];
+    const lad = ladder(houseSeater, { onEvent: (e) => events.push(e) });
+    await lad.runRound();
+    store.setAutoPlay(owners[0]!.ownerId, false);
+    store.setAutoPlay(owners[0]!.ownerId, true);
+    expect((await lad.runRound()).pairs).toHaveLength(1);
+    expect(offs(events)).toEqual([]);
+  });
+
+  it("the server's own stops are not the owner's: the day's rewards maxed (also once the day has turned), and a time-up between rounds", async () => {
+    const { store, owners, ladder, advance } = setup(["Cortex", "Swarm", "Aegis"], ["player", "player", "player"]);
+    for (const o of owners.slice(0, 2)) store.setAutoPlay(o.ownerId, true);
+    const timed = owners[2]!.ownerId;
+    store.setAutoPlay(timed, true, 15);
+    const events: Ev[] = [];
+    const lad = ladder(houseSeater, { onEvent: (e) => events.push(e) });
+    for (let i = 0; i < 40 && events.filter((e) => e.kind === "autoPlayStopped").length < 2; i++) await lad.runRound();
+    const stops = events.filter((e): e is Extract<Ev, { kind: "autoPlayStopped" }> => e.kind === "autoPlayStopped");
+    // The 15 minutes run out after the timed owner's first match (each
+    // match moves the clock 10 minutes); someone's 10th win maxes the day.
+    expect(stops.map((e) => e.reason).sort()).toEqual(["dailyRewardsMaxed", "timeUp"]);
+    // Past midnight Sydney the maxed stop no longer reads as today's, but
+    // this ladder made it, so it still isn't the owner's.
+    advance(24 * 3600_000);
+    await lad.runRound();
+    await lad.runRound();
+    expect(offs(events)).toEqual([]);
+  });
+
+  it("an allowance finishing its last match (time up, match live) is the server's stop after the match, not the owner's", async () => {
+    const { store, owners, ladder, advance } = setup(["Cortex", "Swarm"], ["player", "player"]);
+    const [timed, other] = owners.map((o) => o.ownerId) as [string, string];
+    store.setAutoPlay(timed, true, 15);
+    store.setAutoPlay(other, true);
+    const events: Ev[] = [];
+    const lad = ladder(houseSeater, { onEvent: (e) => events.push(e) });
+    await lad.runRound();
+    const { pairs } = await lad.startRound();
+    expect(pairs).toHaveLength(1);
+    const played = (await lad.playPair(pairs[0]!))!;
+    advance(20 * 60_000); // the window ends while the match is live
+    expect(store.autoPlay(timed)).toMatchObject({ on: true, allowance: { state: "finishing" } });
+    await lad.startRound(); // a round starts while it finishes: nothing said
+    expect(offs(events)).toEqual([]);
+    lad.recordPlayed(played);
+    await lad.startRound();
+    expect(events.filter((e) => e.kind === "autoPlayStopped").map((e) => e.ownerId)).toEqual([timed]);
+    expect(offs(events)).toEqual([]);
+  });
+});
+
 describe("who queues, and the house pack policy (session 67)", () => {
   it("house owners always queue; a player owner only while its auto-play is on", () => {
     const { store, owners, ladder } = setup(["Cortex", "Swarm", "Aegis"], ["house", "player", "player"]);

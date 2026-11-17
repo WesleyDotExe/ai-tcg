@@ -2,6 +2,7 @@
 // the same "sits out" reason is summed up instead of printed every round.
 import { describe, expect, it } from "vitest";
 import { LadderLog, REMIND_EVERY } from "../src/ladder/ladderLog.js";
+import { localStamp } from "../src/logTime.js";
 import type { RoundReport } from "../src/ladder/ladderRunner.js";
 
 const names: Record<string, string> = { a: "Alpha", b: "Beta", c: "Gamma" };
@@ -75,5 +76,11 @@ describe("LadderLog (session 102)", () => {
     expect(log.event({ kind: "excluded", ownerId: "a", reason: r })).toEqual([`[ladder] Alpha sits out: ${r}`]);
     expect(log.event({ kind: "excluded", ownerId: "a", reason: r })).toEqual([`[ladder] Alpha sits out: ${r}`]);
     expect(log.round(round(2, { pairs: [{ p1: "a", p2: "b" } as RoundReport["pairs"][number]] }))).toEqual(["[ladder] round 2 since this start: 1 match"]);
+  });
+
+  it("(session 104) an owner switching auto-play off by hand gets one line, with when", () => {
+    const log = new LadderLog((id) => names[id]!);
+    expect(log.event({ kind: "autoPlaySwitchedOff", ownerId: "a", changedAt: "2026-12-05T01:02:03.000Z" })).toEqual([`[ladder] Alpha's auto-play is off: switched off by its owner at ${localStamp(new Date("2026-12-05T01:02:03.000Z"))}`]);
+    expect(log.event({ kind: "autoPlaySwitchedOff", ownerId: "b", changedAt: null })).toEqual(["[ladder] Beta's auto-play is off: switched off by its owner"]);
   });
 });

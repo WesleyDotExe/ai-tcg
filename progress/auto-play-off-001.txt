@@ -1,0 +1,61 @@
+Auto-play off by hand, in the season log (game session 104)
+========================================================================
+The season server's ladder lines (LadderLog) as `npm run season` prints them, each with the
+Sydney time it was printed. Owners switch auto-play over the real owner API.
+
+1. Both player owners switch auto-play on (no time limit)
+------------------------------------------------------------------------
+  11:00:00  (website) Ada: PUT /api/play/auto-play { on: true } -> 200, on=true
+  11:00:00  (website) Bram: PUT /api/play/auto-play { on: true } -> 200, on=true
+
+2. Ada switches it off while her agent's match is on screen
+------------------------------------------------------------------------
+  11:00:00  [ladder] rebuilt Ada's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+  11:00:00  [ladder] rebuilt Bram's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  11:00:00  [ladder] rebuilt Hub's deck: Null, 40 cards (the agent hasn't built a deck yet)
+  11:00:00  [ladder] rebuilt Kiln's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+  11:00:00  [ladder] round 1 since this start: 2 matches
+  [PASS] Ada's agent was paired and is on screen
+  11:00:00  (website) Ada: PUT /api/play/auto-play { on: false } -> 200, on=false
+  [PASS] her match keeps going (the switch only keeps her out of the next round)
+  [PASS] nothing printed yet: the ladder sees the switch at the next round's start
+  11:05:40  [ladder] m2 Bram vs Hub: Hub wins in 14 turns, +2/+30
+  11:05:45  [ladder] m1 Ada vs Kiln: Ada wins in 15 turns, +30/+2
+  11:06:15  [ladder] Ada's auto-play is off: switched off by its owner at 2026-12-05 11:00:00
+  11:06:15  [ladder] round 2 since this start: 1 match, Bram sits out
+  [PASS] her match m1 finished on screen and was recorded
+  [PASS] the next round's start says she switched it off, once, with when (11:06:15)
+  [PASS] the line comes before that round's own line
+  11:13:40  [ladder] m3 Kiln vs Hub: Kiln wins in 19 turns, +30/+2
+  11:14:10  [ladder] round 3 since this start: 1 match, Hub sits out
+  11:19:10  [ladder] m4 Kiln vs Bram: Kiln wins in 13 turns, +10/+2
+  11:19:40  [ladder] round 4 since this start: 1 match, Kiln sits out
+  [PASS] two rounds on: not paired, and not said again
+
+3. Ada back on; then off and on again between two rounds
+------------------------------------------------------------------------
+  11:19:40  (website) Ada: PUT /api/play/auto-play { on: true } -> 200, on=true
+  11:26:20  [ladder] m5 Hub vs Bram: Hub wins in 13 turns, +10/+2
+  11:26:50  [ladder] round 5 since this start: 2 matches
+  [PASS] paired again
+  11:33:40  [ladder] m7 Bram vs Ada: Ada wins in 16 turns, +2/+10
+  11:33:40  (website) Ada: PUT /api/play/auto-play { on: false } -> 200, on=false
+  11:33:40  (website) Ada: PUT /api/play/auto-play { on: true } -> 200, on=true
+  11:34:40  [ladder] m6 Kiln vs Hub: Kiln wins in 17 turns, +10/+2
+  11:35:10  [ladder] round 6 since this start: 2 matches
+  [PASS] paired again in the next round (she never left the queue)
+  [PASS] neither said anything (still the one line from part 2)
+
+4. Ada off once more
+------------------------------------------------------------------------
+  11:40:45  [ladder] m8 Kiln vs Ada: Kiln wins in 15 turns, +10/+2
+  11:40:45  (website) Ada: PUT /api/play/auto-play { on: false } -> 200, on=false
+  11:41:25  [ladder] m9 Bram vs Hub: Bram wins in 13 turns, +30/+2
+  11:41:55  [ladder] Ada's auto-play is off: switched off by its owner at 2026-12-05 11:40:45
+  11:41:55  [ladder] round 7 since this start: 1 match, Hub sits out
+  [PASS] said again, once, with the new time
+  [PASS] Bram, on all along, never gets the line
+  [PASS] no server stop was printed for anyone (none happened)
+  [PASS] the store agrees: Ada off with no stop reason; Bram on
+
+14 of 14 checks PASS

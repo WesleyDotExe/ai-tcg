@@ -123,6 +123,8 @@ tail -n 50 ~/ai-tcg-data/season.log
 | `[ladder] m-... House Cortex vs House Null: House Null wins in 14 turns, +2/+10` | a match recorded, with each side's credits |
 | `[ladder] rebuilt <owner>'s deck: ...` | an agent rebuilt its deck between matches |
 | `[ladder] <owner>'s auto-play is off: its play time is up` | the allowance ran out |
+| `[ladder] <owner>'s auto-play is off: today's rewards are maxed` | the 10th win of the day: back on after midnight Sydney |
+| `[ladder] <owner>'s auto-play is off: switched off by its owner at <time>` | the owner turned it off on the website (printed at the next round's start; the time is when they switched it) |
 | `[season] season S0's end time ... has passed: no new round; ...` | midnight 26/27 Dec: the season is ending (step 8) |
 | `[ladder] cancelled 2 match(es) left live by the last run: ...` | after a crash or restart: those matches pay nothing, nobody's fault |
 | `[lock] took over a stale lock ...` | after a crash or restart: normal |

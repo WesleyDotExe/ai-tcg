@@ -38,6 +38,7 @@
     { "file": "season-lock-001.txt", "workspace": "server", "script": "src/dev/seasonLockDemo.ts", "plays": false },
     { "file": "live-feed-size-001.txt", "workspace": "server", "script": "src/dev/liveFeedSizeMeasure.ts", "plays": true },
     { "file": "play-time-002.txt", "workspace": "server", "script": "src/dev/playTimeClockDemo.ts", "plays": true },
+    { "file": "auto-play-off-001.txt", "workspace": "server", "script": "src/dev/autoPlayOffDemo.ts", "plays": true },
     { "file": "season-end-002.txt", "workspace": "server", "script": "src/dev/seasonEndTimeDemo.ts", "plays": true },
     { "file": "lockable-api-001.txt", "workspace": "server", "script": "src/dev/lockableApiDemo.ts", "plays": false },
     { "file": "lock-pickup-ladder-001.txt", "workspace": "server", "script": "src/dev/lockPickupLadderDemo.ts", "plays": true }

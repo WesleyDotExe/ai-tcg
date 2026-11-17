@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24), and session 79 (the test-only Null builder rule; an auto-merge race found), and session 101 (hardening: the lock picked up by the ladder; the contract check's mid-match end made exact), and session 103 (hardening: `npm run ladder` on the season server's ladder lines).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24), and session 79 (the test-only Null builder rule; an auto-merge race found), and session 101 (hardening: the lock picked up by the ladder; the contract check's mid-match end made exact), and session 103 (hardening: `npm run ladder` on the season server's ladder lines), and session 104 (hardening: an owner switching auto-play off by hand, in the season log).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -261,6 +261,40 @@ real, but here is where it's thin.
 - **Still open from session 71:** the full-collection Null deck pick (measured session 79 with `keepDesigned`, test
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
+
+## Session 104 (game lane, hardening and fixes only: an owner switching auto-play off by hand, in the season log; no schema change): what was raised, and what is still thin
+
+Raised:
+- **"An owner switching auto-play off by hand isn't printed by the ladder" (sessions 102, 103): fixed.** The
+  ladder (`Ladder`, `server/src/ladder/ladderRunner.ts`) remembers the player owners on auto-play at each round's
+  start; at the next round's start, one whose switch now reads off with no stop by the server gets a new event,
+  `autoPlaySwitchedOff` (with the switch's `changedAt`), printed by `LadderLog` as "X's auto-play is off: switched
+  off by its owner at <local time>". The server's own stops are not the owner's: a stop this ladder emitted takes
+  the owner off its list (so a rewards-maxed stop isn't misread after midnight, when the store no longer reports
+  it as today's), and an allowance still finishing its last match reads on and is checked again next round.
+  Evidence: `progress/auto-play-off-001.txt` (14 PASS), the real owner API over HTTP and the live ladder at watch
+  speed on a fake clock, with the season server's own lines: off mid-match (the match finishes and counts; one
+  line at the next round), back on (no line), off-and-on between two rounds (no line), off again (one more line).
+  In the CI demo set (same output in UTC and Sydney). Tests: 4 in `server/test/ladder.test.ts`, 1 in
+  `ladderLog.test.ts`; the old code fails 2 of them, and a version without the two server-stop guards fails the
+  other 2, so each guard is held by a test. The run book's log table (`progress/mac-mini-guide.md`) has the line
+  (and the rewards-maxed line, which it was missing).
+- **Caught by the typecheck before commit:** the demo's first "not paired again" check read `m.startedAt`, which
+  `MatchRecord` doesn't have, so it would have passed on nothing; it now reads `endedAt` and really checks.
+
+Still thin:
+- **Seen at the next round's start, not when the switch moves.** The line can come minutes later (a round is
+  about 7.8 minutes at watch speed); it carries the switch's own time to make up for it. Printing at the switch
+  would need the owner API to write to the season log (a second writer of ladder lines): not done.
+- **Off and back on inside one round's gap says nothing.** Correct for the ladder (the owner never left the
+  queue), but a season log can't show it; the store's `changed_at` keeps only the last move.
+- **An owner switching auto-play ON gets no line** (they appear in the next round's pairings). Not asked for;
+  the off line was the gap a log reader hit.
+- **A new server start forgets the list:** an owner who switched off before the first round after a restart isn't
+  said. Said in the code.
+- **Not raised this session:** the dry run's step 5 can still pass without a mid-match end (needs a feature; ask
+  first); the contract check's forced end is a direct row write; the site's second copy of the lockable rule (the
+  render lane's call); the "sits out" reminder is by rounds, not time.
 
 ## Session 103 (game lane, hardening and fixes only: `npm run ladder` on the season server's ladder lines; no schema change): what was raised, and what is still thin
 
