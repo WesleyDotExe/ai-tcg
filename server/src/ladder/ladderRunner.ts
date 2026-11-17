@@ -93,6 +93,11 @@ function guarded(agent: Agent, seat: PlayerId): Agent {
 export type LadderEvent =
   | { kind: "housePacks"; ownerId: string; bought: number; opened: number; cards: number; newCards: number }
   | { kind: "autoPlayStopped"; ownerId: string; reason: AutoPlayStopReason }
+  /** (session 104) A player owner the ladder queued on auto-play switched
+   * it off themselves (the website's switch) since the last round started.
+   * Seen at the next round's start; `changedAt` is when the switch moved.
+   * Not the server's own stops (those are `autoPlayStopped`). */
+  | { kind: "autoPlaySwitchedOff"; ownerId: string; changedAt: string | null }
   | { kind: "rebuilt"; ownerId: string; reasons: string[]; faction: string; cards: number }
   | { kind: "excluded"; ownerId: string; reason: string }
   | { kind: "paired"; pairing: Pairing }
@@ -189,6 +194,12 @@ export class Ladder {
   private readonly opts: LadderOptions;
   private readonly satOut = new Map<string, number>();
   private rounds = 0;
+  /** (session 104) Player owners on auto-play at a round's start whose
+   * switch this ladder hasn't yet seen go off: checked at the next round's
+   * start, so one the owner switched off by hand gets a line, as the
+   * server's own stops do. Starts empty: an owner switched off before this
+   * ladder's first round isn't said. */
+  private readonly onAutoPlay = new Set<string>();
 
   constructor(opts: LadderOptions) {
     if (opts.seatRules && !isShippedRules(opts.seatRules) && opts.logDir) throw new Error("seatRules is for measuring only: its replays wouldn't rebuild, so it can't write a logDir");
@@ -241,7 +252,28 @@ export class Ladder {
   }
 
   private emit(e: LadderEvent): void {
+    // The server's own stop is said by its event; it isn't the owner's.
+    if (e.kind === "autoPlayStopped") this.onAutoPlay.delete(e.ownerId);
     this.opts.onEvent?.(e);
+  }
+
+  /** (session 104) Before a round is queued: every owner on auto-play at
+   * the last round's start whose switch now reads off, with no stop by the
+   * server today, was switched off by its owner. One still finishing its
+   * last match on a time-up allowance still reads on and is checked again
+   * next round (its stop, when written after the match, is the server's).
+   * Then the owners on auto-play now are remembered for the next round. */
+  private noteSwitchedOff(): void {
+    for (const ownerId of [...this.onAutoPlay]) {
+      const status = this.store.autoPlay(ownerId);
+      if (status.on) continue;
+      this.onAutoPlay.delete(ownerId);
+      // A stop the server wrote that this ladder didn't make (another
+      // process on the same file): not the owner's either.
+      if (status.stopped !== null) continue;
+      this.emit({ kind: "autoPlaySwitchedOff", ownerId, changedAt: status.changedAt });
+    }
+    for (const ownerId of this.store.autoPlayOwners()) this.onAutoPlay.add(ownerId);
   }
 
   /** One round: rebuild what needs it, pair, play and record every pair.
@@ -270,6 +302,7 @@ export class Ladder {
     // match to finish, is switched off here, so its owner hears of it; the
     // queue never held it either way (autoPlayOwners).
     for (const ownerId of this.store.stopAutoPlayTimeUp()) this.emit({ kind: "autoPlayStopped", ownerId, reason: "timeUp" });
+    this.noteSwitchedOff();
     queue ??= this.eligibleOwners();
     if (this.store.seasonEnded()) queue = [];
     const report: RoundReport = { round: ++this.rounds, housePacks: [], rebuilt: [], excluded: [], pairs: [], sitOut: [], matches: [] };

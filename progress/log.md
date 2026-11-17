@@ -5625,3 +5625,29 @@ economy 306, server 233, render 1,106, agents 17, protocol 7); the site contract
 auto-play line.
 **Thin:** in quality-debt.md (the record isn't reproducible line for line; the time-up is a row write).
 **Blocked:** nothing.
+
+**2026-11-17 — Session 104 (game lane; hardening and fixes only (owner 2026-11-14 point 4): an owner switching
+auto-play off by hand, in the season log; no schema change).**
+Lane: the last merged PR at the start was #187 ("Render: ...", render session 80), so game; no open PR.
+Owner feedback: no new entries since render 80's handled one; nothing for this lane.
+No Season 0 checklist item waits for the game lane, so the session took current.md's debt candidates: the one-line
+event for an owner switching auto-play off by hand (named in sessions 102 and 103).
+**Built:** (1) `Ladder` remembers the player owners on auto-play at each round's start and, at the next round's
+start, emits `autoPlaySwitchedOff` (with the switch's `changedAt`) for one whose switch now reads off with no stop
+by the server; a stop the ladder itself emitted takes the owner off the list (so the rewards-maxed stop isn't
+misread past midnight), and an allowance finishing its last match still reads on. (2) `LadderLog` prints it as
+"X's auto-play is off: switched off by its owner at <local time>" (`npm run season` and `npm run ladder` both).
+(3) A demo, `server/src/dev/autoPlayOffDemo.ts`; the run book's log table.
+**Ran it:** `progress/auto-play-off-001.txt`, 14 of 14 PASS: the real owner API over HTTP, the live ladder at
+watch speed on a fake clock, the season server's lines. Ada switches off mid-match (the match finishes and counts;
+the next round's start prints the line once, before the round line); back on (paired, no line); off and on
+between two rounds (paired, no line); off again (one more line). Bram, on all along, never. Same output with the
+machine in UTC and in Sydney; in the CI demo set. Tests: 4 in `server/test/ladder.test.ts`, 1 in
+`ladderLog.test.ts`; the old code fails 2, a version without the server-stop guards fails the other 2.
+Typecheck clean (all six workspaces); tests all pass (engine 379, economy 306, server 238, render 1,106, agents
+17, protocol 7); `npm run demos`: 38 of 38 the same; the site contract check 0 mismatches, 8 of 8 controls.
+**Worked:** running the typecheck before committing caught a demo check that read a field `MatchRecord` doesn't
+have and would have passed on nothing.
+**Thin:** in quality-debt.md (seen at the next round's start, not the moment of the switch; switching on isn't
+printed; a restart forgets the list).
+**Blocked:** nothing.

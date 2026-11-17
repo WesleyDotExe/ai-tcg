@@ -19,7 +19,13 @@
 // one-off and always printed; it isn't counted as sitting out.
 //
 // The events and the store are unchanged; only the printing is.
+//
+// (session 104) An owner switching auto-play off on the website gets a line
+// at the next round's start ("X's auto-play is off: switched off by its
+// owner at <when>"), the time in the machine's local clock, as each line's
+// own stamp is (logTime.ts), since the round can start minutes later.
 
+import { localStamp } from "../logTime.js";
 import type { LadderEvent, RoundReport } from "./ladderRunner.js";
 
 /** A repeat of the same reason is printed once in this many rounds. */
@@ -48,6 +54,8 @@ export class LadderLog {
         return this.excluded(e.ownerId, e.reason);
       case "autoPlayStopped":
         return [`[ladder] ${name(e.ownerId)}'s auto-play is off: ${e.reason === "timeUp" ? "its play time is up" : "today's rewards are maxed"}`];
+      case "autoPlaySwitchedOff":
+        return [`[ladder] ${name(e.ownerId)}'s auto-play is off: switched off by its owner${e.changedAt ? ` at ${localStamp(new Date(e.changedAt))}` : ""}`];
       case "seasonEndTime":
         return [
           `[season] season ${e.season}'s end time ${e.endsAt} has passed: no new round; ${e.live === 0 ? "ending it now" : `ending it once the ${e.live} match${e.live === 1 ? "" : "es"} on screen ${e.live === 1 ? "is" : "are"} recorded`}`,
