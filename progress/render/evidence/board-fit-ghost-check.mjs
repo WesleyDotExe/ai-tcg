@@ -1,6 +1,8 @@
-import { chromium } from 'playwright-core';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 const [file, shot] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+// Run from anywhere (render session 81: Playwright via render/ci/pw.mjs; PW_CHROME names another browser): node board-fit-ghost-check.mjs <replay.html> [shot.png]
+const b = await chromium.launch(launchOpts({}));
+let bad = 0; // render session 81: a verdict (no death found, no ghost, or a ghost off the dead card's place by over 1 px fails)
 for (const w of [600, 390, 1280]) {
   const p = await b.newPage({ viewport: { width: w, height: 1100 } });
   await p.goto('file://' + file); await p.waitForTimeout(300);
@@ -24,8 +26,11 @@ for (const w of [600, 390, 1280]) {
     if (r) found = r;
   }
   const d = found && found.ghost ? { dl: (found.ghost.left - found.was.left).toFixed(1), dt: (found.ghost.top - found.was.top).toFixed(1), dw: (found.ghost.width - found.was.width).toFixed(1), dh: (found.ghost.height - found.was.height).toFixed(1), nameVsCard: (found.nameW / found.ghost.width).toFixed(3) } : found;
+  if (!found || !found.ghost || [d.dl, d.dt, d.dw, d.dh].some((x) => Math.abs(Number(x)) > 1)) bad++;
   console.log(w, 'move', found && found.k, 'ghost zoom', found && found.zoom, JSON.stringify(d));
   if (shot && w === 600) { await p.waitForTimeout(60); await p.screenshot({ path: shot }); }
   await p.close();
 }
 await b.close();
+console.log(bad ? `FAIL: ${bad} width(s)` : 'PASS: the ghost sits exactly on the dead card at every width');
+process.exit(bad ? 1 : 0);

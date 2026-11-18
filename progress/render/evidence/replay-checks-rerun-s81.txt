@@ -1,0 +1,89 @@
+# render session 81: four by-hand replay checks re-run on today's committed replays (render/output), Playwright via render/ci/pw.mjs, its own Chromium (headless).
+## node narrow-overflow-check.mjs render/output/aegis-vs-null-seed3.html
+360 frames 87 max overflow px 0 at -1 no errors
+390 frames 87 max overflow px 0 at -1 no errors
+600 frames 87 max overflow px 0 at -1 no errors
+768 frames 87 max overflow px 0 at -1 no errors
+900 frames 87 max overflow px 0 at -1 no errors
+1280 frames 87 max overflow px 0 at -1 no errors
+PASS: no sideways overflow and no page errors at any width
+exit 0
+## node board-fit-check.mjs render/output/aegis-vs-null-seed3.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+PASS: every width fits (no overflow, no card off its row, the rows apart, no page errors)
+exit 0
+## node board-fit-ghost-check.mjs render/output/aegis-vs-null-seed3.html
+600 move 34 ghost zoom 0.763904 {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"-0.0","nameVsCard":"0.978"}
+390 move 34 ghost zoom 0.951933 {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"-0.0","nameVsCard":"0.982"}
+1280 move 34 ghost zoom  {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"0.0","nameVsCard":"0.983"}
+PASS: the ghost sits exactly on the dead card at every width
+exit 0
+## node narrow-overflow-check.mjs render/output/cortex-vs-swarm-seed6.html
+360 frames 113 max overflow px 0 at -1 no errors
+390 frames 113 max overflow px 0 at -1 no errors
+600 frames 113 max overflow px 0 at -1 no errors
+768 frames 113 max overflow px 0 at -1 no errors
+900 frames 113 max overflow px 0 at -1 no errors
+1280 frames 113 max overflow px 0 at -1 no errors
+PASS: no sideways overflow and no page errors at any width
+exit 0
+## node board-fit-check.mjs render/output/cortex-vs-swarm-seed6.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+PASS: every width fits (no overflow, no card off its row, the rows apart, no page errors)
+exit 0
+## node board-fit-ghost-check.mjs render/output/cortex-vs-swarm-seed6.html
+600 move 45 ghost zoom 0.763904 {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"-0.0","nameVsCard":"0.978"}
+390 move 45 ghost zoom 0.951933 {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"-0.0","nameVsCard":"0.982"}
+1280 move 45 ghost zoom  {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"0.0","nameVsCard":"0.983"}
+PASS: the ghost sits exactly on the dead card at every width
+exit 0
+## node board-feed-check.mjs <shotDir> render/output/aegis-vs-null-seed3.html render/output/cortex-vs-swarm-seed6.html
+aegis-vs-null-seed3.html @1280px (card zoom 1.000): 86 moves, 4 cast tags (feed: 4), 2 quiet triggers with no tag; labels 0 scaled / 36 full — ok
+aegis-vs-null-seed3.html @580px (card zoom 0.737): 86 moves, 4 cast tags (feed: 4), 2 quiet triggers with no tag; labels 24 scaled / 12 full — ok
+cortex-vs-swarm-seed6.html @1280px (card zoom 1.000): 112 moves, 11 cast tags (feed: 11), 2 quiet triggers with no tag; labels 0 scaled / 57 full — ok
+cortex-vs-swarm-seed6.html @580px (card zoom 0.737): 112 moves, 11 cast tags (feed: 11), 2 quiet triggers with no tag; labels 43 scaled / 14 full — ok
+all passed
+## sabotage: the same replay with '#board-p1 { min-width: 700px; }' added (a board row wider than a phone)
+## node narrow-overflow-check.mjs <sabotaged copy>
+360 frames 87 max overflow px 263 at 0 no errors
+390 frames 87 max overflow px 288 at 0 no errors
+600 frames 87 max overflow px 0 at -1 no errors
+768 frames 87 max overflow px 0 at -1 no errors
+900 frames 87 max overflow px 0 at -1 no errors
+1280 frames 87 max overflow px 0 at -1 no errors
+FAIL: 2 width(s) overflowed or errored
+exit 1
+## node board-fit-check.mjs <sabotaged copy>
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 263 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 288 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 282 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 172 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+FAIL: 4 width(s)
+exit 1

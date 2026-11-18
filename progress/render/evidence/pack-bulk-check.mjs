@@ -24,9 +24,14 @@
 //   - the speed choice is remembered across a reload;
 //   - no horizontal scroll, the row fits on screen, no page errors.
 // Stills go to shotDir.
-import { chromium } from 'playwright-core';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
+// RETIRED in render session 81 (the render debt list): superseded by pack-bulk-check-s64.mjs, which checks the same
+// page as it is today and was re-run in render session 80. This version named one machine's Chromium
+// (chromium-1194) and no longer started; it now uses render/ci/pw.mjs. Kept for the record;
+// RUN_RETIRED=1 runs it anyway.
+if (!process.env.RUN_RETIRED) { console.log('pack-bulk-check.mjs: retired in render session 81 (superseded by pack-bulk-check-s64.mjs).'); process.exit(0); }
 const [shotDir, file] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const b = await chromium.launch(launchOpts({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] }));
 let fails = 0;
 const say = (s) => console.log(s);
 const ev = (p) => p.evaluate(() => window.__pack.log);

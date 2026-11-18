@@ -22,14 +22,19 @@
 //   N    the sheet: all nine sayings over all four factions and a mirror
 //        match, two phone scenes and the still, each laid out without a
 //        grammar problem; a still of each at the saying.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 import { mkdirSync, renameSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { bootSaying, bootLine, BOOT_MS, BOOT_STILL_MS } from '../../../render/src/matchBootFx.ts';
+// RETIRED in render session 81 (the render debt list): superseded by boot-check-s38.mjs, which checks the same
+// page as it is today and was re-run in render session 80. This version named one machine's Chromium
+// (chromium-1194) and no longer started; it now uses render/ci/pw.mjs. Kept for the record;
+// RUN_RETIRED=1 runs it anyway.
+if (!process.env.RUN_RETIRED) { console.log('boot-check-s35.mjs: retired in render session 81 (superseded by boot-check-s38.mjs).'); process.exit(0); }
 const [outDir, outputArg, video] = process.argv.slice(2);
 const OUT = resolve(outputArg || 'render/output');
 mkdirSync(outDir, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--disable-gpu', '--disable-accelerated-2d-canvas', '--autoplay-policy=no-user-gesture-required'] });
+const b = await chromium.launch(launchOpts({ args: ['--disable-gpu', '--disable-accelerated-2d-canvas', '--autoplay-policy=no-user-gesture-required'] }));
 let fails = 0;
 const log = (...a) => console.log(...a);
 function check(ok, what) { log((ok ? '  PASS ' : '  FAIL ') + what); if (!ok) fails++; }

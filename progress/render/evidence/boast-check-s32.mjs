@@ -16,13 +16,18 @@
 //   J. Cosmetics off: a stepped win shows the result at once and plays no
 //      boast; switching off mid-boast ends it and lands the result at once;
 //      the switch is remembered after a reload and reads "Cosmetics: off".
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 import { mkdirSync, renameSync } from 'node:fs';
 import { resolve } from 'node:path';
+// RETIRED in render session 81 (the render debt list): superseded by boast-check-s39.mjs, which checks the same
+// page as it is today and was re-run in render session 80. This version named one machine's Chromium
+// (chromium-1194) and no longer started; it now uses render/ci/pw.mjs. Kept for the record;
+// RUN_RETIRED=1 runs it anyway.
+if (!process.env.RUN_RETIRED) { console.log('boast-check-s32.mjs: retired in render session 81 (superseded by boast-check-s39.mjs).'); process.exit(0); }
 const [outDir, outputArg, video] = process.argv.slice(2);
 const OUT = resolve(outputArg || 'render/output');
 mkdirSync(outDir, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--disable-gpu', '--disable-accelerated-2d-canvas', '--autoplay-policy=no-user-gesture-required'] });
+const b = await chromium.launch(launchOpts({ args: ['--disable-gpu', '--disable-accelerated-2d-canvas', '--autoplay-policy=no-user-gesture-required'] }));
 let fails = 0;
 const log = (...a) => console.log(...a);
 function check(ok, what) { log((ok ? '  PASS ' : '  FAIL ') + what); if (!ok) fails++; }

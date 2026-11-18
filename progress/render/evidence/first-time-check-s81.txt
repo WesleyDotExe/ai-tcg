@@ -1,0 +1,6 @@
+# render session 81: node progress/render/evidence/first-time-check.mjs <outDir> render/output/first-time.html "" v2-s81 (Playwright via render/ci/pw.mjs, headless Chromium, SwiftShader WebGL)
+desktop: pass (faction Swarm, starter guarantee on pack 3, agent Coiljackal's Croupier typed as "Night Shift 99", card Turboheron's Denim Rave; mint 7432 ms tap-to-free, beats gather@10 ward@1158 forge@3598 stamp@4896 settle@5431 free@7420; lean [15,15]; ward lit 2100)
+phone: pass (faction Aegis, starter guarantee on pack 3, agent Shellfixer's Sleepless Flywheel typed as "Bit by Bit", card Fluxbadger's Obsidian Torrent; mint 7487 ms tap-to-free, beats gather@15 ward@1160 forge@3642 stamp@4935 settle@5458 free@7456; lean [15,15]; ward lit 1590)
+phone-reduced: pass (faction Null, starter guarantee on pack 3, agent Laserferret's Turbo Champion, card Mainframe Key of the Blackout; mint 623 ms tap-to-free, beats gather@9 ward@91 forge@149 stamp@156 settle@164 free@164; lean [6,6]; ward lit 1508)
+all pass
+exit 0

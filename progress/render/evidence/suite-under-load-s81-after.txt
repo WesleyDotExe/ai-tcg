@@ -1,0 +1,38 @@
+# render 81: the render suite with six busy loops beside it (4 cores), after vitest.config.ts (30 s limits)
+ ✓ test/siteLoadout.test.ts > the picker's data, from the real owner API > owned tiles are the server's choices; on-sale items the owner lacks are locked; the empty tile; the server's loadout 1516ms
+ ✓ test/siteMatches.test.ts > the match pages over the real owner API, with the ladder playing > Watch live: every live match, its scoreboard the server's board now, the viewer's side first 1758ms
+ ✓ test/firstTime.test.ts > the starter guarantee (game session 46; the note, render session 30) > marks only the pack the store upgraded, over many seeds (a hit already in pack 1 or 2 leaves pack 3 alone) 6066ms
+ ✓ test/siteLoadout.test.ts > Equip and Buy through the real server > Buy: the locked tile has Buy only when the owner can pay; after buying, the item is an owned tile on every agent and equips 1476ms
+ ✓ test/siteMatches.test.ts > the match pages over the real owner API, with the ladder playing > the play-by-play from the feed, a read at a time, adds up to the match log; then the history row and the full replay 5692ms
+ ✓ test/firstTime.test.ts > Generate a new agent, every branch (store: startAgentDraft, pickDraftAgent, confirmAgentDraft) > is reproducible: the same seeds give the same draft and the same cards 1715ms
+ ✓ test/siteMatches.test.ts > the match pages over the real owner API, with the ladder playing > refusals: no token, no such match, no replay file, a file this engine can't rebuild, an unknown or expired page, wrong methods 1288ms
+ ✓ test/siteMatches.test.ts > the match pages over the real owner API, with the ladder playing > replayOfFile refuses a record that isn't the file's match 1165ms
+ ✓ test/siteMatches.test.ts > the match pages over the real owner API, with the ladder playing > auto-play: the switch's answer is the server's; the widgets draw the real answers at every size 1178ms
+ ✓ test/loadoutPicker.test.ts > the page's data, from real store states > builds the same page every run 2079ms
+ ✓ test/firstTime.test.ts > the name field (render session 29) > shows for a typed name exactly what confirmAgentDraft makes (name, flavour line) or refuses 6259ms
+ ✓ test/loadoutPicker.test.ts > the page's answers compose like the real store > agrees with the store over 300 random choices: bought 1046ms
+ ✓ test/packVersions78.test.ts > the demo page > the showcase, the tens and the debug panel's packs all carry them, and the page has the row's code 2385ms
+ ✓ test/watchAs.test.ts > the point of view on the website > a spectator gets the switch, defaultView near; their choice flips the scoreboard, the board and the line; an owner gets no switch 1618ms
+ ✓ test/siteLiveArena.test.ts > the live arena over the real owner API, with the ladder playing > the page starts at the moves released so far, takes the rest a read at a time, ends with the record's boast, and is the replay's match frame for frame 2033ms
+ ✓ test/watchAs.test.ts > the point of view on the website > a server from before v20 (no defaultView): p1 near 1626ms
+ ✓ test/siteLiveArena.test.ts > the live arena over the real owner API, with the ladder playing > a match recorded between two reads still ends on the last move: the moves the feed no longer has come from the replay file 1074ms
+ ✓ test/watchAs.test.ts > the point of view on the website > the Watch live widget: the switch for its first match at M and L, not at S, with the tab's choice 1457ms
+ ✓ test/siteSpeed.test.ts > over the real owner API, with the ladder playing > the vote from both owners: ask, waiting, agree (2× on the arena's frames), take back; refusals in the server's words 1391ms
+ ✓ test/siteSpeed.test.ts > over the real owner API, with the ladder playing > the boast comes with the last move, before the match is recorded (the result's hold), and is the record's 2068ms
+ ✓ test/packStops.test.ts > a roll's best step > is the planned reveal's best build step, over 300 real openings 4243ms
+ ✓ test/slotLayout.test.ts > assignSlots — real matches > holds exactly the board, never moves a card, and never drops a newcomer under a ghost 2436ms
+ ✓ test/packStops.test.ts > the debug panel's packs > each single pack is a real opening whose best card is its kind, at the first such seed 1096ms
+ ✓ test/slotLayout.test.ts > response beat bookkeeping — real matches > tracks every response's stack item from its push to its one resolution 1111ms
+ ✓ test/recordedMatch.test.ts > the store's record, end to end > a bought season boast in the main slot plays instead of the faction's 1460ms
+ ✓ test/recordedMatch.test.ts > the store's record, end to end > a close win plays the close-win boast; a win that isn't close keeps the main one 1510ms
+ ✓ test/boastClip.test.ts > the boast draws only inside the winner's side (render session 40) > Dial-Up Fireworks: every frame's drawing is clipped to the winner's side, and the clip is undone after 1181ms
+ ✓ test/statFx.test.ts > real matches (engine event log is the referee) > every unambiguous engine buff event is classified in its own direction; statuses and expiries show up too 1679ms
+ ✓ test/siteTime.test.ts > the time ring over the real owner API, with the ladder playing > 15 minutes given, the ring drains, +15, time up mid-match finishes the match, then Time's up; midnight Sydney clears it 2838ms
+ ✓ test/attackFx.test.ts > real matches (oracle: the moves the agents actually submitted) > every attack is drawn from the exact attacker to the exact target, and strikes exactly once 1846ms
+ ✓ test/castFx.test.ts > real matches (oracle: the engine's own resolveAbility source) > never pins a flourish on the wrong instance, and accounts for every trigger and cast 2257ms
+ ✓ test/feedQuiet.test.ts > a trigger the feed drops changed nothing (checked against the engine) > holds over every trigger the engine resolves in real matches 2118ms
+ ✓ test/siteAgent.test.ts > My agent and Agent controls over the real owner API, with the ladder playing > the rating and streak are the server's; the dial's change applies from the next match; the deck switcher's choice is saved 1741ms
+ ✓ test/siteBell.test.ts > the bell on the real owner API > pages back with before, filters by kind, marks the shown ids read and clears 1013ms
+ ✓ test/siteLockable76.test.ts > the real owner API: an owner locks a faction they can't build yet > the site's count is the store's own refusal; crafting the plan makes the deck build 1027ms
+ Test Files  70 passed (70)
+      Tests  1106 passed (1106)

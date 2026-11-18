@@ -191,13 +191,24 @@ items are removed, with the fix in `log.md`.
   pass, and a sabotage run with the rare flourish removed fails K twice). `pack-opening-check`, `pack-tap-check` and
   `pack-tilt-check` were written for the pack page before the ceremony: re-run, they fail on its old rules, so they
   are retired (each exits with a note unless RUN_RETIRED=1; their record is `pack-checks-retired-s80.txt`) and their
-  replacements named in their headers. **Still not re-run:** s45's liquid check (its 20 fps bar fails in software
-  WebGL by measure, below), the superseded older versions (`boast-check-s32..s37`, `boot-check-s35`,
-  `board-fit-check`, `narrow-overflow-check`, `first-time-check`, `pack-bulk-check` (pre-s54); they still name
-  chromium-1194 by path and won't start). Only `render/ci/browser-check.mjs` runs on every PR.
-- **A real-API unit test is timing-sensitive under load (seen render 80):** `siteLockable77.test.ts` ("a pack opened
-  after the read makes it stale") failed once while two headless browser checks ran beside the suite; it passed alone
-  and in a quiet full run (1106 of 1106). Not investigated: likely a test timeout on a busy machine, which CI could hit.
+  replacements named in their headers. **Render 81 finished the list:** the superseded versions (`boast-check` (s31),
+  `-s32..s34`, `-s37`, `boot-check-s35`, the pre-s54 `pack-bulk-check`) are retired the same way, their successors
+  named (`checks-retired-s81.txt`); the five with no successor use `pw.mjs` and were re-run on today's pages:
+  `narrow-overflow-check`, `board-fit-check` and `board-fit-ghost-check` (now with a PASS/FAIL verdict and exit code;
+  two replays, all pass; a sabotaged replay with a too-wide board row fails the first two), `board-feed-check` (two
+  replays, both widths, all passed) (`replay-checks-rerun-s81.txt`), and `first-time-check` (all 3 runs pass; it had
+  stopped at pack 2 since the ceremony: see the first-time flow below) (`first-time-check-s81.txt`, a sabotage run
+  fails F). No by-hand check names chromium-1194 any more. **Still not re-run:** s45's liquid check (its 20 fps bar
+  fails in software WebGL by measure, below). Only `render/ci/browser-check.mjs` runs on every PR; the by-hand checks
+  are run when a session touches their page, and they still go stale between runs.
+- **The render suite's time limits (render 81, was "a real-API test timing-sensitive under load", render 80).**
+  Measured: vitest's default 5 s limit, with six busy loops beside the suite on 4 cores, failed 3 tests as timeouts
+  (siteMatches' play-by-play 5.0 s, firstTime's two 13-15 s), none a hang; render 80's `siteLockable77` failure was
+  the same kind (its one random step, two packs opened, was ruled out: 400 of 400 seeded pairs moved a count).
+  `render/vitest.config.ts` now gives every test and hook 30 s: under the same load, 1106 of 1106 pass, the slowest
+  6.3 s (`suite-under-load-s81-before.txt` / `-after.txt`). Thin: a real hang now takes 30 s to fail, not 5; the
+  load was busy loops on this machine, not CI's runner (never seen failing there); the other workspaces (engine,
+  server, economy) keep the 5 s default and were not measured under load (not this lane's files).
 - **(Before render 80) Most by-hand browser checks were never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
   and loadout checks up to date (`pack-bulk-check-s54.mjs`, `loadout-check-s54.mjs`) and found the older
   ones break the same way: written against the page as it was that session, and against one machine's
@@ -585,6 +596,14 @@ items are removed, with the fix in `log.md`.
   24-30) look slower than the pages are; their checks were not re-run with the CPU canvas.
 
 ## The first-time flow (slice 3, session 28)
+
+- **Walked again in a browser in render 81, after 50 sessions without** (`first-time-check-s81.txt`, desktop,
+  phone and reduced motion all pass, through the pack ceremony's starter packs). The check had stopped at pack 2
+  since the ceremony (render 58-62): for about 200 ms after a summary appears, its tiles fly in over the "Open pack 2
+  of 3" button, and the check's instant tap landed on a tile. Its taps now wait until the button is on top at its
+  centre, as a person sees it. The page was not changed: a tap that early lands on a tile and does nothing (no harm,
+  but the first tap is lost); the same fly-in sits over the website's "Open another" and "Done", not measured there.
+  The first-time page is a demo, not part of the Season 0 site (owners start with `season:setup`).
 
 - **The mint has not been watched by a person.** Its 6.5 s length, the
   order of its beats and whether it feels like the most special moment in

@@ -1,9 +1,10 @@
 // Render session 19: sideways-overflow check for a replay page. Not a repo dependency:
-// run from a scratch folder with playwright-core installed, against the
-// preinstalled Chromium: node narrow-overflow-check.mjs <replay.html> [shotPrefix]
-import { chromium } from 'playwright-core';
+// since render session 81 Playwright comes from render/ci/pw.mjs (PW_CHROME names another
+// browser): node narrow-overflow-check.mjs <replay.html> [shotPrefix]
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 const [file, shotPrefix] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch(launchOpts({}));
+let bad = 0; // render session 81: a verdict, not only numbers (any sideways overflow or page error fails)
 for (const w of [360, 390, 600, 768, 900, 1280]) {
   const p = await b.newPage({ viewport: { width: w, height: 1000 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
@@ -14,6 +15,7 @@ for (const w of [360, 390, 600, 768, 900, 1280]) {
     const sw = await p.evaluate((k) => { const s = document.getElementById('scrubber'); s.value = String(k); s.dispatchEvent(new Event('input')); return document.documentElement.scrollWidth; }, k);
     if (sw - w > worst) { worst = sw - w; worstAt = k; }
   }
+  if (worst > 0 || errs.length) bad++;
   console.log(w, 'frames', n + 1, 'max overflow px', worst, 'at', worstAt, errs.length ? 'ERRORS ' + errs.slice(0, 2).join(';') : 'no errors');
   if (shotPrefix && [390, 768].includes(w)) {
     await p.evaluate((k) => { const s = document.getElementById('scrubber'); s.value = String(k); s.dispatchEvent(new Event('input')); }, Math.floor(n * 0.7));
@@ -23,3 +25,5 @@ for (const w of [360, 390, 600, 768, 900, 1280]) {
   await p.close();
 }
 await b.close();
+console.log(bad ? `FAIL: ${bad} width(s) overflowed or errored` : 'PASS: no sideways overflow and no page errors at any width');
+process.exit(bad ? 1 : 0);

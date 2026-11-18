@@ -49,7 +49,7 @@ const server = createServer((req, res) => {
 }).listen(0, '127.0.0.1');
 await new Promise((r) => server.once('listening', r));
 const HOST = `http://127.0.0.1:${server.address().port}`;
-const b = await chromium.launch({ args: ['--disable-gpu', '--autoplay-policy=no-user-gesture-required'] });
+const b = await chromium.launch(launchOpts({ args: ['--disable-gpu', '--autoplay-policy=no-user-gesture-required'] }));
 let fails = 0;
 const log = (...a) => console.log(...a);
 function check(ok, what) { log((ok ? '  PASS ' : '  FAIL ') + what); if (!ok) fails++; }

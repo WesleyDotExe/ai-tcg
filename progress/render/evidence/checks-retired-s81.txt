@@ -1,0 +1,17 @@
+# render session 81: the superseded by-hand checks, retired (each exits with a note unless RUN_RETIRED=1; its header names the check that replaces it).
+# Run from progress/render/evidence with node (boot-check-s35 with npx tsx, as its header says: it imports the render's own source).
+boast-check.mjs: retired in render session 81 (superseded by boast-check-s39.mjs).
+exit 0
+boast-check-s32.mjs: retired in render session 81 (superseded by boast-check-s39.mjs).
+exit 0
+boast-check-s33.mjs: retired in render session 81 (superseded by boast-check-s39.mjs).
+exit 0
+boast-check-s34.mjs: retired in render session 81 (superseded by boast-check-s39.mjs).
+exit 0
+boast-check-s37.mjs: retired in render session 81 (superseded by boast-check-s39.mjs).
+exit 0
+pack-bulk-check.mjs: retired in render session 81 (superseded by pack-bulk-check-s64.mjs).
+exit 0
+## npx tsx boot-check-s35.mjs
+boot-check-s35.mjs: retired in render session 81 (superseded by boot-check-s38.mjs).
+exit 0
