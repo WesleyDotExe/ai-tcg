@@ -6486,3 +6486,51 @@ Home tile or device.
 **Next render-lane slice:** after this PR the next session is game (104, hardening and fixes only). Render 81: the
 debt list, unless Season 0 has a fix waiting; per the owner's 5 (b), a prototype session (the 3D play and attack
 effects) after a few render sessions. Next render hardening pass: 85.
+
+## 2026-11-18 — Render session 81: the render debt list (the suite's time limits; the last stale browser checks)
+
+**Lane:** render. The last merged PR (#188, "Game lane: an owner switching auto-play off by hand, in the season log
+(session 104)") is game, so this session is render; no render PR was open. Read first: owner-feedback.md (nothing
+new for this lane since the 2026-11-15 answers, handled in render 80; the 2026-11-14 Season 0 analysis report is
+for after Season 0), DESIGN.md, RENDER.md, current.md, this lane's log and debt. Season 0 has no fix waiting, so
+this session worked the debt list, as render 80 left it. No Season 0 page or source changed.
+
+**1. The render suite's time limits (render 80's "timing-sensitive real-API test").** Measured, not guessed: the
+test's one random step (two packs opened, a faction's count must move) was ruled out first (400 of 400 seeded pairs
+moved a count). Then the suite with six busy loops beside it on 4 cores, on vitest's default 5 s limit: **3 tests
+failed as timeouts** (siteMatches' play-by-play at 5.0 s, firstTime's starter guarantee and name field at 13-15 s),
+none a hang (`suite-under-load-s81-before.txt`). `render/vitest.config.ts` (new) gives every test and hook 30 s,
+with the measure in its header: under the same load **1106 of 1106 pass**, the slowest 6.3 s
+(`suite-under-load-s81-after.txt`); quiet, 1106 of 1106.
+
+**2. The last stale by-hand browser checks** (render 80 left eight naming chromium-1194, which no longer start).
+- **Retired** (superseded; each exits with a note unless RUN_RETIRED=1, its successor named, now on `pw.mjs` so the
+  flag works): `boast-check` (s31), `-s32`, `-s33`, `-s34`, `-s37` (by `boast-check-s39`), `boot-check-s35` (by
+  `-s38`), the pre-s54 `pack-bulk-check` (by `-s64`) (`checks-retired-s81.txt`).
+- **Revived** on `pw.mjs` and re-run on today's pages (they have no successor): `narrow-overflow-check`,
+  `board-fit-check`, `board-fit-ghost-check` gained a PASS/FAIL verdict and exit code (they printed numbers only);
+  all pass on two replays (`aegis-vs-null-seed3`, `cortex-vs-swarm-seed6`), and a copy with a board row forced 700 px
+  wide fails the first two (2 and 4 widths). `board-feed-check` passed on both replays at 1280 and 580 px (cast tags
+  equal to the feed, labels scaled to the row's zoom) (`replay-checks-rerun-s81.txt`).
+- **`first-time-check`** had not run since render 30. First run: it stopped at "pack 2 not sealed". Traced: since the
+  pack ceremony, the summary's tiles fly in over the "Open pack 2 of 3" button for about 200 ms (elementFromPoint
+  read every 60 ms: a tile, then the button from 240 ms), and the check tapped the moment the summary came. Its taps
+  now wait until the target is on top at its centre (failing if it never is, within 3 s). Then **all 3 runs pass**
+  (desktop with a typed name, phone with touch, phone with reduced motion: the starter packs through the ceremony,
+  the summaries equal to the store's openings, the guarantee note on the store's pack, the name field, the mint's
+  beats in order, the ward lit, the totals) (`first-time-check-s81.txt`, stills `v2-s81-8-ready-desktop.jpg`,
+  `v2-s81-7d-mint-settled-phone.jpg`). A sabotaged page ("You now hold" changed) fails F on every run
+  (`first-time-check-s81-sabotage.txt`). The page itself was not changed (a tap in those 200 ms is lost, nothing
+  worse; named in the debt). `FT_TRACE=1` prints each problem as found.
+
+**Ran:** render typecheck clean (both configs); render unit tests 1106 of 1106 (quiet and under load); the by-hand checks above. No
+Season 0 page changed, so the CI browser check, the site contract check and the outputs were not re-run.
+
+**Not done (named in quality-debt):** s45's liquid check (its 20 fps bar fails in software WebGL, an open owner call
+since s46); the summary fly-in over the website's buttons not measured; the other workspaces' suites not measured
+under load (not this lane's files).
+
+**Next render-lane slice:** after this PR the next session is game (105, hardening and fixes only). Render 82: per the
+owner's 5 (b), the Season 1 prototype's next step (the 3D play and attack effects) if Season 0 still has no fix
+waiting, since render 80 and 81 were both debt work; else the fix. Next render hardening pass: 85. **No owner calls
+this session** (nothing taste-led changed; the 30 s limit is a measure, written in the config's header).

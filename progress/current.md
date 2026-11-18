@@ -7,7 +7,9 @@ Session 104 (game lane, hardening and fixes only per the owner's 2026-11-14 poin
 switching auto-play off on the website in the season log, at the next round's start, once, with the switch's time;
 the server's own stops are not counted as the owner's (`progress/auto-play-off-001.txt`, 14 PASS, in the CI demo
 set). Before that, session 103 moved the plain `npm run ladder` CLI onto the season server's ladder lines
-(`LadderLog`; `progress/ladder-cli-log-001.txt`). Nothing is blocking.**
+(`LadderLog`; `progress/ladder-cli-log-001.txt`). Render session 81 (the render debt list) raised the render
+suite's time limits to 30 s on a measure (`render/vitest.config.ts`) and retired or re-ran the last stale by-hand
+browser checks (no Season 0 page changed). Nothing is blocking.**
 
 - **The owner's run book:** `progress/mac-mini-guide.md`; the launch agents `server/launchd/`; setup
   `server/src/seasonSetup.ts`; the dry run `server/src/dev/seasonDryRun.ts` (its records:
@@ -39,17 +41,16 @@ set). Before that, session 103 moved the plain `npm run ladder` CLI onto the sea
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (game session 104, this one) is game, so
-**the next session is render** (81).
+with "Render:", this is a game session; otherwise render. The latest PR (render session 81, this one) is render, so
+**the next session is game** (105).
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else wait as step 0 says (if it merges while you wait, choose the lane again). Check the last merged PR so a slice
 isn't built twice. Read owner-feedback.md.
 
-Render lane (81): render 80 was the render hardening pass. Next: the render debt list unless Season 0 has a fix
-waiting; per the owner's 5 (b), a prototype session (the 3D play and attack effects) after a few render sessions.
-Next render hardening pass: 85. (Nothing new on the wire from game 104: the new line is the season log only, not
-the owner API.)
+Render lane (82): render 80 (hardening) and 81 (the debt list: the suite's time limits, the last stale by-hand
+checks) were both debt work. Next: a Season 0 fix if one is waiting; else, per the owner's 5 (b), the Season 1
+prototype's next step (the 3D play and attack effects, in `render/season1/` only). Next render hardening pass: 85.
 
 Game lane (105): hardening and fixes only until clean-up (owner 2026-11-14 point 4). Read the owner's answers first
 (session 104 has no calls). Candidates from quality-debt.md: the dry run's step 5 passing without a mid-match end

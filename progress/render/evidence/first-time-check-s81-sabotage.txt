@@ -1,0 +1,9 @@
+# render session 81: sabotage. render/output/first-time.html with 'You now hold ' changed to 'You hold ' (the holdings line after the last pack), then the same check: it must fail F on every run.
+desktop: FAIL (faction Swarm, starter guarantee on pack 3, agent Coiljackal's Croupier typed as "Night Shift 99", card Turboheron's Denim Rave; mint 7439 ms tap-to-free, beats gather@9 ward@1149 forge@3602 stamp@4914 settle@5430 free@7422; lean [15,15]; ward lit 2085)
+  - F: no holdings line after the last pack
+phone: FAIL (faction Aegis, starter guarantee on pack 3, agent Shellfixer's Sleepless Flywheel typed as "Bit by Bit", card Fluxbadger's Obsidian Torrent; mint 7471 ms tap-to-free, beats gather@14 ward@1162 forge@3631 stamp@4949 settle@5462 free@7457; lean [15,15]; ward lit 1530)
+  - F: no holdings line after the last pack
+phone-reduced: FAIL (faction Null, starter guarantee on pack 3, agent Laserferret's Turbo Champion, card Mainframe Key of the Blackout; mint 653 ms tap-to-free, beats gather@10 ward@93 forge@156 stamp@162 settle@172 free@172; lean [6,6]; ward lit 1462)
+  - F: no holdings line after the last pack
+FAILED: 3 problem(s)
+exit 1

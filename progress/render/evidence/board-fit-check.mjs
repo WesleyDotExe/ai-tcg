@@ -1,7 +1,8 @@
-import { chromium } from 'playwright-core';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 const [file, shotPrefix] = process.argv.slice(2);
-// Run from a scratch folder with playwright-core installed: node board-fit-check.mjs <replay.html> [shotPrefix]
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+// Run from anywhere (render session 81: Playwright via render/ci/pw.mjs; PW_CHROME names another browser): node board-fit-check.mjs <replay.html> [shotPrefix]
+const b = await chromium.launch(launchOpts({}));
+let bad = 0; // render session 81: a verdict (overflow, a card off its row, the rows interleaving, or a page error fails)
 for (const w of [360, 390, 430, 540, 560, 600, 680, 768, 900, 1040, 1280]) {
   const p = await b.newPage({ viewport: { width: w, height: 1100 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
@@ -27,6 +28,7 @@ for (const w of [360, 390, 430, 540, 560, 600, 680, 768, 900, 1040, 1280]) {
     if (r.p2.hi > r.p1.lo) interleave++;
     offRow += r.offRow; fit = r.p1.fit + ' card ' + r.p1.cw.toFixed(1) + 'px';
   }
+  if (worstOverflow > 0 || interleave || offRow || errs.length) bad++;
   console.log(String(w).padStart(5), 'fit', fit, 'lines', minLines + '-' + maxLines, 'overflow', worstOverflow, 'interleave', interleave, 'offRow', offRow, errs.length ? 'ERR ' + errs[0] : 'ok');
   if (shotPrefix && [390, 600, 768].includes(w)) {
     await p.evaluate((k) => { const s = document.getElementById('scrubber'); s.value = String(k); s.dispatchEvent(new Event('input')); }, 90);
@@ -36,3 +38,5 @@ for (const w of [360, 390, 430, 540, 560, 600, 680, 768, 900, 1040, 1280]) {
   await p.close();
 }
 await b.close();
+console.log(bad ? `FAIL: ${bad} width(s)` : 'PASS: every width fits (no overflow, no card off its row, the rows apart, no page errors)');
+process.exit(bad ? 1 : 0);

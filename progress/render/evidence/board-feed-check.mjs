@@ -1,6 +1,6 @@
 // Render session 23: the board agrees with the feed, and floating labels
-// shrink with a zoomed row. Not a repo dependency: run from a scratch
-// folder with playwright-core installed, against the preinstalled Chromium:
+// shrink with a zoomed row. Not a repo dependency: since render session 81
+// Playwright comes from render/ci/pw.mjs (PW_CHROME names another browser):
 //   node board-feed-check.mjs <shotDir> <replay.html>...
 // For each replay, stepping move by move with ArrowRight (so every FX plays):
 //   - every cast tag the board spawns is counted; per move it must equal the
@@ -10,9 +10,9 @@
 //     floated over a board card (.fx-number, .fx-cast-tag) must carry the
 //     card's zoom as its scale; at 1280 px none is scaled;
 //   - no page errors.
-import { chromium } from 'playwright-core';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 const [shotDir, ...files] = process.argv.slice(2);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch(launchOpts({}));
 let fails = 0;
 for (const file of files) {
   for (const w of [1280, 580]) {

@@ -1,7 +1,7 @@
 // Render session 28: the first-time flow (owner 2026-10-18, slice 3 of the
 // pack-opening work), driven like a new owner would in a real (headless)
-// Chromium. Not a repo dependency: run with playwright-core against the
-// preinstalled Chromium:
+// Chromium. Not a repo dependency: since render session 81 Playwright comes
+// from render/ci/pw.mjs (PW_CHROME names another browser):
 //   node first-time-check.mjs <outDir> <render/output/first-time.html> [video]
 // Three runs, each from a fresh profile: 1280 x 800 with a mouse; 390 x 844
 // with real touch events (CDP, so the page sees pointerType "touch"); and
@@ -45,7 +45,7 @@
 //      classes), so nothing hints at the upgrade before the tear.
 // Stills of every screen go to outDir; with "video", a desktop and a phone
 // clip of the agent pick, the card pick, the mint and the ready screen.
-import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
+import { chromium, launchOpts } from '../../../render/ci/pw.mjs';
 import { mkdirSync, renameSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const [outDir, fileArg, video, tag = 'v2-s28'] = process.argv.slice(2);
@@ -54,7 +54,7 @@ const [outDir, fileArg, video, tag = 'v2-s28'] = process.argv.slice(2);
 const STILLS = tag === 'v2-s28' ? null : tag === 'v2-s30' ? new Set(['4-pack', '4b-last-summary']) : new Set(['5b-name-refused', '5c-name-typed', '6-sigs', '7d-mint-settled', '8-ready']);
 const tidy = (n) => n.trim().replace(/\s+/g, ' ');
 const file = resolve(fileArg);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const b = await chromium.launch(launchOpts({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] }));
 const html = readFileSync(file, 'utf8');
 const DATA = JSON.parse(/<script type="application\/json" id="pack-data">([\s\S]*?)<\/script>/.exec(html)[1]).flow;
 let fails = 0;
@@ -88,11 +88,16 @@ async function run(name, size, touch, reduce, F_I, A_I, S_I, TYPED = null) {
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   const P = pointer(p, touch, cdp);
   const problems = [];
-  const check = (ok, what) => { if (!ok) problems.push(what); };
+  const check = (ok, what) => { if (!ok) { problems.push(what); if (process.env.FT_TRACE) console.log('  ! ' + name + ': ' + what); } };
   const still = (n) => (reduce || (STILLS && !STILLS.has(n)) ? null : p.screenshot({ path: `${outDir}/${tag}-${n}-${name}.jpg`, quality: 72 }));
   // Scrolled into view first, as a thumb would (on a phone the confirm
   // buttons sit below the fold of the scrolling pane).
-  const tapSel = async (sel) => { await p.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {}); await p.waitForTimeout(120); const c = await centre(p, sel); check(!!c, 'missing ' + sel); if (c) await P.tap(c.x, c.y); };
+  // Render session 81: and only once the button is on top at its centre, as
+  // a person sees it. Since the pack ceremony (render 58-62) the summary's
+  // tiles fly in over the buttons for about 200 ms; a tap in that window
+  // lands on a tile, and the old check's instant tap never left pack 1.
+  const onTop = (sel) => waitFor(p, (q) => { const el = document.querySelector(q); if (!el) return false; const r = el.getBoundingClientRect(); const at = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!at && (at === el || el.contains(at)); }, sel, 3000);
+  const tapSel = async (sel) => { await p.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {}); await p.waitForTimeout(120); check(await onTop(sel), 'A: ' + sel + ' never came out on top to be tapped'); const c = await centre(p, sel); check(!!c, 'missing ' + sel); if (c) await P.tap(c.x, c.y); };
   const ft = () => S(p, () => window.__ft.step);
   // H: pick another plate first, then the wanted one; every plate stays
   // laid out and visible, and only the wanted one is selected.
