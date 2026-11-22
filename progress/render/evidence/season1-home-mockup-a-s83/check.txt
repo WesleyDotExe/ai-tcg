@@ -1,0 +1,86 @@
+
+=== Nova (weeks in) ===
+
+[recommended board, 1440x900] 9 tiles: My agent M 641x386, Watch live M 314x586, Packs S 314x186, Daily rewards S 314x186, Ladder M 641x386, Collection S 314x186, Match history M 641x386, Store S 314x186, Notifications S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1774) only in Ladder: not on this board
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[all at S, 1440x900] 10 tiles: My agent S 314x186, Ladder S 314x186, Watch live S 314x186, Packs S 314x186, Store S 314x186, Collection S 314x186, Daily rewards S 314x186, Match history S 314x186, Notifications S 314x186, Music S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1774) only in Ladder: not on this board
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[all at M, 1440x900] 10 tiles: My agent M 641x386, Ladder M 641x386, Watch live M 314x586, Packs M 641x386, Store M 641x386, Collection M 641x386, Daily rewards M 641x386, Match history M 641x386, Notifications M 641x386, Music M 641x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1774) only in Ladder: not on this board
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[all at L, 1440x900] 10 tiles: My agent L 1296x386, Ladder L 1296x386, Watch live L 641x586, Packs L 1296x386, Store L 1296x386, Collection L 1296x386, Daily rewards L 1296x386, Match history L 1296x386, Notifications L 1296x386, Music L 1296x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1774) only in Ladder: not on this board
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[phone 390x844, recommended] 9 tiles, 2310px tall (2.7 screens); tab bar: Home | My agent | Watch | Cards | Ladder
+PASS phone: no sideways scroll (0px)
+PASS phone: the rail gives way to a five-place tab bar
+PASS phone: no tile overflows
+
+=== Wren (just signed up) ===
+
+[recommended board, 1440x900] 9 tiles: My agent M 641x386, Watch live M 314x586, Packs S 314x186, Daily rewards S 314x186, Ladder M 641x386, Collection S 314x186, Match history M 641x386, Store S 314x186, Notifications S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[all at S, 1440x900] 10 tiles: My agent S 314x186, Ladder S 314x186, Watch live S 314x186, Packs S 314x186, Store S 314x186, Collection S 314x186, Daily rewards S 314x186, Match history S 314x186, Notifications S 314x186, Music S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[all at M, 1440x900] 10 tiles: My agent M 641x386, Ladder M 641x386, Watch live M 314x586, Packs M 641x386, Store M 641x386, Collection M 641x386, Daily rewards M 641x386, Match history M 641x386, Notifications M 641x386, Music M 641x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[all at L, 1440x900] 10 tiles: My agent L 1296x386, Ladder L 1296x386, Watch live L 641x586, Packs L 1296x386, Store L 1296x386, Collection L 1296x386, Daily rewards L 1296x386, Match history L 1296x386, Notifications L 1296x386, Music L 1296x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[phone 390x844, recommended] 9 tiles, 2417px tall (2.9 screens); tab bar: Home | My agent | Watch | Cards | Ladder
+PASS phone: no sideways scroll (0px)
+PASS phone: the rail gives way to a five-place tab bar
+PASS phone: no tile overflows
+
+=== navigation (Nova, 1440x900) ===
+rail: Home | My agent | Watch | Cards | Ladder | Settings
+PASS the rail has five places, then Settings at its foot
+PASS Home has no wallet or bell (the Store and Notifications tiles are their homes)
+tile arrows: agent -> #/agent, ladder -> #/ladder, watch -> #/watch, packs -> #/cards, store -> #/cards, collection -> #/cards, daily -> #/ladder, history -> #/agent, notif -> #/alerts
+PASS every tile arrow opens the page A says (one page per question)
+PASS My agent: the top bar has the wallet and the bell, and the rail marks it
+PASS Watch: the top bar has the wallet and the bell, and the rail marks it
+PASS Cards: the top bar has the wallet and the bell, and the rail marks it
+PASS Ladder: the top bar has the wallet and the bell, and the rail marks it
+PASS Edit board: Ladder M -> L
+PASS no page errors
+PASS no outside requests
+
+56 PASS, 0 FAIL

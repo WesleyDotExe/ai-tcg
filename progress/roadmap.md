@@ -397,8 +397,10 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      opening, pack art and music plan (render lane only). Phase 1: [x] (1) the tile audit and spec (render 82:
      `render/season1/HOME_TILES.md`, `src/homeSpec.ts` with 9 tests; the real Season 0 Home read as an experienced
      and a new owner, `season1-home-audit-s82/`: the rating and the agent's name each in 4 tiles, the free pack
-     claimable in 3; twelve widgets become nine tiles plus Music, waiting on its spec); [ ] (2) Home mockup A and its
-     navigation; [ ] (3) mockups B and C; [ ] (4) the pack-opening flash audit, check and storyboard; [ ] (5) Watch
+     claimable in 3; twelve widgets become nine tiles plus Music, waiting on its spec); [x] (2) Home mockup A and its
+     navigation (render 83: `render/season1/HOME_MOCKUPS.md`, `output/home-mockup-a.html`, on real owner-API data for
+     Nova and Wren; the question under every tile's name, one next action, five places; `season1-home-mockup-a-s83/`
+     56 PASS, 10 unit tests); [ ] (3) mockups B and C; [ ] (4) the pack-opening flash audit, check and storyboard; [ ] (5) Watch
      live 9:16 on the Season 1 arena; [ ] (6) the music tool spec. Waiting on owner: the Home direction
    - [x] (render debt, hardening, render 80) The stale by-hand browser checks: one Playwright lookup for them
      (`render/ci/pw.mjs`); re-run and passing on today's pages: feed-check, hardening-check-s40, boot-check-s38

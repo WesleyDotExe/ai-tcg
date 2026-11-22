@@ -1,6 +1,6 @@
 # Current status
 
-**Season 0 is running (owner 2026-11-22: launched early on Sun 22 Nov 08:09 Sydney on the Mac mini from main at 89abe46; five bots; it ends by itself at 00:00 27 Dec Sydney; the Mac mini is not updated mid-season unless something breaks). The scheduled sessions now run the render lane only, on the owner's Season 1 Home plan, all in `render/season1/`. Render session 82 did phase 1 step 1, the Home tile audit and spec (`render/season1/HOME_TILES.md`, `render/season1/src/homeSpec.ts`; evidence `progress/render/evidence/season1-home-audit-s82/`).**
+**Season 0 is running (owner 2026-11-22: launched early on Sun 22 Nov 08:09 Sydney on the Mac mini from main at 89abe46; five bots; it ends by itself at 00:00 27 Dec Sydney; the Mac mini is not updated mid-season unless something breaks). The scheduled sessions now run the render lane only, on the owner's Season 1 Home plan, all in `render/season1/`. Render session 82 did phase 1 step 1, the Home tile audit and spec (`render/season1/HOME_TILES.md`, `render/season1/src/homeSpec.ts`; evidence `progress/render/evidence/season1-home-audit-s82/`). Render session 83 did step 2, Home mockup A with its navigation (`render/season1/HOME_MOCKUPS.md`, `render/season1/output/home-mockup-a.html`, drawn by `src/homeFacts.ts` + `src/homeMockupA.ts` from a real owner-API snapshot, `mockup/data/home-data.json`; evidence `progress/render/evidence/season1-home-mockup-a-s83/`, 56 PASS).**
 
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
@@ -49,15 +49,19 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 82's four calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 83's four calls may be there).
 
-Render lane (83): the owner's plan, phase 1 step 2: **Home mockup A with its navigation**, in `render/season1/`
-(fenced off: nothing outside imports it, no Season 0 page links to it). Draw it from `render/season1/src/homeSpec.ts`
-(the tiles, their S / M / L facts, new-player views, next actions) with real data from the site demo (as the audit
-did, `render/season1/audit/auditDemo.ts`), as an experienced and a new owner, at desktop and phone. Then (84) mockups
-B and C, (85) the pack-opening flash audit / check / storyboard, (86) Watch live 9:16, (87) the music spec. A call
-only the owner can make goes in the notes as "waiting on owner" and the session moves on (owner rule 10a); when the
-list is done, hardening and fixes only (10b). Next render hardening pass: due around 85 (fit it around the plan).
+Render lane (84): the owner's plan, phase 1 step 3: **Home mockups B and C**, in `render/season1/` (fenced off).
+Draw them from the same spec and data as A: `src/homeFacts.ts` (every fact, `data-fact` marked, shared; extend it,
+don't fork it) and `mockup/data/home-data.json` (re-read with `npx tsx season1/mockup/snapshot.ts` in `render/`
+if needed). Each must be a real alternative to A ("the question is the label", five places, no top bar on Home):
+for example B, a headline-number tile with the question behind a tap and a top navigation; C, a Home that orders
+tiles by what needs you (a feed). Add `src/homeMockupB.ts` / `C.ts`, their builds, tests like
+`test/homeMockupA.test.ts`, and extend `ci/home-mockup-check.mjs` to check all three (its spec checks are generic).
+Then put A, B and C side by side for the owner (one comparison page or still sheet) and ask for the direction
+("waiting on owner"). Then (85) the pack-opening flash audit / check / storyboard, (86) Watch live 9:16, (87) the
+music spec. A call only the owner can make goes in the notes as "waiting on owner" and the session moves on (owner
+rule 10a); when the list is done, hardening and fixes only (10b). Next render hardening pass: due around 85.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

@@ -7,10 +7,26 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The Season 1 Home mockup A (session 83, fenced off in render/season1/; Season 1 scope)
+
+- **Watch live's 9:16 arena is a stand-in**: a flat board drawn from the live feed's `now` (units, health, energy,
+  whose turn), not the Season 1 arena; it doesn't play, it's one still moment. Plan step 5 replaces it.
+- **The pages behind the navigation are stubs** that list what they'll hold; only Home is drawn. Whether five places
+  hold everything Season 0's nine did is argued in `HOME_MOCKUPS.md`, not shown.
+- **At L some tiles have empty space** (Store, Daily rewards, Match history: their L adds little to M, as the spec
+  says); the all-L board is tall. The spec allows L = M for those; A doesn't yet shrink them.
+- **One snapshot**: the demo's Nova (23 matches, 2 agents, 24 alerts) and Wren; a heavier owner (hundreds of
+  matches, long agent names) may overflow differently. The browser check's overflow test is the guard, run by hand
+  (it is not in CI yet, like the arena check).
+- **The Settled threshold (100)** is this session's call, waiting on the owner.
+- **The mockup's interactions are shallow**: Edit board doesn't save, the buttons other than nav don't act, the live
+  match doesn't update. It's a mockup to pick a direction from, not phase 2.
+- The small cards are a placeholder face (faction field, rarity edge), not Season 0's full card faces.
+
 ## The Season 1 Home spec (session 82, fenced off in render/season1/; Season 1 scope)
 
-- **It is a spec, not a build.** Nothing is drawn from `homeSpec.ts` yet; whether its S / M / L facts fit their
-  tile sizes is untested until mockup A draws them (the S tile is 268x152 px on Season 0's grid).
+- **It is a spec, not a build** (phase 2 builds it). Mockup A (session 83) drew it: every fact fits its tile at
+  every size on A's grid (S is 314x186 px at 1440 wide), checked in a browser.
 - **The audit's duplicate finding matches text**, not meaning: a fact counts as "in a tile" when its value or a
   pattern appears in the tile's text (a rating of 1774, /#\d+/, a tier name). It can over-count (the first run's
   bare "11 " for unopened packs matched Watch live and Match history at L; the pattern is now "11 unopened") or miss a fact drawn only as a picture
