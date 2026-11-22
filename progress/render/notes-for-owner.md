@@ -1548,3 +1548,14 @@ season mark) is proposed as a mark, call 1.
 2. **Two things for the game lane when it resumes** (your points 5 and 6), listed in `progress/current.md`: the
    10-vs-12-character password mismatch in `season:setup`, and the rehearsal-to-launch switch in the Mac mini guide.
 3. **Nothing needed from you to continue:** render 83 draws mockup A from the spec.
+
+---
+
+## 2026-11-22 — Render session 83
+
+1. **Mockup A is ready to look at:** `render/season1/output/home-mockup-a.html` (open in a browser; switch owner,
+   board and theme at the top), or the stills in `progress/render/evidence/season1-home-mockup-a-s83/`. What it is:
+   `render/season1/HOME_MOCKUPS.md`. Four small calls in `progress/render/checkpoints.md` (session 83).
+2. **Waiting on owner (not new):** the Home direction (after mockups B and C, render 84), the music spec (step 6),
+   Open 10 calls 1-2.
+3. **Nothing needed from you to continue:** render 84 draws B and C on the same tiles and data.

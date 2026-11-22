@@ -1,0 +1,7452 @@
+{
+ "takenAt": "2026-11-22T02:25:59.395Z",
+ "takenFrom": "the Season 0 site demo (render/src/site/siteDemo.ts), ladder on, speed 8",
+ "reads": {
+  "me": "/api/me",
+  "wallet": "/api/wallet",
+  "play": "/api/play",
+  "rating": "/api/rating?recent=10",
+  "ladder": "/api/ladder?limit=100",
+  "stats": "/api/stats?days=30&recent=10",
+  "packs": "/api/packs",
+  "dailyPack": "/api/packs/daily",
+  "collection": "/api/collection?recentPacks=3",
+  "store": "/api/store",
+  "daily": "/api/daily",
+  "matches": "/api/matches?limit=6",
+  "notifications": "/api/notifications?limit=20",
+  "live": "/api/live",
+  "settings": "/api/account/settings"
+ },
+ "owners": {
+  "nova": {
+   "me": {
+    "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+    "name": "Nova",
+    "username": "nova",
+    "email": null,
+    "kind": "player",
+    "isAdmin": true
+   },
+   "wallet": {
+    "credits": 449,
+    "packPoints": 65,
+    "unopenedPacks": [
+     {
+      "packId": "9bf7f0d8-e869-4c45-a663-cacc98f74cd4",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.255Z",
+      "openedAt": null
+     },
+     {
+      "packId": "07e90dc5-8132-4c53-9d02-4e62337f5bb5",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.255Z",
+      "openedAt": null
+     },
+     {
+      "packId": "be3c683e-a505-43a3-86fd-fa1ed906cca5",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.263Z",
+      "openedAt": null
+     },
+     {
+      "packId": "44acc4af-9c3b-42d5-94bd-472b1262ea2f",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.263Z",
+      "openedAt": null
+     },
+     {
+      "packId": "4218f966-d745-4204-bb79-433659960900",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.271Z",
+      "openedAt": null
+     },
+     {
+      "packId": "684463e0-ca34-4506-96f4-f5ed5261fe8e",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.271Z",
+      "openedAt": null
+     },
+     {
+      "packId": "1e33e756-0772-4c47-863d-57dfac8f0e5f",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.271Z",
+      "openedAt": null
+     },
+     {
+      "packId": "2b053cad-0ea7-4f6a-afcf-142c7b16d0d1",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.279Z",
+      "openedAt": null
+     },
+     {
+      "packId": "98d20663-0daa-4da0-ab55-93a6243c167f",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.279Z",
+      "openedAt": null
+     },
+     {
+      "packId": "e6dac9ab-1865-468c-8d83-cb9ef95d5c5d",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.287Z",
+      "openedAt": null
+     },
+     {
+      "packId": "32abca00-5969-4519-b82d-2bed3784cc30",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "purchase",
+      "acquiredAt": "2026-11-22T00:25:52.287Z",
+      "openedAt": null
+     }
+    ]
+   },
+   "play": {
+    "deckChoice": "agent",
+    "factionLock": null,
+    "lockableFactions": [
+     "Cortex",
+     "Swarm",
+     "Aegis",
+     "Null"
+    ],
+    "lockable": [
+     {
+      "faction": "Cortex",
+      "buildable": true,
+      "cards": 40,
+      "needed": 20
+     },
+     {
+      "faction": "Swarm",
+      "buildable": false,
+      "cards": 16,
+      "needed": 20
+     },
+     {
+      "faction": "Aegis",
+      "buildable": false,
+      "cards": 12,
+      "needed": 20
+     },
+     {
+      "faction": "Null",
+      "buildable": false,
+      "cards": 10,
+      "needed": 20
+     }
+    ],
+    "activeDeck": {
+     "deckId": "90709efe-fffb-403f-9c1c-2e1b3cd6d974",
+     "name": "Agent's deck",
+     "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+     "active": true,
+     "complete": true,
+     "missing": [],
+     "cards": 40,
+     "faction": "Cortex",
+     "list": [
+      {
+       "cardId": "CX-001",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-002",
+       "copies": 3
+      },
+      {
+       "cardId": "CX-003",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-004",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-005",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-006",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-007",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-008",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-009",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-010",
+       "copies": 3
+      },
+      {
+       "cardId": "CX-011",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-012",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-013",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-014",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-015",
+       "copies": 3
+      },
+      {
+       "cardId": "CX-016",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-017",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-018",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-019",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-020",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-021",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-022",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-023",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-024",
+       "copies": 1
+      },
+      {
+       "cardId": "NT-004",
+       "copies": 1
+      },
+      {
+       "cardId": "NT-005",
+       "copies": 1
+      }
+     ]
+    },
+    "agentDeck": {
+     "deckId": "90709efe-fffb-403f-9c1c-2e1b3cd6d974",
+     "name": "Agent's deck",
+     "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+     "active": true,
+     "complete": true,
+     "missing": [],
+     "cards": 40,
+     "faction": "Cortex",
+     "list": [
+      {
+       "cardId": "CX-001",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-002",
+       "copies": 3
+      },
+      {
+       "cardId": "CX-003",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-004",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-005",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-006",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-007",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-008",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-009",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-010",
+       "copies": 3
+      },
+      {
+       "cardId": "CX-011",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-012",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-013",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-014",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-015",
+       "copies": 3
+      },
+      {
+       "cardId": "CX-016",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-017",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-018",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-019",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-020",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-021",
+       "copies": 2
+      },
+      {
+       "cardId": "CX-022",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-023",
+       "copies": 1
+      },
+      {
+       "cardId": "CX-024",
+       "copies": 1
+      },
+      {
+       "cardId": "NT-004",
+       "copies": 1
+      },
+      {
+       "cardId": "NT-005",
+       "copies": 1
+      }
+     ],
+     "builtFrom": {
+      "style": "calculator",
+      "factionLock": null,
+      "rule": "keep-designed:1"
+     }
+    },
+    "rebuild": {
+     "reasons": [],
+     "job": null
+    },
+    "connectedAgent": {
+     "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+     "name": "Vector Halcyon",
+     "playStyle": "calculator"
+    },
+    "agents": [
+     {
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "name": "Vector Halcyon",
+      "playStyle": "calculator"
+     },
+     {
+      "agentId": "09342e4d-ab80-422d-84d9-184ac13410bf",
+      "name": "Quill Static",
+      "playStyle": "calculator"
+     }
+    ],
+    "playStyles": [
+     {
+      "id": "calculator",
+      "name": "Calculator",
+      "summary": "Weighs every move on the board as it stands and takes the best. The balanced default."
+     },
+     {
+      "id": "rusher",
+      "name": "Rusher",
+      "summary": "Goes for the opponent's health, spends fast, and trades with units only when it must."
+     },
+     {
+      "id": "controller",
+      "name": "Controller",
+      "summary": "Answers threats, draws cards and keeps a response ready; wins the long game."
+     },
+     {
+      "id": "tempo",
+      "name": "Tempo",
+      "summary": "Uses its energy every turn to put the wider board down first."
+     },
+     {
+      "id": "fortress",
+      "name": "Fortress",
+      "summary": "Plays tough bodies, protects its units and attacks only when the trade is safe."
+     },
+     {
+      "id": "gambler",
+      "name": "Gambler",
+      "summary": "Rolls the dice between its good moves: hard to read, now and then brilliant."
+     }
+    ],
+    "decks": [
+     {
+      "deckId": "0405b58e-6685-4b9c-9775-1189de683668",
+      "name": "Cortex, my tweak",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "active": false,
+      "complete": true,
+      "missing": [],
+      "cards": 40,
+      "faction": "Cortex",
+      "list": [
+       {
+        "cardId": "CX-002",
+        "copies": 3
+       },
+       {
+        "cardId": "CX-003",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-004",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-005",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-006",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-007",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-008",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-009",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-010",
+        "copies": 3
+       },
+       {
+        "cardId": "CX-011",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-012",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-013",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-014",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-015",
+        "copies": 3
+       },
+       {
+        "cardId": "CX-016",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-017",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-018",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-019",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-020",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-021",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-022",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-023",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-024",
+        "copies": 1
+       },
+       {
+        "cardId": "NT-004",
+        "copies": 1
+       },
+       {
+        "cardId": "NT-005",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-104",
+        "copies": 1
+       }
+      ]
+     },
+     {
+      "deckId": "90709efe-fffb-403f-9c1c-2e1b3cd6d974",
+      "name": "Agent's deck",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "active": true,
+      "complete": true,
+      "missing": [],
+      "cards": 40,
+      "faction": "Cortex",
+      "list": [
+       {
+        "cardId": "CX-001",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-002",
+        "copies": 3
+       },
+       {
+        "cardId": "CX-003",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-004",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-005",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-006",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-007",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-008",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-009",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-010",
+        "copies": 3
+       },
+       {
+        "cardId": "CX-011",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-012",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-013",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-014",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-015",
+        "copies": 3
+       },
+       {
+        "cardId": "CX-016",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-017",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-018",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-019",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-020",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-021",
+        "copies": 2
+       },
+       {
+        "cardId": "CX-022",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-023",
+        "copies": 1
+       },
+       {
+        "cardId": "CX-024",
+        "copies": 1
+       },
+       {
+        "cardId": "NT-004",
+        "copies": 1
+       },
+       {
+        "cardId": "NT-005",
+        "copies": 1
+       }
+      ]
+     }
+    ],
+    "liveMatch": {
+     "matchId": "demo-live-009",
+     "startedAt": "2026-11-22T02:26:13.871Z"
+    },
+    "autoPlay": {
+     "on": true,
+     "changedAt": "2026-11-22T00:25:52.639Z",
+     "stopped": null,
+     "dailyRewardsMaxed": false,
+     "canTurnOn": true,
+     "allowance": null,
+     "canAddTime": false,
+     "house": false
+    }
+   },
+   "rating": {
+    "rating": {
+     "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+     "rating": 1774.2619143851941,
+     "rd": 150.71674047740836,
+     "volatility": 0.0600028526344896,
+     "ratedMatches": 23,
+     "tier": "Platinum",
+     "lastDay": "2026-11-22"
+    },
+    "recent": [
+     {
+      "matchId": "demo-today-2",
+      "endedAt": "2026-11-22T02:22:49.425Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1704.7664571169637,
+       "rd": 190.40084803479607,
+       "volatility": 0.06000224359924764
+      },
+      "after": {
+       "rating": 1724.0293697155075,
+       "rd": 182.52471591369317,
+       "volatility": 0.060001419319125095
+      }
+     },
+     {
+      "matchId": "demo-today-1",
+      "endedAt": "2026-11-22T01:45:49.425Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 0,
+      "before": {
+       "rating": 1878.7545426084016,
+       "rd": 192.06778639119497,
+       "volatility": 0.05999345608033329
+      },
+      "after": {
+       "rating": 1704.7664571169637,
+       "rd": 190.40084803479607,
+       "volatility": 0.06000224359924764
+      }
+     },
+     {
+      "matchId": "demo-today-0",
+      "endedAt": "2026-11-22T01:15:49.425Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1874.2601967053752,
+       "rd": 193.88518894959947,
+       "volatility": 0.05999368241001515
+      },
+      "after": {
+       "rating": 1878.7545426084016,
+       "rd": 192.06778639119497,
+       "volatility": 0.05999345608033329
+      }
+     },
+     {
+      "matchId": "demo-live-007",
+      "endedAt": "2026-11-22T00:56:35.951Z",
+      "opponentOwnerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1741.9140503888389,
+       "rd": 159.09425223775727,
+       "volatility": 0.06000389798473713
+      },
+      "after": {
+       "rating": 1774.2619143851941,
+       "rd": 150.71674047740836,
+       "volatility": 0.0600028526344896
+      }
+     },
+     {
+      "matchId": "demo-live-005",
+      "endedAt": "2026-11-22T00:44:58.871Z",
+      "opponentOwnerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1658.618093216603,
+       "rd": 167.7789539625237,
+       "volatility": 0.060001861600174275
+      },
+      "after": {
+       "rating": 1741.9140503888389,
+       "rd": 159.09425223775727,
+       "volatility": 0.06000389798473713
+      }
+     },
+     {
+      "matchId": "demo-live-004",
+      "endedAt": "2026-11-22T00:40:47.983Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1641.9872735614251,
+       "rd": 174.03986802395815,
+       "volatility": 0.06000273117330483
+      },
+      "after": {
+       "rating": 1658.618093216603,
+       "rd": 167.7789539625237,
+       "volatility": 0.060001861600174275
+      }
+     },
+     {
+      "matchId": "demo-live-001",
+      "endedAt": "2026-11-22T00:32:16.831Z",
+      "opponentOwnerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 0,
+      "before": {
+       "rating": 1724.0293697155075,
+       "rd": 182.52471591369317,
+       "volatility": 0.060001419319125095
+      },
+      "after": {
+       "rating": 1641.9872735614251,
+       "rd": 174.03986802395815,
+       "volatility": 0.06000273117330483
+      }
+     },
+     {
+      "matchId": "demo-9",
+      "endedAt": "2026-10-29T10:00:00.000Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1834.5903426050247,
+       "rd": 203.99210397319712,
+       "volatility": 0.0599955945833115
+      },
+      "after": {
+       "rating": 1841.9729618202957,
+       "rd": 200.7223628338158,
+       "volatility": 0.059995272273001866
+      }
+     },
+     {
+      "matchId": "demo-8",
+      "endedAt": "2026-10-28T10:00:00.000Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1826.26085349207,
+       "rd": 207.7599779841838,
+       "volatility": 0.05999594058608841
+      },
+      "after": {
+       "rating": 1834.5903426050247,
+       "rd": 203.99210397319712,
+       "volatility": 0.0599955945833115
+      }
+     },
+     {
+      "matchId": "demo-7",
+      "endedAt": "2026-10-27T10:00:00.000Z",
+      "opponentOwnerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "score": 1,
+      "before": {
+       "rating": 1816.711797895802,
+       "rd": 212.17397560603004,
+       "volatility": 0.059996314830576825
+      },
+      "after": {
+       "rating": 1826.26085349207,
+       "rd": 207.7599779841838,
+       "volatility": 0.05999594058608841
+      }
+     }
+    ]
+   },
+   "ladder": {
+    "standings": [
+     {
+      "rank": 1,
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "ownerName": "Nova",
+      "ownerKind": "player",
+      "agent": {
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "name": "Vector Halcyon"
+      },
+      "rating": 1774.2619143851941,
+      "rd": 150.71674047740836,
+      "tier": "Platinum",
+      "ratedMatches": 23,
+      "wins": 21,
+      "losses": 2,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     },
+     {
+      "rank": 2,
+      "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerName": "Rook",
+      "ownerKind": "player",
+      "agent": {
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "name": "Rook's agent"
+      },
+      "rating": 1190.0978698130477,
+      "rd": 157.28563250623006,
+      "tier": "Bronze",
+      "ratedMatches": 23,
+      "wins": 1,
+      "losses": 22,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     },
+     {
+      "rank": null,
+      "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+      "ownerName": "House Swarm",
+      "ownerKind": "house",
+      "agent": {
+       "agentId": "9c20d50f-76a4-46d9-930f-9f9e8927211e",
+       "name": "Hive Courier"
+      },
+      "rating": 1710.9732291939702,
+      "rd": 207.48892515605237,
+      "tier": "Placement",
+      "ratedMatches": 4,
+      "wins": 3,
+      "losses": 1,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     },
+     {
+      "rank": null,
+      "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+      "ownerName": "House Null",
+      "ownerKind": "house",
+      "agent": {
+       "agentId": "fdf7b708-ee09-44c0-b56d-e8a8a2c1fd21",
+       "name": "Static Widow"
+      },
+      "rating": 1507.3071966891414,
+      "rd": 196.79280986051748,
+      "tier": "Placement",
+      "ratedMatches": 4,
+      "wins": 2,
+      "losses": 2,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     }
+    ],
+    "you": {
+     "rank": 1,
+     "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+     "ownerName": "Nova",
+     "ownerKind": "player",
+     "agent": {
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "name": "Vector Halcyon"
+     },
+     "rating": 1774.2619143851941,
+     "rd": 150.71674047740836,
+     "tier": "Platinum",
+     "ratedMatches": 23,
+     "wins": 21,
+     "losses": 2,
+     "draws": 0,
+     "lastDay": "2026-11-22"
+    },
+    "owners": 4,
+    "tiers": [
+     {
+      "tier": "Bronze",
+      "from": null
+     },
+     {
+      "tier": "Silver",
+      "from": 1350
+     },
+     {
+      "tier": "Gold",
+      "from": 1500
+     },
+     {
+      "tier": "Platinum",
+      "from": 1650
+     },
+     {
+      "tier": "Diamond",
+      "from": 1800
+     },
+     {
+      "tier": "Mythic",
+      "from": 1950
+     }
+    ],
+    "placementMatches": 5
+   },
+   "stats": {
+    "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+    "agentId": null,
+    "agents": [
+     {
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "name": "Vector Halcyon",
+      "matches": 23
+     },
+     {
+      "agentId": "09342e4d-ab80-422d-84d9-184ac13410bf",
+      "name": "Quill Static",
+      "matches": 0
+     }
+    ],
+    "totals": {
+     "matches": 23,
+     "wins": 21,
+     "losses": 2,
+     "draws": 0,
+     "void": 0,
+     "winRate": 0.9130434782608695,
+     "bestWinStreak": 16,
+     "currentStreak": {
+      "kind": "win",
+      "length": 1
+     },
+     "creditsFromMatches": 549
+    },
+    "byFaction": [
+     {
+      "faction": "Cortex",
+      "matches": 4,
+      "wins": 3,
+      "losses": 1,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0.75
+     },
+     {
+      "faction": "Swarm",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Aegis",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Null",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     }
+    ],
+    "factionNotRecorded": {
+     "matches": 19,
+     "wins": 18,
+     "losses": 1,
+     "draws": 0,
+     "void": 0,
+     "winRate": 0.9473684210526315
+    },
+    "byOpponentFaction": [
+     {
+      "faction": "Cortex",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Swarm",
+      "matches": 2,
+      "wins": 1,
+      "losses": 1,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0.5
+     },
+     {
+      "faction": "Aegis",
+      "matches": 1,
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 1
+     },
+     {
+      "faction": "Null",
+      "matches": 1,
+      "wins": 1,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 1
+     }
+    ],
+    "opponentFactionNotRecorded": {
+     "matches": 19,
+     "wins": 18,
+     "losses": 1,
+     "draws": 0,
+     "void": 0,
+     "winRate": 0.9473684210526315
+    },
+    "recent": [
+     {
+      "matchId": "demo-today-2",
+      "endedAt": "2026-11-22T02:22:49.425Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": null,
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": null
+      },
+      "credits": 10,
+      "rating": {
+       "before": 1704.7664571169637,
+       "after": 1724.0293697155075,
+       "change": 19.262912598543835
+      },
+      "turns": null
+     },
+     {
+      "matchId": "demo-today-1",
+      "endedAt": "2026-11-22T01:45:49.425Z",
+      "result": "loss",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": null,
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": null
+      },
+      "credits": 2,
+      "rating": {
+       "before": 1878.7545426084016,
+       "after": 1704.7664571169637,
+       "change": -173.98808549143791
+      },
+      "turns": null
+     },
+     {
+      "matchId": "demo-today-0",
+      "endedAt": "2026-11-22T01:15:49.425Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": null,
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": null
+      },
+      "credits": 30,
+      "rating": {
+       "before": 1874.2601967053752,
+       "after": 1878.7545426084016,
+       "change": 4.494345903026442
+      },
+      "turns": null
+     },
+     {
+      "matchId": "demo-live-007",
+      "endedAt": "2026-11-22T00:56:35.951Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": "Cortex",
+      "opponent": {
+       "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+       "ownerName": "House Null",
+       "agentId": "fdf7b708-ee09-44c0-b56d-e8a8a2c1fd21",
+       "agentName": "Static Widow",
+       "faction": "Null"
+      },
+      "credits": 5,
+      "rating": {
+       "before": 1741.9140503888389,
+       "after": 1774.2619143851941,
+       "change": 32.34786399635527
+      },
+      "turns": 17
+     },
+     {
+      "matchId": "demo-live-005",
+      "endedAt": "2026-11-22T00:44:58.871Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": "Cortex",
+      "opponent": {
+       "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+       "ownerName": "House Swarm",
+       "agentId": "9c20d50f-76a4-46d9-930f-9f9e8927211e",
+       "agentName": "Hive Courier",
+       "faction": "Swarm"
+      },
+      "credits": 10,
+      "rating": {
+       "before": 1658.618093216603,
+       "after": 1741.9140503888389,
+       "change": 83.29595717223583
+      },
+      "turns": 12
+     },
+     {
+      "matchId": "demo-live-004",
+      "endedAt": "2026-11-22T00:40:47.983Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": "Cortex",
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": "Aegis"
+      },
+      "credits": 10,
+      "rating": {
+       "before": 1641.9872735614251,
+       "after": 1658.618093216603,
+       "change": 16.630819655177902
+      },
+      "turns": 17
+     },
+     {
+      "matchId": "demo-live-001",
+      "endedAt": "2026-11-22T00:32:16.831Z",
+      "result": "loss",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": "Cortex",
+      "opponent": {
+       "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+       "ownerName": "House Swarm",
+       "agentId": "9c20d50f-76a4-46d9-930f-9f9e8927211e",
+       "agentName": "Hive Courier",
+       "faction": "Swarm"
+      },
+      "credits": 2,
+      "rating": {
+       "before": 1724.0293697155075,
+       "after": 1641.9872735614251,
+       "change": -82.0420961540824
+      },
+      "turns": 12
+     },
+     {
+      "matchId": "demo-9",
+      "endedAt": "2026-10-29T10:00:00.000Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": null,
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": null
+      },
+      "credits": 30,
+      "rating": {
+       "before": 1834.5903426050247,
+       "after": 1841.9729618202957,
+       "change": 7.382619215271006
+      },
+      "turns": null
+     },
+     {
+      "matchId": "demo-8",
+      "endedAt": "2026-10-28T10:00:00.000Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": null,
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": null
+      },
+      "credits": 30,
+      "rating": {
+       "before": 1826.26085349207,
+       "after": 1834.5903426050247,
+       "change": 8.329489112954661
+      },
+      "turns": null
+     },
+     {
+      "matchId": "demo-7",
+      "endedAt": "2026-10-27T10:00:00.000Z",
+      "result": "win",
+      "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+      "agentName": "Vector Halcyon",
+      "faction": null,
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "faction": null
+      },
+      "credits": 30,
+      "rating": {
+       "before": 1816.711797895802,
+       "after": 1826.26085349207,
+       "change": 9.54905559626809
+      },
+      "turns": null
+     }
+    ],
+    "rating": {
+     "now": {
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "rating": 1774.2619143851941,
+      "rd": 150.71674047740836,
+      "volatility": 0.0600028526344896,
+      "ratedMatches": 23,
+      "tier": "Platinum",
+      "lastDay": "2026-11-22"
+     },
+     "weekAgo": 1841.9729618202957,
+     "weekChange": -67.71104743510159,
+     "chart": [
+      {
+       "day": "2026-10-24",
+       "rating": 1792.0917011444487,
+       "rated": 1,
+       "wins": 1,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-25",
+       "rating": 1805.5365420217397,
+       "rated": 1,
+       "wins": 1,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-26",
+       "rating": 1816.711797895802,
+       "rated": 1,
+       "wins": 1,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-27",
+       "rating": 1826.26085349207,
+       "rated": 1,
+       "wins": 1,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-28",
+       "rating": 1834.5903426050247,
+       "rated": 1,
+       "wins": 1,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-29",
+       "rating": 1841.9729618202957,
+       "rated": 1,
+       "wins": 1,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-30",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-31",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-01",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-02",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-03",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-04",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-05",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-06",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-07",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-08",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-09",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-10",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-11",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-12",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-13",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-14",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-15",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-16",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-17",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-18",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-19",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-20",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-21",
+       "rating": 1841.9729618202957,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-22",
+       "rating": 1724.0293697155075,
+       "rated": 7,
+       "wins": 5,
+       "losses": 2,
+       "draws": 0
+      }
+     ]
+    },
+    "today": {
+     "day": "2026-11-22",
+     "timeZone": "Australia/Sydney",
+     "startedAt": "2026-11-21T13:00:00.000Z",
+     "resetsAt": "2026-11-22T13:00:00.000Z",
+     "schedule": [
+      {
+       "fromWin": 1,
+       "toWin": 1,
+       "credits": 30
+      },
+      {
+       "fromWin": 2,
+       "toWin": 4,
+       "credits": 10
+      },
+      {
+       "fromWin": 5,
+       "toWin": 10,
+       "credits": 5
+      },
+      {
+       "fromWin": 11,
+       "toWin": null,
+       "credits": 0
+      }
+     ],
+     "wins": [
+      {
+       "nth": 1,
+       "matchId": "demo-today-0",
+       "endedAt": "2026-11-22T01:15:49.425Z",
+       "credits": 30
+      },
+      {
+       "nth": 2,
+       "matchId": "demo-today-2",
+       "endedAt": "2026-11-22T02:22:49.425Z",
+       "credits": 10
+      },
+      {
+       "nth": 3,
+       "matchId": "demo-live-004",
+       "endedAt": "2026-11-22T00:40:47.983Z",
+       "credits": 10
+      },
+      {
+       "nth": 4,
+       "matchId": "demo-live-005",
+       "endedAt": "2026-11-22T00:44:58.871Z",
+       "credits": 10
+      },
+      {
+       "nth": 5,
+       "matchId": "demo-live-007",
+       "endedAt": "2026-11-22T00:56:35.951Z",
+       "credits": 5
+      }
+     ],
+     "rewardedWins": [
+      {
+       "nth": 1,
+       "matchId": "demo-today-0",
+       "endedAt": "2026-11-22T01:15:49.425Z",
+       "credits": 30
+      },
+      {
+       "nth": 2,
+       "matchId": "demo-today-2",
+       "endedAt": "2026-11-22T02:22:49.425Z",
+       "credits": 10
+      },
+      {
+       "nth": 3,
+       "matchId": "demo-live-004",
+       "endedAt": "2026-11-22T00:40:47.983Z",
+       "credits": 10
+      },
+      {
+       "nth": 4,
+       "matchId": "demo-live-005",
+       "endedAt": "2026-11-22T00:44:58.871Z",
+       "credits": 10
+      },
+      {
+       "nth": 5,
+       "matchId": "demo-live-007",
+       "endedAt": "2026-11-22T00:56:35.951Z",
+       "credits": 5
+      }
+     ],
+     "losses": 2,
+     "maxPaidLosses": 10,
+     "creditsFromWins": 65,
+     "creditsFromLosses": 4,
+     "credits": 69,
+     "nextWinPays": 5,
+     "nextLossPays": 2
+    }
+   },
+   "packs": {
+    "offer": [
+     {
+      "setCode": "S0",
+      "name": "Season Zero",
+      "priceCredits": 100
+     }
+    ],
+    "bulkOpenCount": 10,
+    "unopened": [
+     {
+      "packId": "9bf7f0d8-e869-4c45-a663-cacc98f74cd4",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.255Z",
+      "openedAt": null
+     },
+     {
+      "packId": "07e90dc5-8132-4c53-9d02-4e62337f5bb5",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.255Z",
+      "openedAt": null
+     },
+     {
+      "packId": "be3c683e-a505-43a3-86fd-fa1ed906cca5",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.263Z",
+      "openedAt": null
+     },
+     {
+      "packId": "44acc4af-9c3b-42d5-94bd-472b1262ea2f",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.263Z",
+      "openedAt": null
+     },
+     {
+      "packId": "4218f966-d745-4204-bb79-433659960900",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.271Z",
+      "openedAt": null
+     },
+     {
+      "packId": "684463e0-ca34-4506-96f4-f5ed5261fe8e",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.271Z",
+      "openedAt": null
+     },
+     {
+      "packId": "1e33e756-0772-4c47-863d-57dfac8f0e5f",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.271Z",
+      "openedAt": null
+     },
+     {
+      "packId": "2b053cad-0ea7-4f6a-afcf-142c7b16d0d1",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.279Z",
+      "openedAt": null
+     },
+     {
+      "packId": "98d20663-0daa-4da0-ab55-93a6243c167f",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.279Z",
+      "openedAt": null
+     },
+     {
+      "packId": "e6dac9ab-1865-468c-8d83-cb9ef95d5c5d",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "weeklyChallenge",
+      "acquiredAt": "2026-11-22T00:25:52.287Z",
+      "openedAt": null
+     },
+     {
+      "packId": "32abca00-5969-4519-b82d-2bed3784cc30",
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "setCode": "S0",
+      "source": "purchase",
+      "acquiredAt": "2026-11-22T00:25:52.287Z",
+      "openedAt": null
+     }
+    ],
+    "pity": {
+     "packsSinceFullArt": 7,
+     "packsSinceMythic": 2,
+     "next": {
+      "fullArt": false,
+      "mythic": false
+     }
+    },
+    "dailyPack": {
+     "setCode": "S0",
+     "waiting": 1,
+     "cap": 2,
+     "day": "2026-11-22",
+     "timeZone": "Australia/Sydney",
+     "resetsAt": "2026-11-22T13:00:00.000Z",
+     "nextPackAt": "2026-11-22T13:00:00.000Z",
+     "claimedToday": 0,
+     "lastClaimedAt": null
+    },
+    "wallet": {
+     "credits": 449,
+     "packPoints": 65,
+     "unopenedPacks": [
+      {
+       "packId": "9bf7f0d8-e869-4c45-a663-cacc98f74cd4",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.255Z",
+       "openedAt": null
+      },
+      {
+       "packId": "07e90dc5-8132-4c53-9d02-4e62337f5bb5",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.255Z",
+       "openedAt": null
+      },
+      {
+       "packId": "be3c683e-a505-43a3-86fd-fa1ed906cca5",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.263Z",
+       "openedAt": null
+      },
+      {
+       "packId": "44acc4af-9c3b-42d5-94bd-472b1262ea2f",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.263Z",
+       "openedAt": null
+      },
+      {
+       "packId": "4218f966-d745-4204-bb79-433659960900",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.271Z",
+       "openedAt": null
+      },
+      {
+       "packId": "684463e0-ca34-4506-96f4-f5ed5261fe8e",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.271Z",
+       "openedAt": null
+      },
+      {
+       "packId": "1e33e756-0772-4c47-863d-57dfac8f0e5f",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.271Z",
+       "openedAt": null
+      },
+      {
+       "packId": "2b053cad-0ea7-4f6a-afcf-142c7b16d0d1",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.279Z",
+       "openedAt": null
+      },
+      {
+       "packId": "98d20663-0daa-4da0-ab55-93a6243c167f",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.279Z",
+       "openedAt": null
+      },
+      {
+       "packId": "e6dac9ab-1865-468c-8d83-cb9ef95d5c5d",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.287Z",
+       "openedAt": null
+      },
+      {
+       "packId": "32abca00-5969-4519-b82d-2bed3784cc30",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "purchase",
+       "acquiredAt": "2026-11-22T00:25:52.287Z",
+       "openedAt": null
+      }
+     ]
+    }
+   },
+   "dailyPack": {
+    "setCode": "S0",
+    "waiting": 1,
+    "cap": 2,
+    "day": "2026-11-22",
+    "timeZone": "Australia/Sydney",
+    "resetsAt": "2026-11-22T13:00:00.000Z",
+    "nextPackAt": "2026-11-22T13:00:00.000Z",
+    "claimedToday": 0,
+    "lastClaimedAt": null
+   },
+   "collection": {
+    "copies": 105,
+    "distinctCards": 49,
+    "cards": [
+     {
+      "cardId": "SW-104",
+      "name": "Acid Drone",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 3,
+      "copies": [
+       {
+        "copyId": "fa49c471-1efe-4555-80a5-3530bf898008",
+        "cardId": "SW-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8dfe046c-2bf5-4863-b995-f42385415d62",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.527Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "070020ff-8915-4b66-b3e1-6031ef04864a",
+        "cardId": "SW-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:bb73e187-4261-4296-b5e9-d8843b6df9de",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.719Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "7155d66a-56d7-488a-a274-4b2049108fb5",
+        "cardId": "SW-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:00faaba8-dda1-46e0-bd49-d67b7954f181",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.815Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-006",
+      "name": "Backup Protocol",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "882b6e77-9a68-4934-a178-99dda2da999c",
+        "cardId": "CX-006",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NL-101",
+      "name": "Bad Sector",
+      "rarity": "Common",
+      "faction": "Null",
+      "owned": 6,
+      "salvageable": 5,
+      "copies": [
+       {
+        "copyId": "13c0b548-c6a3-4881-9226-3196b6ff1d91",
+        "cardId": "NL-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8b1535eb-265a-4dae-b277-d789cd83e153",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.623Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "f68090e2-1b7e-41cd-a542-36fffe3f1314",
+        "cardId": "NL-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a6ec67a6-11c9-4999-a14d-159c2fba68ac",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.687Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "437b3e37-5e7e-4159-bfa5-62a07ef18772",
+        "cardId": "NL-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a6ec67a6-11c9-4999-a14d-159c2fba68ac",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.687Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "82402edf-22bc-4713-b742-29a2657aa1b5",
+        "cardId": "NL-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:b3ce5886-68dd-488c-b74b-25441a3ee896",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.743Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "1c30ce73-62d6-4f9e-9fdf-76f91d6c3a4a",
+        "cardId": "NL-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:6d410db5-8d45-44fc-ade9-77879028fdbb",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.799Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "15da10c2-1d14-43ea-8e15-1bac968bda14",
+        "cardId": "NL-101",
+        "finish": "foil",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:00faaba8-dda1-46e0-bd49-d67b7954f181",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.823Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "AG-103",
+      "name": "Bastion Array",
+      "rarity": "Uncommon",
+      "faction": "Aegis",
+      "owned": 3,
+      "salvageable": 3,
+      "copies": [
+       {
+        "copyId": "14f6635d-b6f3-4fda-8636-62989019487f",
+        "cardId": "AG-103",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:c5004a5b-15f0-46ed-a90b-2edede727897",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.599Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "08c271fe-57af-4684-a3e1-f270378ea8b7",
+        "cardId": "AG-103",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:f39f7e42-b2a3-40f5-a9ea-b84e41861e07",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.663Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "0d7eff9d-c22d-44a3-a43d-23bab550bf2a",
+        "cardId": "AG-103",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:f39f7e42-b2a3-40f5-a9ea-b84e41861e07",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.671Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-005",
+      "name": "Cascade Purge",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "91456ceb-9105-4278-8035-5042e02f16d8",
+        "cardId": "CX-005",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-103",
+      "name": "Cluster Node",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 2,
+      "copies": [
+       {
+        "copyId": "6358d0d5-f3e2-4ecc-be92-b994155c75ac",
+        "cardId": "CX-103",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:e02d9fa6-d573-46b6-8cbf-c9323070fc6c",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.583Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "196f6634-ab72-41d0-905e-e1a3b81fe56a",
+        "cardId": "CX-103",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a121d2c5-2142-46a5-83a1-5420e66cb54e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.647Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-107",
+      "name": "Colony Overmind",
+      "rarity": "Mythic",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "5786e09b-f3fb-446d-952e-29a00889c468",
+        "cardId": "SW-107",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:93330bac-9a13-4a1c-a86d-135e3e2d193e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.767Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-016",
+      "name": "Compiled Daemon",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "415dd10f-35b6-4adb-9506-16728c97cff1",
+        "cardId": "CX-016",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "fa45f860-7e69-4414-a8f7-644fdaa92aa6",
+        "cardId": "CX-016",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-009",
+      "name": "Cortex Engineer",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "0d4e5c41-ed88-4aad-8412-4b27c914be10",
+        "cardId": "CX-009",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "f3bb40eb-f9f9-4b8d-bd95-950b567ce032",
+        "cardId": "CX-009",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-023",
+      "name": "Deadlock Detector",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "08611cc1-e573-40cc-bafb-378403ae9ce8",
+        "cardId": "CX-023",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NL-106",
+      "name": "Decay Engine",
+      "rarity": "Rare",
+      "faction": "Null",
+      "owned": 2,
+      "salvageable": 2,
+      "copies": [
+       {
+        "copyId": "debe8aae-dd97-4560-b33c-d879a03910f0",
+        "cardId": "NL-106",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:e02d9fa6-d573-46b6-8cbf-c9323070fc6c",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.583Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "5a2e5d28-e82a-4af0-8ef1-43a63774c102",
+        "cardId": "NL-106",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:00faaba8-dda1-46e0-bd49-d67b7954f181",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.815Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-012",
+      "name": "Diagnostic Loop",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "515b98a9-0124-4349-aad2-5cf97409a2f5",
+        "cardId": "CX-012",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-004",
+      "name": "Diagnostic Pulse",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "cc269c95-3a30-4bf7-925d-aeaaaaf28569",
+        "cardId": "CX-004",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.423Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-017",
+      "name": "Dormant Exploit",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "d8b6afba-72c1-48e6-aa49-54906526f2ae",
+        "cardId": "CX-017",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-101",
+      "name": "Egg Courier",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 7,
+      "salvageable": 7,
+      "copies": [
+       {
+        "copyId": "ef9ee785-063f-401f-a004-96b98ead2cce",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8dfe046c-2bf5-4863-b995-f42385415d62",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.535Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "de025a6f-4aad-4d8a-93ad-16851c5dc071",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:4d29d58d-8103-4b25-90e5-de4b6456b57d",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.559Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "da81e4f9-e025-4291-96a8-4031acdee880",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a121d2c5-2142-46a5-83a1-5420e66cb54e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.639Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "75dd2ec4-b841-43e9-b6c6-7b4ce875eaf8",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a6ec67a6-11c9-4999-a14d-159c2fba68ac",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.687Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "646d5eb1-3b1f-4b15-91a7-48f7064d3fc4",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:b3ce5886-68dd-488c-b74b-25441a3ee896",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.743Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "a2776242-9ef7-46a7-9d3c-3c7db67a8bf4",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:93330bac-9a13-4a1c-a86d-135e3e2d193e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.767Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "d9f917c9-f8ce-4c53-b09b-c0ace2b9f02e",
+        "cardId": "SW-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:6d410db5-8d45-44fc-ade9-77879028fdbb",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.791Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-008",
+      "name": "Fail-safe Unit",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "dc6df3e3-6ae2-44fd-99a7-aaf9e29b5325",
+        "cardId": "CX-008",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "99dd9b68-5226-4802-9b53-6c0685abba2d",
+        "cardId": "CX-008",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-002",
+      "name": "Firewall Sentinel",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "cb6914ef-91a6-4c52-b951-fdeeebb39580",
+        "cardId": "CX-002",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.423Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "1f929d78-2107-4515-9670-0b9e314352f5",
+        "cardId": "CX-002",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.423Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "ffb6e61a-d5aa-40a4-b3b2-90197a861910",
+        "cardId": "CX-002",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.423Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-019",
+      "name": "Force Quit",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "321604b9-571f-41c9-9a9a-6ce729e88a90",
+        "cardId": "CX-019",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "54f32883-2c7c-4792-b470-e0e8a0c14193",
+        "cardId": "CX-019",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-107",
+      "name": "Grid Consensus",
+      "rarity": "Mythic",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "a0fd5b56-8516-41c0-9c03-2bf3938deb49",
+        "cardId": "CX-107",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:b3ce5886-68dd-488c-b74b-25441a3ee896",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.743Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "AG-106",
+      "name": "Hardening Protocol",
+      "rarity": "Rare",
+      "faction": "Aegis",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "90e357ab-4acf-4bd6-a8a6-363477344a5b",
+        "cardId": "AG-106",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:c5004a5b-15f0-46ed-a90b-2edede727897",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.599Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "AG-104",
+      "name": "Hardlight Shell",
+      "rarity": "Uncommon",
+      "faction": "Aegis",
+      "owned": 2,
+      "salvageable": 2,
+      "copies": [
+       {
+        "copyId": "69e8e798-c29c-4d94-9a50-846a6f50f28b",
+        "cardId": "AG-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:b3ce5886-68dd-488c-b74b-25441a3ee896",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.743Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "c03e8716-9d1c-4d88-81d4-a649794bb255",
+        "cardId": "AG-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:93330bac-9a13-4a1c-a86d-135e3e2d193e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.767Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NL-105",
+      "name": "Heap Spray",
+      "rarity": "Rare",
+      "faction": "Null",
+      "owned": 4,
+      "salvageable": 3,
+      "copies": [
+       {
+        "copyId": "06484041-5478-4021-9342-7b91d5d7a060",
+        "cardId": "NL-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:4d29d58d-8103-4b25-90e5-de4b6456b57d",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.559Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "201a1716-2a5b-4ce5-86ec-21ff3f582e3e",
+        "cardId": "NL-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a121d2c5-2142-46a5-83a1-5420e66cb54e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.647Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "a1916fcc-7ae5-4a60-997d-70ff5bdf3b51",
+        "cardId": "NL-105",
+        "finish": "fullArt",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a121d2c5-2142-46a5-83a1-5420e66cb54e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.647Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "338ed5d3-715b-4a94-b46a-b561471ff4d2",
+        "cardId": "NL-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:6d410db5-8d45-44fc-ade9-77879028fdbb",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.791Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NL-107",
+      "name": "Heat Death",
+      "rarity": "Mythic",
+      "faction": "Null",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "73432295-ee60-4253-a169-fce04f2eb92f",
+        "cardId": "NL-107",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8b1535eb-265a-4dae-b277-d789cd83e153",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.623Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-103",
+      "name": "Hive Relay",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "abb186cf-de27-4514-8bd6-68b1e1b27eb9",
+        "cardId": "SW-103",
+        "finish": "glitch",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:4d29d58d-8103-4b25-90e5-de4b6456b57d",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.559Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "548804ed-9330-4e74-83ef-760f1727357e",
+        "cardId": "SW-103",
+        "finish": "foil",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:b3ce5886-68dd-488c-b74b-25441a3ee896",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.751Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-104",
+      "name": "Hot Swap",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 4,
+      "salvageable": 4,
+      "copies": [
+       {
+        "copyId": "d00e6ea2-2fe5-4799-aca1-ac7a87226b56",
+        "cardId": "CX-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:4d29d58d-8103-4b25-90e5-de4b6456b57d",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.559Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "ccf956ef-a18b-4efa-bc25-9e570b0f62a8",
+        "cardId": "CX-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:e02d9fa6-d573-46b6-8cbf-c9323070fc6c",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.583Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "c592ccf7-c5c8-48f7-8aed-2f25ea2e1577",
+        "cardId": "CX-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8b1535eb-265a-4dae-b277-d789cd83e153",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.623Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "b9820179-f9d2-4829-a289-357a311b8869",
+        "cardId": "CX-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a6ec67a6-11c9-4999-a14d-159c2fba68ac",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.687Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-022",
+      "name": "Hotfix",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "a93bbc49-b5ab-456b-8ef4-674c015e76df",
+        "cardId": "CX-022",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-015",
+      "name": "Init Daemon",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "36b06ca1-6c6e-4d77-9b8c-2d9e033f311e",
+        "cardId": "CX-015",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "8fbd552e-378b-4361-b371-e97ff0c484a6",
+        "cardId": "CX-015",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "33ca6831-276b-427b-8aff-57eee2764447",
+        "cardId": "CX-015",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-014",
+      "name": "Interrupt Handler",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "8c84f4b8-e068-444e-9f8e-c0767e6ec831",
+        "cardId": "CX-014",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "AG-102",
+      "name": "Kinetic Buffer",
+      "rarity": "Common",
+      "faction": "Aegis",
+      "owned": 7,
+      "salvageable": 6,
+      "copies": [
+       {
+        "copyId": "d9a58548-a89c-4933-a5bb-25d7dd4bdad7",
+        "cardId": "AG-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8dfe046c-2bf5-4863-b995-f42385415d62",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.527Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "f64ea1e2-71a9-422e-915b-7c3d6465b82a",
+        "cardId": "AG-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:c5004a5b-15f0-46ed-a90b-2edede727897",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.599Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "61051fb3-7fb3-4b82-b0c1-2a32740563f2",
+        "cardId": "AG-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:c5004a5b-15f0-46ed-a90b-2edede727897",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.599Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "785ec0f6-28f8-481f-9028-0a4803ec94e4",
+        "cardId": "AG-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a121d2c5-2142-46a5-83a1-5420e66cb54e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.647Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "05a72972-4214-4535-bab9-2f64235f2018",
+        "cardId": "AG-102",
+        "finish": "foil",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:bb73e187-4261-4296-b5e9-d8843b6df9de",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.727Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "f5c5fbbb-a19b-4eaf-8eed-8a4617917e16",
+        "cardId": "AG-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:93330bac-9a13-4a1c-a86d-135e3e2d193e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.767Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "3f33c207-ce26-44a2-b8a7-6f8adf078591",
+        "cardId": "AG-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:00faaba8-dda1-46e0-bd49-d67b7954f181",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.815Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-021",
+      "name": "Load Balancer",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "a9b5459c-4fa2-4592-92a4-c20d92bc0c3d",
+        "cardId": "CX-021",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "da4b0c4d-71ad-4814-8748-4d208fe77011",
+        "cardId": "CX-021",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-007",
+      "name": "Mainframe Core",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "1388ef3b-a5db-430f-83a1-5e86548bc2c6",
+        "cardId": "CX-007",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "51f9fb9b-c46c-4b47-a6c6-e1e486fb3f52",
+        "cardId": "CX-007",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.431Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NL-102",
+      "name": "Memory Leak",
+      "rarity": "Common",
+      "faction": "Null",
+      "owned": 2,
+      "salvageable": 2,
+      "copies": [
+       {
+        "copyId": "8d0ea857-5da3-41d7-ad3f-be798432cdaa",
+        "cardId": "NL-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:93330bac-9a13-4a1c-a86d-135e3e2d193e",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.775Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "db1f990d-195b-47e5-9fe1-76523ec1d82f",
+        "cardId": "NL-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:6d410db5-8d45-44fc-ade9-77879028fdbb",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.791Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-102",
+      "name": "Mutex Lock",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 3,
+      "salvageable": 2,
+      "copies": [
+       {
+        "copyId": "f5ffb8e8-daa9-4d89-bf45-f0b7cbcb60f3",
+        "cardId": "CX-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:e02d9fa6-d573-46b6-8cbf-c9323070fc6c",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.575Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "ff3670cd-ed5e-43d7-99ea-92957139aa6b",
+        "cardId": "CX-102",
+        "finish": "foil",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:c5004a5b-15f0-46ed-a90b-2edede727897",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.607Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "32872cc8-e3ec-415e-a7ca-a87ac4399dc1",
+        "cardId": "CX-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:00faaba8-dda1-46e0-bd49-d67b7954f181",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.815Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-018",
+      "name": "Overclock Shunt",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "d482e304-4528-4fa5-a4f4-4383f41c6af4",
+        "cardId": "CX-018",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-011",
+      "name": "Overload Capacitor",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "220c2708-132a-4885-9ee5-e54a28cc20b3",
+        "cardId": "CX-011",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-105",
+      "name": "Parity Checker",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "afb88cf6-a751-4c4b-8218-782f3aed51b7",
+        "cardId": "CX-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:f39f7e42-b2a3-40f5-a9ea-b84e41861e07",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.671Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-101",
+      "name": "Port Scanner",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "9c2ce083-b01e-4f00-ba09-109dfc226fbe",
+        "cardId": "CX-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:bb73e187-4261-4296-b5e9-d8843b6df9de",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-024",
+      "name": "Quorum Arbiter",
+      "rarity": "Mythic",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "edbaa6a2-a6ab-4ad1-b0ff-9d917ce7b2ab",
+        "cardId": "CX-024",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-020",
+      "name": "Rate Limiter",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "08bd56ae-9c71-4cef-8f63-5c96e9075998",
+        "cardId": "CX-020",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "407817b1-88d4-4c0a-acae-a29364e89993",
+        "cardId": "CX-020",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.447Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-003",
+      "name": "Recursive Construct",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "5e586bce-7a64-4a1c-a19f-9a17b2e96482",
+        "cardId": "CX-003",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.423Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "748c620f-915b-44ea-8600-3ef775354ec6",
+        "cardId": "CX-003",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.423Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-013",
+      "name": "Retaliation Node",
+      "rarity": "Rare",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "0a0f1999-efa5-4916-8497-b51f8ca4990e",
+        "cardId": "CX-013",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NT-004",
+      "name": "Rollback Point",
+      "rarity": "Common",
+      "faction": "Neutral",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "1556cceb-d4b3-4b1e-af6e-28982274019c",
+        "cardId": "NT-004",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "AG-101",
+      "name": "Shield Relay",
+      "rarity": "Common",
+      "faction": "Aegis",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "a3e89683-6445-42f5-921a-9503584734f7",
+        "cardId": "AG-101",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:4d29d58d-8103-4b25-90e5-de4b6456b57d",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.551Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-001",
+      "name": "Signal Drone",
+      "rarity": "Common",
+      "faction": "Cortex",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "3e97a8b9-5b5f-4ce7-8076-05b29598977e",
+        "cardId": "CX-001",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.415Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-102",
+      "name": "Spawning Pulse",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 7,
+      "salvageable": 7,
+      "copies": [
+       {
+        "copyId": "098bc40d-e319-4264-88b2-04118d32d490",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8dfe046c-2bf5-4863-b995-f42385415d62",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.527Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "74fd2608-8ee7-4ea2-bf6e-2e7f0e284ed8",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:e02d9fa6-d573-46b6-8cbf-c9323070fc6c",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.575Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "7be0ce9f-b4d1-414b-a213-576708c6eddc",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8b1535eb-265a-4dae-b277-d789cd83e153",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.615Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "20eaa839-7539-4177-ba41-ef1d5634b172",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8b1535eb-265a-4dae-b277-d789cd83e153",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.623Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "0f1026bd-a105-442e-ac1e-2c79097829e6",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:f39f7e42-b2a3-40f5-a9ea-b84e41861e07",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.663Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "c9554c6e-917a-4471-9199-e84c15de95d5",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:f39f7e42-b2a3-40f5-a9ea-b84e41861e07",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.663Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "1a57a6ac-732d-4c1c-9814-45b8d07d7810",
+        "cardId": "SW-102",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:bb73e187-4261-4296-b5e9-d8843b6df9de",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NT-005",
+      "name": "Surge Protector",
+      "rarity": "Common",
+      "faction": "Neutral",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "b5895249-2dd9-46e2-9aa0-64ef0fd9b305",
+        "cardId": "NT-005",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.455Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-105",
+      "name": "Swarm Surge",
+      "rarity": "Rare",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 3,
+      "copies": [
+       {
+        "copyId": "2ee974fe-b695-46fe-96cb-ce9f946be16c",
+        "cardId": "SW-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:8dfe046c-2bf5-4863-b995-f42385415d62",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.535Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "a92b3497-5817-439b-a52d-f29bfe492d6b",
+        "cardId": "SW-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:a6ec67a6-11c9-4999-a14d-159c2fba68ac",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.687Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "6f4e30a7-847b-4697-97c2-ab7860eb8064",
+        "cardId": "SW-105",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:bb73e187-4261-4296-b5e9-d8843b6df9de",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "CX-010",
+      "name": "Watchtower Relay",
+      "rarity": "Uncommon",
+      "faction": "Cortex",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "17173aa4-747e-427d-94ea-b78867a31dc8",
+        "cardId": "CX-010",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "86817f8a-c89c-4ab1-9932-2246db9f2512",
+        "cardId": "CX-010",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "abb2744f-03ec-4b5e-981b-e6c55e29090b",
+        "cardId": "CX-010",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Cortex",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T00:25:50.439Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "NL-104",
+      "name": "Zombie Fork",
+      "rarity": "Uncommon",
+      "faction": "Null",
+      "owned": 1,
+      "salvageable": 1,
+      "copies": [
+       {
+        "copyId": "860eba8f-cdf8-4634-854a-27d8c56c03a6",
+        "cardId": "NL-104",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": "S0",
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "pack",
+        "originRef": "pack:6d410db5-8d45-44fc-ade9-77879028fdbb",
+        "accountBound": false,
+        "acquiredAt": "2026-11-22T00:25:50.791Z",
+        "secretCode": null
+       }
+      ]
+     }
+    ],
+    "sets": [
+     {
+      "setCode": "S0",
+      "base": {
+       "held": 49,
+       "total": 124
+      },
+      "secrets": {
+       "held": 0,
+       "total": 19
+      },
+      "glitch": {
+       "held": 1,
+       "total": 16
+      },
+      "gold": {
+       "held": 0,
+       "total": 28
+      },
+      "prototypes": {
+       "runsHeld": 0,
+       "runs": 15,
+       "copiesHeld": 0
+      }
+     }
+    ],
+    "recentPulls": [
+     {
+      "packId": "00faaba8-dda1-46e0-bd49-d67b7954f181",
+      "setCode": "S0",
+      "openedAt": "2026-11-22T00:25:50.807Z",
+      "jackpot": false,
+      "cards": [
+       {
+        "copyId": "32872cc8-e3ec-415e-a7ca-a87ac4399dc1",
+        "cardId": "CX-102",
+        "name": "Mutex Lock",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "3f33c207-ce26-44a2-b8a7-6f8adf078591",
+        "cardId": "AG-102",
+        "name": "Kinetic Buffer",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "7155d66a-56d7-488a-a274-4b2049108fb5",
+        "cardId": "SW-104",
+        "name": "Acid Drone",
+        "rarity": "Uncommon",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "5a2e5d28-e82a-4af0-8ef1-43a63774c102",
+        "cardId": "NL-106",
+        "name": "Decay Engine",
+        "rarity": "Rare",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "15da10c2-1d14-43ea-8e15-1bac968bda14",
+        "cardId": "NL-101",
+        "name": "Bad Sector",
+        "rarity": "Common",
+        "finish": "foil",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       }
+      ]
+     },
+     {
+      "packId": "6d410db5-8d45-44fc-ade9-77879028fdbb",
+      "setCode": "S0",
+      "openedAt": "2026-11-22T00:25:50.783Z",
+      "jackpot": false,
+      "cards": [
+       {
+        "copyId": "d9f917c9-f8ce-4c53-b09b-c0ace2b9f02e",
+        "cardId": "SW-101",
+        "name": "Egg Courier",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "db1f990d-195b-47e5-9fe1-76523ec1d82f",
+        "cardId": "NL-102",
+        "name": "Memory Leak",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "860eba8f-cdf8-4634-854a-27d8c56c03a6",
+        "cardId": "NL-104",
+        "name": "Zombie Fork",
+        "rarity": "Uncommon",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "338ed5d3-715b-4a94-b46a-b561471ff4d2",
+        "cardId": "NL-105",
+        "name": "Heap Spray",
+        "rarity": "Rare",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "1c30ce73-62d6-4f9e-9fdf-76f91d6c3a4a",
+        "cardId": "NL-101",
+        "name": "Bad Sector",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       }
+      ]
+     },
+     {
+      "packId": "93330bac-9a13-4a1c-a86d-135e3e2d193e",
+      "setCode": "S0",
+      "openedAt": "2026-11-22T00:25:50.759Z",
+      "jackpot": false,
+      "cards": [
+       {
+        "copyId": "a2776242-9ef7-46a7-9d3c-3c7db67a8bf4",
+        "cardId": "SW-101",
+        "name": "Egg Courier",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "f5c5fbbb-a19b-4eaf-8eed-8a4617917e16",
+        "cardId": "AG-102",
+        "name": "Kinetic Buffer",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "c03e8716-9d1c-4d88-81d4-a649794bb255",
+        "cardId": "AG-104",
+        "name": "Hardlight Shell",
+        "rarity": "Uncommon",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "5786e09b-f3fb-446d-952e-29a00889c468",
+        "cardId": "SW-107",
+        "name": "Colony Overmind",
+        "rarity": "Mythic",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       },
+       {
+        "copyId": "8d0ea857-5da3-41d7-ad3f-be798432cdaa",
+        "cardId": "NL-102",
+        "name": "Memory Leak",
+        "rarity": "Common",
+        "finish": "standard",
+        "secretCode": null,
+        "serial": null,
+        "held": true
+       }
+      ]
+     }
+    ],
+    "promos": {
+     "signatureCards": [],
+     "earned": []
+    }
+   },
+   "store": {
+    "packs": [
+     {
+      "setCode": "S0",
+      "name": "Season Zero",
+      "priceCredits": 100
+     }
+    ],
+    "dailyPack": {
+     "setCode": "S0",
+     "waiting": 1,
+     "cap": 2,
+     "day": "2026-11-22",
+     "timeZone": "Australia/Sydney",
+     "resetsAt": "2026-11-22T13:00:00.000Z",
+     "nextPackAt": "2026-11-22T13:00:00.000Z",
+     "claimedToday": 0,
+     "lastClaimedAt": null
+    },
+    "cosmetics": [
+     {
+      "itemId": "boast-s0-boot-sequence",
+      "kind": "boast",
+      "name": "Boot Sequence",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:boast/s0-boot-sequence",
+      "description": "The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.",
+      "drawn": true,
+      "owned": false
+     },
+     {
+      "itemId": "boast-s0-dial-up-fireworks",
+      "kind": "boast",
+      "name": "Dial-Up Fireworks",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:boast/s0-dial-up-fireworks",
+      "description": "A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.",
+      "drawn": true,
+      "owned": false
+     },
+     {
+      "itemId": "coin-s0-dial-up-dime",
+      "kind": "coin",
+      "name": "Dial-Up Dime",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:coin/s0-dial-up-dime",
+      "description": "A dark coin with a green CRT-phosphor rim that hums like a modem as it spins.",
+      "drawn": true,
+      "owned": false
+     },
+     {
+      "itemId": "coin-s0-neon-nickel",
+      "kind": "coin",
+      "name": "Neon Nickel",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:coin/s0-neon-nickel",
+      "description": "A chrome coin edged in magenta and cyan neon, trailing light through the flip.",
+      "drawn": true,
+      "owned": false
+     }
+    ],
+    "wallet": {
+     "credits": 449,
+     "packPoints": 65,
+     "unopenedPacks": [
+      {
+       "packId": "9bf7f0d8-e869-4c45-a663-cacc98f74cd4",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.255Z",
+       "openedAt": null
+      },
+      {
+       "packId": "07e90dc5-8132-4c53-9d02-4e62337f5bb5",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.255Z",
+       "openedAt": null
+      },
+      {
+       "packId": "be3c683e-a505-43a3-86fd-fa1ed906cca5",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.263Z",
+       "openedAt": null
+      },
+      {
+       "packId": "44acc4af-9c3b-42d5-94bd-472b1262ea2f",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.263Z",
+       "openedAt": null
+      },
+      {
+       "packId": "4218f966-d745-4204-bb79-433659960900",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.271Z",
+       "openedAt": null
+      },
+      {
+       "packId": "684463e0-ca34-4506-96f4-f5ed5261fe8e",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.271Z",
+       "openedAt": null
+      },
+      {
+       "packId": "1e33e756-0772-4c47-863d-57dfac8f0e5f",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.271Z",
+       "openedAt": null
+      },
+      {
+       "packId": "2b053cad-0ea7-4f6a-afcf-142c7b16d0d1",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.279Z",
+       "openedAt": null
+      },
+      {
+       "packId": "98d20663-0daa-4da0-ab55-93a6243c167f",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.279Z",
+       "openedAt": null
+      },
+      {
+       "packId": "e6dac9ab-1865-468c-8d83-cb9ef95d5c5d",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "weeklyChallenge",
+       "acquiredAt": "2026-11-22T00:25:52.287Z",
+       "openedAt": null
+      },
+      {
+       "packId": "32abca00-5969-4519-b82d-2bed3784cc30",
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "setCode": "S0",
+       "source": "purchase",
+       "acquiredAt": "2026-11-22T00:25:52.287Z",
+       "openedAt": null
+      }
+     ]
+    }
+   },
+   "daily": {
+    "day": "2026-11-22",
+    "timeZone": "Australia/Sydney",
+    "startedAt": "2026-11-21T13:00:00.000Z",
+    "resetsAt": "2026-11-22T13:00:00.000Z",
+    "schedule": [
+     {
+      "fromWin": 1,
+      "toWin": 1,
+      "credits": 30
+     },
+     {
+      "fromWin": 2,
+      "toWin": 4,
+      "credits": 10
+     },
+     {
+      "fromWin": 5,
+      "toWin": 10,
+      "credits": 5
+     },
+     {
+      "fromWin": 11,
+      "toWin": null,
+      "credits": 0
+     }
+    ],
+    "wins": [
+     {
+      "nth": 1,
+      "matchId": "demo-today-0",
+      "endedAt": "2026-11-22T01:15:49.425Z",
+      "credits": 30
+     },
+     {
+      "nth": 2,
+      "matchId": "demo-today-2",
+      "endedAt": "2026-11-22T02:22:49.425Z",
+      "credits": 10
+     },
+     {
+      "nth": 3,
+      "matchId": "demo-live-004",
+      "endedAt": "2026-11-22T00:40:47.983Z",
+      "credits": 10
+     },
+     {
+      "nth": 4,
+      "matchId": "demo-live-005",
+      "endedAt": "2026-11-22T00:44:58.871Z",
+      "credits": 10
+     },
+     {
+      "nth": 5,
+      "matchId": "demo-live-007",
+      "endedAt": "2026-11-22T00:56:35.951Z",
+      "credits": 5
+     }
+    ],
+    "rewardedWins": [
+     {
+      "nth": 1,
+      "matchId": "demo-today-0",
+      "endedAt": "2026-11-22T01:15:49.425Z",
+      "credits": 30
+     },
+     {
+      "nth": 2,
+      "matchId": "demo-today-2",
+      "endedAt": "2026-11-22T02:22:49.425Z",
+      "credits": 10
+     },
+     {
+      "nth": 3,
+      "matchId": "demo-live-004",
+      "endedAt": "2026-11-22T00:40:47.983Z",
+      "credits": 10
+     },
+     {
+      "nth": 4,
+      "matchId": "demo-live-005",
+      "endedAt": "2026-11-22T00:44:58.871Z",
+      "credits": 10
+     },
+     {
+      "nth": 5,
+      "matchId": "demo-live-007",
+      "endedAt": "2026-11-22T00:56:35.951Z",
+      "credits": 5
+     }
+    ],
+    "losses": 2,
+    "maxPaidLosses": 10,
+    "creditsFromWins": 65,
+    "creditsFromLosses": 4,
+    "credits": 69,
+    "nextWinPays": 5,
+    "nextLossPays": 2
+   },
+   "matches": {
+    "matches": [
+     {
+      "matchId": "demo-today-2",
+      "endedAt": "2026-11-22T02:22:49.425Z",
+      "seat": "p1",
+      "result": "win",
+      "credits": 10,
+      "rating": {
+       "before": 1704.7664571169637,
+       "after": 1724.0293697155075,
+       "change": 19.262912598543835
+      },
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentName": "Rook's agent"
+      },
+      "agentName": "Vector Halcyon",
+      "turns": null,
+      "hasLog": false,
+      "hasReplay": false
+     },
+     {
+      "matchId": "demo-today-1",
+      "endedAt": "2026-11-22T01:45:49.425Z",
+      "seat": "p1",
+      "result": "loss",
+      "credits": 2,
+      "rating": {
+       "before": 1878.7545426084016,
+       "after": 1704.7664571169637,
+       "change": -173.98808549143791
+      },
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentName": "Rook's agent"
+      },
+      "agentName": "Vector Halcyon",
+      "turns": null,
+      "hasLog": false,
+      "hasReplay": false
+     },
+     {
+      "matchId": "demo-today-0",
+      "endedAt": "2026-11-22T01:15:49.425Z",
+      "seat": "p1",
+      "result": "win",
+      "credits": 30,
+      "rating": {
+       "before": 1874.2601967053752,
+       "after": 1878.7545426084016,
+       "change": 4.494345903026442
+      },
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentName": "Rook's agent"
+      },
+      "agentName": "Vector Halcyon",
+      "turns": null,
+      "hasLog": false,
+      "hasReplay": false
+     },
+     {
+      "matchId": "demo-live-007",
+      "endedAt": "2026-11-22T00:56:35.951Z",
+      "seat": "p1",
+      "result": "win",
+      "credits": 5,
+      "rating": {
+       "before": 1741.9140503888389,
+       "after": 1774.2619143851941,
+       "change": 32.34786399635527
+      },
+      "opponent": {
+       "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+       "ownerName": "House Null",
+       "agentName": "Static Widow"
+      },
+      "agentName": "Vector Halcyon",
+      "turns": 17,
+      "hasLog": true,
+      "hasReplay": true
+     },
+     {
+      "matchId": "demo-live-005",
+      "endedAt": "2026-11-22T00:44:58.871Z",
+      "seat": "p2",
+      "result": "win",
+      "credits": 10,
+      "rating": {
+       "before": 1658.618093216603,
+       "after": 1741.9140503888389,
+       "change": 83.29595717223583
+      },
+      "opponent": {
+       "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+       "ownerName": "House Swarm",
+       "agentName": "Hive Courier"
+      },
+      "agentName": "Vector Halcyon",
+      "turns": 12,
+      "hasLog": true,
+      "hasReplay": true
+     },
+     {
+      "matchId": "demo-live-004",
+      "endedAt": "2026-11-22T00:40:47.983Z",
+      "seat": "p1",
+      "result": "win",
+      "credits": 10,
+      "rating": {
+       "before": 1641.9872735614251,
+       "after": 1658.618093216603,
+       "change": 16.630819655177902
+      },
+      "opponent": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentName": "Rook's agent"
+      },
+      "agentName": "Vector Halcyon",
+      "turns": 17,
+      "hasLog": true,
+      "hasReplay": true
+     }
+    ],
+    "total": 23,
+    "more": true
+   },
+   "notifications": {
+    "notifications": [
+     {
+      "notificationId": 47,
+      "kind": "dailyPack",
+      "dailyPack": {
+       "day": "2026-11-22",
+       "readySince": "2026-11-22T00:25:49.679Z",
+       "waiting": 1,
+       "cap": 2
+      },
+      "createdAt": "2026-11-22T02:27:11.775Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 45,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-live-007",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+        "ownerName": "House Null",
+        "agentName": "Static Widow"
+       },
+       "credits": 5,
+       "rating": {
+        "before": 1741.9140503888389,
+        "after": 1774.2619143851941,
+        "change": 32.34786399635527
+       },
+       "turns": 17
+      },
+      "createdAt": "2026-11-22T00:56:35.951Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 43,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-live-005",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+        "ownerName": "House Swarm",
+        "agentName": "Hive Courier"
+       },
+       "credits": 10,
+       "rating": {
+        "before": 1658.618093216603,
+        "after": 1741.9140503888389,
+        "change": 83.29595717223583
+       },
+       "turns": 12
+      },
+      "createdAt": "2026-11-22T00:44:58.871Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 41,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-live-004",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 10,
+       "rating": {
+        "before": 1641.9872735614251,
+        "after": 1658.618093216603,
+        "change": 16.630819655177902
+       },
+       "turns": 17
+      },
+      "createdAt": "2026-11-22T00:40:47.983Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 39,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-live-001",
+       "result": "loss",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+        "ownerName": "House Swarm",
+        "agentName": "Hive Courier"
+       },
+       "credits": 2,
+       "rating": {
+        "before": 1724.0293697155075,
+        "after": 1641.9872735614251,
+        "change": -82.0420961540824
+       },
+       "turns": 12
+      },
+      "createdAt": "2026-11-22T00:32:16.831Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 37,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-today-2",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 10,
+       "rating": {
+        "before": 1704.7664571169637,
+        "after": 1724.0293697155075,
+        "change": 19.262912598543835
+       },
+       "turns": null
+      },
+      "createdAt": "2026-11-22T02:22:49.425Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 35,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-today-1",
+       "result": "loss",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 2,
+       "rating": {
+        "before": 1878.7545426084016,
+        "after": 1704.7664571169637,
+        "change": -173.98808549143791
+       },
+       "turns": null
+      },
+      "createdAt": "2026-11-22T01:45:49.425Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 33,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-today-0",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1874.2601967053752,
+        "after": 1878.7545426084016,
+        "change": 4.494345903026442
+       },
+       "turns": null
+      },
+      "createdAt": "2026-11-22T01:15:49.425Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 31,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-early-5",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1869.8785364899477,
+        "after": 1874.2601967053752,
+        "change": 4.381660215427473
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-17T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 29,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-early-4",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1865.178788530882,
+        "after": 1869.8785364899477,
+        "change": 4.699747959065689
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-16T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 27,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-early-3",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1860.110672783572,
+        "after": 1865.178788530882,
+        "change": 5.068115747310003
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-15T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 25,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-early-2",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1854.6112153505273,
+        "after": 1860.110672783572,
+        "change": 5.499457433044654
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-14T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 23,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-early-1",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1848.6001374556677,
+        "after": 1854.6112153505273,
+        "change": 6.011077894859682
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-13T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 21,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-early-0",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1841.9729618202957,
+        "after": 1848.6001374556677,
+        "change": 6.627175635371941
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-12T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 19,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-9",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1834.5903426050247,
+        "after": 1841.9729618202957,
+        "change": 7.382619215271006
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-29T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 17,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-8",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1826.26085349207,
+        "after": 1834.5903426050247,
+        "change": 8.329489112954661
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-28T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 15,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-7",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1816.711797895802,
+        "after": 1826.26085349207,
+        "change": 9.54905559626809
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 13,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-6",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1805.5365420217397,
+        "after": 1816.711797895802,
+        "change": 11.175255874062259
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-26T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 11,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-5",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1792.0917011444487,
+        "after": 1805.5365420217397,
+        "change": 13.444840877290972
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-25T10:00:00.000Z",
+      "readAt": null
+     },
+     {
+      "notificationId": 9,
+      "kind": "matchResult",
+      "matchResult": {
+       "matchId": "demo-4",
+       "result": "win",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "opponent": {
+        "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+        "ownerName": "Rook",
+        "agentName": "Rook's agent"
+       },
+       "credits": 30,
+       "rating": {
+        "before": 1775.2745027347842,
+        "after": 1792.0917011444487,
+        "change": 16.81719840966457
+       },
+       "turns": null
+      },
+      "createdAt": "2026-10-24T10:00:00.000Z",
+      "readAt": null
+     }
+    ],
+    "more": true,
+    "unread": 24,
+    "unreadByKind": {
+     "matchResult": 23,
+     "bigPull": 0,
+     "dailyPack": 1,
+     "autoPlayStopped": 0
+    }
+   },
+   "live": {
+    "running": true,
+    "matches": [
+     {
+      "matchId": "demo-live-009",
+      "startedAt": "2026-11-22T02:26:13.831Z",
+      "released": 17,
+      "nextAt": "2026-11-22T02:27:13.831Z",
+      "p1": {
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "ownerName": "Nova",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "playStyle": "calculator",
+       "rating": 1774.2619143851941,
+       "tier": "Platinum",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Cortex"
+      },
+      "p2": {
+       "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+       "ownerName": "House Swarm",
+       "agentId": "9c20d50f-76a4-46d9-930f-9f9e8927211e",
+       "agentName": "Hive Courier",
+       "playStyle": "rusher",
+       "rating": 1710.9732291939702,
+       "tier": "Placement",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Swarm"
+      },
+      "defaultView": "p1",
+      "now": {
+       "turn": 5,
+       "activePlayer": "p1",
+       "priority": "p1",
+       "stack": 0,
+       "winner": null,
+       "p1": {
+        "name": "Vector Halcyon",
+        "health": 20,
+        "maxHealth": 20,
+        "energy": 3,
+        "maxEnergy": 3,
+        "hand": 4,
+        "deck": 34,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u1",
+          "cardId": "CX-001",
+          "name": "Signal Drone",
+          "attack": 1,
+          "health": 1,
+          "maxHealth": 1,
+          "pending": false,
+          "tools": []
+         },
+         {
+          "instanceId": "u3",
+          "cardId": "CX-013",
+          "name": "Retaliation Node",
+          "attack": 1,
+          "health": 3,
+          "maxHealth": 3,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": null
+       },
+       "p2": {
+        "name": "Hive Courier",
+        "health": 22,
+        "maxHealth": 24,
+        "energy": 0,
+        "maxEnergy": 2,
+        "hand": 5,
+        "deck": 34,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u5",
+          "cardId": "SW-018",
+          "name": "Carapace Grunt",
+          "attack": 2,
+          "health": 2,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": null
+       }
+      },
+      "recentLines": [
+       "p2 plays Carapace Grunt (u5)",
+       "  p2 passes priority",
+       "  p1 passes priority",
+       "[end of turn 4 for p2]",
+       "p1 draws Watchtower Relay",
+       "--- Turn 5 (p1) ---"
+      ],
+      "boast": null,
+      "speed": {
+       "rate": 1,
+       "asks": {
+        "p1": false,
+        "p2": false
+       },
+       "house": {
+        "p1": false,
+        "p2": true
+       },
+       "waitingOn": null
+      },
+      "viewers": 0
+     },
+     {
+      "matchId": "demo-live-010",
+      "startedAt": "2026-11-22T02:26:13.831Z",
+      "released": 17,
+      "nextAt": "2026-11-22T02:27:13.831Z",
+      "p1": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "playStyle": "calculator",
+       "rating": 1190.0978698130477,
+       "tier": "Bronze",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Aegis"
+      },
+      "p2": {
+       "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+       "ownerName": "House Null",
+       "agentId": "fdf7b708-ee09-44c0-b56d-e8a8a2c1fd21",
+       "agentName": "Static Widow",
+       "playStyle": "gambler",
+       "rating": 1507.3071966891414,
+       "tier": "Placement",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Null"
+      },
+      "defaultView": "p2",
+      "now": {
+       "turn": 4,
+       "activePlayer": "p2",
+       "priority": "p1",
+       "stack": 0,
+       "winner": null,
+       "p1": {
+        "name": "Rook's agent",
+        "health": 19,
+        "maxHealth": 20,
+        "energy": 0,
+        "maxEnergy": 2,
+        "hand": 3,
+        "deck": 35,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u1",
+          "cardId": "AG-001",
+          "name": "Aegis Cadet",
+          "attack": 1,
+          "health": 2,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         },
+         {
+          "instanceId": "u3",
+          "cardId": "AG-019",
+          "name": "Bulwark Chassis",
+          "attack": 1,
+          "health": 3,
+          "maxHealth": 3,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": null
+       },
+       "p2": {
+        "name": "Static Widow",
+        "health": 24,
+        "maxHealth": 24,
+        "energy": 1,
+        "maxEnergy": 2,
+        "hand": 4,
+        "deck": 34,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u2",
+          "cardId": "NL-002",
+          "name": "Stray Fragment",
+          "attack": 1,
+          "health": 1,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         },
+         {
+          "instanceId": "u6",
+          "cardId": "NL-002",
+          "name": "Stray Fragment",
+          "attack": 1,
+          "health": 2,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": {
+         "cardId": "sig-PR-001",
+         "name": "Encore of the Laser Tag Arena",
+         "cost": 5,
+         "attack": 3,
+         "health": 6,
+         "keywords": [],
+         "rulesText": [
+          "On arrival, your units get +0/+1 this turn."
+         ],
+         "art": "placeholder:signature-pool/S0/339",
+         "flavor": "Static Widow doesn't fight alone; it never has.",
+         "timesPlayed": 0,
+         "inZone": true,
+         "nextCost": 5,
+         "played": false
+        }
+       }
+      },
+      "recentLines": [
+       "  p2 passes priority",
+       "  p1 passes priority",
+       ">>> resolving: Stray Fragment's attack",
+       "  Stray Fragment deals 1 damage to Rook's agent",
+       "p2 plays Stray Fragment (u6)",
+       "  p2 passes priority"
+      ],
+      "boast": null,
+      "speed": {
+       "rate": 1,
+       "asks": {
+        "p1": false,
+        "p2": false
+       },
+       "house": {
+        "p1": false,
+        "p2": true
+       },
+       "waitingOn": null
+      },
+      "viewers": 0
+     }
+    ],
+    "mine": "demo-live-009",
+    "featured": {
+     "tournament": [],
+     "topRated": []
+    }
+   },
+   "settings": {
+    "theme": "system",
+    "background": "glacier",
+    "sound": {
+     "on": true,
+     "volume": 80
+    },
+    "music": {
+     "on": true,
+     "volume": 60
+    },
+    "skipHintSeen": false,
+    "ask2xEveryMatch": false,
+    "notifications": {
+     "bigPulls": true,
+     "matchResults": true,
+     "dailyPack": true
+    },
+    "updatedAt": null
+   }
+  },
+  "wren": {
+   "me": {
+    "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+    "name": "Wren",
+    "username": "wren",
+    "email": null,
+    "kind": "player",
+    "isAdmin": false
+   },
+   "wallet": {
+    "credits": 0,
+    "packPoints": 0,
+    "unopenedPacks": [
+     {
+      "packId": "f0d385ca-ac54-43f2-a3c2-71d779a20502",
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "setCode": "S0",
+      "source": "starter",
+      "acquiredAt": "2026-11-22T02:26:12.743Z",
+      "openedAt": null
+     },
+     {
+      "packId": "c65c2e9f-6d7f-45db-9b0e-85bf78130495",
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "setCode": "S0",
+      "source": "starter",
+      "acquiredAt": "2026-11-22T02:26:12.743Z",
+      "openedAt": null
+     },
+     {
+      "packId": "1d9186cd-62b1-4cdc-8652-05b38dc7e46c",
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "setCode": "S0",
+      "source": "starter",
+      "acquiredAt": "2026-11-22T02:26:12.743Z",
+      "openedAt": null
+     }
+    ]
+   },
+   "play": {
+    "deckChoice": "agent",
+    "factionLock": null,
+    "lockableFactions": [
+     "Cortex",
+     "Swarm",
+     "Aegis",
+     "Null"
+    ],
+    "lockable": [
+     {
+      "faction": "Cortex",
+      "buildable": false,
+      "cards": 0,
+      "needed": 20
+     },
+     {
+      "faction": "Swarm",
+      "buildable": true,
+      "cards": 40,
+      "needed": 20
+     },
+     {
+      "faction": "Aegis",
+      "buildable": false,
+      "cards": 0,
+      "needed": 20
+     },
+     {
+      "faction": "Null",
+      "buildable": false,
+      "cards": 0,
+      "needed": 20
+     }
+    ],
+    "activeDeck": null,
+    "agentDeck": null,
+    "rebuild": {
+     "reasons": [
+      "the agent hasn't built a deck yet"
+     ],
+     "job": null
+    },
+    "connectedAgent": {
+     "agentId": "d7257e41-ed7f-4173-9b4c-162615ded219",
+     "name": "Moth Lantern",
+     "playStyle": "calculator"
+    },
+    "agents": [
+     {
+      "agentId": "d7257e41-ed7f-4173-9b4c-162615ded219",
+      "name": "Moth Lantern",
+      "playStyle": "calculator"
+     }
+    ],
+    "playStyles": [
+     {
+      "id": "calculator",
+      "name": "Calculator",
+      "summary": "Weighs every move on the board as it stands and takes the best. The balanced default."
+     },
+     {
+      "id": "rusher",
+      "name": "Rusher",
+      "summary": "Goes for the opponent's health, spends fast, and trades with units only when it must."
+     },
+     {
+      "id": "controller",
+      "name": "Controller",
+      "summary": "Answers threats, draws cards and keeps a response ready; wins the long game."
+     },
+     {
+      "id": "tempo",
+      "name": "Tempo",
+      "summary": "Uses its energy every turn to put the wider board down first."
+     },
+     {
+      "id": "fortress",
+      "name": "Fortress",
+      "summary": "Plays tough bodies, protects its units and attacks only when the trade is safe."
+     },
+     {
+      "id": "gambler",
+      "name": "Gambler",
+      "summary": "Rolls the dice between its good moves: hard to read, now and then brilliant."
+     }
+    ],
+    "decks": [],
+    "liveMatch": null,
+    "autoPlay": {
+     "on": false,
+     "changedAt": null,
+     "stopped": null,
+     "dailyRewardsMaxed": false,
+     "canTurnOn": true,
+     "allowance": null,
+     "canAddTime": false,
+     "house": false
+    }
+   },
+   "rating": {
+    "rating": {
+     "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+     "rating": 1500,
+     "rd": 350,
+     "volatility": 0.06,
+     "ratedMatches": 0,
+     "tier": "Placement",
+     "lastDay": null
+    },
+    "recent": []
+   },
+   "ladder": {
+    "standings": [
+     {
+      "rank": 1,
+      "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+      "ownerName": "Nova",
+      "ownerKind": "player",
+      "agent": {
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "name": "Vector Halcyon"
+      },
+      "rating": 1774.2619143851941,
+      "rd": 150.71674047740836,
+      "tier": "Platinum",
+      "ratedMatches": 23,
+      "wins": 21,
+      "losses": 2,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     },
+     {
+      "rank": 2,
+      "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+      "ownerName": "Rook",
+      "ownerKind": "player",
+      "agent": {
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "name": "Rook's agent"
+      },
+      "rating": 1190.0978698130477,
+      "rd": 157.28563250623006,
+      "tier": "Bronze",
+      "ratedMatches": 23,
+      "wins": 1,
+      "losses": 22,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     },
+     {
+      "rank": null,
+      "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+      "ownerName": "House Swarm",
+      "ownerKind": "house",
+      "agent": {
+       "agentId": "9c20d50f-76a4-46d9-930f-9f9e8927211e",
+       "name": "Hive Courier"
+      },
+      "rating": 1710.9732291939702,
+      "rd": 207.48892515605237,
+      "tier": "Placement",
+      "ratedMatches": 4,
+      "wins": 3,
+      "losses": 1,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     },
+     {
+      "rank": null,
+      "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+      "ownerName": "House Null",
+      "ownerKind": "house",
+      "agent": {
+       "agentId": "fdf7b708-ee09-44c0-b56d-e8a8a2c1fd21",
+       "name": "Static Widow"
+      },
+      "rating": 1507.3071966891414,
+      "rd": 196.79280986051748,
+      "tier": "Placement",
+      "ratedMatches": 4,
+      "wins": 2,
+      "losses": 2,
+      "draws": 0,
+      "lastDay": "2026-11-22"
+     }
+    ],
+    "you": {
+     "rank": null,
+     "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+     "ownerName": "Wren",
+     "ownerKind": "player",
+     "agent": {
+      "agentId": "d7257e41-ed7f-4173-9b4c-162615ded219",
+      "name": "Moth Lantern"
+     },
+     "rating": 1500,
+     "rd": 350,
+     "tier": "Placement",
+     "ratedMatches": 0,
+     "wins": 0,
+     "losses": 0,
+     "draws": 0,
+     "lastDay": null
+    },
+    "owners": 4,
+    "tiers": [
+     {
+      "tier": "Bronze",
+      "from": null
+     },
+     {
+      "tier": "Silver",
+      "from": 1350
+     },
+     {
+      "tier": "Gold",
+      "from": 1500
+     },
+     {
+      "tier": "Platinum",
+      "from": 1650
+     },
+     {
+      "tier": "Diamond",
+      "from": 1800
+     },
+     {
+      "tier": "Mythic",
+      "from": 1950
+     }
+    ],
+    "placementMatches": 5
+   },
+   "stats": {
+    "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+    "agentId": null,
+    "agents": [
+     {
+      "agentId": "d7257e41-ed7f-4173-9b4c-162615ded219",
+      "name": "Moth Lantern",
+      "matches": 0
+     }
+    ],
+    "totals": {
+     "matches": 0,
+     "wins": 0,
+     "losses": 0,
+     "draws": 0,
+     "void": 0,
+     "winRate": 0,
+     "bestWinStreak": 0,
+     "currentStreak": null,
+     "creditsFromMatches": 0
+    },
+    "byFaction": [
+     {
+      "faction": "Cortex",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Swarm",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Aegis",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Null",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     }
+    ],
+    "factionNotRecorded": {
+     "matches": 0,
+     "wins": 0,
+     "losses": 0,
+     "draws": 0,
+     "void": 0,
+     "winRate": 0
+    },
+    "byOpponentFaction": [
+     {
+      "faction": "Cortex",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Swarm",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Aegis",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     },
+     {
+      "faction": "Null",
+      "matches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "void": 0,
+      "winRate": 0
+     }
+    ],
+    "opponentFactionNotRecorded": {
+     "matches": 0,
+     "wins": 0,
+     "losses": 0,
+     "draws": 0,
+     "void": 0,
+     "winRate": 0
+    },
+    "recent": [],
+    "rating": {
+     "now": {
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "rating": 1500,
+      "rd": 350,
+      "volatility": 0.06,
+      "ratedMatches": 0,
+      "tier": "Placement",
+      "lastDay": null
+     },
+     "weekAgo": 1500,
+     "weekChange": 0,
+     "chart": [
+      {
+       "day": "2026-10-24",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-25",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-26",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-27",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-28",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-29",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-30",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-10-31",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-01",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-02",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-03",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-04",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-05",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-06",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-07",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-08",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-09",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-10",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-11",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-12",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-13",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-14",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-15",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-16",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-17",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-18",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-19",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-20",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-21",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      },
+      {
+       "day": "2026-11-22",
+       "rating": 1500,
+       "rated": 0,
+       "wins": 0,
+       "losses": 0,
+       "draws": 0
+      }
+     ]
+    },
+    "today": {
+     "day": "2026-11-22",
+     "timeZone": "Australia/Sydney",
+     "startedAt": "2026-11-21T13:00:00.000Z",
+     "resetsAt": "2026-11-22T13:00:00.000Z",
+     "schedule": [
+      {
+       "fromWin": 1,
+       "toWin": 1,
+       "credits": 30
+      },
+      {
+       "fromWin": 2,
+       "toWin": 4,
+       "credits": 10
+      },
+      {
+       "fromWin": 5,
+       "toWin": 10,
+       "credits": 5
+      },
+      {
+       "fromWin": 11,
+       "toWin": null,
+       "credits": 0
+      }
+     ],
+     "wins": [],
+     "rewardedWins": [],
+     "losses": 0,
+     "maxPaidLosses": 10,
+     "creditsFromWins": 0,
+     "creditsFromLosses": 0,
+     "credits": 0,
+     "nextWinPays": 30,
+     "nextLossPays": 2
+    }
+   },
+   "packs": {
+    "offer": [
+     {
+      "setCode": "S0",
+      "name": "Season Zero",
+      "priceCredits": 100
+     }
+    ],
+    "bulkOpenCount": 10,
+    "unopened": [
+     {
+      "packId": "f0d385ca-ac54-43f2-a3c2-71d779a20502",
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "setCode": "S0",
+      "source": "starter",
+      "acquiredAt": "2026-11-22T02:26:12.743Z",
+      "openedAt": null
+     },
+     {
+      "packId": "c65c2e9f-6d7f-45db-9b0e-85bf78130495",
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "setCode": "S0",
+      "source": "starter",
+      "acquiredAt": "2026-11-22T02:26:12.743Z",
+      "openedAt": null
+     },
+     {
+      "packId": "1d9186cd-62b1-4cdc-8652-05b38dc7e46c",
+      "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+      "setCode": "S0",
+      "source": "starter",
+      "acquiredAt": "2026-11-22T02:26:12.743Z",
+      "openedAt": null
+     }
+    ],
+    "pity": {
+     "packsSinceFullArt": 0,
+     "packsSinceMythic": 0,
+     "next": {
+      "fullArt": false,
+      "mythic": false
+     }
+    },
+    "dailyPack": {
+     "setCode": "S0",
+     "waiting": 1,
+     "cap": 2,
+     "day": "2026-11-22",
+     "timeZone": "Australia/Sydney",
+     "resetsAt": "2026-11-22T13:00:00.000Z",
+     "nextPackAt": "2026-11-22T13:00:00.000Z",
+     "claimedToday": 0,
+     "lastClaimedAt": null
+    },
+    "wallet": {
+     "credits": 0,
+     "packPoints": 0,
+     "unopenedPacks": [
+      {
+       "packId": "f0d385ca-ac54-43f2-a3c2-71d779a20502",
+       "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+       "setCode": "S0",
+       "source": "starter",
+       "acquiredAt": "2026-11-22T02:26:12.743Z",
+       "openedAt": null
+      },
+      {
+       "packId": "c65c2e9f-6d7f-45db-9b0e-85bf78130495",
+       "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+       "setCode": "S0",
+       "source": "starter",
+       "acquiredAt": "2026-11-22T02:26:12.743Z",
+       "openedAt": null
+      },
+      {
+       "packId": "1d9186cd-62b1-4cdc-8652-05b38dc7e46c",
+       "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+       "setCode": "S0",
+       "source": "starter",
+       "acquiredAt": "2026-11-22T02:26:12.743Z",
+       "openedAt": null
+      }
+     ]
+    }
+   },
+   "dailyPack": {
+    "setCode": "S0",
+    "waiting": 1,
+    "cap": 2,
+    "day": "2026-11-22",
+    "timeZone": "Australia/Sydney",
+    "resetsAt": "2026-11-22T13:00:00.000Z",
+    "nextPackAt": "2026-11-22T13:00:00.000Z",
+    "claimedToday": 0,
+    "lastClaimedAt": null
+   },
+   "collection": {
+    "copies": 40,
+    "distinctCards": 20,
+    "cards": [
+     {
+      "cardId": "SW-008",
+      "name": "Barrier Node",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "fc8cc768-bfc7-48fa-8f7c-13e44ee88a56",
+        "cardId": "SW-008",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-020",
+      "name": "Bloodswarm Alpha",
+      "rarity": "Rare",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "347dc405-27d1-4d0c-9357-959123107625",
+        "cardId": "SW-020",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.743Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "ddfaddcd-e8b7-4bf6-b71b-966431eebe1d",
+        "cardId": "SW-020",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.743Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-013",
+      "name": "Bore Swarm",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "3d4e2148-ab94-4c80-880b-7ffd80075bfc",
+        "cardId": "SW-013",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "b3fedce7-3050-4789-b0d1-e9c23751891b",
+        "cardId": "SW-013",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-014",
+      "name": "Brood Reserves",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "11d5245f-f30b-4b77-8b3f-aab88be9c711",
+        "cardId": "SW-014",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-017",
+      "name": "Brood Skitterer",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "a3b15029-6d6c-4622-92e7-cb4f1feaee85",
+        "cardId": "SW-017",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "fdc69afe-da42-41d0-a4e1-86644b9f4330",
+        "cardId": "SW-017",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "33e19001-a776-4d43-a0ad-c45d99e957f8",
+        "cardId": "SW-017",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-002",
+      "name": "Broodcaller",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "c1ce8551-60e2-4536-8b38-0563455b3bdc",
+        "cardId": "SW-002",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "28073938-2f7a-4350-b466-ad54c16e1c8e",
+        "cardId": "SW-002",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "8b2a9e14-5b15-4854-aa84-9ce2276481f7",
+        "cardId": "SW-002",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-018",
+      "name": "Carapace Grunt",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "1209edd8-f60f-46dd-aa7c-987607871251",
+        "cardId": "SW-018",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "c7d839a5-fc28-4b78-929f-fce64d4b19c4",
+        "cardId": "SW-018",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "14758665-cb83-4fb7-b082-7045adeab980",
+        "cardId": "SW-018",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-012",
+      "name": "Chitin Plating",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "35147508-f926-46ce-a605-8bcaf3ac7b34",
+        "cardId": "SW-012",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-015",
+      "name": "Colony Broodling",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "9ef21409-6ab6-4180-9ffb-183b39f6a3c7",
+        "cardId": "SW-015",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "68f21ed4-6538-431a-8058-0d6f1bdc9a99",
+        "cardId": "SW-015",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "44bc9b2f-71d8-41ca-bd83-6c792202d024",
+        "cardId": "SW-015",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-005",
+      "name": "Corrosive Spitter",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "346482c8-93d7-423c-9b33-d433516777b0",
+        "cardId": "SW-005",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "4a8a7b09-b67a-4719-86e9-18e34e47fdb9",
+        "cardId": "SW-005",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "ae6f9072-fe86-4c90-aa87-fdfcc094b443",
+        "cardId": "SW-005",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-010",
+      "name": "Dormant Egg Sac",
+      "rarity": "Rare",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "ee47aa13-2830-416c-9017-7acf8bb66241",
+        "cardId": "SW-010",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-006",
+      "name": "Hive Mother",
+      "rarity": "Mythic",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "edc9fa80-11b9-4ff1-b587-952b60d12641",
+        "cardId": "SW-006",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-011",
+      "name": "Molted Stalker",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "08596166-3923-461e-abcb-0839e25aed90",
+        "cardId": "SW-011",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "a30cb6b8-d344-4c48-8182-36230c2f7083",
+        "cardId": "SW-011",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.727Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-004",
+      "name": "Overclock Beast",
+      "rarity": "Rare",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "d769d3ec-e1f6-47e7-8e39-1e9665cccb42",
+        "cardId": "SW-004",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "ed588eb3-7887-4e4e-a517-0898f98fb74f",
+        "cardId": "SW-004",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-016",
+      "name": "Overgrown Carapace",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "9529752c-4ccb-42b4-bb26-c9d185f7427e",
+        "cardId": "SW-016",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "3f83db86-9c57-48e3-bae2-f65cba27538e",
+        "cardId": "SW-016",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-003",
+      "name": "Rally Cry",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 1,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "57ca0dd7-9565-4054-86bd-3e86e6705222",
+        "cardId": "SW-003",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-009",
+      "name": "Reflex Spike",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "605f37f7-507f-4baa-955b-2dbd988593eb",
+        "cardId": "SW-009",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "d9fc23b7-9880-450a-a7a3-9b73fea45576",
+        "cardId": "SW-009",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-007",
+      "name": "Spore Cluster",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "96bf6725-ccbc-4603-ad0c-b0058d3fc46a",
+        "cardId": "SW-007",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "5e3f1dde-c03d-4d11-ba53-d1723ab2c40f",
+        "cardId": "SW-007",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.719Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-001",
+      "name": "Swarm Larva",
+      "rarity": "Common",
+      "faction": "Swarm",
+      "owned": 3,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "b7fbe138-f308-46b1-bb55-911a6a7244f1",
+        "cardId": "SW-001",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.703Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "98290244-b3d5-4acc-87db-50874f33449f",
+        "cardId": "SW-001",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.703Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "4f594681-5466-4977-9787-572d38396daf",
+        "cardId": "SW-001",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.711Z",
+        "secretCode": null
+       }
+      ]
+     },
+     {
+      "cardId": "SW-019",
+      "name": "Warren Guardian",
+      "rarity": "Uncommon",
+      "faction": "Swarm",
+      "owned": 2,
+      "salvageable": 0,
+      "copies": [
+       {
+        "copyId": "27533d13-d798-4169-89f9-de391b711eef",
+        "cardId": "SW-019",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.735Z",
+        "secretCode": null
+       },
+       {
+        "copyId": "b89672f8-5024-4685-bc0e-4ee797a74f28",
+        "cardId": "SW-019",
+        "finish": "standard",
+        "seriesKind": "set",
+        "seriesCode": null,
+        "serial": null,
+        "runSize": null,
+        "stamp": null,
+        "origin": "starter",
+        "originRef": "starter:Swarm",
+        "accountBound": true,
+        "acquiredAt": "2026-11-22T02:26:12.743Z",
+        "secretCode": null
+       }
+      ]
+     }
+    ],
+    "sets": [
+     {
+      "setCode": "S0",
+      "base": {
+       "held": 20,
+       "total": 124
+      },
+      "secrets": {
+       "held": 0,
+       "total": 19
+      },
+      "glitch": {
+       "held": 0,
+       "total": 16
+      },
+      "gold": {
+       "held": 0,
+       "total": 28
+      },
+      "prototypes": {
+       "runsHeld": 0,
+       "runs": 15,
+       "copiesHeld": 0
+      }
+     }
+    ],
+    "recentPulls": [],
+    "promos": {
+     "signatureCards": [],
+     "earned": []
+    }
+   },
+   "store": {
+    "packs": [
+     {
+      "setCode": "S0",
+      "name": "Season Zero",
+      "priceCredits": 100
+     }
+    ],
+    "dailyPack": {
+     "setCode": "S0",
+     "waiting": 1,
+     "cap": 2,
+     "day": "2026-11-22",
+     "timeZone": "Australia/Sydney",
+     "resetsAt": "2026-11-22T13:00:00.000Z",
+     "nextPackAt": "2026-11-22T13:00:00.000Z",
+     "claimedToday": 0,
+     "lastClaimedAt": null
+    },
+    "cosmetics": [
+     {
+      "itemId": "boast-s0-boot-sequence",
+      "kind": "boast",
+      "name": "Boot Sequence",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:boast/s0-boot-sequence",
+      "description": "The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.",
+      "drawn": true,
+      "owned": false
+     },
+     {
+      "itemId": "boast-s0-dial-up-fireworks",
+      "kind": "boast",
+      "name": "Dial-Up Fireworks",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:boast/s0-dial-up-fireworks",
+      "description": "A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.",
+      "drawn": true,
+      "owned": false
+     },
+     {
+      "itemId": "coin-s0-dial-up-dime",
+      "kind": "coin",
+      "name": "Dial-Up Dime",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:coin/s0-dial-up-dime",
+      "description": "A dark coin with a green CRT-phosphor rim that hums like a modem as it spins.",
+      "drawn": true,
+      "owned": false
+     },
+     {
+      "itemId": "coin-s0-neon-nickel",
+      "kind": "coin",
+      "name": "Neon Nickel",
+      "season": "S0",
+      "faction": null,
+      "priceCredits": 300,
+      "sale": null,
+      "artRef": "code:coin/s0-neon-nickel",
+      "description": "A chrome coin edged in magenta and cyan neon, trailing light through the flip.",
+      "drawn": true,
+      "owned": false
+     }
+    ],
+    "wallet": {
+     "credits": 0,
+     "packPoints": 0,
+     "unopenedPacks": [
+      {
+       "packId": "f0d385ca-ac54-43f2-a3c2-71d779a20502",
+       "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+       "setCode": "S0",
+       "source": "starter",
+       "acquiredAt": "2026-11-22T02:26:12.743Z",
+       "openedAt": null
+      },
+      {
+       "packId": "c65c2e9f-6d7f-45db-9b0e-85bf78130495",
+       "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+       "setCode": "S0",
+       "source": "starter",
+       "acquiredAt": "2026-11-22T02:26:12.743Z",
+       "openedAt": null
+      },
+      {
+       "packId": "1d9186cd-62b1-4cdc-8652-05b38dc7e46c",
+       "ownerId": "6ad721c3-1850-49ba-a7c1-8ca003a155e8",
+       "setCode": "S0",
+       "source": "starter",
+       "acquiredAt": "2026-11-22T02:26:12.743Z",
+       "openedAt": null
+      }
+     ]
+    }
+   },
+   "daily": {
+    "day": "2026-11-22",
+    "timeZone": "Australia/Sydney",
+    "startedAt": "2026-11-21T13:00:00.000Z",
+    "resetsAt": "2026-11-22T13:00:00.000Z",
+    "schedule": [
+     {
+      "fromWin": 1,
+      "toWin": 1,
+      "credits": 30
+     },
+     {
+      "fromWin": 2,
+      "toWin": 4,
+      "credits": 10
+     },
+     {
+      "fromWin": 5,
+      "toWin": 10,
+      "credits": 5
+     },
+     {
+      "fromWin": 11,
+      "toWin": null,
+      "credits": 0
+     }
+    ],
+    "wins": [],
+    "rewardedWins": [],
+    "losses": 0,
+    "maxPaidLosses": 10,
+    "creditsFromWins": 0,
+    "creditsFromLosses": 0,
+    "credits": 0,
+    "nextWinPays": 30,
+    "nextLossPays": 2
+   },
+   "matches": {
+    "matches": [],
+    "total": 0,
+    "more": false
+   },
+   "notifications": {
+    "notifications": [
+     {
+      "notificationId": 48,
+      "kind": "dailyPack",
+      "dailyPack": {
+       "day": "2026-11-22",
+       "readySince": "2026-11-22T02:26:11.855Z",
+       "waiting": 1,
+       "cap": 2
+      },
+      "createdAt": "2026-11-22T02:27:12.023Z",
+      "readAt": null
+     }
+    ],
+    "more": false,
+    "unread": 1,
+    "unreadByKind": {
+     "matchResult": 0,
+     "bigPull": 0,
+     "dailyPack": 1,
+     "autoPlayStopped": 0
+    }
+   },
+   "live": {
+    "running": true,
+    "matches": [
+     {
+      "matchId": "demo-live-009",
+      "startedAt": "2026-11-22T02:26:13.831Z",
+      "released": 17,
+      "nextAt": "2026-11-22T02:27:13.831Z",
+      "p1": {
+       "ownerId": "86af1d6a-b8b7-4a43-a74f-c7c379de9f86",
+       "ownerName": "Nova",
+       "agentId": "f1e6a959-9673-43f5-bddd-b98bccb02046",
+       "agentName": "Vector Halcyon",
+       "playStyle": "calculator",
+       "rating": 1774.2619143851941,
+       "tier": "Platinum",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Cortex"
+      },
+      "p2": {
+       "ownerId": "2f032dbd-0c4d-4119-85ef-aed1076b38b2",
+       "ownerName": "House Swarm",
+       "agentId": "9c20d50f-76a4-46d9-930f-9f9e8927211e",
+       "agentName": "Hive Courier",
+       "playStyle": "rusher",
+       "rating": 1710.9732291939702,
+       "tier": "Placement",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Swarm"
+      },
+      "defaultView": "p1",
+      "now": {
+       "turn": 5,
+       "activePlayer": "p1",
+       "priority": "p1",
+       "stack": 0,
+       "winner": null,
+       "p1": {
+        "name": "Vector Halcyon",
+        "health": 20,
+        "maxHealth": 20,
+        "energy": 3,
+        "maxEnergy": 3,
+        "hand": 4,
+        "deck": 34,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u1",
+          "cardId": "CX-001",
+          "name": "Signal Drone",
+          "attack": 1,
+          "health": 1,
+          "maxHealth": 1,
+          "pending": false,
+          "tools": []
+         },
+         {
+          "instanceId": "u3",
+          "cardId": "CX-013",
+          "name": "Retaliation Node",
+          "attack": 1,
+          "health": 3,
+          "maxHealth": 3,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": null
+       },
+       "p2": {
+        "name": "Hive Courier",
+        "health": 22,
+        "maxHealth": 24,
+        "energy": 0,
+        "maxEnergy": 2,
+        "hand": 5,
+        "deck": 34,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u5",
+          "cardId": "SW-018",
+          "name": "Carapace Grunt",
+          "attack": 2,
+          "health": 2,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": null
+       }
+      },
+      "recentLines": [
+       "p2 plays Carapace Grunt (u5)",
+       "  p2 passes priority",
+       "  p1 passes priority",
+       "[end of turn 4 for p2]",
+       "p1 draws Watchtower Relay",
+       "--- Turn 5 (p1) ---"
+      ],
+      "boast": null,
+      "speed": {
+       "rate": 1,
+       "asks": {
+        "p1": false,
+        "p2": false
+       },
+       "house": {
+        "p1": false,
+        "p2": true
+       },
+       "waitingOn": null
+      },
+      "viewers": 0
+     },
+     {
+      "matchId": "demo-live-010",
+      "startedAt": "2026-11-22T02:26:13.831Z",
+      "released": 17,
+      "nextAt": "2026-11-22T02:27:13.831Z",
+      "p1": {
+       "ownerId": "6533a057-fd86-428e-8ba3-6b1f8d2ca77b",
+       "ownerName": "Rook",
+       "agentId": "546a93f9-05b5-47f0-aae0-a86e82732049",
+       "agentName": "Rook's agent",
+       "playStyle": "calculator",
+       "rating": 1190.0978698130477,
+       "tier": "Bronze",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Aegis"
+      },
+      "p2": {
+       "ownerId": "97e05bf9-f123-4f2b-9bd8-6bc908e1ad29",
+       "ownerName": "House Null",
+       "agentId": "fdf7b708-ee09-44c0-b56d-e8a8a2c1fd21",
+       "agentName": "Static Widow",
+       "playStyle": "gambler",
+       "rating": 1507.3071966891414,
+       "tier": "Placement",
+       "coin": "coin-chrome-token",
+       "arena": null,
+       "faction": "Null"
+      },
+      "defaultView": "p2",
+      "now": {
+       "turn": 4,
+       "activePlayer": "p2",
+       "priority": "p1",
+       "stack": 0,
+       "winner": null,
+       "p1": {
+        "name": "Rook's agent",
+        "health": 19,
+        "maxHealth": 20,
+        "energy": 0,
+        "maxEnergy": 2,
+        "hand": 3,
+        "deck": 35,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u1",
+          "cardId": "AG-001",
+          "name": "Aegis Cadet",
+          "attack": 1,
+          "health": 2,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         },
+         {
+          "instanceId": "u3",
+          "cardId": "AG-019",
+          "name": "Bulwark Chassis",
+          "attack": 1,
+          "health": 3,
+          "maxHealth": 3,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": null
+       },
+       "p2": {
+        "name": "Static Widow",
+        "health": 24,
+        "maxHealth": 24,
+        "energy": 1,
+        "maxEnergy": 2,
+        "hand": 4,
+        "deck": 34,
+        "graveyard": 0,
+        "board": [
+         {
+          "instanceId": "u2",
+          "cardId": "NL-002",
+          "name": "Stray Fragment",
+          "attack": 1,
+          "health": 1,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         },
+         {
+          "instanceId": "u6",
+          "cardId": "NL-002",
+          "name": "Stray Fragment",
+          "attack": 1,
+          "health": 2,
+          "maxHealth": 2,
+          "pending": false,
+          "tools": []
+         }
+        ],
+        "directives": [],
+        "signature": {
+         "cardId": "sig-PR-001",
+         "name": "Encore of the Laser Tag Arena",
+         "cost": 5,
+         "attack": 3,
+         "health": 6,
+         "keywords": [],
+         "rulesText": [
+          "On arrival, your units get +0/+1 this turn."
+         ],
+         "art": "placeholder:signature-pool/S0/339",
+         "flavor": "Static Widow doesn't fight alone; it never has.",
+         "timesPlayed": 0,
+         "inZone": true,
+         "nextCost": 5,
+         "played": false
+        }
+       }
+      },
+      "recentLines": [
+       "  p2 passes priority",
+       "  p1 passes priority",
+       ">>> resolving: Stray Fragment's attack",
+       "  Stray Fragment deals 1 damage to Rook's agent",
+       "p2 plays Stray Fragment (u6)",
+       "  p2 passes priority"
+      ],
+      "boast": null,
+      "speed": {
+       "rate": 1,
+       "asks": {
+        "p1": false,
+        "p2": false
+       },
+       "house": {
+        "p1": false,
+        "p2": true
+       },
+       "waitingOn": null
+      },
+      "viewers": 0
+     }
+    ],
+    "mine": null,
+    "featured": {
+     "tournament": [],
+     "topRated": []
+    }
+   },
+   "settings": {
+    "theme": "system",
+    "background": "glacier",
+    "sound": {
+     "on": true,
+     "volume": 80
+    },
+    "music": {
+     "on": true,
+     "volume": 60
+    },
+    "skipHintSeen": false,
+    "ask2xEveryMatch": false,
+    "notifications": {
+     "bigPulls": true,
+     "matchResults": true,
+     "dailyPack": true
+    },
+    "updatedAt": null
+   }
+  }
+ }
+}

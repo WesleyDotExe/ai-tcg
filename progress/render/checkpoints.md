@@ -7,6 +7,37 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-22 — Render session 83: Season 1 Home mockup A with its navigation (phase 1 step 2) — AWAITING FEEDBACK (four calls)
+
+**What it delivered:** `render/season1/output/home-mockup-a.html`. Open it in a browser; the strip at the top switches
+owner (Nova, weeks in / Wren, new), board (recommended, all S / M / L) and theme. Stills:
+`progress/render/evidence/season1-home-mockup-a-s83/` (`nova-recommended.jpg`, `wren-recommended.jpg`,
+`nova-recommended-phone.jpg` show it best). What A is and where Season 0's nav went: `render/season1/HOME_MOCKUPS.md`.
+
+**A in one line:** the question is the label. Every tile wears its question ("Do I have packs to open?") under its
+name at every size and ends in one button; five places instead of nine (Home, My agent, Watch, Cards, Ladder); no top
+bar on Home, because the tiles are the wallet and the bell.
+
+**Strong:** every number is your server's (the site demo's owner API), and the browser check holds every tile at every
+size to the spec: 56 PASS, nothing overflows, the rating only in Ladder, the credits only in Store, the phone board
+2.7 screens (Season 0's was 3.4). A new player sees words everywhere (no empty chart, no ±350).
+**Thin:** Watch live's 9:16 arena is a drawn stand-in from the live match's state (the real one is step 5); the
+pages behind the nav are stubs; at L some tiles (Store, Daily rewards) have empty space.
+
+**Calls for you (none blocks: B and C come next; the direction itself waits until all three exist):**
+1. **"Settled" when the rating's ± is 100 or under**, "Settling" above: my threshold (Season 0 starts at 350; Nova's
+   is 151 after 23 matches, so she reads Settling). Keep, or another number?
+2. **On a phone every tile shows its S face** (Watch live its 9:16 M), whatever size you picked on the desktop. Keep,
+   or should the phone honour M / L too (longer to scroll)?
+3. **Tournament (Soon) leaves the navigation** until tournaments exist. Keep?
+4. **Cards is one place for Packs, Store and Collection** (tabs inside it). Keep, or separate places?
+
+Still waiting on you (not new): the Home direction (after B and C), the music spec, Open 10 calls 1-2.
+
+**Next:** render 84, mockups B and C.
+
+---
+
 ## 2026-11-22 — Render session 82: the Season 1 Home tile audit and spec (phase 1 step 1) — AWAITING FEEDBACK (four calls)
 
 **What it delivered:** `render/season1/HOME_TILES.md` (read this one), its checked form `render/season1/src/homeSpec.ts`

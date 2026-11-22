@@ -54,3 +54,5 @@ Query options on a built page: `?pov=p2` (start watching as p2), `?mode=tile`, `
 - `src/arenaPage.ts`: the HTML, CSS and the esbuild bundle.
 - `src/build.ts`: plays a match and writes the page.
 - `test/arenaModel.test.ts`, `ci/arena-check.mjs`.
+
+The Season 1 Home (tile spec and mockups) lives alongside: `HOME_TILES.md`, `HOME_MOCKUPS.md`.

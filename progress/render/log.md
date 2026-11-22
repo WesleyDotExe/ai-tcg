@@ -6574,3 +6574,42 @@ My agent at S) fails 2 of the 9 spec tests.
 **Thin:** in quality-debt.md (the audit's fact matching is by text; one data set each; the spec is words, not yet
 drawn). **Blocked:** nothing. **Next:** render 83, phase 1 step 2: Home mockup A with its navigation, in
 `render/season1/`, built from `homeSpec.ts`.
+
+## 2026-11-22 — Render session 83: Season 1 Home mockup A with its navigation (phase 1 step 2)
+
+**Lane:** render. The owner's 2026-11-22 entry (point 7) runs every scheduled session on the render lane until the
+owner says otherwise; the last merged PR was render 82 (#190), and no PR was open. Read first: owner-feedback.md (the
+answers to render 82: keep all 4, marked handled; nothing to change), DESIGN.md, RENDER.md, current.md, this lane's
+log, checkpoints and debt. The plan's next item is phase 1 step 2, Home mockup A with its navigation. No Season 0
+page or source changed; everything is in `render/season1/`.
+
+**Built (all fenced off in `render/season1/`):**
+- `mockup/snapshot.ts`: the Season 0 site demo (ladder on) read through the real owner API as Nova and Wren (15
+  endpoints each), waiting until the featured live match is 5 turns in; writes `mockup/data/home-data.json`.
+- `src/homeFacts.ts` (shared by A, B and C): each of the spec's 47 facts drawn from that data, marked `data-fact`;
+  each tile's next action made concrete for the owner's state; the labels the audit flagged rewritten (pity timers
+  counting down from `LIVE_PACK_ODDS.pity`, "Settling / Settled" with the number only in its explainer, "0 of 5
+  placement matches", no "credits short"). Small cards drawn from attributes (faction field, rarity edge, cost,
+  stats), never a glyph.
+- `src/homeMockupA.ts` + `mockup/buildMockupA.ts` -> `output/home-mockup-a.html` (184 KB, self-contained): A, "the
+  question is the label": every tile's question under its name, one next-action button, the arrow to the page that
+  answers in full; five places (Home, My agent, Watch, Cards, Ladder) on a rail / a phone tab bar; no top bar on Home
+  (the Store and Notifications tiles are the wallet and the bell), a slim one elsewhere; Edit board (S / M / L, move);
+  a phone shows each tile's S face and Watch live's 9:16 M; light and dark on Glacier's colours.
+- `test/homeMockupA.test.ts` (10 tests) and `ci/home-mockup-check.mjs` (headless Chromium).
+- `HOME_MOCKUPS.md`: what A is, where Season 0's nine nav entries went, how to build and check.
+
+**Ran it:** the snapshot (11 s); the build; `node render/season1/ci/home-mockup-check.mjs` -> 56 PASS, 0 FAIL
+(`progress/render/evidence/season1-home-mockup-a-s83/check.txt`, 13 stills): both owners at recommended, all S, all M,
+all L on 1440x900, every tile exactly the spec's facts, its name, question and one action; no tile overflows (the
+first run found 9 overflows and a doubled Start/Stop and Buy, all fixed); Nova's rating only in Ladder, credits only in
+Store, the agent's name only in My agent (plus Watch live as a player and alerts, as the spec allows with two
+agents); none of the audit's unclear labels for Wren; the phone 2.7 screens for Nova, 2.9 for Wren (Season 0's
+board: 3.4), no sideways scroll; every arrow lands where A says; Home without wallet or bell, the other pages with
+both; Edit board resizes; no page errors, no outside requests. Typecheck clean; the render suite 1125 of 1125
+(1115 + 10); a sabotaged fact (credits shown in Packs) fails the one-home test.
+
+**Worked:** drawing every tile from the server's real answers found what the spec's words hid: S tiles that
+overflowed by up to 47 px, a Start / Stop and a Buy drawn twice in one tile. **Thin:** in quality-debt.md (the 9:16
+arena is a stand-in; the other pages are stubs; L tiles have empty space). **Blocked:** nothing. **Next:** render 84,
+mockups B and C on the same tiles and data.

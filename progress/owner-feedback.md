@@ -5039,7 +5039,7 @@ Next session by alternation: game 103 (hardening and fixes only), then render 80
 
 ---
 
-## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); the rest of the plan continues from 18 (2))
+## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; render 83 did 18 (2), Home mockup A with its navigation: `render/season1/HOME_MOCKUPS.md`, `render/season1/output/home-mockup-a.html`, `progress/render/evidence/season1-home-mockup-a-s83/`; 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); the rest of the plan continues from 18 (3))
 
 From the owner's review of PRs #187–#189, the Season 0 launch on the Mac mini, and the owner's look at the Season 0 Home page (a screenshot in chat, not in the repo).
 
@@ -5080,7 +5080,7 @@ Next session: render 82 (the tile audit and spec, phase 1 step 1).
 
 ---
 
-## 2026-11-22 — Owner: answers to render session 82 (the Season 1 Home tile audit and spec), keep all 4
+## 2026-11-22 — Owner: answers to render session 82 (the Season 1 Home tile audit and spec), keep all 4 (HANDLED 2026-11-22, render session 83: all four kept as built in `homeSpec.ts`, nothing to change; mockup A draws them)
 
 **Render session 82** (PR #190, `progress/render/checkpoints.md`, `render/season1/HOME_TILES.md`, `progress/render/evidence/season1-home-audit-s82/`).
 1. **Keep:** Showcase folded into Collection (its M / L "best cards").
