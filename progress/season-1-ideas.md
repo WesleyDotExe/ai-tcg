@@ -236,7 +236,26 @@ both the current dashboard look (the owner loves the Season 0 theme) and the new
 at build time and committed as static files: **the game never calls a model while it runs** (the no-outside-services
 rule, payments excepted). Nothing below is approved build work yet; the owner moves it onto the roadmap.
 
-#### 1. The look in one line: glass over a neon night, with a 90s broadcast on top
+#### 1. The look in one line: a cyberpunk virtual world — glass over a neon night, with a 90s broadcast on top
+
+**[owner] The game is a cyberpunk hacker, semi-neo retro-future, virtual world vibe** (2026-11-22). Every asset
+below serves that: the arena is a virtual world the agents are running in, not a table in a room.
+
+- **Virtual world:** things are rendered, not built. Cards and units **compile into existence** (wireframe →
+  solid → lit), the arena floor is a **simulation grid** that runs to a retro-future horizon, damage is **data
+  breaking up**, and a defeated unit **de-rezzes**. Space reads as cyberspace: depth fog, grid lines, holographic
+  projections, floating UI.
+- **Hacker:** terminal and console motifs (a blinking cursor, monospace readouts, code and hex streams, access
+  prompts, "connection" language), used as accents in the art and the HUD details, never as walls of fake text
+  over the game.
+- **Semi-neo retro-future:** the 80s–90s idea of the future, made new: CRTs and scanlines, VHS and datamosh edges,
+  chrome and neon signage, synth-grid horizons, but rendered cleanly at today's quality (the Geometry Wars-level
+  glow), not lo-fi.
+- **Cyberpunk:** night, neon on dark, hard light and deep shadow, tech-worn surfaces, faction "crews" with their own
+  signage and sigils.
+- The factions already fit: **Cortex** the network (clean data lanes, grids), **Swarm** the bio-code (living,
+  self-replicating code), **Aegis** the firewall (chrome, shields, hard ICE), **Null** the virus (glitch, corruption,
+  RGB split, decay).
 
 Three layers, each with one job, built from what already exists:
 
@@ -260,6 +279,8 @@ Three layers, each with one job, built from what already exists:
   foil marker.
 - **Light:** a cool white key light, the faction colour as the rim light and glow, deep shadows. One rule for every
   asset, so a card, its pack and its boast look lit by the same arena.
+- **The vibe test** for every asset: does it look like it belongs in a cyberpunk virtual world (section 1)?
+  Fantasy-medieval, cute-cartoon or photographic-real-world art does not, however good.
 - **Faction shape language** (from `render/src/factionSkin.ts`, so the art matches the effects): **Cortex** clean,
   networked, precise (square packets, lanes, grids, a square sigil); **Swarm** many small and organic (spores, egg sacs,
   drifting clouds, round forms); **Aegis** chrome, solid, shield-forward (heavy plates, hexagons, thick rings);

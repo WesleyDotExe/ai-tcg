@@ -5123,3 +5123,10 @@ The private repo used up its monthly GitHub Actions minutes (about 30 per build 
 2. **Decision:** `auto-merge.yml` starts when a `test` run finishes (`workflow_run`) and merges only on success, with the same guards (claude/* branches in this repo, the tested sha only, 409 is not a failure, server errors retried). The PR's checks list shows `test` only; a failed `test` re-run is enough, auto-merge follows by itself.
 3. **Decision:** `server/vitest.config.ts` gives the server suite a 30 s per-test limit (as the render suite), so a slow shared runner doesn't fail a PR for nothing.
 4. **Standing rule:** keep the Actions minutes low. Don't add a push-to-main test run or a polling wait back, and keep new CI steps proportionate; each false failure costs a full re-run.
+
+---
+
+## 2026-11-22 — Owner: the game's vibe (for mockups B and C and all visual work)
+
+From the owner's chat review of the January art plan (`progress/season-1-ideas.md`, "the January art plan", section 1).
+1. **Owner's note:** the game is supposed to be a **cyberpunk hacker, semi-neo retro-future, virtual world vibe**. Mockups B and C (render 84) and every later visual session lean into it, on top of the 2026-11-22 note (bring back the Season 0 theme, push harder on visuals): the virtual world, hacker and retro-future motifs as accents and details, never at the cost of the plain-words labels or legibility. What it means for the art is written out in the art plan's section 1.
