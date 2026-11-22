@@ -5077,3 +5077,15 @@ From the owner's review of PRs #187–#189, the Season 0 launch on the Mac mini,
 25. **Not decided:** the Home direction (A, B or C), the pack art design, the music spec, and Open 10 calls 1–2.
 
 Next session: render 82 (the tile audit and spec, phase 1 step 1).
+
+---
+
+## 2026-11-22 — Owner: answers to render session 82 (the Season 1 Home tile audit and spec), keep all 4
+
+**Render session 82** (PR #190, `progress/render/checkpoints.md`, `render/season1/HOME_TILES.md`, `progress/render/evidence/season1-home-audit-s82/`).
+1. **Keep:** Showcase folded into Collection (its M / L "best cards").
+2. **Keep:** the free daily pack is claimed in Packs only (not Daily rewards, Store or Notifications; the alert links to Packs).
+3. **Keep:** Watch live without ratings on its scoreboard (Ladder owns the rating; the match keeps names, factions, health).
+4. **Keep:** "Settling / Settled" instead of ±151 next to the rating, the number only in an explainer.
+
+Next session: render 83 (Home mockup A with its navigation, phase 1 step 2).
