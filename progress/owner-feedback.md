@@ -5039,7 +5039,7 @@ Next session by alternation: game 103 (hardening and fixes only), then render 80
 
 ---
 
-## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan
+## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); the rest of the plan continues from 18 (2))
 
 From the owner's review of PRs #187–#189, the Season 0 launch on the Mac mini, and the owner's look at the Season 0 Home page (a screenshot in chat, not in the repo).
 

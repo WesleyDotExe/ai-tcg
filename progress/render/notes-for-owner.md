@@ -1538,3 +1538,13 @@ season mark) is proposed as a mark, call 1.
 3. **One new dev dependency:** `three` 0.187.0 (and its types) in `render/package.json`, bundled into the prototype's
    page by esbuild; no Season 0 page includes it. Nothing needed from the game lane.
 
+
+---
+
+## 2026-11-22 — Render session 82
+
+1. **The Home tile spec is ready to read:** `render/season1/HOME_TILES.md` (sections 1 and 3 are the ones to read).
+   Four small calls are in `progress/render/checkpoints.md` (session 82); none blocks the next step.
+2. **Two things for the game lane when it resumes** (your points 5 and 6), listed in `progress/current.md`: the
+   10-vs-12-character password mismatch in `season:setup`, and the rehearsal-to-launch switch in the Mac mini guide.
+3. **Nothing needed from you to continue:** render 83 draws mockup A from the spec.

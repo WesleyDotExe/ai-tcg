@@ -6534,3 +6534,43 @@ under load (not this lane's files).
 owner's 5 (b), the Season 1 prototype's next step (the 3D play and attack effects) if Season 0 still has no fix
 waiting, since render 80 and 81 were both debt work; else the fix. Next render hardening pass: 85. **No owner calls
 this session** (nothing taste-led changed; the 30 s limit is a measure, written in the config's header).
+
+## 2026-11-22 — Render session 82: the Season 1 Home tile audit and spec (phase 1 step 1)
+
+**Lane:** render. By alternation the last merged PR (#189, render 81) would make this a game session, but the
+owner's 2026-11-22 entry (point 7) runs the scheduled sessions on the **render lane only** until the owner says
+otherwise; no PR was open. Read first: owner-feedback.md (the 2026-11-22 entry: Season 0 launched early on 22 Nov;
+render only; everything in `render/season1/`; the Season 1 Home / Watch live / pack opening / pack art / music
+plan), DESIGN.md, RENDER.md, current.md, this lane's log and debt. Its plan's next item is phase 1 step 1, the tile
+audit and spec. No Season 0 page or source changed.
+
+**Built (all in `render/season1/`, fenced off):**
+- `audit/auditDemo.ts` + `audit/home-audit.mjs`: the real Season 0 Home (the site demo: the real owner API, a real
+  store, the game lane's ladder playing) read in headless Chromium as Nova (weeks in) and Wren (a brand-new owner
+  made with sign-up's store calls: starter, one agent, no match). The recommended board, all twelve tiles at S, M
+  and L, a phone, the navigation; every tile's text, actions, open target, size, words, overflow; the facts the
+  server returns found in more than one tile.
+- `src/homeSpec.ts`: the spec as data. Nine tiles from twelve (My agent + Agent controls; Ladder + Rating & form;
+  Collection + Showcase) plus a Music tile waiting on its spec; each with its one question, S / M / L facts, a new
+  player's view and a next action at each size, its open target; 47 named facts each with one home; the eight
+  unclear labels and what they become (the pity timers read from `economy/src/config.ts`, not guessed).
+- `test/homeSpec.test.ts` (9 tests): every Season 0 widget lands in one tile (checked against `siteBoard.ts`'s
+  type), every fact one home and no tile showing another's, S ⊆ M ⊆ L with S at most three facts, every tile's
+  question / new-player view / next action, the owner's calls left waiting, every duplicate the audit found given a
+  home, and HOME_TILES.md naming every question.
+- `HOME_TILES.md`: the readable spec, with the audit's findings and their evidence.
+
+**Ran it:** `node render/season1/audit/home-audit.mjs` -> `progress/render/evidence/season1-home-audit-s82/`
+(home-audit.txt, home-audit.json, 10 stills): no page errors, no outside requests. Measured: on Nova's recommended
+board the rating (1774) in 4 tiles, the agent's name in 4, the tier and record in 4; the free daily pack claimable
+from 3 tiles plus the top bar's Open; "±151" (uncertainty) beside "±0 this week" (a change); Match history M
+overflowing 423 px (L 1039), Agent controls L 173, Collection L 294; the recommended board 2898 px tall on a 390 px
+phone (3.4 screens); for Wren, Collection's "No packs opened yet" beside 3 waiting packs (owner observation 17
+reproduced), an empty rating chart with axis labels, a 1132x496 My agent with four lines. Typecheck clean (render,
+and season1 now including `audit/`); `npx vitest run season1` 26 of 26; the whole render suite 1115 of 1115 (1106 + the 9 new); a sabotaged spec (the rating added to
+My agent at S) fails 2 of the 9 spec tests.
+
+**Worked:** reading the server's own answers next to the tiles' text made the duplicates a count, not an opinion.
+**Thin:** in quality-debt.md (the audit's fact matching is by text; one data set each; the spec is words, not yet
+drawn). **Blocked:** nothing. **Next:** render 83, phase 1 step 2: Home mockup A with its navigation, in
+`render/season1/`, built from `homeSpec.ts`.

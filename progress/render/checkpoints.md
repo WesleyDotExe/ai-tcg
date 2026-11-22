@@ -7,6 +7,34 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-22 — Render session 82: the Season 1 Home tile audit and spec (phase 1 step 1) — AWAITING FEEDBACK (four calls)
+
+**What it delivered:** `render/season1/HOME_TILES.md` (read this one), its checked form `render/season1/src/homeSpec.ts`
+with 9 tests, and the audit behind it: the real Season 0 Home read in a browser as an experienced owner and a new
+one (`progress/render/evidence/season1-home-audit-s82/`: `home-audit.txt`, 10 stills; `nova-recommended.jpg`,
+`wren-all-S.jpg` and `wren-all-L.jpg` show the problems best).
+
+**Strong:** the duplicates you saw are measured (the rating in 4 tiles, the agent's name in 4, the free pack
+claimable in 3 tiles plus the top bar), and the spec's tests make "one fact, one tile" and "a tile grows with its
+size" rules a later session can't quietly break. Every tile has a new player's words at every size.
+**Thin:** it is words and tables, not pictures yet: mockups A, B and C (steps 2 and 3) draw it. The audit used the
+demo's data, not your Mac mini's season.
+
+**Calls for you (none blocks: phase 1 continues with mockup A):**
+1. **Showcase folded into Collection** (as its M / L "best cards"): my call, not yours yet. Keep, or keep Showcase
+   as its own tile?
+2. **The free daily pack claimed in Packs only** (not Daily rewards, Store or Notifications; the alert links to
+   Packs). Keep?
+3. **Watch live without ratings** on its scoreboard (Ladder owns the rating; the match keeps names, factions,
+   health). Keep, or do you want the two ratings on the match?
+4. **"Settling / Settled" instead of ±151** next to the rating, the number only in an explainer. Keep?
+
+Waiting on you already (not new): the Home direction (after A, B, C), the music spec, Open 10 calls 1–2.
+
+**Next:** render 83, mockup A with its navigation.
+
+---
+
 ## 2026-11-14 — Render session 79: the Season 1 arena prototype, step 1 (the new layout) — AWAITING FEEDBACK [OWNER CHECK-IN] (five calls)
 
 The head start you asked for: the Season 1 arena spec's step 1, as a separate prototype page in `render/season1/`,
