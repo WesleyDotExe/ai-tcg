@@ -17,6 +17,10 @@ import { CARD_REGISTRY } from "@ai-tcg/engine";
 import { FACTION_HEX, esc } from "../../src/site/siteModel.js";
 import { TIER_HEX } from "../../src/site/siteStanding.js";
 import { avatarSvg } from "../../src/avatar.js";
+import { FACE_SCRIPT, SEALED_PACK_CSS, boastGlyphSymbols, faceSymbols } from "../../src/site/siteFaces.js";
+import { COIN_SCRIPT } from "../../src/site/siteCoins.js";
+import { coinSwatchHtml } from "../../src/site/siteCoinSwatch.js";
+import { cosmeticKind } from "../../src/site/siteShop.js";
 import { FACTS, TILES, type Fact, type Size, type TileSpec } from "./homeSpec.js";
 
 /* ------------------------------------------------------------------ data */
@@ -52,7 +56,7 @@ export interface OwnerData {
     recent: { result: string }[];
     rating: { weekChange: number; chart: { day: string; rating: number | null; rated: number }[] };
   };
-  packs: { unopened: unknown[]; offer: { name: string; priceCredits: number }[]; bulkOpenCount: number; pity: { packsSinceFullArt: number; packsSinceMythic: number } };
+  packs: { unopened: unknown[]; offer: { setCode: string; name: string; priceCredits: number }[]; bulkOpenCount: number; pity: { packsSinceFullArt: number; packsSinceMythic: number } };
   dailyPack: { waiting: number; cap: number; timeZone: string; nextPackAt: string };
   collection: {
     distinctCards: number;
@@ -60,7 +64,7 @@ export interface OwnerData {
     sets: { base: { held: number; total: number }; secrets: { held: number; total: number }; prototypes: { runsHeld: number; runs: number } }[];
     recentPulls: { cards: { cardId: string; name: string; rarity: string; finish: string }[] }[];
   };
-  store: { cosmetics: { name: string; kind: string; priceCredits: number; owned: boolean; description?: string }[] };
+  store: { cosmetics: { itemId: string; name: string; kind: string; faction: string | null; priceCredits: number; owned: boolean; description?: string }[] };
   daily: { timeZone: string; schedule: { fromWin: number; toWin: number | null; credits: number }[]; wins: unknown[]; losses: number; creditsFromWins: number; nextWinPays: number; nextLossPays: number; maxPaidLosses: number };
   matches: { matches: { result: string; credits: number; rating: { change: number } | null; opponent: { ownerName: string; agentName: string }; agentName: string; hasReplay: boolean; hasLog: boolean }[]; total: number };
   notifications: { notifications: Alert[]; unread: number; unreadByKind: Record<string, number> };
@@ -289,10 +293,6 @@ export const RENDER: Record<Fact, Render> = {
     const n = d.packs.unopened.length;
     return fx("unopened", n ? `${big(String(n))}<span>${n === 1 ? "pack" : "packs"} waiting${hasMatches(d) ? "" : ". Open them to add cards your agent can use."}</span>` : `<span>No packs waiting.</span>`, "row");
   },
-  freePack: (d, size) => {
-    const w = d.dailyPack.waiting;
-    return fx("freePack", w ? `<span class="pill ok">Free daily pack ready</span>${size === "S" || !d.packs.unopened.length ? "" : `<button class="btn sm" type="button">Claim</button>`}` : `<span>Next free pack at midnight ${esc(resetPlace(d.dailyPack.timeZone))}.</span>`, "row");
-  },
   guarantee: (d) => {
     const { fullArtAfter, mythicAfter } = LIVE_PACK_ODDS.pity;
     const fa = Math.max(1, fullArtAfter - d.packs.pity.packsSinceFullArt), my = Math.max(1, mythicAfter - d.packs.pity.packsSinceMythic);
@@ -303,17 +303,44 @@ export const RENDER: Record<Fact, Render> = {
     return fx("lastPulls", `${lab("Last pulls")}${cards.length ? `<span class="cards">${cards.map((c) => miniCard(c.cardId, c.name, c.rarity, c.finish)).join("")}</span>` : `<span>Your pulls appear here after your first pack.</span>`}`, "blk");
   },
 
-  /* Store */
-  credits: (d) => fx("credits", `${big(n0(d.wallet.credits))}<span>credits${d.wallet.credits === 0 ? ". Your agent earns credits by winning." : ""}</span>`, "row"),
+  /* Store: a shop window (owner 2026-11-22): what's for sale as pictures
+   * with prices, and Buy. The art is Season 0's own: the sealed pack the
+   * opening tears (its plate), the coin painter, the boasts' emblems. */
+  credits: (d) => fx("credits", `<i class="coin" aria-hidden="true"></i>${big(n0(d.wallet.credits))}<span>credits</span>`, "row"),
+  affordable: (d) => {
+    const c = d.wallet.credits;
+    if (c === 0) return fx("affordable", `<span class="sub">Win matches to earn credits: your agent earns them by winning.</span>`);
+    const o = d.packs.offer[0]!;
+    const packs = Math.floor(c / o.priceCredits);
+    // How many cosmetics the credits buy together (cheapest first), not how
+    // many are each within reach: 449 buys one 300-credit cosmetic, not four.
+    let left = c, items = 0;
+    for (const p of forSale(d).filter((x) => !x.owned).map((x) => x.priceCredits).sort((a, b) => a - b)) if (p <= left) { left -= p; items++; }
+    if (!packs) return fx("affordable", `<span class="sub">${o.priceCredits - c} more credits for a pack.</span>`);
+    return fx("affordable", `<span class="sub">Enough for <b>${plural(packs, "pack")}</b>${items ? ` or <b>${plural(items, "cosmetic")}</b>` : ""}.</span>`);
+  },
   buyPacks: (d, size) => {
     const o = d.packs.offer[0]!;
-    const can = Math.floor(d.wallet.credits / o.priceCredits);
-    if (size === "S") return fx("buyPacks", `<span class="sub">A pack is ${o.priceCredits} credits${can ? `: enough for ${plural(can, "pack")}` : d.wallet.credits === 0 ? "" : `: ${o.priceCredits - d.wallet.credits} more needed`}.</span>`);
-    return fx("buyPacks", `<span>${esc(o.name)} pack · ${o.priceCredits} credits</span><span class="sub">${can ? `You can buy ${plural(can, "pack")}.` : d.wallet.credits === 0 ? "Win matches to earn credits." : `${o.priceCredits - d.wallet.credits} more credits for a pack.`}</span>`, "row wrap");
+    const counts = size === "L" ? [1, d.packs.bulkOpenCount] : [1];
+    return fx("buyPacks", `${lab(size === "L" ? "Packs" : "Featured pack")}<div class="shelf">${counts.map((n) => shopItem({
+      art: n === 1 ? `<span class="pk">${sealedPack(o.setCode, size === "L" ? 54 : 60)}</span>` : `<span class="pk pile">${sealedPack(o.setCode, 46)}${sealedPack(o.setCode, 46)}${sealedPack(o.setCode, 46)}<b>×${n}</b></span>`,
+      name: n === 1 ? "1 pack" : `${n} packs`,
+      sub: `${o.name} · ${n * 5} cards`,
+      price: o.priceCredits * n,
+      can: d.wallet.credits >= o.priceCredits * n,
+      tone: "#8b5cff",
+    })).join("")}</div>`, "blk");
   },
   cosmetics: (d, size) => {
-    const items = d.store.cosmetics.slice(0, size === "L" ? 8 : 2);
-    return fx("cosmetics", `${lab("On sale")}<ul class="list">${items.map((c) => `<li><b>${esc(c.name)}</b> <span class="sub">${esc(c.kind)}</span><span class="price">${c.owned ? "Owned" : `${c.priceCredits} credits`}</span></li>`).join("")}</ul>`, "blk");
+    const all = forSale(d);
+    if (size !== "L") {
+      const featured = [...all.filter((c) => !c.owned), ...all.filter((c) => c.owned)].slice(0, 3);
+      return fx("cosmetics", `${lab("Featured cosmetics")}<div class="shelf">${featured.map((c) => cosmeticItem(c, d)).join("")}</div>`, "blk");
+    }
+    const kinds = [...new Set(all.map((c) => c.kind))];
+    const none = SHELF_KINDS.filter((k) => !kinds.includes(k)).map((k) => cosmeticKind(k).toLowerCase() + "s");
+    return fx("cosmetics", kinds.map((k) => `<div class="sgroup">${lab(cosmeticKind(k) + "s")}<div class="shelf">${all.filter((c) => c.kind === k).map((c) => cosmeticItem(c, d)).join("")}</div></div>`).join("") +
+      (none.length ? `<span class="sub">No ${esc(listWords(none))} on sale this season.</span>` : ""), "blk shelfL");
   },
 
   /* Collection */
@@ -351,6 +378,10 @@ export const RENDER: Record<Fact, Render> = {
       return `<li class="${state}"><span>${label}</span><b>${r.credits} each</b></li>`;
     });
     return fx("winSchedule", `${lab("Today's pay")}<ol class="steps">${steps.join("")}</ol><span class="sub">Wins pay credits, the first win most. A loss pays ${d.daily.nextLossPays} (up to ${d.daily.maxPaidLosses} a day).</span>`, "blk");
+  },
+  freePack: (d) => {
+    const w = d.dailyPack.waiting;
+    return fx("freePack", w ? `<span class="pill ok">${w > 1 ? `${w} free daily packs ready` : "Free daily pack ready"}</span>` : `<span class="sub">Free pack claimed. The next one comes at midnight ${esc(resetPlace(d.dailyPack.timeZone))}.</span>`, "row");
   },
   dayReset: (d) => fx("dayReset", `${lab("Resets")}<span>at midnight ${esc(resetPlace(d.daily.timeZone))}</span>`, "kv"),
 
@@ -390,7 +421,7 @@ export const RENDER: Record<Fact, Render> = {
 
 /** The alert, linked to the tile that owns its subject. */
 export function alertText(a: Alert, oneAgent: boolean): string {
-  if (a.kind === "dailyPack") return `Your free daily pack is waiting <a class="to" data-to="packs">Packs</a>`;
+  if (a.kind === "dailyPack") return `Your free daily pack is waiting <a class="to" data-to="daily">Daily rewards</a>`;
   if (a.kind === "matchResult" && a.matchResult) {
     const m = a.matchResult;
     const who = oneAgent ? "" : `${esc(m.agentName)}: `;
@@ -403,6 +434,80 @@ export function alertText(a: Alert, oneAgent: boolean): string {
 
 export function featured(d: OwnerData): LiveMatch | null {
   return d.live.matches.find((m) => m.matchId === d.live.mine) ?? d.live.matches[0] ?? null;
+}
+
+/* ------------------------------------------------- the shop window */
+
+/** The cosmetic kinds a full shelf groups by (owner 2026-11-22: arenas,
+ * card backs (deck sleeves), boasts, coins, avatars). Only what the server
+ * sells is drawn; a kind with nothing on sale is named in one line. */
+export const SHELF_KINDS = ["arena", "cardBack", "boast", "coin", "avatar"] as const;
+const listWords = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} or ${xs[xs.length - 1]}`);
+
+type ForSale = OwnerData["store"]["cosmetics"][number];
+const forSale = (d: OwnerData) => d.store.cosmetics as ForSale[];
+
+let plateCache: Map<string, string> | null = null;
+/** The sealed pack's plate (the circuit field and the four faction marks),
+ * from the pack page's own pure source, run here at build time. */
+function plateOf(setCode: string): string {
+  plateCache ??= new Map();
+  if (!plateCache.has(setCode)) {
+    const w: { SITE_FACE?: { packPlateSvg(s: string): string } } = {};
+    new Function("window", FACE_SCRIPT)(w);
+    plateCache.set(setCode, w.SITE_FACE!.packPlateSvg(setCode));
+  }
+  return plateCache.get(setCode)!;
+}
+/** Season 0's sealed pack (the markup siteShop.sealedPackHtml draws, with
+ * its plate), `px` wide. */
+export function sealedPack(setCode: string, px: number): string {
+  return `<div class="spk" style="--pw:${Math.round(px)}px" aria-hidden="true"><div class="wrap"><div class="pa">${plateOf(setCode)}</div><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="crimp b"></div></div></div>`;
+}
+
+function shopItem(x: { art: string; name: string; sub: string; price: number; can: boolean; owned?: boolean; tone: string }): string {
+  return `<figure class="si" style="--c:${x.tone}"><span class="si-art">${x.art}${x.owned ? "" : `<span class="si-p"><i class="coin" aria-hidden="true"></i>${n0(x.price)}<span class="vh"> credits</span></span>`}</span>` +
+    `<figcaption><b>${esc(x.name)}</b><small>${esc(x.sub)}</small></figcaption>` +
+    (x.owned ? `<span class="pill ok si-own">Owned</span>` : `<button type="button" class="btn sm si-buy"${x.can ? "" : " disabled"}>Buy</button>`) + `</figure>`;
+}
+
+function cosmeticItem(c: ForSale, d: OwnerData): string {
+  const tone = (c.faction && FACTION_HEX[c.faction]) || "#8f8cff";
+  const art = c.kind === "coin" && c.itemId ? coinSwatchHtml(c.itemId, { w: 84, h: 64 })
+    : `<span class="sh-emb" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="sh-hex" d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z"/>${c.kind === "boast" && c.itemId ? `<g class="sh-glyph" transform="translate(5.4 5.4) scale(.55)"><use href="#lg-${esc(c.itemId)}"/></g>` : ""}</svg></span>`;
+  return shopItem({ art, name: c.name, sub: cosmeticKind(c.kind), price: c.priceCredits, can: d.wallet.credits >= c.priceCredits, owned: c.owned, tone });
+}
+
+/** What a page needs once for the shop window's art: the pack's and the
+ * boasts' symbols, the coin painter, and their CSS. */
+export function homeArt(): { css: string; defs: string; script: string } {
+  return {
+    defs: faceSymbols() + boastGlyphSymbols(),
+    script: COIN_SCRIPT,
+    css: `${SEALED_PACK_CSS}
+.coin { display: inline-block; flex: none; width: 1em; height: 1em; border-radius: 50%; vertical-align: -.12em; background: radial-gradient(circle at 35% 30%, #fff4c4, #ffcf5c 45%, #b9801c); box-shadow: inset 0 0 0 1.5px rgba(120,70,0,.45); }
+.big + span .coin { margin-right: 4px; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.shelf { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+.si { --c: #8f8cff; margin: 0; display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 118px; padding: 6px; border-radius: 14px; background: color-mix(in srgb, var(--c) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 34%, transparent); }
+.si-art { position: relative; height: 92px; display: grid; place-items: center; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(ellipse 80% 70% at 50% 60%, color-mix(in srgb, var(--c) 38%, transparent), transparent 70%), linear-gradient(180deg, #0b0f2a, #161a44); }
+.si-art::after { content: ""; position: absolute; inset: auto 0 0; height: 40%; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent) 0 1px, transparent 1px 12px), linear-gradient(transparent, color-mix(in srgb, var(--c) 18%, transparent)); mask: linear-gradient(transparent, #000); pointer-events: none; }
+.si-art .spk { box-shadow: 0 8px 18px rgba(0,0,0,.5), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); z-index: 1; }
+.si-art .sh-emb { width: 60px; height: 60px; z-index: 1; color: var(--c); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c) 70%, transparent)); }
+.si-art .sh-emb svg { width: 100%; height: 100%; overflow: visible; }
+.si-art .sh-hex { fill: color-mix(in srgb, var(--c) 18%, #0b0d2a); stroke: currentColor; stroke-width: 1.1; }
+.si-art .sh-glyph { color: #fff; } .si-art .sh-glyph use { color: color-mix(in srgb, var(--c) 40%, #fff); }
+.si-art .si-pv { z-index: 1; display: block; } .si-art canvas { display: block; }
+.pk.pile { position: relative; width: 84px; height: 80px; z-index: 1; } .pk.pile .spk { position: absolute; top: 3px; } .pk.pile .spk:nth-child(1) { left: 2px; transform: rotate(-12deg); } .pk.pile .spk:nth-child(2) { left: 36px; transform: rotate(12deg); } .pk.pile .spk:nth-child(3) { left: 19px; }
+.pk.pile b { position: absolute; right: -2px; bottom: 2px; z-index: 2; font-size: 12px; padding: 1px 6px; border-radius: 7px; background: #0b0f2a; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.si-p { position: absolute; right: 5px; bottom: 5px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 4px; border-radius: 999px; font-weight: 800; font-size: 12px; color: #fff; background: rgba(6,8,26,.8); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+.si figcaption { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.si figcaption b { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .si figcaption small { font-size: 11px; color: var(--muted); }
+.si-buy { width: 100%; } .si-own { align-self: flex-start; font-size: 11px; }
+.shelfL { gap: 8px; } .sgroup { display: flex; flex-direction: column; gap: 4px; }
+`,
+  };
 }
 
 /* ---------------------------------------------- a tile's next action */
@@ -423,15 +528,16 @@ export function nextAction(t: TileSpec, size: Size, d: OwnerData): Action {
     case "watch":
       return featured(d) ? { label: size === "S" ? "Watch" : "Full screen", to: "watch", primary: true } : { label: "See the schedule", to: "watch", primary: false };
     case "packs":
-      if (d.packs.unopened.length) return { label: `Open ${d.packs.unopened.length === 1 ? "pack" : "a pack"}`, to: "cards", primary: true };
-      return d.dailyPack.waiting ? { label: "Claim free pack", to: "cards", primary: true } : { label: "Go to Store", to: "cards", primary: false };
+      return d.packs.unopened.length ? { label: "Open a pack", to: "cards", primary: true } : { label: "Buy packs in Store", to: "cards", primary: false };
     case "store":
-      return d.wallet.credits >= d.packs.offer[0]!.priceCredits ? { label: "Buy a pack", to: "cards", primary: false } : { label: "How to earn credits", to: "cards", primary: false };
+      if (size !== "S") return { label: "See the whole Store", to: "cards", primary: false };
+      return d.wallet.credits >= d.packs.offer[0]!.priceCredits ? { label: "Buy", to: "cards", primary: false } : { label: "How to earn credits", to: "cards", primary: false };
     case "collection":
       if (!d.collection.recentPulls.length && d.packs.unopened.length && size !== "L") return { label: "Open packs", to: "cards", primary: true };
       return { label: size === "L" ? "Open the binder" : "Open Collection", to: "cards", primary: false };
     case "daily":
-      return { label: "Earnings in Stats", to: "ladder", primary: false };
+      // Owner 2026-11-22: the free daily pack is claimed here.
+      return d.dailyPack.waiting ? { label: "Claim free pack", to: "daily", primary: true } : { label: "Earnings in Stats", to: "ladder", primary: false };
     case "history":
       if (!d.matches.total) return { label: "Start your agent", to: "agent", primary: true };
       return { label: size === "S" ? "Open the last match" : "All matches", to: "agent", primary: false };

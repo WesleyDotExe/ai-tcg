@@ -7,6 +7,51 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-22 — Render session 84: Season 1 Home mockups B and C, side by side with A (phase 1 step 3) — [OWNER CHECK-IN] AWAITING FEEDBACK (pick a direction; four calls)
+
+**Start here:** `render/season1/output/home-compare.html` (open in a browser): A, B and C live side by side, the same
+owner (Nova, weeks in / Wren, new) and screen (desktop / phone) for all three. Each opens on its own too
+(`home-mockup-a.html`, `-b.html`, `-c.html`; the strip at the top switches owner, board and theme). Stills:
+`progress/render/evidence/season1-home-mockups-s84/` (`compare-nova-desktop.jpg`, `compare-wren-desktop.jpg`,
+`compare-wren-phone.jpg`, then `b/` and `c/`). What each is: `render/season1/HOME_MOCKUPS.md`.
+
+**The three, in a line each:**
+- **A · the question is the label:** every tile's question under its name, one button; a plain dark look; a rail.
+- **B · the headline first:** the Season 0 glass back (light by default); each tile leads with its answer, big, with a
+  picture (rings, the fanned sealed packs, the tier badge); the question behind a "?"; a top bar.
+- **C · what needs you first:** the neon-night console; Home orders itself, the tiles that need you first, each saying
+  why ("A free pack to claim", "Your agent hasn't started yet"); the question as a code comment; a full-height console
+  rail with keys 1-5 and a Jump-to palette.
+
+**Your 2026-11-22 notes, done in all three:** claim in Daily rewards, open in Packs, buy in Store; the Store as a shop
+window with Season 0's own pack, coin and boast pictures and prices; the rail's glass the page's full height. B and
+C also size each tile to its content, which removes the empty space you saw at L.
+
+**Strong:** same tiles, same spec, same real data in all three, held by one browser check: A 60, B 68, C 78 PASS, 0
+FAIL (every tile's facts at every size, no overflow, no overlap, one home per fact, the navigation, Edit board, the
+phone, no outside requests). 47 unit tests in `render/season1`. A test caught "Enough for 4 packs or 4 cosmetics"
+(449 credits buy one 300-credit cosmetic); fixed.
+**Thin:** still mockups: the pages behind the navigation are stubs, Watch live's 9:16 arena is a stand-in (step 5),
+the buttons other than navigation don't act, Edit board doesn't save.
+
+**Waiting on owner: the Home direction.** A, B or C, or parts of two (for example B's look with C's "Needs you"
+ordering, or C's rail on B). Phase 2 starts from your pick.
+
+**Calls for you (none blocks: the next sessions do steps 4-6):**
+1. **Tiles as tall as their content** (B and C, masonry) instead of fixed rows (A). Keep for the pick?
+2. **C's reasons**: "Your credits can buy something" may stay up most of the time for a winning agent. Keep it as a
+   need, or only show what needs an action today (the free pack, packs, a stopped agent, new alerts, a live match)?
+3. **Store at M / L**: a small Buy under each picture, plus "See the whole Store" as the tile's one button. Keep?
+4. **B's default theme is light** (Season 0's default); C's is dark (the neon night). Keep each, or one default for
+   whichever you pick?
+
+Still waiting on you (not new): the music spec (step 6), Open 10 calls 1-2.
+
+**Next:** render 85, phase 1 step 4: the pack-opening flash audit, an automatic flash check and the storyboard (a
+render hardening pass is due about now; it comes right after if the list allows).
+
+---
+
 ## 2026-11-22 — Render session 83: Season 1 Home mockup A with its navigation (phase 1 step 2) — AWAITING FEEDBACK (four calls)
 
 **What it delivered:** `render/season1/output/home-mockup-a.html`. Open it in a browser; the strip at the top switches

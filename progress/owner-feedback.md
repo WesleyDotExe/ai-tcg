@@ -5039,7 +5039,7 @@ Next session by alternation: game 103 (hardening and fixes only), then render 80
 
 ---
 
-## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; render 83 did 18 (2), Home mockup A with its navigation: `render/season1/HOME_MOCKUPS.md`, `render/season1/output/home-mockup-a.html`, `progress/render/evidence/season1-home-mockup-a-s83/`; 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); the rest of the plan continues from 18 (3))
+## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; render 83 did 18 (2), Home mockup A with its navigation: `render/season1/HOME_MOCKUPS.md`, `render/season1/output/home-mockup-a.html`, `progress/render/evidence/season1-home-mockup-a-s83/`; render 84 did 18 (3), Home mockups B and C and the side-by-side page: `render/season1/output/home-mockup-b.html`, `home-mockup-c.html`, `home-compare.html`, `progress/render/evidence/season1-home-mockups-s84/`; **waiting on owner: pick a Home direction** (`progress/render/checkpoints.md`, render 84); 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); the rest of the plan continues from 18 (4))
 
 From the owner's review of PRs #187–#189, the Season 0 launch on the Mac mini, and the owner's look at the Season 0 Home page (a screenshot in chat, not in the repo).
 
@@ -5092,7 +5092,7 @@ Next session: render 83 (Home mockup A with its navigation, phase 1 step 2).
 
 ---
 
-## 2026-11-22 — Owner: answers to render session 83 (Season 1 Home mockup A with its navigation), keep all 4
+## 2026-11-22 — Owner: answers to render session 83 (Season 1 Home mockup A with its navigation), keep all 4 (HANDLED 2026-11-22, render session 84: all four kept as built; B and C follow them too: Settled at 100, a phone shows S faces (Watch live its M), no Tournament in the navigation, Cards holds Packs, Store and Collection)
 
 **Render session 83** (PR #191, `progress/render/checkpoints.md`, `render/season1/output/home-mockup-a.html`, `render/season1/HOME_MOCKUPS.md`, `progress/render/evidence/season1-home-mockup-a-s83/`).
 1. **Keep:** "Settled" when the rating's ± is 100 or under, "Settling" above.
@@ -5104,7 +5104,7 @@ Next session: render 84 (Home mockups B and C, phase 1 step 3).
 
 ---
 
-## 2026-11-22 — Owner: the Season 1 Home's pack tiles and Store tile (changes render 82 call 2); a note for mockups B and C
+## 2026-11-22 — Owner: the Season 1 Home's pack tiles and Store tile (changes render 82 call 2); a note for mockups B and C (HANDLED 2026-11-22, render session 84 — 1-2: the spec moved `freePack` to Daily rewards ("Claim free pack"), Packs keeps only `unopened` ("Open a pack"), the free pack's alert shows the Daily rewards tile; `homeSpec.ts`, `HOME_TILES.md`, test `season1/test/homeMockupsBC.test.ts`. 3: the Store tile is a shop window in A, B and C (`homeFacts.ts`): S credits and how many things they buy, M the featured pack and 3 cosmetics as pictures with prices and Buy, L the full shelf (packs in a row, cosmetics by type), Season 0's own pack, coin and boast art; only what the server sells. 4: B brings back the Season 0 glass and pushes the visuals (headline tiles with pictures); C leans into the vibe; both size tiles to their content (masonry), so no empty space; the rail's glass runs the full page height in A and C (checked in the browser); B has a top bar)
 
 From the owner's review of render 83's mockup A (PR #191, `render/season1/output/home-mockup-a.html`). Applies to the spec (`render/season1/HOME_TILES.md`, `src/homeSpec.ts`) and to mockups A, B and C.
 1. **Decision (replaces render 82 call 2):** the free daily pack is claimed from the **Daily rewards** tile ("Claim free pack"). A claimed pack lands in Packs. Each pack action has one home: claim in Daily rewards, open in Packs, buy in Store.
@@ -5126,7 +5126,7 @@ The private repo used up its monthly GitHub Actions minutes (about 30 per build 
 
 ---
 
-## 2026-11-22 — Owner: the game's vibe (for mockups B and C and all visual work)
+## 2026-11-22 — Owner: the game's vibe (for mockups B and C and all visual work) (HANDLED for B and C 2026-11-22, render session 84: B as accents on the Season 0 glass (chrome wordmark, circuit grid and synth horizon behind the glass, monospace kickers, a static scan sheen); C leads with it (the neon-night grid to a horizon, scanlines, HUD panels with cut corners, a terminal prompt, the question as a code comment, a command palette); plain-word labels kept in both. Standing for later visual sessions)
 
 From the owner's chat review of the January art plan (`progress/season-1-ideas.md`, "the January art plan", section 1).
 1. **Owner's note:** the game is supposed to be a **cyberpunk hacker, semi-neo retro-future, virtual world vibe**. Mockups B and C (render 84) and every later visual session lean into it, on top of the 2026-11-22 note (bring back the Season 0 theme, push harder on visuals): the virtual world, hacker and retro-future motifs as accents and details, never at the cost of the plain-words labels or legibility. What it means for the art is written out in the art plan's section 1.

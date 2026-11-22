@@ -6613,3 +6613,40 @@ both; Edit board resizes; no page errors, no outside requests. Typecheck clean; 
 overflowed by up to 47 px, a Start / Stop and a Buy drawn twice in one tile. **Thin:** in quality-debt.md (the 9:16
 arena is a stand-in; the other pages are stubs; L tiles have empty space). **Blocked:** nothing. **Next:** render 84,
 mockups B and C on the same tiles and data.
+
+## 2026-11-22 — Render session 84: Season 1 Home mockups B and C, side by side with A (phase 1 step 3)
+
+Render lane (the owner's 2026-11-22 point 7: scheduled sessions run the render lane only; last merged PR #192 was not
+"Render:", no open render PR). Owner feedback read first: the answers to render 83 (keep all 4), the pack tiles and
+Store tile decision with a note for B and C, the Actions-minutes fix, the game's vibe. All in `render/season1/`.
+
+**Built (all fenced off in `render/season1/`):**
+- The owner's pack decision in the spec (`src/homeSpec.ts`, `HOME_TILES.md`): `freePack` moved to Daily rewards
+  ("Claim free pack"), Packs keeps `unopened` ("Open a pack"), a new fact `affordable` (S: credits and what they buy),
+  `buyPacks` and `cosmetics` as pictures with prices (M featured, L the full shelf by type). The alert links to Daily
+  rewards.
+- `src/homeFacts.ts`: the shop window, drawn with Season 0's own art: the sealed pack with its plate (the pack page's
+  pure source run at build time), the coin painter (`COIN_SCRIPT`), the boasts' emblems; `homeArt()` gives a page
+  their CSS, symbols and script. "What the credits buy" counts cheapest-first (449 buys one 300 cosmetic).
+- `src/homeShell.ts`: what B and C share: the payload, the mockup strip, the routes, Edit board, the stubs, and the
+  masonry packing (tiles as tall as their content; dense flow).
+- `src/homeMockupB.ts` (B, the headline first: Season 0 glass, headline + picture, the question behind "?", a top
+  bar), `src/homeMockupC.ts` (C, what needs you first: `needsOf` from the server's answers, Needs you / All quiet,
+  the neon night, HUD panels, a full-height console rail with keys 1-5 and a Jump-to palette), `src/homeCompare.ts`
+  (the three live side by side), `mockup/buildMockups.ts`.
+- Mockup A updated for the owner's note: the shop window, the alert to Daily rewards, the rail's glass full height.
+- `test/homeMockupsBC.test.ts` (11 tests); `ci/home-mockup-check.mjs` now checks A, B or C (or all): plus tile
+  overlap (masonry), the rail's full height, B's "?", C's order and reasons, the jump palette and key 5, the free
+  pack's alert showing Daily rewards.
+
+**Ran it:** the builds; `node render/season1/ci/home-mockup-check.mjs all` -> A 60, B 68, C 78 PASS, 0 FAIL
+(`progress/render/evidence/season1-home-mockups-s84/{a,b,c}/check.txt`, 14-15 stills each); the comparison page
+screenshotted for both owners and the phone (`compare-*.jpg`). First runs found: A's Store at M / L overflowing by
+155-331 px (laid out), C's S tiles by 2 px (line height), C's places read with their key hints (the check reads the
+label), the alert check on a board with no alert list (moved to all-M). Typecheck clean; the render suite 1136 of 1136
+(73 files). The unit test caught "Enough for 4 packs or 4 cosmetics" for 449 credits (each cosmetic 300): fixed to
+"or 1 cosmetic".
+
+**Worked:** reusing Season 0's real pack plate, coins and boast emblems made the Store pictures look like the game, not
+placeholders. **Thin:** in quality-debt.md. **Blocked:** the direction waits on the owner (phase 2). **Next:** render
+85, the pack-opening flash audit, check and storyboard.

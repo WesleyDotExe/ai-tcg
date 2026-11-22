@@ -24,7 +24,7 @@
 import { ICONS, esc, icon } from "../../src/site/siteModel.js";
 import { BACKGROUNDS } from "../../src/site/siteLook.js";
 import { TILES, type Size } from "./homeSpec.js";
-import { nextAction, tileFacts, type HomeData, type OwnerData } from "./homeFacts.js";
+import { homeArt, nextAction, tileFacts, type HomeData, type OwnerData } from "./homeFacts.js";
 
 /** A's five places, and what each holds. `from` lists the tiles whose
  * arrow lands there; the spec's page ids (Season 0's) map onto them. */
@@ -32,7 +32,7 @@ export const A_PAGES = [
   { id: "home", name: "Home", icon: "home", holds: ["your tiles"], from: [] as string[] },
   { id: "agent", name: "My agent", icon: "match", holds: ["Start / Stop and play time", "personality and deck", "match history, replays and logs", "connect or add an agent"], from: ["agent", "history"] },
   { id: "watch", name: "Watch", icon: "eye", holds: ["the featured match, full screen", "every live match", "play-by-play and chat"], from: ["watch"] },
-  { id: "cards", name: "Cards", icon: "col", holds: ["Packs: open, claim the free pack", "Store: buy packs and cosmetics", "Collection: the binder, salvage and crafting"], from: ["packs", "store", "collection"] },
+  { id: "cards", name: "Cards", icon: "col", holds: ["Packs: open the packs you have", "Store: buy packs and cosmetics", "Collection: the binder, salvage and crafting"], from: ["packs", "store", "collection"] },
   { id: "ladder", name: "Ladder", icon: "trophy", holds: ["the ladder and your place", "your rating, form and stats", "today's earnings"], from: ["ladder", "daily"] },
 ] as const;
 export type APage = (typeof A_PAGES)[number]["id"] | "settings" | "alerts";
@@ -105,6 +105,7 @@ export function mockupAPage(data: HomeData): string {
   const g = BACKGROUNDS.glacier as unknown as { light: number[][]; dark: number[][] };
   const pages = A_PAGES.map((p) => ({ ...p, from: [...p.from].map((id) => TILES.find((t) => t.id === id)!.name) }));
   const payload = JSON.stringify({ owners, boards: A_BOARDS, pages, takenAt: data.takenAt }).replace(/</g, "\\u003c");
+  const art = homeArt();
   const rail = A_PAGES.map((p) => `<a href="#/${p.id}" data-go="${p.id}" class="nav" aria-label="${p.name}">${icon(p.icon as keyof typeof ICONS, 22)}<span>${p.name}</span></a>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Season 1 Home, mockup A</title>
@@ -127,13 +128,15 @@ button { font: inherit; color: inherit; }
 .mock b { color: var(--ink); } .mock .seg { display: inline-flex; gap: 2px; } .mock button { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
 .mock button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
 .app { display: grid; grid-template-columns: 92px minmax(0, 1fr); min-height: calc(100vh - 31px); }
-.rail { position: sticky; top: 0; height: calc(100vh - 31px); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 0; background: var(--glass); border-right: 1px solid var(--glass-edge); backdrop-filter: blur(18px); }
+/* The rail's glass runs the page's full height (owner 2026-11-22: it stopped short); its contents stay in view. */
+.rail { background: var(--glass); border-right: 1px solid var(--glass-edge); backdrop-filter: blur(18px); }
+.rail-in { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 0; }
 .logo { font-weight: 800; letter-spacing: .04em; font-size: 13px; margin-bottom: 12px; text-align: center; line-height: 1.1; }
 .logo i { display: block; font-style: normal; color: var(--accent); font-size: 18px; }
 .nav { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 76px; padding: 9px 0 7px; border-radius: 14px; color: var(--muted); text-decoration: none; font-size: 11.5px; font-weight: 600; }
 .nav:hover { color: var(--ink); background: var(--soft); }
 .nav[aria-current="page"] { color: var(--ink); background: linear-gradient(135deg, rgba(111,134,255,.32), rgba(139,92,255,.26)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
-.rail .foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.rail-in .foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .acct { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
 main { padding: 22px 26px 40px; min-width: 0; }
 .top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; min-height: 40px; }
@@ -244,6 +247,18 @@ main { padding: 22px 26px 40px; min-width: 0; }
 .none { font-size: 10px; opacity: .5; }
 .disc { text-align: center; font-size: 10.5px; padding: 6px; border-radius: 999px; background: rgba(255,255,255,.07); }
 .proto { position: absolute; left: 50%; top: 50%; transform: translate(-50%, 18px); white-space: nowrap; font-size: 9.5px; opacity: .55; }
+.flash { animation: flash 1.6s ease-out 1; } @keyframes flash { 0% { box-shadow: 0 0 0 3px var(--accent), var(--shadow); } 100% { box-shadow: var(--shadow); } }
+${art.css}
+.tile .si { width: 104px; padding: 5px; } .tile .si-art { height: 74px; } .tile .si-art .sh-emb { width: 48px; height: 48px; }
+.tile[data-tile="store"]:not(.t-S) .body { display: grid; grid-template-columns: max-content minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 4px 18px; align-content: start; }
+.tile[data-tile="store"]:not(.t-S) [data-fact="credits"], .tile[data-tile="store"]:not(.t-S) [data-fact="affordable"] { grid-column: 1; }
+.tile[data-tile="store"]:not(.t-S) [data-fact="affordable"] { max-width: 230px; }
+.tile[data-tile="store"]:not(.t-S) [data-fact="buyPacks"] { grid-column: 1; grid-row: 3; }
+.tile[data-tile="store"]:not(.t-S) [data-fact="cosmetics"] { grid-column: 2; grid-row: 1 / span 3; }
+.tile[data-tile="store"].t-L .body { grid-template-columns: max-content max-content minmax(0, 1fr); grid-template-rows: auto 1fr; }
+.tile[data-tile="store"].t-L [data-fact="buyPacks"] { grid-column: 2; grid-row: 1 / span 2; }
+.tile[data-tile="store"].t-L [data-fact="cosmetics"] { grid-column: 3; grid-row: 1 / span 2; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 4px 18px; }
+.tile[data-tile="store"].t-L [data-fact="cosmetics"] > .sub { flex-basis: 100%; }
 .pg { padding: 18px 20px; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--shadow); max-width: 760px; }
 .pg h2 { margin: 0 0 6px; } .pg ul { margin: 6px 0 12px; } .pg .sub { display: block; }
 .tabs { display: none; }
@@ -272,11 +287,13 @@ main { padding: 22px 26px 40px; min-width: 0; }
   <span>Data: the Season 0 site demo's owner API, read ${esc(data.takenAt.slice(0, 10))}</span>
 </div>
 <div class="app">
-  <nav class="rail" aria-label="Main"><div class="logo"><i>◈</i>AI-TCG</div>${rail}<div class="foot"><a href="#/settings" data-go="settings" class="nav" aria-label="Settings">${icon("gear", 20)}<span>Settings</span></a><span class="acct" id="acct"></span></div></nav>
+  <nav class="rail" aria-label="Main"><div class="rail-in"><div class="logo"><i>◈</i>AI-TCG</div>${rail}<div class="foot"><a href="#/settings" data-go="settings" class="nav" aria-label="Settings">${icon("gear", 20)}<span>Settings</span></a><span class="acct" id="acct"></span></div></div></nav>
   <main id="main"></main>
 </div>
 <nav class="tabs" aria-label="Main (phone)">${rail}</nav>
+${art.defs}
 <script id="data" type="application/json">${payload}</script>
+<script>${art.script}</script>
 <script>
 (() => {
   const D = JSON.parse(document.getElementById('data').textContent);
@@ -328,7 +345,14 @@ main { padding: 22px 26px 40px; min-width: 0; }
       draw(); return;
     }
     if (t.dataset.go) { e.preventDefault(); if (t.dataset.go !== page()) location.hash = '#/' + t.dataset.go; else draw(); }
-    if (t.dataset.to) { e.preventDefault(); location.hash = '#/' + ({ packs: 'cards', history: 'agent', collection: 'cards', agent: 'agent' }[t.dataset.to] || 'home'); }
+    if (t.dataset.to) {
+      e.preventDefault();
+      const to = { packs: 'cards', history: 'agent', collection: 'cards', agent: 'agent' }[t.dataset.to] || 'home';
+      if (to !== 'home') { location.hash = '#/' + to; return; }
+      // A tile on Home (the free pack's alert goes to Daily rewards): show it.
+      const el = document.querySelector('.tile[data-tile="' + t.dataset.to + '"]');
+      if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    }
   });
   window.addEventListener('hashchange', draw);
   matchMedia('(max-width: 720px)').addEventListener('change', draw);
