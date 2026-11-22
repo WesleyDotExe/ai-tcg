@@ -5101,3 +5101,15 @@ Next session: render 83 (Home mockup A with its navigation, phase 1 step 2).
 4. **Keep:** Cards is one place for Packs, Store and Collection (tabs inside it).
 
 Next session: render 84 (Home mockups B and C, phase 1 step 3).
+
+---
+
+## 2026-11-22 — Owner: the Season 1 Home's pack tiles and Store tile (changes render 82 call 2); a note for mockups B and C
+
+From the owner's review of render 83's mockup A (PR #191, `render/season1/output/home-mockup-a.html`). Applies to the spec (`render/season1/HOME_TILES.md`, `src/homeSpec.ts`) and to mockups A, B and C.
+1. **Decision (replaces render 82 call 2):** the free daily pack is claimed from the **Daily rewards** tile ("Claim free pack"). A claimed pack lands in Packs. Each pack action has one home: claim in Daily rewards, open in Packs, buy in Store.
+2. **Decision:** the **Packs** tile keeps only the packs the owner has and hasn't opened, with "Open a pack".
+3. **Decision:** the **Store** tile is a visual shop window for what's for sale: packs and cosmetics (arenas, card backs (deck sleeves), boasts, coins, avatars), shown as pictures with prices, and "Buy". S: credits and how many items they can afford; M: a featured pack (its art and price) plus 2–3 featured cosmetics as pictures; L: the full shelf, packs in one row and cosmetics grouped by type. The cosmetics readability rule still holds.
+4. **Owner's note for mockups B and C:** bring back the Season 0 theme (the owner loves it; mockup A's plain dark look lost it); push harder on visuals so Home is engaging, not just clear; fix the empty space (a new player's Match history at L, Store and Daily rewards at L) and the left navigation rail's background stopping short of the page bottom.
+
+Next session: render 84 (Home mockups B and C, phase 1 step 3).
