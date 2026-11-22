@@ -318,6 +318,13 @@ Three layers, each with one job, built from what already exists:
   makes the real art for that design.
 
 **D. Cosmetics (the Store's shop window shows them as pictures)**
+- **[owner] One theme a month:** each month's new arena mat, card back (sleeve) and accessories share **a single
+  theme and tie together** (2026-11-22). Proposal for how: each month's drop is a named **collection** with its own
+  style tile in the art bible (one idea, one colour accent within the house palette, one motif), and every item in it
+  (mat, card back, coin, boast, avatar) is made from that one tile, so they read as a set when equipped together, in
+  the arena and on the Store's shelf. Each theme still passes the vibe test (section 1). Open questions for the owner:
+  does the month's cosmetic theme follow that month's card set drop, and should the Store show "this month's
+  collection" together (as well as by type)?
 - **Arenas / playmats:** the default arena's floor, rim and sky (it must look finished too), then the mats for sale,
   as a circle under the play area only (owner 2026-11-08).
 - **Card backs:** the default back (every match shows it), then the backs for sale.
@@ -396,5 +403,6 @@ are already made), the CRT overlay, the code-made sound effects.
 6. The boast trial → the owner picks → all the boasts.
 7. The commentator trial (one face and its CRT box) → the cast of 6 (with the commentary build, steps 2–3 of its
    order above).
-8. The cosmetics for sale (mats, backs, coins, boasts), the website art, the empty states, the badges.
+8. The cosmetics for sale as the first monthly collection (one theme: mat, back, coin, boast, avatar), the website
+   art, the empty states, the badges.
 9. Audio alongside: music, drum samples, broadcast beds, the voice library.
