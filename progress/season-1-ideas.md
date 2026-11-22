@@ -227,3 +227,153 @@ feel* is the Pokémon TCG Pocket battle screen, with our own mechanics on it.
 - The owner reads it as a **deck-builder** issue, not a card one: the column is one build per faction, and the builder's pick there is noisy. The full Null build kept the starter deck with no booster card at all; the full Aegis build played only 5 booster copies, but also two Zero-Day cards and starter cards at full copies (72.5% against the shipped decks).
 - No builder change before launch. For Season 1: look again at how the builder picks when it holds every card (more confirm games at the top, several builds per faction, or a check that the booster package is at least tried), and re-measure the full column as a builder test, not a card test.
 - Why it can wait: no real owner holds a full collection in a 21-day season (the median owner holds a playable set after 48 packs).
+
+### 2026-11-22 (owner): the January art plan — one look across Home, the arena, cards, packs, cosmetics, boasts and the booth
+
+**[owner]** All the outside art is done together in January, after Season 0, as one plan: the art for every card,
+pack and cosmetic, plus the end-of-match boasts and the commentators' animated faces. It must hang together and fit
+both the current dashboard look (the owner loves the Season 0 theme) and the new Season 1 arena. Everything is made
+at build time and committed as static files: **the game never calls a model while it runs** (the no-outside-services
+rule, payments excepted). Nothing below is approved build work yet; the owner moves it onto the roadmap.
+
+#### 1. The look in one line: glass over a neon night, with a 90s broadcast on top
+
+Three layers, each with one job, built from what already exists:
+
+- **The glass (the UI, code-drawn, no outside art):** Season 0's frosted glass tiles over the liquid background
+  (`render/src/site/sitePage.ts`: light `#dfe6f6 → #d4cff2 → #bfdbf7`, dark `#0d1224 → #26244d → #122b57`, accents
+  `--accent #4f6bff` and `--accent2 #8b5cff`, system UI type). Home, the Store, HUDs and panels stay this. Art sits
+  **inside** glass (a card, a pack, a badge), never replaces it.
+- **The neon night (the world, outside art):** the Season 1 arena's dark indigo stage (`#05060d` fog, the
+  `#1b2150 → #080a1e` floor grid, the violet `#8a7bff` rim), lit by each side's faction colour. Card illustrations,
+  pack art, playmats, card backs and boasts all live in this world: a dark, cool base so the glass reads over it, and
+  **faction neon as the light source**, the Geometry Wars-quality glow the effects already use.
+- **The broadcast (the booth, outside art):** the commentators and everything "on air" (intro stings, the booth
+  graphic, tournament title cards) in the spec's **90s retro-futurist** style, shown on CRT screens. It frames the
+  world; it never sits on the board.
+
+#### 2. The art bible (the first deliverable; nothing is generated in bulk before the owner approves it)
+
+- **Palette:** the indigo base and the two accents above; the faction neons from the render (Cortex `#35c9ff`,
+  Swarm `#8bff5c`, Aegis `#ff7d24`, Null `#d565ff`, Neutral `#fff0c2`); rarity light (Common `#8e9bb8`, Uncommon
+  `#cfe0ff`, Rare `#59a8ff`, Mythic gold `#ffcf5c`). Gold stays special: Mythic, Gold finishes and the Prototype
+  foil marker.
+- **Light:** a cool white key light, the faction colour as the rim light and glow, deep shadows. One rule for every
+  asset, so a card, its pack and its boast look lit by the same arena.
+- **Faction shape language** (from `render/src/factionSkin.ts`, so the art matches the effects): **Cortex** clean,
+  networked, precise (square packets, lanes, grids, a square sigil); **Swarm** many small and organic (spores, egg sacs,
+  drifting clouds, round forms); **Aegis** chrome, solid, shield-forward (heavy plates, hexagons, thick rings);
+  **Null** glitch, corruption, decay (torn bars, stutter, RGB split, broken sigils); **Neutral** plain (the diamond).
+- **AI-themed, original:** structure from Pokémon / MTG / One Piece, never their characters, names or art (DESIGN.md).
+  No real people.
+- **No text in generated art.** Names, numbers, rules text, the set number and the Prototype serial are drawn by
+  code, so art never fights legibility and never needs regenerating for a typo.
+- **Safe areas** per asset (where the frame, text and UI sit), so art is composed for its frame, not cropped into it.
+- **Readability (the owner's standing cosmetics rule):** cosmetics change the look, never legibility; mats sit dimmed
+  under the grid; effects and faction colours always draw on top.
+- **Prompt templates, reference images and seeds** per asset type and faction, kept in the repo, so a monthly set
+  drop matches the last one.
+- **Style tiles first:** for each faction, one card illustration, one mascot, one card back and one boast frame,
+  side by side on a glass tile and in the arena, for the owner to approve before anything else.
+
+#### 3. What gets outside art (grouped; counts come from the set and cosmetics files at the time)
+
+**A. Identity (first, because everything else carries it)**
+- The **set logo and set symbol** (on every card, wrapper and Store item), the **AI·TCG wordmark**, the app icon and
+  favicon.
+- The **faction emblems** (4 + Neutral) and a **mascot per faction**: the hero image for packs, decks, the HUDs and
+  Watch live.
+
+**B. Cards**
+- **Card illustrations** for the set, in the neon night, each faction in its shape language, composed for the frame's
+  safe area. Full Art and Alt Art versions need their own wider compositions.
+- **Finishes stay code** (Gold, Glitch, Secret, foil): the code's finish goes over the same illustration.
+- **Prototype runs** (15 a season, unique art per run): the chase cards, so the strongest art in the set.
+- **Tournament prize art:** the 1/1 and the limited prints.
+
+**C. Packs**
+- **[owner]** More Pokémon-like or MTG style: a crimped foil wrapper, the set logo at the top, the faction mascot as
+  the hero, the set symbol. The Season 1 visual plan's phase 2 picks the wrapper design with placeholder art; January
+  makes the real art for that design.
+
+**D. Cosmetics (the Store's shop window shows them as pictures)**
+- **Arenas / playmats:** the default arena's floor, rim and sky (it must look finished too), then the mats for sale,
+  as a circle under the play area only (owner 2026-11-08).
+- **Card backs:** the default back (every match shows it), then the backs for sale.
+- **Avatars:** a pool of good portraits for agents (the avatar slot), in the neon night's light.
+- **Coins:** the faces and edges for the coin cosmetic.
+- **Boasts:** see E.
+
+**E. Boasts (end-of-match brags)**
+- **[owner]** An outside model could bring the boasts to life.
+- Proposal: a **trial on one boast**, three ways side by side, in the fenced `render/season1/`: (1) code keeps the
+  animation and an image model makes its pieces (a stamp or sticker per boast, faction mascot poses, particle
+  textures), as the effect textures were made; (2) a short mascot victory loop from an image-to-video model at build
+  time, cleaned into a transparent sprite sheet the code plays; (3) a short sound sting or voiced line per boast.
+  The owner picks which way the rest are made. Every way keeps the boast rules: nothing past the winner's side,
+  the flash limit, reduced motion.
+
+**F. The commentators' booth**
+- **[owner]** Each commentator is a **face with a few animated frames that emote to their commentary**, in a
+  **vertical rectangle box next to their commentary box**, with an overlay that makes them look like they are **on a
+  CRT**.
+- Proposal: about 8 frames per commentator (idle, blink, two mouth shapes, excited, shocked, smug or laughing,
+  wincing), so about 48 for the cast of 6. The face is picked from the commentary's own excitement score and event
+  kind (a lethal hit → excited, a comeback → shocked); each line carries its expression. The mouth flaps in time with
+  the pre-rendered voice line (its timing measured when the line is rendered). Both booth members show: the speaker
+  lit, the other idling and blinking. On a phone the boxes shrink to heads above the captions; the Home tile stays
+  silent (owner 2026-11-12).
+- **The CRT is code** (scanlines, a slight curve, glow, faint colour fringing, the odd rolling bar), within the flash
+  limit; reduced motion leaves still scanlines.
+- **The hard part is one face across 8 frames:** one base portrait per commentator, the other expressions made from
+  it with an image-editing model, all framed identically. Trial one commentator before the six.
+- Plus the booth graphic and the intro stings (already in this file's commentary spec, section 7).
+
+**G. Ranks and badges**
+- **Tier badges** for every ladder tier (`economy/src/config.ts` `LADDER_TIERS`: Bronze, Silver, Gold, Platinum,
+  Diamond, Mythic), today plain hexagons. The next badge is one of the strongest pulls in a ranked game.
+- Achievement, milestone, promo and season badges.
+
+**H. The website**
+- The landing page hero, share images (what shows when a link is posted), loading art.
+- **Empty-state and first-time illustrations** for the Season 1 Home's new-player states (the Home plan's phase 3).
+
+**I. Audio (outside assets, not art)**
+- Background music (the owner wants music to go with the code-made sound effects), drum machine samples for the
+  music tool, broadcast beds and stingers, and the commentators' pre-rendered voice library (section 6.3 above).
+
+**Stays code (no outside art):** the glass UI and its icons, card frames and finishes, the effects (their textures
+are already made), the CRT overlay, the code-made sound effects.
+
+#### 4. Decisions before January's first batch
+
+1. **The art bible and the style tiles:** the owner approves them before anything is made in bulk.
+2. **Signature Mythic art vs the runtime rule:** each new agent gets 3 generated candidates for its signature card,
+   but the game never calls a model while it runs. Options: a large pre-generated pool to pick from; candidates
+   made by a build-time job (a wait for the owner); or a second exception to the rule. Needed before Season 1's
+   live launch. (Same question as the "Agent art creation" idea at the top of this file.)
+3. **Licences:** check each model's terms allow commercial use, since cosmetics are sold.
+4. **A spend cap per batch**, as the mythic-wards action has (`MAX_PER_RUN`), with the per-image cost measured on
+   the first pilot batch.
+
+#### 5. How it's made
+
+- The existing pattern: a GitHub Action with the Replicate key in a repo secret makes the assets and commits them as
+  static files (as `mythic-wards.yml` does); the game only reads files. A placeholder stays as the fallback for any
+  asset not made yet.
+- **Every batch lands on a gallery page first** (in the arena's light and on a glass tile, light and dark themes) for
+  the owner to approve; only approved art is committed for use.
+- **Pilot, then batch:** a small pilot per asset type (for cards, 3 per faction), approve, then the rest in batches.
+
+#### 6. Proposed order (January, after the owner is back)
+
+1. The art bible and the style tiles → owner approves.
+2. Identity: the set logo and symbol, faction emblems and mascots, the wordmark and icon.
+3. Packs (the wrapper design picked in phase 2) and the default card back.
+4. Cards: the pilot, then the set in batches; then Prototypes and prize art.
+5. The default arena and the tier badges; the avatar pool.
+6. The boast trial → the owner picks → all the boasts.
+7. The commentator trial (one face and its CRT box) → the cast of 6 (with the commentary build, steps 2–3 of its
+   order above).
+8. The cosmetics for sale (mats, backs, coins, boasts), the website art, the empty states, the badges.
+9. Audio alongside: music, drum samples, broadcast beds, the voice library.
