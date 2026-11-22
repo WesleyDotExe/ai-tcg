@@ -7,6 +7,22 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The Season 1 Home spec (session 82, fenced off in render/season1/; Season 1 scope)
+
+- **It is a spec, not a build.** Nothing is drawn from `homeSpec.ts` yet; whether its S / M / L facts fit their
+  tile sizes is untested until mockup A draws them (the S tile is 268x152 px on Season 0's grid).
+- **The audit's duplicate finding matches text**, not meaning: a fact counts as "in a tile" when its value or a
+  pattern appears in the tile's text (a rating of 1774, /#\d+/, a tier name). It can over-count (the first run's
+  bare "11 " for unopened packs matched Watch live and Match history at L; the pattern is now "11 unopened") or miss a fact drawn only as a picture
+  (the tier badge, a ring). The counts quoted are spot-checked against the stills, not proven.
+- **One data set per owner, from the demo** (Nova's 23 matches, Wren's starter), not the live Season 0 on the Mac
+  mini; a heavier owner (hundreds of matches, many alerts) may overflow differently.
+- **The new player is made with store calls, not the real sign-up page**, and has 3 unopened packs because the
+  starter grant leaves them (as the owner's own screenshot did); the first-time page's ceremony is not part of it.
+- The spec's new-player lines and labels are proposals in English only; no copy check (length at S) yet.
+- Owner calls in the session 82 checkpoint (Showcase folded in, Claim in Packs only, no ratings on Watch live,
+  Settling/Settled) are built into the spec as defaults; if the owner overrules, `homeSpec.ts` and its tests change.
+
 ## The Season 1 arena prototype (session 79, fenced off in render/season1/; Season 1 scope)
 
 - **Step 1 (the layout) is built and checked headless (21 PASS, 17 unit tests), with thin spots.** None of the

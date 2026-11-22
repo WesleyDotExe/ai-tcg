@@ -1,0 +1,287 @@
+
+=== Nova (experienced: weeks of matches, packs opened, credits) ===
+nav (side bar): Home | Agent match | Watch live | Collection | Store | TournamentSoon | Stats | Settings | Connect agent
+top bar: Open 11 packs | Theme: system (light). Change theme | Notifications, 24 unread | Account: Nova
+
+[recommended board] 9 tiles: My agent M, Agent controls M, Packs M, Daily rewards S, Store S, Watch live M, Collection M, Ladder M, Rating & form M
+  server facts: agent "Vector Halcyon", rating 1774 Platinum ±151, set 49/124, unopened 11, credits 449
+  SAME FACT IN 4 TILES: agent name (Vector Halcyon) -> My agent (M), Agent controls (M), Watch live (M), Ladder (M)
+  SAME FACT IN 4 TILES: rating (1774) -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 3 TILES: rating uncertainty (±) (/±\d+/) -> My agent (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 2 TILES: streak (/streak/) -> My agent (M), Rating & form (M)
+  SAME FACT IN 4 TILES: win/loss record (/\b\d+\s*[–-]\s*\d+\b|\b\d+W\b/) -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 4 TILES: tier name (/\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\b/) -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+
+[all twelve at S]
+  -- My agent S (268x152px, 7 words; open: Open Connect agent)
+     text: Vector Halcyon / In a match / 1774 / Platinum
+     actions: none
+  -- Agent controls S (268x152px, 7 words; open: Open Agent match)
+     text: On / Vector Halcyon / In a match / Stop
+     actions: Stop
+  -- Watch live S (268x152px, 13 words; open: Open Watch live)
+     text: Vector Halcyon / 20 / Turn 3 · Vector Halcyon to play / Hive Courier / 23
+     actions: none
+  -- Packs S (268x152px, 14 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / 11 / 11 / unopened / Open / 11 unopened packs
+     actions: Open
+  -- Daily rewards S (268x152px, 9 words; open: Open Stats)
+     text: 65 / of 90 / Credits from wins / Next win / +5
+     actions: none
+  -- Collection S (268x152px, 4 words; open: Open Collection)
+     text: 39% / 49/124 S0 cards
+     actions: none
+  -- Showcase S (268x152px, 11 words; open: Open Collection)
+     text: Hive Relay / GLITCH / Hive Relay / Uncommon · Glitch / Your best card
+     actions: none
+  -- Ladder S (268x152px, 5 words; open: Open Stats)
+     text: #1 / of 4 / 1774 / Platinum
+     actions: none
+  -- Rating & form S (268x152px, 6 words; open: Open Stats)
+     text: 1774 / Platinum ±151 / −68 / this week
+     actions: none
+  -- Match history S (268x152px, 11 words; open: Open Agent match)
+     text: W / Win / vs Rook's agent (Rook) / +10 credits · +19 rating
+     actions: none
+  -- Notifications S (268x152px, 9 words; open: Open the notifications)
+     text: 24 / Your free daily pack is waiting / just now
+     actions: none
+  -- Store S (268x152px, 13 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / S0 / Free daily pack / Claim free pack / Resets in / 12:07:29
+     actions: Claim free pack
+  SAME FACT IN 3 TILES at S: agent name -> My agent (S), Agent controls (S), Watch live (S)
+  SAME FACT IN 3 TILES at S: rating -> My agent (S), Ladder (S), Rating & form (S)
+  SAME FACT IN 3 TILES at S: tier name -> My agent (S), Ladder (S), Rating & form (S)
+
+[all twelve at M]
+  -- My agent M (556x324px, 22 words; open: Open Connect agent)
+     text: Vector Halcyon / In a match / 1774 / Platinum / 5W / 2L / today / No streak / CORTEX / deck / Platinum · 1774 ±151 · Calculator play style
+     actions: none
+  -- Agent controls M (556x324px, 43 words; open: Open Agent match)
+     text: On / Vector Halcyon / In a match / Playing · no time limit set / Stop / Go to match / Personality / Calculator / A change applies from the next match. / CORTEX Your agent picks: Agent's deck · 40 cards / Give your agent / 15 min / 30 min / 60 min
+     actions: Stop | Go to match | Calculator play style | Rusher play style | Controller play style | Tempo play style | Fortress play style | Gambler play style | 15 min | 30 min | 60 min
+  -- Watch live M (556x324px, 40 words; open: Open Watch live)
+     text: 0 / Vector Halcyon / Nova · 1774 Platinum / 20 / Turn 4 · Hive Courier to play / Hive Courier / House Swarm · 1711 Placement / 22 / Static Widow / 24–19 / Rook's agent / Turn 4 · Static Widow to play / 0 / Watch live / 2 live
+     actions: Watch live
+  -- Packs M (556x324px, 30 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / 11 / 11 / unopened packs / Season Zero · 5 cards a pack / 7 / since a Full Art / 2 / since a Mythic / Open / Open 10
+     actions: Open | Open 10
+  -- Daily rewards M (556x324px, 79 words; open: Open Stats)
+     text: 65 / of 90 / Credits from wins today / Next win / +5 / 5 of 10 wins paid / Free pack / Claim / ✓ / +30 / Win 1, paid 30 / ✓ / +10 / Win 2, paid 10 / ✓ / +10 / Win 3, paid 10 / ✓ / +10 / Win 4, paid 10 / ✓ / +5 / Win 5, paid 5 / 6 / +5 / Win 6, pays 5, next / 7 / +5 / Win 7, pays 5 / 8 / +5 / Win 8, pays 5 / 9 / +5 / Win 9, pays 5 / 10 / +5 / Win 10, pays 5
+     actions: Claim
+  -- Collection M (556x324px, 27 words; open: Open Collection)
+     text: 39% / 49/124 S0 cards / Secrets 0/19 · Prototypes 0/15 / 105 copies in all / Last 5 pulls / Mutex Lock / Kinetic Buffer / Acid Drone / Decay Engine / Bad Sector / FOIL
+     actions: none
+  -- Showcase M (556x324px, 26 words; open: Open Collection)
+     text: Hive Relay / GLITCH / Hive Relay / Uncommon · Glitch / Heap Spray / FULL ART / Heap Spray / Rare · Full Art / Hive Relay / FOIL / Hive Relay / Uncommon · Foil
+     actions: none
+  -- Ladder M (556x324px, 38 words; open: Open Stats)
+     text: #1 / of 4 / 1774 / Platinum / 26 to Diamond / 21W 2L · ±151 / Around you / 1 / Vector Halcyon / 1774 / 21W 2L / 2 / Rook's agent / 1190 / 1W 22L / — / Hive Courier / — / 3W 1L / — / Static Widow / — / 2W 2L
+     actions: none
+  -- Rating & form M (556x324px, 26 words; open: Open Stats)
+     text: 1774 / Platinum ±151 / −68 / this week / Form / last 10 / W / W / W / L / W / W / W / W / L / W / No streak / 21W / 2L / Best streak / 16
+     actions: none
+  -- Match history M (556x324px, 105 words, OVERFLOWS 423px; open: Open Agent match)
+     text: Last 6 of 23 · 5W 1L / W / Win / vs Rook's agent (Rook) / 3 min ago / +10 credits / +19 rating / No replay / L / Loss / vs Rook's agent (Rook) / 40 min ago / +2 credits / −174 rating / No replay / W / Win / vs Rook's agent (Rook) / 1 h ago / +30 credits / +5 rating / No replay / W / Win / vs Static Widow (House Null) / 1 h ago · 17 turns / +5 credits / +32 rating / Replay / W / Win / vs Hive Courier (House Swarm) / 1 …
+     actions: Replay | Replay | Replay
+  -- Notifications M (556x324px, 80 words; open: Open the notifications)
+     text: 24 / 24 unread / latest just now / Mark all read / Your free daily pack is waiting / Claim it in the Store (up to 2 wait) / just now / Won vs Static Widow / Vector Halcyon · +5 credits · +32 rating · 17 turns / 1 h ago / Won vs Hive Courier / Vector Halcyon · +10 credits · +83 rating · 12 turns / 1 h ago / Won vs Rook's agent / Vector Halcyon · +10 credits · +17 rating · 17 turns / 1 h ago
+     actions: Mark all read | Your free daily pack is waitingClaim it in the Store (up to 2 wait) | Won vs Static WidowVector Halcyon · +5 credits · +32 rating · 17 turns | Won vs Hive CourierVector Halcyon · +10 credits · +83 rating · 12 turns | Won vs Rook's agentVector Halcyon · +10 credits · +17 rating · 17 turns
+  -- Store M (556x324px, 43 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / S0 / FREE / Free daily pack / One a day, yours to claim / Claim / AI·TCG / SEASON ZERO / S0 / 100 / credits / 1 pack / Buy / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / ×10 / 1,000 / credits / 10 packs / Buy / 551 credits short
+     actions: Claim | Buy 1 pack, 100 credits | Buy, 1,000 credits
+  SAME FACT IN 5 TILES at M: agent name -> My agent (M), Agent controls (M), Watch live (M), Ladder (M), Notifications (M)
+  SAME FACT IN 4 TILES at M: rating -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 3 TILES at M: rating uncertainty (±) -> My agent (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 2 TILES at M: streak -> My agent (M), Rating & form (M)
+  SAME FACT IN 5 TILES at M: win/loss record -> My agent (M), Watch live (M), Ladder (M), Rating & form (M), Match history (M)
+  SAME FACT IN 4 TILES at M: tier name -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+
+[all twelve at L]
+  -- My agent L (1132x496px, 96 words; open: Open Connect agent)
+     text: Vector Halcyon / In a match / 1774 / Platinum / 5W / 2L / today / No streak / CORTEX / deck / Platinum · 1774 ±151 · Calculator play style / Rating trend / −136 over the last 20 rated matches / Recent matches / W / Win / vs Rook's agent (Rook) / 3 min ago / +10 credits / +19 rating / No replay / L / Loss / vs Rook's agent (Rook) / 40 min ago / +2 credits / −174 rating / No replay / W / Win / vs Rook's agent (Rook) /  …
+     actions: Replay
+  -- Agent controls L (1132x496px, 164 words, OVERFLOWS 173px; open: Open Agent match)
+     text: On / Vector Halcyon / In a match / Playing · no time limit set / Stop / Go to match / Personality / Calculator / Weighs every move on the board as it stands and takes the best. The balanced default. / A change applies from the next match. / Give your agent / 15 min / 30 min / 60 min / Add time while it runs / +15 min / +30 min / Deck / Your agent picks / Agent's deck · 40 cards / Cortex, my tweak / 40 cards / A deck  …
+     actions: Stop | Go to match | Calculator play style | Rusher play style | Controller play style | Tempo play style | Fortress play style | Gambler play style | 15 min | 30 min | 60 min | +15 min | +30 min | Your agent picksAgent's deck · 40 cards | Cortex, my tweak40 cards | Replay | Replay
+  -- Watch live L (1132x496px, 44 words, live drawing; open: Open Watch live)
+     text: Full screen / 0 / Vector Halcyon / Nova · 1774 Platinum / 20 / Turn 5 · Vector Halcyon to play / Hive Courier / House Swarm · 1711 Placement / 21 / Also live / Static Widow / 24–19 / Rook's agent / Turn 5 · Rook's agent to play / 0 / Watch live / 2 live
+     actions: Watch Vector Halcyon vs Hive Courier full screen on the arena | Watch live
+  -- Packs L (1132x496px, 60 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / 11 / 11 / unopened packs / Season Zero · 5 cards a pack / 7 / since a Full Art / 2 / since a Mythic / Open / Open 10 / Your last pulls / 22:52 · S0 / Mutex Lock / Kinetic Buffer / Acid Drone / Decay Engine / Bad Sector / FOIL / 22:52 · S0 / Egg Courier / Memory Leak / Zombie Fork / Heap Spray / Bad Sector
+     actions: Open | Open 10
+  -- Daily rewards L (556x668px, 137 words; open: Open Stats)
+     text: 65 / of 90 / Credits from wins today / Next win / +5 / Free pack / Claim / ✓ / +30 / Win 1, paid 30 / ✓ / +10 / Win 2, paid 10 / ✓ / +10 / Win 3, paid 10 / ✓ / +10 / Win 4, paid 10 / ✓ / +5 / Win 5, paid 5 / 6 / +5 / Win 6, pays 5, next / 7 / +5 / Win 7, pays 5 / 8 / +5 / Win 8, pays 5 / 9 / +5 / Win 9, pays 5 / 10 / +5 / Win 10, pays 5 / Resets in / 12:07:23 / midnight Sydney / Rewarded wins / 5/10 / Today's wins /  …
+     actions: Claim
+  -- Collection L (1132x496px, 142 words, OVERFLOWS 294px; open: Open Collection)
+     text: 39% / 49/124 S0 cards / Secrets 0/19 · Prototypes 0/15 / 105 copies in all / All / Cortex / Aegis / Swarm / Null / Neutral / Acid Drone / ×3 / Backup Protocol / Bad Sector / ×6 / Bastion Array / ×3 / Cascade Purge / Cluster Node / ×2 / Colony Overmind / Compiled Daemon / ×2 / Cortex Engineer / ×2 / Deadlock Detector / Decay Engine / ×2 / Diagnostic Loop / Diagnostic Pulse / Dormant Exploit / Egg Courier / ×7 / Fail-s …
+     actions: All | Cortex | Aegis | Swarm | Null | Neutral
+  -- Showcase L (1132x496px, 61 words; open: Open Collection)
+     text: Hive Relay / GLITCH / Hive Relay / Uncommon · Glitch / Heap Spray / FULL ART / Heap Spray / Rare · Full Art / Hive Relay / FOIL / Hive Relay / Uncommon · Foil / Bad Sector / FOIL / Bad Sector / Common · Foil / Kinetic Buffer / FOIL / Kinetic Buffer / Common · Foil / Mutex Lock / FOIL / Mutex Lock / Common · Foil / Your rarest finishes first. Pinning cards comes with the Collection page.
+     actions: none
+  -- Ladder L (556x668px, 85 words; open: Open Stats)
+     text: #1 / of 4 / 1774 / Platinum / 26 to Diamond / 21W 2L · ±151 / Mythic / 1950+ / Diamond / 1800+ / Platinum / 1650+ / Gold / 1500+ / Silver / 1350+ / Bronze / below 1350 / Placement / first 5 / Top 4 / 1 / Vector Halcyon / Nova · you / 1774 / 21W 2L / 2 / Rook's agent / Rook / 1190 / 1W 22L / — / Hive Courier / House Swarm · house / — / 3W 1L / — / Static Widow / House Null · house / — / 2W 2L / 4 owners rated · 2 plac
+     actions: none
+  -- Rating & form L (1132x496px, 113 words; open: Open Stats)
+     text: 1774 / Platinum ±151 / −68 / this week / Diamond / 1842 / 1724 / 24 Oct / Today / No streak / 21W / 2L / Best streak / 16 / Form / last 20 / W / W / W / W / W / W / W / W / W / W / W / W / W / L / W / W / W / W / L / W / 91% / 23 matches / 549 credits from matches / Win rate by deck faction / Cortex / 75% of 4 / Swarm / none / Aegis / none / Null / none / 19 older matches kept no faction. / Recent / W / vs Rook's age …
+     actions: none
+  -- Match history L (556x668px, 324 words, OVERFLOWS 1039px; open: Open Agent match)
+     text: Last 20 of 23 · 18W 2L / W / Win / vs Rook's agent (Rook) / 3 min ago / +10 credits / +19 rating / No replay / L / Loss / vs Rook's agent (Rook) / 40 min ago / +2 credits / −174 rating / No replay / W / Win / vs Rook's agent (Rook) / 1 h ago / +30 credits / +5 rating / No replay / W / Win / vs Static Widow (House Null) / 1 h ago · 17 turns / +5 credits / +32 rating / Replay / Log / W / Win / vs Hive Courier (House Sw …
+     actions: Replay | Log | Replay | Log | Replay | Log | Replay | Log | All matches
+  -- Notifications L (556x668px, 158 words; open: Open the notifications)
+     text: 24 / 24 unread / latest just now / Mark all read / Match results / 23 / Big pulls / 0 / Daily pack / 1 / Auto-play / 0 / Your free daily pack is waiting / Claim it in the Store (up to 2 wait) / just now / Won vs Static Widow / Vector Halcyon · +5 credits · +32 rating · 17 turns / 1 h ago / Won vs Hive Courier / Vector Halcyon · +10 credits · +83 rating · 12 turns / 1 h ago / Won vs Rook's agent / Vector Halcyon · +10 …
+     actions: Mark all read | Your free daily pack is waitingClaim it in the Store (up to 2 wait) | Won vs Static WidowVector Halcyon · +5 credits · +32 rating · 17 turns | Won vs Hive CourierVector Halcyon · +10 credits · +83 rating · 12 turns | Won vs Rook's agentVector Halcyon · +10 credits · +17 rating · 17 turns | Lost vs Hive CourierVector Halcyon · +2 credits · −82 rating · 12 turns | Won vs Rook's agentVector Halcyon · +10 credits · +19 rating | Lost vs Rook's agentVector Halcyon · +2 credits · −174 rating | Won vs Rook's agentVector Halcyon · +30 credits · +4 rating
+  -- Store L (1132x496px, 72 words, live drawing; open: Open Store)
+     text: 449 / credits / Daily reset in / 12:07:23 / midnight Sydney / AI·TCG / SEASON ZERO / S0 / FREE / Free daily pack / One a day, yours to claim / Claim / AI·TCG / SEASON ZERO / S0 / 100 / credits / 1 pack / Buy / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / ×10 / 1,000 / credits / 10 packs / Buy / 551 credits short / Cosmetics / 300 / credits / Boot Sequence / Buy / 300 / credits / Dial-Up F
+     actions: Claim | Buy 1 pack, 100 credits | Buy, 1,000 credits | Buy Boot Sequence, 300 credits | Buy Dial-Up Fireworks, 300 credits | Buy Dial-Up Dime, 300 credits | Buy Neon Nickel, 300 credits
+  SAME FACT IN 5 TILES at L: agent name -> My agent (L), Agent controls (L), Watch live (L), Ladder (L), Notifications (L)
+  SAME FACT IN 4 TILES at L: rating -> My agent (L), Watch live (L), Ladder (L), Rating & form (L)
+  SAME FACT IN 3 TILES at L: rating uncertainty (±) -> My agent (L), Ladder (L), Rating & form (L)
+  SAME FACT IN 3 TILES at L: streak -> My agent (L), Daily rewards (L), Rating & form (L)
+  SAME FACT IN 5 TILES at L: win/loss record -> My agent (L), Watch live (L), Ladder (L), Rating & form (L), Match history (L)
+  SAME FACT IN 4 TILES at L: tier name -> My agent (L), Watch live (L), Ladder (L), Rating & form (L)
+
+[phone 390px] the recommended board is 2898px tall (3.4 screens), sideways scroll none
+
+=== Wren (new player: just signed up, starter, one agent, no match yet) ===
+nav (side bar): Home | Agent match | Watch live | Collection | Store | TournamentSoon | Stats | Settings | Connect agent
+top bar: Open 3 packs | Theme: system (light). Change theme | Notifications, 1 unread | Account: Wren
+
+[recommended board] 9 tiles: My agent M, Agent controls M, Packs M, Daily rewards S, Store S, Watch live M, Collection M, Ladder M, Rating & form M
+  server facts: agent "Moth Lantern", rating 1500 Placement ±350, set 20/124, unopened 3, credits 0
+  SAME FACT IN 3 TILES: agent name (Moth Lantern) -> My agent (M), Agent controls (M), Ladder (M)
+  SAME FACT IN 3 TILES: rating uncertainty (±) (/±\d+/) -> My agent (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 2 TILES: streak (/streak/) -> My agent (M), Rating & form (M)
+  SAME FACT IN 4 TILES: win/loss record (/\b\d+\s*[–-]\s*\d+\b|\b\d+W\b/) -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 4 TILES: tier name (/\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\b/) -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+
+[all twelve at S]
+  -- My agent S (268x152px, 5 words; open: Open Connect agent)
+     text: Moth Lantern / Ready / — / Placement
+     actions: none
+  -- Agent controls S (268x152px, 5 words; open: Open Agent match)
+     text: Off / Moth Lantern / Ready / Start
+     actions: Start
+  -- Watch live S (268x152px, 13 words; open: Open Watch live)
+     text: Vector Halcyon / 18 / Turn 7 · Vector Halcyon to play / Hive Courier / 19
+     actions: none
+  -- Packs S (268x152px, 14 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / 3 / 3 / unopened / Open / 3 unopened packs
+     actions: Open
+  -- Daily rewards S (268x152px, 9 words; open: Open Stats)
+     text: 0 / of 90 / Credits from wins / Next win / +30
+     actions: none
+  -- Collection S (268x152px, 4 words; open: Open Collection)
+     text: 16% / 20/124 S0 cards
+     actions: none
+  -- Showcase S (268x152px, 8 words; open: Open Collection)
+     text: Hive Mother / Hive Mother / Mythic / Your best card
+     actions: none
+  -- Ladder S (268x152px, 5 words; open: Open Stats)
+     text: Unranked / 0/5 placed / — / Placement
+     actions: none
+  -- Rating & form S (268x152px, 8 words; open: Open Stats)
+     text: — / Placement · 0 rated / ±0 / this week
+     actions: none
+  -- Match history S (268x152px, 10 words; open: Open Agent match)
+     text: No matches yet. Your results and their replays show here.
+     actions: none
+  -- Notifications S (268x152px, 9 words; open: Open the notifications)
+     text: 1 / Your free daily pack is waiting / just now
+     actions: none
+  -- Store S (268x152px, 13 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / S0 / Free daily pack / Claim free pack / Resets in / 12:07:14
+     actions: Claim free pack
+  SAME FACT IN 2 TILES at S: agent name -> My agent (S), Agent controls (S)
+  SAME FACT IN 3 TILES at S: tier name -> My agent (S), Ladder (S), Rating & form (S)
+
+[all twelve at M]
+  -- My agent M (556x324px, 23 words; open: Open Connect agent)
+     text: Moth Lantern / Ready / — / Placement / 0W / 0L / today / No streak / No deck yet / Placement · 0 rated matches ±350 · Calculator play style
+     actions: none
+  -- Agent controls M (556x324px, 33 words; open: Open Agent match)
+     text: Off / Moth Lantern / Ready / Stopped / Start / Personality / Calculator / Applies from the next match. / Your agent picks · no deck built yet / No match live / Give your agent / 15 min / 30 min / 60 min
+     actions: Start | Calculator play style | Rusher play style | Controller play style | Tempo play style | Fortress play style | Gambler play style | 15 min | 30 min | 60 min
+  -- Watch live M (556x324px, 46 words; open: Open Watch live)
+     text: 0 / Vector Halcyon / Nova · 1774 Platinum / 16 / Turn 8 · Hive Courier to play / Hive Courier / House Swarm · 1711 Placement / 19 / Watch as: / Vector Halcyon / Hive Courier / Static Widow / 22–18 / Rook's agent / Turn 8 · Static Widow to play / 0 / Watch live / 2 live
+     actions: Vector Halcyon | Hive Courier | Watch live
+  -- Packs M (556x324px, 35 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / 3 / 3 / unopened packs / Season Zero · 5 cards a pack / 0 / since a Full Art / 0 / since a Mythic / Open / Open 10 / Open 10 needs 10 waiting.
+     actions: Open | Open 10
+  -- Daily rewards M (556x324px, 79 words; open: Open Stats)
+     text: 0 / of 90 / Credits from wins today / Next win / +30 / 0 of 10 wins paid / Free pack / Claim / 1 / +30 / Win 1, pays 30, next / 2 / +10 / Win 2, pays 10 / 3 / +10 / Win 3, pays 10 / 4 / +10 / Win 4, pays 10 / 5 / +5 / Win 5, pays 5 / 6 / +5 / Win 6, pays 5 / 7 / +5 / Win 7, pays 5 / 8 / +5 / Win 8, pays 5 / 9 / +5 / Win 9, pays 5 / 10 / +5 / Win 10, pays 5
+     actions: Claim
+  -- Collection M (556x324px, 20 words; open: Open Collection)
+     text: 16% / 20/124 S0 cards / Secrets 0/19 · Prototypes 0/15 / 40 copies in all / Last 0 pulls / No packs opened yet.
+     actions: none
+  -- Showcase M (556x324px, 17 words; open: Open Collection)
+     text: Hive Mother / Hive Mother / Mythic / Bloodswarm Alpha / Bloodswarm Alpha / Rare / Dormant Egg Sac / Dormant Egg Sac / Rare
+     actions: none
+  -- Ladder M (556x324px, 42 words; open: Open Stats)
+     text: Unranked / 0/5 placed / — / Placement / 5 more rated matches to place / 0W 0L · ±350 / Around you / 1 / Vector Halcyon / 1774 / 21W 2L / 2 / Rook's agent / 1190 / 1W 22L / — / Hive Courier / — / 3W 1L / ⋯ / — / Moth Lantern / — / 0W 0L
+     actions: none
+  -- Rating & form M (556x324px, 21 words; open: Open Stats)
+     text: — / Placement · 0 rated / ±0 / this week / Form / last 0 / No results yet. / No streak / 0W / 0L / Best streak / 0
+     actions: none
+  -- Match history M (556x324px, 10 words; open: Open Agent match)
+     text: No matches yet. Your results and their replays show here.
+     actions: none
+  -- Notifications M (556x324px, 26 words; open: Open the notifications)
+     text: 1 / 1 unread / latest just now / Mark all read / Your free daily pack is waiting / Claim it in the Store (up to 2 wait) / just now
+     actions: Mark all read | Your free daily pack is waitingClaim it in the Store (up to 2 wait)
+  -- Store M (556x324px, 46 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / S0 / FREE / Free daily pack / One a day, yours to claim / Claim / AI·TCG / SEASON ZERO / S0 / 100 / credits / 1 pack / Buy / 100 credits short / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / ×10 / 1,000 / credits / 10 packs / Buy / 1,000 credits short
+     actions: Claim | Buy, 100 credits | Buy, 1,000 credits
+  SAME FACT IN 3 TILES at M: agent name -> My agent (M), Agent controls (M), Ladder (M)
+  SAME FACT IN 3 TILES at M: rating uncertainty (±) -> My agent (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 2 TILES at M: streak -> My agent (M), Rating & form (M)
+  SAME FACT IN 4 TILES at M: win/loss record -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+  SAME FACT IN 4 TILES at M: tier name -> My agent (M), Watch live (M), Ladder (M), Rating & form (M)
+
+[all twelve at L]
+  -- My agent L (1132x496px, 36 words; open: Open Connect agent)
+     text: Moth Lantern / Ready / — / Placement / 0W / 0L / today / No streak / No deck yet / Placement · 0 rated matches ±350 · Calculator play style / The rating trend draws after two rated matches. / Recent matches / No matches yet.
+     actions: none
+  -- Agent controls L (1132x496px, 71 words; open: Open Agent match)
+     text: Off / Moth Lantern / Ready / Stopped / Start / Personality / Calculator / Weighs every move on the board as it stands and takes the best. The balanced default. / Applies from the next match. / No match live / Give your agent / 15 min / 30 min / 60 min / Add time while it runs / +15 min / +30 min / Deck / Your agent picks / No deck built yet / A deck change applies from the next match. / Match history / No matches yet
+     actions: Start | Calculator play style | Rusher play style | Controller play style | Tempo play style | Fortress play style | Gambler play style | 15 min | 30 min | 60 min | +15 min | +30 min | Your agent picksNo deck built yet
+  -- Watch live L (1132x496px, 50 words, live drawing; open: Open Watch live)
+     text: Full screen / 0 / Vector Halcyon / Nova · 1774 Platinum / 15 / Turn 9 · Vector Halcyon to play / Hive Courier / House Swarm · 1711 Placement / 19 / Watch as: / Vector Halcyon / Hive Courier / Also live / Static Widow / 19–15 / Rook's agent / Turn 9 · Rook's agent to play / 0 / Watch live / 2 live
+     actions: Watch Vector Halcyon vs Hive Courier full screen on the arena | Vector Halcyon | Hive Courier | Watch live
+  -- Packs L (1132x496px, 43 words; open: Open Store)
+     text: AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / 3 / 3 / unopened packs / Season Zero · 5 cards a pack / 0 / since a Full Art / 0 / since a Mythic / Open / Open 10 / Open 10 needs 10 waiting. / Your last pulls / Your last pulls appear here
+     actions: Open | Open 10
+  -- Daily rewards L (556x668px, 117 words; open: Open Stats)
+     text: 0 / of 90 / Credits from wins today / Next win / +30 / Free pack / Claim / 1 / +30 / Win 1, pays 30, next / 2 / +10 / Win 2, pays 10 / 3 / +10 / Win 3, pays 10 / 4 / +10 / Win 4, pays 10 / 5 / +5 / Win 5, pays 5 / 6 / +5 / Win 6, pays 5 / 7 / +5 / Win 7, pays 5 / 8 / +5 / Win 8, pays 5 / 9 / +5 / Win 9, pays 5 / 10 / +5 / Win 10, pays 5 / Resets in / 12:07:10 / midnight Sydney / Rewarded wins / 0/10 / Today's wins /  …
+     actions: Claim
+  -- Collection L (1132x496px, 73 words; open: Open Collection)
+     text: 16% / 20/124 S0 cards / Secrets 0/19 · Prototypes 0/15 / 40 copies in all / All / Cortex / Aegis / Swarm / Null / Neutral / Barrier Node / Bloodswarm Alpha / ×2 / Bore Swarm / ×2 / Brood Reserves / Brood Skitterer / ×3 / Broodcaller / ×3 / Carapace Grunt / ×3 / Chitin Plating / Colony Broodling / ×3 / Corrosive Spitter / ×3 / Dormant Egg Sac / Hive Mother / Molted Stalker / ×2 / Overclock Beast / ×2 / Overgrown Carap …
+     actions: All | Cortex | Aegis | Swarm | Null | Neutral
+  -- Showcase L (1132x496px, 43 words; open: Open Collection)
+     text: Hive Mother / Hive Mother / Mythic / Bloodswarm Alpha / Bloodswarm Alpha / Rare / Dormant Egg Sac / Dormant Egg Sac / Rare / Overclock Beast / Overclock Beast / Rare / Barrier Node / Barrier Node / Uncommon / Bore Swarm / Bore Swarm / Uncommon / Your rarest finishes first. Pinning cards comes with the Collection page.
+     actions: none
+  -- Ladder L (556x668px, 112 words; open: Open Stats)
+     text: Unranked / 0/5 placed / — / Placement / 5 more rated matches to place / 0W 0L · ±350 / Mythic / 1950+ / Diamond / 1800+ / Platinum / 1650+ / Gold / 1500+ / Silver / 1350+ / Bronze / below 1350 / Placement / first 5 / Top 4 / 1 / Vector Halcyon / Nova / 1774 / 21W 2L / 2 / Rook's agent / Rook / 1190 / 1W 22L / — / Hive Courier / House Swarm · house / — / 3W 1L / — / Static Widow / House Null · house / — / 2W 2L / Arou …
+     actions: none
+  -- Rating & form L (1132x496px, 51 words; open: Open Stats)
+     text: — / Placement · 0 rated / ±0 / this week / Gold / 1520 / 1480 / 24 Oct / Today / No streak / 0W / 0L / Best streak / 0 / Form / last 0 / No results yet. / — / 0 matches / 0 credits from matches / Win rate by deck faction / Cortex / none / Swarm / none / Aegis / none / Null / none / Recent / No results yet.
+     actions: none
+  -- Match history L (556x668px, 10 words; open: Open Agent match)
+     text: No matches yet. Your results and their replays show here.
+     actions: none
+  -- Notifications L (556x668px, 37 words; open: Open the notifications)
+     text: 1 / 1 unread / latest just now / Mark all read / Match results / 0 / Big pulls / 0 / Daily pack / 1 / Auto-play / 0 / Your free daily pack is waiting / Claim it in the Store (up to 2 wait) / just now
+     actions: Mark all read | Your free daily pack is waitingClaim it in the Store (up to 2 wait)
+  -- Store L (1132x496px, 87 words, live drawing; open: Open Store)
+     text: 0 / credits / Daily reset in / 12:07:10 / midnight Sydney / AI·TCG / SEASON ZERO / S0 / FREE / Free daily pack / One a day, yours to claim / Claim / AI·TCG / SEASON ZERO / S0 / 100 / credits / 1 pack / Buy / 100 credits short / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / AI·TCG / SEASON ZERO / S0 / ×10 / 1,000 / credits / 10 packs / Buy / 1,000 credits short / Cosmetics / 300 / credits / Boot Sequence / Buy / 300 c …
+     actions: Claim | Buy, 100 credits | Buy, 1,000 credits | Buy, 300 credits | Buy, 300 credits | Buy, 300 credits | Buy, 300 credits
+  SAME FACT IN 3 TILES at L: agent name -> My agent (L), Agent controls (L), Ladder (L)
+  SAME FACT IN 3 TILES at L: rating uncertainty (±) -> My agent (L), Ladder (L), Rating & form (L)
+  SAME FACT IN 3 TILES at L: streak -> My agent (L), Daily rewards (L), Rating & form (L)
+  SAME FACT IN 2 TILES at L: auto-play on/off -> Agent controls (L), Notifications (L)
+  SAME FACT IN 4 TILES at L: win/loss record -> My agent (L), Watch live (L), Ladder (L), Rating & form (L)
+  SAME FACT IN 4 TILES at L: tier name -> My agent (L), Watch live (L), Ladder (L), Rating & form (L)
+
+[phone 390px] the recommended board is 2898px tall (3.4 screens), sideways scroll none
+
+page errors: none; external requests: none

@@ -1,6 +1,8 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
+**Season 0 is running (owner 2026-11-22: launched early on Sun 22 Nov 08:09 Sydney on the Mac mini from main at 89abe46; five bots; it ends by itself at 00:00 27 Dec Sydney; the Mac mini is not updated mid-season unless something breaks). The scheduled sessions now run the render lane only, on the owner's Season 1 Home plan, all in `render/season1/`. Render session 82 did phase 1 step 1, the Home tile audit and spec (`render/season1/HOME_TILES.md`, `render/season1/src/homeSpec.ts`; evidence `progress/render/evidence/season1-home-audit-s82/`).**
+
+**Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
 Session 104 (game lane, hardening and fixes only per the owner's 2026-11-14 point 4) printed an owner
@@ -41,21 +43,26 @@ browser checks (no Season 0 page changed). Nothing is blocking.**
 ## Concrete next step
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
-with "Render:", this is a game session; otherwise render. The latest PR (render session 81, this one) is render, so
-**the next session is game** (105).
+with "Render:", this is a game session; otherwise render. **But the owner's 2026-11-22 entry (point 7) overrides
+the alternation: every scheduled session is a render-lane session until the owner says otherwise** (the game lane
+stays off until the owner decides Season 1's server, domain and sign-in). Step 0's open-PR check still applies: one
+session at a time.
 
-At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
-else wait as step 0 says (if it merges while you wait, choose the lane again). Check the last merged PR so a slice
-isn't built twice. Read owner-feedback.md.
+At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
+as step 0 says. Read owner-feedback.md (answers to render 82's four calls may be there).
 
-Render lane (82): render 80 (hardening) and 81 (the debt list: the suite's time limits, the last stale by-hand
-checks) were both debt work. Next: a Season 0 fix if one is waiting; else, per the owner's 5 (b), the Season 1
-prototype's next step (the 3D play and attack effects, in `render/season1/` only). Next render hardening pass: 85.
+Render lane (83): the owner's plan, phase 1 step 2: **Home mockup A with its navigation**, in `render/season1/`
+(fenced off: nothing outside imports it, no Season 0 page links to it). Draw it from `render/season1/src/homeSpec.ts`
+(the tiles, their S / M / L facts, new-player views, next actions) with real data from the site demo (as the audit
+did, `render/season1/audit/auditDemo.ts`), as an experienced and a new owner, at desktop and phone. Then (84) mockups
+B and C, (85) the pack-opening flash audit / check / storyboard, (86) Watch live 9:16, (87) the music spec. A call
+only the owner can make goes in the notes as "waiting on owner" and the session moves on (owner rule 10a); when the
+list is done, hardening and fixes only (10b). Next render hardening pass: due around 85 (fit it around the plan).
 
-Game lane (105): hardening and fixes only until clean-up (owner 2026-11-14 point 4). Read the owner's answers first
-(session 104 has no calls). Candidates from quality-debt.md: the dry run's step 5 passing without a mid-match end
-(needs a way to end a window from outside: a feature, ask first); the slow demos (last run session 103, `npm run
-demos -- --all`); the "sits out" reminder by rounds, not time (only if the owner asks). Hardening count: 101 was
-one, 103 and 104 hardening-only too; the next dedicated pass is due around 106.
+Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
+the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to
+`progress/mac-mini-guide.md` (stop both launch agents, move the rehearsal file and logs aside, `git pull`, `npm ci`,
+`season:setup` on the new file, `install.sh` with its path, `bootstrap` both). Earlier candidates stay in
+quality-debt.md.
 
 **Blocked:** nothing.

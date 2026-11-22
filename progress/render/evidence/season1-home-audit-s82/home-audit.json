@@ -1,0 +1,2267 @@
+{
+ "url": "(local demo)",
+ "owners": {
+  "nova": {
+   "who": "Nova (experienced: weeks of matches, packs opened, credits)",
+   "nav": {
+    "side": [
+     "Home",
+     "Agent match",
+     "Watch live",
+     "Collection",
+     "Store",
+     "TournamentSoon",
+     "Stats",
+     "Settings",
+     "Connect agent"
+    ],
+    "top": [
+     "Open 11 packs",
+     "Theme: system (light). Change theme",
+     "Notifications, 24 unread",
+     "Account: Nova"
+    ],
+    "title": "Home"
+   },
+   "facts": {
+    "play": {
+     "connectedAgent": "Vector Halcyon",
+     "autoPlay": {
+      "on": true,
+      "changedAt": "2026-11-21T22:52:26.405Z",
+      "stopped": null,
+      "dailyRewardsMaxed": false,
+      "canTurnOn": true,
+      "allowance": null,
+      "canAddTime": false,
+      "house": false
+     }
+    },
+    "rating": {
+     "rating": {
+      "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+      "rating": 1774.2619143851941,
+      "rd": 150.71674047740836,
+      "volatility": 0.0600028526344896,
+      "ratedMatches": 23,
+      "tier": "Platinum",
+      "lastDay": "2026-11-22"
+     },
+     "recent": [
+      {
+       "matchId": "demo-today-2",
+       "endedAt": "2026-11-22T00:49:23.571Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1704.7664571169637,
+        "rd": 190.40084803479607,
+        "volatility": 0.06000224359924764
+       },
+       "after": {
+        "rating": 1724.0293697155075,
+        "rd": 182.52471591369317,
+        "volatility": 0.060001419319125095
+       }
+      },
+      {
+       "matchId": "demo-today-1",
+       "endedAt": "2026-11-22T00:12:23.571Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 0,
+       "before": {
+        "rating": 1878.7545426084016,
+        "rd": 192.06778639119497,
+        "volatility": 0.05999345608033329
+       },
+       "after": {
+        "rating": 1704.7664571169637,
+        "rd": 190.40084803479607,
+        "volatility": 0.06000224359924764
+       }
+      },
+      {
+       "matchId": "demo-today-0",
+       "endedAt": "2026-11-21T23:42:23.571Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1874.2601967053752,
+        "rd": 193.88518894959947,
+        "volatility": 0.05999368241001515
+       },
+       "after": {
+        "rating": 1878.7545426084016,
+        "rd": 192.06778639119497,
+        "volatility": 0.05999345608033329
+       }
+      },
+      {
+       "matchId": "demo-live-007",
+       "endedAt": "2026-11-21T23:23:11.765Z",
+       "opponentOwnerId": "740cd3c1-21d4-456f-a05e-03453e90b18e",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1741.9140503888389,
+        "rd": 159.09425223775727,
+        "volatility": 0.06000389798473713
+       },
+       "after": {
+        "rating": 1774.2619143851941,
+        "rd": 150.71674047740836,
+        "volatility": 0.0600028526344896
+       }
+      },
+      {
+       "matchId": "demo-live-005",
+       "endedAt": "2026-11-21T23:11:30.581Z",
+       "opponentOwnerId": "08c3d844-ffee-4a83-b3aa-84dd652f20c8",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1658.618093216603,
+        "rd": 167.7789539625237,
+        "volatility": 0.060001861600174275
+       },
+       "after": {
+        "rating": 1741.9140503888389,
+        "rd": 159.09425223775727,
+        "volatility": 0.06000389798473713
+       }
+      },
+      {
+       "matchId": "demo-live-004",
+       "endedAt": "2026-11-21T23:07:19.933Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1641.9872735614251,
+        "rd": 174.03986802395815,
+        "volatility": 0.06000273117330483
+       },
+       "after": {
+        "rating": 1658.618093216603,
+        "rd": 167.7789539625237,
+        "volatility": 0.060001861600174275
+       }
+      },
+      {
+       "matchId": "demo-live-001",
+       "endedAt": "2026-11-21T22:58:48.749Z",
+       "opponentOwnerId": "08c3d844-ffee-4a83-b3aa-84dd652f20c8",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 0,
+       "before": {
+        "rating": 1724.0293697155075,
+        "rd": 182.52471591369317,
+        "volatility": 0.060001419319125095
+       },
+       "after": {
+        "rating": 1641.9872735614251,
+        "rd": 174.03986802395815,
+        "volatility": 0.06000273117330483
+       }
+      },
+      {
+       "matchId": "demo-9",
+       "endedAt": "2026-10-29T10:00:00.000Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1834.5903426050247,
+        "rd": 203.99210397319712,
+        "volatility": 0.0599955945833115
+       },
+       "after": {
+        "rating": 1841.9729618202957,
+        "rd": 200.7223628338158,
+        "volatility": 0.059995272273001866
+       }
+      },
+      {
+       "matchId": "demo-8",
+       "endedAt": "2026-10-28T10:00:00.000Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1826.26085349207,
+        "rd": 207.7599779841838,
+        "volatility": 0.05999594058608841
+       },
+       "after": {
+        "rating": 1834.5903426050247,
+        "rd": 203.99210397319712,
+        "volatility": 0.0599955945833115
+       }
+      },
+      {
+       "matchId": "demo-7",
+       "endedAt": "2026-10-27T10:00:00.000Z",
+       "opponentOwnerId": "cc100e30-e59b-4ae6-9381-5f3988303d7a",
+       "ownerId": "f4aa7bd9-3aaa-49ee-8af9-11f4e932e311",
+       "score": 1,
+       "before": {
+        "rating": 1816.711797895802,
+        "rd": 212.17397560603004,
+        "volatility": 0.059996314830576825
+       },
+       "after": {
+        "rating": 1826.26085349207,
+        "rd": 207.7599779841838,
+        "volatility": 0.05999594058608841
+       }
+      }
+     ]
+    },
+    "base": {
+     "held": 49,
+     "total": 124
+    },
+    "unopened": 11,
+    "credits": 449
+   },
+   "recommended": [
+    {
+     "type": "agent",
+     "size": "M",
+     "title": "My agent",
+     "open": "Open Connect agent",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 22,
+     "text": "Vector Halcyon\nIn a match\n1774\nPlatinum\n5W\n2L\ntoday\nNo streak\nCORTEX\ndeck\nPlatinum · 1774 ±151 · Calculator play style",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "live",
+     "size": "M",
+     "title": "Agent controls",
+     "open": "Open Agent match",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 43,
+     "text": "On\nVector Halcyon\nIn a match\nPlaying · no time limit set\nStop\nGo to match\nPersonality\nCalculator\nA change applies from the next match.\nCORTEX Your agent picks: Agent's deck · 40 cards\nGive your agent\n15 min\n30 min\n60 min",
+     "actions": [
+      "Stop",
+      "Go to match",
+      "Calculator play style",
+      "Rusher play style",
+      "Controller play style",
+      "Tempo play style",
+      "Fortress play style",
+      "Gambler play style",
+      "15 min",
+      "30 min",
+      "60 min"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "packs",
+     "size": "M",
+     "title": "Packs",
+     "open": "Open Store",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 30,
+     "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n11\n11\nunopened packs\nSeason Zero · 5 cards a pack\n7\nsince a Full Art\n2\nsince a Mythic\nOpen\nOpen 10",
+     "actions": [
+      "Open",
+      "Open 10"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "daily",
+     "size": "S",
+     "title": "Daily rewards",
+     "open": "Open Stats",
+     "box": {
+      "w": 268,
+      "h": 152
+     },
+     "overflowPx": 0,
+     "words": 9,
+     "text": "65\nof 90\nCredits from wins\nNext win\n+5",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "store",
+     "size": "S",
+     "title": "Store",
+     "open": "Open Store",
+     "box": {
+      "w": 268,
+      "h": 152
+     },
+     "overflowPx": 0,
+     "words": 13,
+     "text": "AI·TCG\nSEASON ZERO\nS0\nFree daily pack\nClaim free pack\nResets in\n12:07:30",
+     "actions": [
+      "Claim free pack"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "watch",
+     "size": "M",
+     "title": "Watch live",
+     "open": "Open Watch live",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 40,
+     "text": "0\nVector Halcyon\nNova · 1774 Platinum\n20\nTurn 1 · Vector Halcyon to play\nHive Courier\nHouse Swarm · 1711 Placement\n24\nStatic Widow\n24–20\nRook's agent\nTurn 1 · Rook's agent to play\n0\nWatch live\n2 live",
+     "actions": [
+      "Watch live"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "collection",
+     "size": "M",
+     "title": "Collection",
+     "open": "Open Collection",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 27,
+     "text": "39%\n49/124 S0 cards\nSecrets 0/19 · Prototypes 0/15\n105 copies in all\nLast 5 pulls\nMutex Lock\nKinetic Buffer\nAcid Drone\nDecay Engine\nBad Sector\nFOIL",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "ladder",
+     "size": "M",
+     "title": "Ladder",
+     "open": "Open Stats",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 38,
+     "text": "#1\nof 4\n1774\nPlatinum\n26 to Diamond\n21W 2L · ±151\nAround you\n1\nVector Halcyon\n1774\n21W 2L\n2\nRook's agent\n1190\n1W 22L\n—\nHive Courier\n—\n3W 1L\n—\nStatic Widow\n—\n2W 2L",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "form",
+     "size": "M",
+     "title": "Rating & form",
+     "open": "Open Stats",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 26,
+     "text": "1774\nPlatinum ±151\n−68\nthis week\nForm\nlast 10\nW\nW\nW\nL\nW\nW\nW\nW\nL\nW\nNo streak\n21W\n2L\nBest streak\n16",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    }
+   ],
+   "recommendedDupes": [
+    {
+     "fact": "agent name",
+     "needle": "Vector Halcyon",
+     "tiles": [
+      "My agent (M)",
+      "Agent controls (M)",
+      "Watch live (M)",
+      "Ladder (M)"
+     ]
+    },
+    {
+     "fact": "rating",
+     "needle": "1774",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "rating uncertainty (±)",
+     "needle": "/±\\d+/",
+     "tiles": [
+      "My agent (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "streak",
+     "needle": "/streak/",
+     "tiles": [
+      "My agent (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "win/loss record",
+     "needle": "/\\b\\d+\\s*[–-]\\s*\\d+\\b|\\b\\d+W\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    }
+   ],
+   "sizes": {
+    "S": [
+     {
+      "type": "agent",
+      "size": "S",
+      "title": "My agent",
+      "open": "Open Connect agent",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 7,
+      "text": "Vector Halcyon\nIn a match\n1774\nPlatinum",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "live",
+      "size": "S",
+      "title": "Agent controls",
+      "open": "Open Agent match",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 1,
+      "words": 7,
+      "text": "On\nVector Halcyon\nIn a match\nStop",
+      "actions": [
+       "Stop"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "watch",
+      "size": "S",
+      "title": "Watch live",
+      "open": "Open Watch live",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 13,
+      "text": "Vector Halcyon\n20\nTurn 3 · Vector Halcyon to play\nHive Courier\n23",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "packs",
+      "size": "S",
+      "title": "Packs",
+      "open": "Open Store",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 14,
+      "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n11\n11\nunopened\nOpen\n11 unopened packs",
+      "actions": [
+       "Open"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "daily",
+      "size": "S",
+      "title": "Daily rewards",
+      "open": "Open Stats",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 9,
+      "text": "65\nof 90\nCredits from wins\nNext win\n+5",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "collection",
+      "size": "S",
+      "title": "Collection",
+      "open": "Open Collection",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 4,
+      "text": "39%\n49/124 S0 cards",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "showcase",
+      "size": "S",
+      "title": "Showcase",
+      "open": "Open Collection",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 11,
+      "text": "Hive Relay\nGLITCH\nHive Relay\nUncommon · Glitch\nYour best card",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "ladder",
+      "size": "S",
+      "title": "Ladder",
+      "open": "Open Stats",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 5,
+      "text": "#1\nof 4\n1774\nPlatinum",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "form",
+      "size": "S",
+      "title": "Rating & form",
+      "open": "Open Stats",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 6,
+      "text": "1774\nPlatinum ±151\n−68\nthis week",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "history",
+      "size": "S",
+      "title": "Match history",
+      "open": "Open Agent match",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 11,
+      "text": "W\nWin\nvs Rook's agent (Rook)\n+10 credits · +19 rating",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "notif",
+      "size": "S",
+      "title": "Notifications",
+      "open": "Open the notifications",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 9,
+      "text": "24\nYour free daily pack is waiting\njust now",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "store",
+      "size": "S",
+      "title": "Store",
+      "open": "Open Store",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 13,
+      "text": "AI·TCG\nSEASON ZERO\nS0\nFree daily pack\nClaim free pack\nResets in\n12:07:29",
+      "actions": [
+       "Claim free pack"
+      ],
+      "hasCanvasOrFrame": false
+     }
+    ],
+    "M": [
+     {
+      "type": "agent",
+      "size": "M",
+      "title": "My agent",
+      "open": "Open Connect agent",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 22,
+      "text": "Vector Halcyon\nIn a match\n1774\nPlatinum\n5W\n2L\ntoday\nNo streak\nCORTEX\ndeck\nPlatinum · 1774 ±151 · Calculator play style",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "live",
+      "size": "M",
+      "title": "Agent controls",
+      "open": "Open Agent match",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 43,
+      "text": "On\nVector Halcyon\nIn a match\nPlaying · no time limit set\nStop\nGo to match\nPersonality\nCalculator\nA change applies from the next match.\nCORTEX Your agent picks: Agent's deck · 40 cards\nGive your agent\n15 min\n30 min\n60 min",
+      "actions": [
+       "Stop",
+       "Go to match",
+       "Calculator play style",
+       "Rusher play style",
+       "Controller play style",
+       "Tempo play style",
+       "Fortress play style",
+       "Gambler play style",
+       "15 min",
+       "30 min",
+       "60 min"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "watch",
+      "size": "M",
+      "title": "Watch live",
+      "open": "Open Watch live",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 40,
+      "text": "0\nVector Halcyon\nNova · 1774 Platinum\n20\nTurn 4 · Hive Courier to play\nHive Courier\nHouse Swarm · 1711 Placement\n22\nStatic Widow\n24–19\nRook's agent\nTurn 4 · Static Widow to play\n0\nWatch live\n2 live",
+      "actions": [
+       "Watch live"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "packs",
+      "size": "M",
+      "title": "Packs",
+      "open": "Open Store",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 30,
+      "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n11\n11\nunopened packs\nSeason Zero · 5 cards a pack\n7\nsince a Full Art\n2\nsince a Mythic\nOpen\nOpen 10",
+      "actions": [
+       "Open",
+       "Open 10"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "daily",
+      "size": "M",
+      "title": "Daily rewards",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 79,
+      "text": "65\nof 90\nCredits from wins today\nNext win\n+5\n5 of 10 wins paid\nFree pack\nClaim\n✓\n+30\nWin 1, paid 30\n✓\n+10\nWin 2, paid 10\n✓\n+10\nWin 3, paid 10\n✓\n+10\nWin 4, paid 10\n✓\n+5\nWin 5, paid 5\n6\n+5\nWin 6, pays 5, next\n7\n+5\nWin 7, pays 5\n8\n+5\nWin 8, pays 5\n9\n+5\nWin 9, pays 5\n10\n+5\nWin 10, pays 5",
+      "actions": [
+       "Claim"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "collection",
+      "size": "M",
+      "title": "Collection",
+      "open": "Open Collection",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 27,
+      "text": "39%\n49/124 S0 cards\nSecrets 0/19 · Prototypes 0/15\n105 copies in all\nLast 5 pulls\nMutex Lock\nKinetic Buffer\nAcid Drone\nDecay Engine\nBad Sector\nFOIL",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "showcase",
+      "size": "M",
+      "title": "Showcase",
+      "open": "Open Collection",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 26,
+      "text": "Hive Relay\nGLITCH\nHive Relay\nUncommon · Glitch\nHeap Spray\nFULL ART\nHeap Spray\nRare · Full Art\nHive Relay\nFOIL\nHive Relay\nUncommon · Foil",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "ladder",
+      "size": "M",
+      "title": "Ladder",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 38,
+      "text": "#1\nof 4\n1774\nPlatinum\n26 to Diamond\n21W 2L · ±151\nAround you\n1\nVector Halcyon\n1774\n21W 2L\n2\nRook's agent\n1190\n1W 22L\n—\nHive Courier\n—\n3W 1L\n—\nStatic Widow\n—\n2W 2L",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "form",
+      "size": "M",
+      "title": "Rating & form",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 26,
+      "text": "1774\nPlatinum ±151\n−68\nthis week\nForm\nlast 10\nW\nW\nW\nL\nW\nW\nW\nW\nL\nW\nNo streak\n21W\n2L\nBest streak\n16",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "history",
+      "size": "M",
+      "title": "Match history",
+      "open": "Open Agent match",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 423,
+      "words": 105,
+      "text": "Last 6 of 23 · 5W 1L\nW\nWin\nvs Rook's agent (Rook)\n3 min ago\n+10 credits\n+19 rating\nNo replay\nL\nLoss\nvs Rook's agent (Rook)\n40 min ago\n+2 credits\n−174 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n1 h ago\n+30 credits\n+5 rating\nNo replay\nW\nWin\nvs Static Widow (House Null)\n1 h ago · 17 turns\n+5 credits\n+32 rating\nReplay\nW\nWin\nvs Hive Courier (House Swarm)\n1 h ago · 12 turns\n+10 credits\n+83 rating\nReplay\nW\nWin\nvs Rook's agent (Rook)\n1 h ago · 17 turns\n+10 credits\n+17 rating\nReplay",
+      "actions": [
+       "Replay",
+       "Replay",
+       "Replay"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "notif",
+      "size": "M",
+      "title": "Notifications",
+      "open": "Open the notifications",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 80,
+      "text": "24\n24 unread\nlatest just now\nMark all read\nYour free daily pack is waiting\nClaim it in the Store (up to 2 wait)\njust now\nWon vs Static Widow\nVector Halcyon · +5 credits · +32 rating · 17 turns\n1 h ago\nWon vs Hive Courier\nVector Halcyon · +10 credits · +83 rating · 12 turns\n1 h ago\nWon vs Rook's agent\nVector Halcyon · +10 credits · +17 rating · 17 turns\n1 h ago",
+      "actions": [
+       "Mark all read",
+       "Your free daily pack is waitingClaim it in the Store (up to 2 wait)",
+       "Won vs Static WidowVector Halcyon · +5 credits · +32 rating · 17 turns",
+       "Won vs Hive CourierVector Halcyon · +10 credits · +83 rating · 12 turns",
+       "Won vs Rook's agentVector Halcyon · +10 credits · +17 rating · 17 turns"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "store",
+      "size": "M",
+      "title": "Store",
+      "open": "Open Store",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 43,
+      "text": "AI·TCG\nSEASON ZERO\nS0\nFREE\nFree daily pack\nOne a day, yours to claim\nClaim\nAI·TCG\nSEASON ZERO\nS0\n100\ncredits\n1 pack\nBuy\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n×10\n1,000\ncredits\n10 packs\nBuy\n551 credits short",
+      "actions": [
+       "Claim",
+       "Buy 1 pack, 100 credits",
+       "Buy, 1,000 credits"
+      ],
+      "hasCanvasOrFrame": false
+     }
+    ],
+    "L": [
+     {
+      "type": "agent",
+      "size": "L",
+      "title": "My agent",
+      "open": "Open Connect agent",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 96,
+      "text": "Vector Halcyon\nIn a match\n1774\nPlatinum\n5W\n2L\ntoday\nNo streak\nCORTEX\ndeck\nPlatinum · 1774 ±151 · Calculator play style\nRating trend\n−136 over the last 20 rated matches\nRecent matches\nW\nWin\nvs Rook's agent (Rook)\n3 min ago\n+10 credits\n+19 rating\nNo replay\nL\nLoss\nvs Rook's agent (Rook)\n40 min ago\n+2 credits\n−174 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n1 h ago\n+30 credits\n+5 rating\nNo replay\nW\nWin\nvs Static Widow (House Null)\n1 h ago · 17 turns\n+5 credits\n+32 rating\nReplay",
+      "actions": [
+       "Replay"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "live",
+      "size": "L",
+      "title": "Agent controls",
+      "open": "Open Agent match",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 173,
+      "words": 164,
+      "text": "On\nVector Halcyon\nIn a match\nPlaying · no time limit set\nStop\nGo to match\nPersonality\nCalculator\nWeighs every move on the board as it stands and takes the best. The balanced default.\nA change applies from the next match.\nGive your agent\n15 min\n30 min\n60 min\nAdd time while it runs\n+15 min\n+30 min\nDeck\nYour agent picks\nAgent's deck · 40 cards\nCortex, my tweak\n40 cards\nA deck change applies from the next match.\nMatch history\nW\nWin\nvs Rook's agent (Rook)\n3 min ago\n+10 credits\n+19 rating\nNo replay\nL\nLoss\nvs Rook's agent (Rook)\n40 min ago\n+2 credits\n−174 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n1 h ago\n+30 credits\n+5 rating\nNo replay\nW\nWin\nvs Static Widow (House Null)\n1 h ago · 17 turns\n+5 credits\n+32 rating\nReplay\nW\nWin\nvs Hive Courier (House Swarm)\n1 h ago · 12 turns\n+10 credits\n+83 rating\nReplay",
+      "actions": [
+       "Stop",
+       "Go to match",
+       "Calculator play style",
+       "Rusher play style",
+       "Controller play style",
+       "Tempo play style",
+       "Fortress play style",
+       "Gambler play style",
+       "15 min",
+       "30 min",
+       "60 min",
+       "+15 min",
+       "+30 min",
+       "Your agent picksAgent's deck · 40 cards",
+       "Cortex, my tweak40 cards",
+       "Replay",
+       "Replay"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "watch",
+      "size": "L",
+      "title": "Watch live",
+      "open": "Open Watch live",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 44,
+      "text": "Full screen\n0\nVector Halcyon\nNova · 1774 Platinum\n20\nTurn 5 · Vector Halcyon to play\nHive Courier\nHouse Swarm · 1711 Placement\n21\nAlso live\nStatic Widow\n24–19\nRook's agent\nTurn 5 · Rook's agent to play\n0\nWatch live\n2 live",
+      "actions": [
+       "Watch Vector Halcyon vs Hive Courier full screen on the arena",
+       "Watch live"
+      ],
+      "hasCanvasOrFrame": true
+     },
+     {
+      "type": "packs",
+      "size": "L",
+      "title": "Packs",
+      "open": "Open Store",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 60,
+      "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n11\n11\nunopened packs\nSeason Zero · 5 cards a pack\n7\nsince a Full Art\n2\nsince a Mythic\nOpen\nOpen 10\nYour last pulls\n22:52 · S0\nMutex Lock\nKinetic Buffer\nAcid Drone\nDecay Engine\nBad Sector\nFOIL\n22:52 · S0\nEgg Courier\nMemory Leak\nZombie Fork\nHeap Spray\nBad Sector",
+      "actions": [
+       "Open",
+       "Open 10"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "daily",
+      "size": "L",
+      "title": "Daily rewards",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 137,
+      "text": "65\nof 90\nCredits from wins today\nNext win\n+5\nFree pack\nClaim\n✓\n+30\nWin 1, paid 30\n✓\n+10\nWin 2, paid 10\n✓\n+10\nWin 3, paid 10\n✓\n+10\nWin 4, paid 10\n✓\n+5\nWin 5, paid 5\n6\n+5\nWin 6, pays 5, next\n7\n+5\nWin 7, pays 5\n8\n+5\nWin 8, pays 5\n9\n+5\nWin 9, pays 5\n10\n+5\nWin 10, pays 5\nResets in\n12:07:23\nmidnight Sydney\nRewarded wins\n5/10\nToday's wins\nW\nWin 1\n23:42\n+30\nW\nWin 2\n00:49\n+10\nW\nWin 3\n23:07\n+10\nW\nWin 4\n23:11\n+10\nW\nWin 5\n23:23\n+5\nLosses and draws: 2 · 2 of 10 paid · +4 (next pays 2)\nIn all today\n69\ncredits\nNo quests, weekly challenge or streak in Season 0.",
+      "actions": [
+       "Claim"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "collection",
+      "size": "L",
+      "title": "Collection",
+      "open": "Open Collection",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 294,
+      "words": 142,
+      "text": "39%\n49/124 S0 cards\nSecrets 0/19 · Prototypes 0/15\n105 copies in all\nAll\nCortex\nAegis\nSwarm\nNull\nNeutral\nAcid Drone\n×3\nBackup Protocol\nBad Sector\n×6\nBastion Array\n×3\nCascade Purge\nCluster Node\n×2\nColony Overmind\nCompiled Daemon\n×2\nCortex Engineer\n×2\nDeadlock Detector\nDecay Engine\n×2\nDiagnostic Loop\nDiagnostic Pulse\nDormant Exploit\nEgg Courier\n×7\nFail-safe Unit\n×2\nFirewall Sentinel\n×3\nForce Quit\n×2\nGrid Consensus\nHardening Protocol\nHardlight Shell\n×2\nHeap Spray\n×4\nHeat Death\nHive Relay\n×2\nHot Swap\n×4\nHotfix\nInit Daemon\n×3\nInterrupt Handler\nKinetic Buffer\n×7\nLoad Balancer\n×2\nMainframe Core\n×2\nMemory Leak\n×2\nMutex Lock\n×3\nOverclock Shunt\nOverload Capacitor\nParity Checker\nPort Scanner\nQuorum Arbiter\nRate Limiter\n×2\nRecursive Construct\n×2\nRetaliation Node\nRollback Point\nShield Relay\nSignal Drone\nSpawning Pulse\n×7\nSurge Protector\nSwarm Surge\n×3\nWatchtower Relay\n×3\nZombie Fork",
+      "actions": [
+       "All",
+       "Cortex",
+       "Aegis",
+       "Swarm",
+       "Null",
+       "Neutral"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "showcase",
+      "size": "L",
+      "title": "Showcase",
+      "open": "Open Collection",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 61,
+      "text": "Hive Relay\nGLITCH\nHive Relay\nUncommon · Glitch\nHeap Spray\nFULL ART\nHeap Spray\nRare · Full Art\nHive Relay\nFOIL\nHive Relay\nUncommon · Foil\nBad Sector\nFOIL\nBad Sector\nCommon · Foil\nKinetic Buffer\nFOIL\nKinetic Buffer\nCommon · Foil\nMutex Lock\nFOIL\nMutex Lock\nCommon · Foil\nYour rarest finishes first. Pinning cards comes with the Collection page.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "ladder",
+      "size": "L",
+      "title": "Ladder",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 85,
+      "text": "#1\nof 4\n1774\nPlatinum\n26 to Diamond\n21W 2L · ±151\nMythic\n1950+\nDiamond\n1800+\nPlatinum\n1650+\nGold\n1500+\nSilver\n1350+\nBronze\nbelow 1350\nPlacement\nfirst 5\nTop 4\n1\nVector Halcyon\nNova · you\n1774\n21W 2L\n2\nRook's agent\nRook\n1190\n1W 22L\n—\nHive Courier\nHouse Swarm · house\n—\n3W 1L\n—\nStatic Widow\nHouse Null · house\n—\n2W 2L\n4 owners rated · 2 placed · Glicko-2, one rating per owner. A tier shows after 5 rated matches.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "form",
+      "size": "L",
+      "title": "Rating & form",
+      "open": "Open Stats",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 113,
+      "text": "1774\nPlatinum ±151\n−68\nthis week\nDiamond\n1842\n1724\n24 Oct\nToday\nNo streak\n21W\n2L\nBest streak\n16\nForm\nlast 20\nW\nW\nW\nW\nW\nW\nW\nW\nW\nW\nW\nW\nW\nL\nW\nW\nW\nW\nL\nW\n91%\n23 matches\n549 credits from matches\nWin rate by deck faction\nCortex\n75% of 4\nSwarm\nnone\nAegis\nnone\nNull\nnone\n19 older matches kept no faction.\nRecent\nW\nvs Rook's agent\nRook · 3 min ago\n+19\nL\nvs Rook's agent\nRook · 40 min ago\n−174\nW\nvs Rook's agent\nRook · 1 h ago\n+4\nW\nvs Static Widow\nNULL\nHouse Null · 1 h ago\n+32",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "history",
+      "size": "L",
+      "title": "Match history",
+      "open": "Open Agent match",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 1039,
+      "words": 324,
+      "text": "Last 20 of 23 · 18W 2L\nW\nWin\nvs Rook's agent (Rook)\n3 min ago\n+10 credits\n+19 rating\nNo replay\nL\nLoss\nvs Rook's agent (Rook)\n40 min ago\n+2 credits\n−174 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n1 h ago\n+30 credits\n+5 rating\nNo replay\nW\nWin\nvs Static Widow (House Null)\n1 h ago · 17 turns\n+5 credits\n+32 rating\nReplay\nLog\nW\nWin\nvs Hive Courier (House Swarm)\n1 h ago · 12 turns\n+10 credits\n+83 rating\nReplay\nLog\nW\nWin\nvs Rook's agent (Rook)\n1 h ago · 17 turns\n+10 credits\n+17 rating\nReplay\nLog\nL\nLoss\nvs Hive Courier (House Swarm)\n1 h ago · 12 turns\n+2 credits\n−82 rating\nReplay\nLog\nW\nWin\nvs Rook's agent (Rook)\n29 Oct, 10:00\n+30 credits\n+7 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n28 Oct, 10:00\n+30 credits\n+9 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n27 Oct, 10:00\n+30 credits\n+9 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n26 Oct, 10:00\n+30 credits\n+11 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n25 Oct, 10:00\n+30 credits\n+14 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n24 Oct, 10:00\n+30 credits\n+17 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n23 Oct, 10:00\n+30 credits\n+22 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n22 Oct, 10:00\n+30 credits\n+33 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n21 Oct, 10:00\n+30 credits\n+58 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n20 Oct, 10:00\n+30 credits\n+162 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n17 Oct, 10:00\n+30 credits\n+4 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n16 Oct, 10:00\n+30 credits\n+5 rating\nNo replay\nW\nWin\nvs Rook's agent (Rook)\n15 Oct, 10:00\n+30 credits\n+5 rating\nNo replay\nAll matches",
+      "actions": [
+       "Replay",
+       "Log",
+       "Replay",
+       "Log",
+       "Replay",
+       "Log",
+       "Replay",
+       "Log",
+       "All matches"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "notif",
+      "size": "L",
+      "title": "Notifications",
+      "open": "Open the notifications",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 158,
+      "text": "24\n24 unread\nlatest just now\nMark all read\nMatch results\n23\nBig pulls\n0\nDaily pack\n1\nAuto-play\n0\nYour free daily pack is waiting\nClaim it in the Store (up to 2 wait)\njust now\nWon vs Static Widow\nVector Halcyon · +5 credits · +32 rating · 17 turns\n1 h ago\nWon vs Hive Courier\nVector Halcyon · +10 credits · +83 rating · 12 turns\n1 h ago\nWon vs Rook's agent\nVector Halcyon · +10 credits · +17 rating · 17 turns\n1 h ago\nLost vs Hive Courier\nVector Halcyon · +2 credits · −82 rating · 12 turns\n1 h ago\nWon vs Rook's agent\nVector Halcyon · +10 credits · +19 rating\n3 min ago\nLost vs Rook's agent\nVector Halcyon · +2 credits · −174 rating\n40 min ago\nWon vs Rook's agent\nVector Halcyon · +30 credits · +4 rating\n1 h ago\nShowing the latest 8.",
+      "actions": [
+       "Mark all read",
+       "Your free daily pack is waitingClaim it in the Store (up to 2 wait)",
+       "Won vs Static WidowVector Halcyon · +5 credits · +32 rating · 17 turns",
+       "Won vs Hive CourierVector Halcyon · +10 credits · +83 rating · 12 turns",
+       "Won vs Rook's agentVector Halcyon · +10 credits · +17 rating · 17 turns",
+       "Lost vs Hive CourierVector Halcyon · +2 credits · −82 rating · 12 turns",
+       "Won vs Rook's agentVector Halcyon · +10 credits · +19 rating",
+       "Lost vs Rook's agentVector Halcyon · +2 credits · −174 rating",
+       "Won vs Rook's agentVector Halcyon · +30 credits · +4 rating"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "store",
+      "size": "L",
+      "title": "Store",
+      "open": "Open Store",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 72,
+      "text": "449\ncredits\nDaily reset in\n12:07:23\nmidnight Sydney\nAI·TCG\nSEASON ZERO\nS0\nFREE\nFree daily pack\nOne a day, yours to claim\nClaim\nAI·TCG\nSEASON ZERO\nS0\n100\ncredits\n1 pack\nBuy\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n×10\n1,000\ncredits\n10 packs\nBuy\n551 credits short\nCosmetics\n300\ncredits\nBoot Sequence\nBuy\n300\ncredits\nDial-Up Fireworks\nBuy\n300\ncredits\nDial-Up Dime\nBuy\n300\ncredits\nNeon Nickel\nBuy",
+      "actions": [
+       "Claim",
+       "Buy 1 pack, 100 credits",
+       "Buy, 1,000 credits",
+       "Buy Boot Sequence, 300 credits",
+       "Buy Dial-Up Fireworks, 300 credits",
+       "Buy Dial-Up Dime, 300 credits",
+       "Buy Neon Nickel, 300 credits"
+      ],
+      "hasCanvasOrFrame": true
+     }
+    ]
+   },
+   "dupesS": [
+    {
+     "fact": "agent name",
+     "needle": "Vector Halcyon",
+     "tiles": [
+      "My agent (S)",
+      "Agent controls (S)",
+      "Watch live (S)"
+     ]
+    },
+    {
+     "fact": "rating",
+     "needle": "1774",
+     "tiles": [
+      "My agent (S)",
+      "Ladder (S)",
+      "Rating & form (S)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (S)",
+      "Ladder (S)",
+      "Rating & form (S)"
+     ]
+    }
+   ],
+   "dupesM": [
+    {
+     "fact": "agent name",
+     "needle": "Vector Halcyon",
+     "tiles": [
+      "My agent (M)",
+      "Agent controls (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Notifications (M)"
+     ]
+    },
+    {
+     "fact": "rating",
+     "needle": "1774",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "rating uncertainty (±)",
+     "needle": "/±\\d+/",
+     "tiles": [
+      "My agent (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "streak",
+     "needle": "/streak/",
+     "tiles": [
+      "My agent (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "win/loss record",
+     "needle": "/\\b\\d+\\s*[–-]\\s*\\d+\\b|\\b\\d+W\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)",
+      "Match history (M)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    }
+   ],
+   "dupesL": [
+    {
+     "fact": "agent name",
+     "needle": "Vector Halcyon",
+     "tiles": [
+      "My agent (L)",
+      "Agent controls (L)",
+      "Watch live (L)",
+      "Ladder (L)",
+      "Notifications (L)"
+     ]
+    },
+    {
+     "fact": "rating",
+     "needle": "1774",
+     "tiles": [
+      "My agent (L)",
+      "Watch live (L)",
+      "Ladder (L)",
+      "Rating & form (L)"
+     ]
+    },
+    {
+     "fact": "rating uncertainty (±)",
+     "needle": "/±\\d+/",
+     "tiles": [
+      "My agent (L)",
+      "Ladder (L)",
+      "Rating & form (L)"
+     ]
+    },
+    {
+     "fact": "streak",
+     "needle": "/streak/",
+     "tiles": [
+      "My agent (L)",
+      "Daily rewards (L)",
+      "Rating & form (L)"
+     ]
+    },
+    {
+     "fact": "win/loss record",
+     "needle": "/\\b\\d+\\s*[–-]\\s*\\d+\\b|\\b\\d+W\\b/",
+     "tiles": [
+      "My agent (L)",
+      "Watch live (L)",
+      "Ladder (L)",
+      "Rating & form (L)",
+      "Match history (L)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (L)",
+      "Watch live (L)",
+      "Ladder (L)",
+      "Rating & form (L)"
+     ]
+    }
+   ],
+   "phone": {
+    "sw": 390,
+    "w": 390,
+    "h": 2898
+   }
+  },
+  "wren": {
+   "who": "Wren (new player: just signed up, starter, one agent, no match yet)",
+   "nav": {
+    "side": [
+     "Home",
+     "Agent match",
+     "Watch live",
+     "Collection",
+     "Store",
+     "TournamentSoon",
+     "Stats",
+     "Settings",
+     "Connect agent"
+    ],
+    "top": [
+     "Open 3 packs",
+     "Theme: system (light). Change theme",
+     "Notifications, 1 unread",
+     "Account: Wren"
+    ],
+    "title": "Home"
+   },
+   "facts": {
+    "play": {
+     "connectedAgent": "Moth Lantern",
+     "autoPlay": {
+      "on": false,
+      "changedAt": null,
+      "stopped": null,
+      "dailyRewardsMaxed": false,
+      "canTurnOn": true,
+      "allowance": null,
+      "canAddTime": false,
+      "house": false
+     }
+    },
+    "rating": {
+     "rating": {
+      "ownerId": "cd39d1f7-42b4-4d70-8aad-107a1a05ea08",
+      "rating": 1500,
+      "rd": 350,
+      "volatility": 0.06,
+      "ratedMatches": 0,
+      "tier": "Placement",
+      "lastDay": null
+     },
+     "recent": []
+    },
+    "base": {
+     "held": 20,
+     "total": 124
+    },
+    "unopened": 3,
+    "credits": 0
+   },
+   "recommended": [
+    {
+     "type": "agent",
+     "size": "M",
+     "title": "My agent",
+     "open": "Open Connect agent",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 23,
+     "text": "Moth Lantern\nReady\n—\nPlacement\n0W\n0L\ntoday\nNo streak\nNo deck yet\nPlacement · 0 rated matches ±350 · Calculator play style",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "live",
+     "size": "M",
+     "title": "Agent controls",
+     "open": "Open Agent match",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 33,
+     "text": "Off\nMoth Lantern\nReady\nStopped\nStart\nPersonality\nCalculator\nApplies from the next match.\nYour agent picks · no deck built yet\nNo match live\nGive your agent\n15 min\n30 min\n60 min",
+     "actions": [
+      "Start",
+      "Calculator play style",
+      "Rusher play style",
+      "Controller play style",
+      "Tempo play style",
+      "Fortress play style",
+      "Gambler play style",
+      "15 min",
+      "30 min",
+      "60 min"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "packs",
+     "size": "M",
+     "title": "Packs",
+     "open": "Open Store",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 35,
+     "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n3\n3\nunopened packs\nSeason Zero · 5 cards a pack\n0\nsince a Full Art\n0\nsince a Mythic\nOpen\nOpen 10\nOpen 10 needs 10 waiting.",
+     "actions": [
+      "Open",
+      "Open 10"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "daily",
+     "size": "S",
+     "title": "Daily rewards",
+     "open": "Open Stats",
+     "box": {
+      "w": 268,
+      "h": 152
+     },
+     "overflowPx": 0,
+     "words": 9,
+     "text": "0\nof 90\nCredits from wins\nNext win\n+30",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "store",
+     "size": "S",
+     "title": "Store",
+     "open": "Open Store",
+     "box": {
+      "w": 268,
+      "h": 152
+     },
+     "overflowPx": 0,
+     "words": 13,
+     "text": "AI·TCG\nSEASON ZERO\nS0\nFree daily pack\nClaim free pack\nResets in\n12:07:17",
+     "actions": [
+      "Claim free pack"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "watch",
+     "size": "M",
+     "title": "Watch live",
+     "open": "Open Watch live",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 46,
+     "text": "0\nVector Halcyon\nNova · 1774 Platinum\n18\nTurn 7 · Vector Halcyon to play\nHive Courier\nHouse Swarm · 1711 Placement\n20\nWatch as:\nVector Halcyon\nHive Courier\nStatic Widow\n24–18\nRook's agent\nTurn 7 · Rook's agent to play\n0\nWatch live\n2 live",
+     "actions": [
+      "Vector Halcyon",
+      "Hive Courier",
+      "Watch live"
+     ],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "collection",
+     "size": "M",
+     "title": "Collection",
+     "open": "Open Collection",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 20,
+     "text": "16%\n20/124 S0 cards\nSecrets 0/19 · Prototypes 0/15\n40 copies in all\nLast 0 pulls\nNo packs opened yet.",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "ladder",
+     "size": "M",
+     "title": "Ladder",
+     "open": "Open Stats",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 42,
+     "text": "Unranked\n0/5 placed\n—\nPlacement\n5 more rated matches to place\n0W 0L · ±350\nAround you\n1\nVector Halcyon\n1774\n21W 2L\n2\nRook's agent\n1190\n1W 22L\n—\nHive Courier\n—\n3W 1L\n⋯\n—\nMoth Lantern\n—\n0W 0L",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    },
+    {
+     "type": "form",
+     "size": "M",
+     "title": "Rating & form",
+     "open": "Open Stats",
+     "box": {
+      "w": 556,
+      "h": 324
+     },
+     "overflowPx": 0,
+     "words": 21,
+     "text": "—\nPlacement · 0 rated\n±0\nthis week\nForm\nlast 0\nNo results yet.\nNo streak\n0W\n0L\nBest streak\n0",
+     "actions": [],
+     "hasCanvasOrFrame": false
+    }
+   ],
+   "recommendedDupes": [
+    {
+     "fact": "agent name",
+     "needle": "Moth Lantern",
+     "tiles": [
+      "My agent (M)",
+      "Agent controls (M)",
+      "Ladder (M)"
+     ]
+    },
+    {
+     "fact": "rating uncertainty (±)",
+     "needle": "/±\\d+/",
+     "tiles": [
+      "My agent (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "streak",
+     "needle": "/streak/",
+     "tiles": [
+      "My agent (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "win/loss record",
+     "needle": "/\\b\\d+\\s*[–-]\\s*\\d+\\b|\\b\\d+W\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    }
+   ],
+   "sizes": {
+    "S": [
+     {
+      "type": "agent",
+      "size": "S",
+      "title": "My agent",
+      "open": "Open Connect agent",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 5,
+      "text": "Moth Lantern\nReady\n—\nPlacement",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "live",
+      "size": "S",
+      "title": "Agent controls",
+      "open": "Open Agent match",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 1,
+      "words": 5,
+      "text": "Off\nMoth Lantern\nReady\nStart",
+      "actions": [
+       "Start"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "watch",
+      "size": "S",
+      "title": "Watch live",
+      "open": "Open Watch live",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 13,
+      "text": "Vector Halcyon\n18\nTurn 7 · Vector Halcyon to play\nHive Courier\n19",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "packs",
+      "size": "S",
+      "title": "Packs",
+      "open": "Open Store",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 14,
+      "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n3\n3\nunopened\nOpen\n3 unopened packs",
+      "actions": [
+       "Open"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "daily",
+      "size": "S",
+      "title": "Daily rewards",
+      "open": "Open Stats",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 9,
+      "text": "0\nof 90\nCredits from wins\nNext win\n+30",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "collection",
+      "size": "S",
+      "title": "Collection",
+      "open": "Open Collection",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 4,
+      "text": "16%\n20/124 S0 cards",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "showcase",
+      "size": "S",
+      "title": "Showcase",
+      "open": "Open Collection",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 8,
+      "text": "Hive Mother\nHive Mother\nMythic\nYour best card",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "ladder",
+      "size": "S",
+      "title": "Ladder",
+      "open": "Open Stats",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 5,
+      "text": "Unranked\n0/5 placed\n—\nPlacement",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "form",
+      "size": "S",
+      "title": "Rating & form",
+      "open": "Open Stats",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 8,
+      "text": "—\nPlacement · 0 rated\n±0\nthis week",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "history",
+      "size": "S",
+      "title": "Match history",
+      "open": "Open Agent match",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 10,
+      "text": "No matches yet. Your results and their replays show here.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "notif",
+      "size": "S",
+      "title": "Notifications",
+      "open": "Open the notifications",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 9,
+      "text": "1\nYour free daily pack is waiting\njust now",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "store",
+      "size": "S",
+      "title": "Store",
+      "open": "Open Store",
+      "box": {
+       "w": 268,
+       "h": 152
+      },
+      "overflowPx": 0,
+      "words": 13,
+      "text": "AI·TCG\nSEASON ZERO\nS0\nFree daily pack\nClaim free pack\nResets in\n12:07:14",
+      "actions": [
+       "Claim free pack"
+      ],
+      "hasCanvasOrFrame": false
+     }
+    ],
+    "M": [
+     {
+      "type": "agent",
+      "size": "M",
+      "title": "My agent",
+      "open": "Open Connect agent",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 23,
+      "text": "Moth Lantern\nReady\n—\nPlacement\n0W\n0L\ntoday\nNo streak\nNo deck yet\nPlacement · 0 rated matches ±350 · Calculator play style",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "live",
+      "size": "M",
+      "title": "Agent controls",
+      "open": "Open Agent match",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 33,
+      "text": "Off\nMoth Lantern\nReady\nStopped\nStart\nPersonality\nCalculator\nApplies from the next match.\nYour agent picks · no deck built yet\nNo match live\nGive your agent\n15 min\n30 min\n60 min",
+      "actions": [
+       "Start",
+       "Calculator play style",
+       "Rusher play style",
+       "Controller play style",
+       "Tempo play style",
+       "Fortress play style",
+       "Gambler play style",
+       "15 min",
+       "30 min",
+       "60 min"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "watch",
+      "size": "M",
+      "title": "Watch live",
+      "open": "Open Watch live",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 46,
+      "text": "0\nVector Halcyon\nNova · 1774 Platinum\n16\nTurn 8 · Hive Courier to play\nHive Courier\nHouse Swarm · 1711 Placement\n19\nWatch as:\nVector Halcyon\nHive Courier\nStatic Widow\n22–18\nRook's agent\nTurn 8 · Static Widow to play\n0\nWatch live\n2 live",
+      "actions": [
+       "Vector Halcyon",
+       "Hive Courier",
+       "Watch live"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "packs",
+      "size": "M",
+      "title": "Packs",
+      "open": "Open Store",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 35,
+      "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n3\n3\nunopened packs\nSeason Zero · 5 cards a pack\n0\nsince a Full Art\n0\nsince a Mythic\nOpen\nOpen 10\nOpen 10 needs 10 waiting.",
+      "actions": [
+       "Open",
+       "Open 10"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "daily",
+      "size": "M",
+      "title": "Daily rewards",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 79,
+      "text": "0\nof 90\nCredits from wins today\nNext win\n+30\n0 of 10 wins paid\nFree pack\nClaim\n1\n+30\nWin 1, pays 30, next\n2\n+10\nWin 2, pays 10\n3\n+10\nWin 3, pays 10\n4\n+10\nWin 4, pays 10\n5\n+5\nWin 5, pays 5\n6\n+5\nWin 6, pays 5\n7\n+5\nWin 7, pays 5\n8\n+5\nWin 8, pays 5\n9\n+5\nWin 9, pays 5\n10\n+5\nWin 10, pays 5",
+      "actions": [
+       "Claim"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "collection",
+      "size": "M",
+      "title": "Collection",
+      "open": "Open Collection",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 20,
+      "text": "16%\n20/124 S0 cards\nSecrets 0/19 · Prototypes 0/15\n40 copies in all\nLast 0 pulls\nNo packs opened yet.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "showcase",
+      "size": "M",
+      "title": "Showcase",
+      "open": "Open Collection",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 17,
+      "text": "Hive Mother\nHive Mother\nMythic\nBloodswarm Alpha\nBloodswarm Alpha\nRare\nDormant Egg Sac\nDormant Egg Sac\nRare",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "ladder",
+      "size": "M",
+      "title": "Ladder",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 42,
+      "text": "Unranked\n0/5 placed\n—\nPlacement\n5 more rated matches to place\n0W 0L · ±350\nAround you\n1\nVector Halcyon\n1774\n21W 2L\n2\nRook's agent\n1190\n1W 22L\n—\nHive Courier\n—\n3W 1L\n⋯\n—\nMoth Lantern\n—\n0W 0L",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "form",
+      "size": "M",
+      "title": "Rating & form",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 21,
+      "text": "—\nPlacement · 0 rated\n±0\nthis week\nForm\nlast 0\nNo results yet.\nNo streak\n0W\n0L\nBest streak\n0",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "history",
+      "size": "M",
+      "title": "Match history",
+      "open": "Open Agent match",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 10,
+      "text": "No matches yet. Your results and their replays show here.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "notif",
+      "size": "M",
+      "title": "Notifications",
+      "open": "Open the notifications",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 26,
+      "text": "1\n1 unread\nlatest just now\nMark all read\nYour free daily pack is waiting\nClaim it in the Store (up to 2 wait)\njust now",
+      "actions": [
+       "Mark all read",
+       "Your free daily pack is waitingClaim it in the Store (up to 2 wait)"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "store",
+      "size": "M",
+      "title": "Store",
+      "open": "Open Store",
+      "box": {
+       "w": 556,
+       "h": 324
+      },
+      "overflowPx": 0,
+      "words": 46,
+      "text": "AI·TCG\nSEASON ZERO\nS0\nFREE\nFree daily pack\nOne a day, yours to claim\nClaim\nAI·TCG\nSEASON ZERO\nS0\n100\ncredits\n1 pack\nBuy\n100 credits short\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n×10\n1,000\ncredits\n10 packs\nBuy\n1,000 credits short",
+      "actions": [
+       "Claim",
+       "Buy, 100 credits",
+       "Buy, 1,000 credits"
+      ],
+      "hasCanvasOrFrame": false
+     }
+    ],
+    "L": [
+     {
+      "type": "agent",
+      "size": "L",
+      "title": "My agent",
+      "open": "Open Connect agent",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 36,
+      "text": "Moth Lantern\nReady\n—\nPlacement\n0W\n0L\ntoday\nNo streak\nNo deck yet\nPlacement · 0 rated matches ±350 · Calculator play style\nThe rating trend draws after two rated matches.\nRecent matches\nNo matches yet.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "live",
+      "size": "L",
+      "title": "Agent controls",
+      "open": "Open Agent match",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 71,
+      "text": "Off\nMoth Lantern\nReady\nStopped\nStart\nPersonality\nCalculator\nWeighs every move on the board as it stands and takes the best. The balanced default.\nApplies from the next match.\nNo match live\nGive your agent\n15 min\n30 min\n60 min\nAdd time while it runs\n+15 min\n+30 min\nDeck\nYour agent picks\nNo deck built yet\nA deck change applies from the next match.\nMatch history\nNo matches yet.",
+      "actions": [
+       "Start",
+       "Calculator play style",
+       "Rusher play style",
+       "Controller play style",
+       "Tempo play style",
+       "Fortress play style",
+       "Gambler play style",
+       "15 min",
+       "30 min",
+       "60 min",
+       "+15 min",
+       "+30 min",
+       "Your agent picksNo deck built yet"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "watch",
+      "size": "L",
+      "title": "Watch live",
+      "open": "Open Watch live",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 50,
+      "text": "Full screen\n0\nVector Halcyon\nNova · 1774 Platinum\n15\nTurn 9 · Vector Halcyon to play\nHive Courier\nHouse Swarm · 1711 Placement\n19\nWatch as:\nVector Halcyon\nHive Courier\nAlso live\nStatic Widow\n19–15\nRook's agent\nTurn 9 · Rook's agent to play\n0\nWatch live\n2 live",
+      "actions": [
+       "Watch Vector Halcyon vs Hive Courier full screen on the arena",
+       "Vector Halcyon",
+       "Hive Courier",
+       "Watch live"
+      ],
+      "hasCanvasOrFrame": true
+     },
+     {
+      "type": "packs",
+      "size": "L",
+      "title": "Packs",
+      "open": "Open Store",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 43,
+      "text": "AI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n3\n3\nunopened packs\nSeason Zero · 5 cards a pack\n0\nsince a Full Art\n0\nsince a Mythic\nOpen\nOpen 10\nOpen 10 needs 10 waiting.\nYour last pulls\nYour last pulls appear here",
+      "actions": [
+       "Open",
+       "Open 10"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "daily",
+      "size": "L",
+      "title": "Daily rewards",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 117,
+      "text": "0\nof 90\nCredits from wins today\nNext win\n+30\nFree pack\nClaim\n1\n+30\nWin 1, pays 30, next\n2\n+10\nWin 2, pays 10\n3\n+10\nWin 3, pays 10\n4\n+10\nWin 4, pays 10\n5\n+5\nWin 5, pays 5\n6\n+5\nWin 6, pays 5\n7\n+5\nWin 7, pays 5\n8\n+5\nWin 8, pays 5\n9\n+5\nWin 9, pays 5\n10\n+5\nWin 10, pays 5\nResets in\n12:07:10\nmidnight Sydney\nRewarded wins\n0/10\nToday's wins\nNo rewarded wins yet today.\nLosses and draws: 0 · 0 of 10 paid · +0 (next pays 2)\nIn all today\n0\ncredits\nNo quests, weekly challenge or streak in Season 0.",
+      "actions": [
+       "Claim"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "collection",
+      "size": "L",
+      "title": "Collection",
+      "open": "Open Collection",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 73,
+      "text": "16%\n20/124 S0 cards\nSecrets 0/19 · Prototypes 0/15\n40 copies in all\nAll\nCortex\nAegis\nSwarm\nNull\nNeutral\nBarrier Node\nBloodswarm Alpha\n×2\nBore Swarm\n×2\nBrood Reserves\nBrood Skitterer\n×3\nBroodcaller\n×3\nCarapace Grunt\n×3\nChitin Plating\nColony Broodling\n×3\nCorrosive Spitter\n×3\nDormant Egg Sac\nHive Mother\nMolted Stalker\n×2\nOverclock Beast\n×2\nOvergrown Carapace\n×2\nRally Cry\nReflex Spike\n×2\nSpore Cluster\n×2\nSwarm Larva\n×3\nWarren Guardian\n×2",
+      "actions": [
+       "All",
+       "Cortex",
+       "Aegis",
+       "Swarm",
+       "Null",
+       "Neutral"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "showcase",
+      "size": "L",
+      "title": "Showcase",
+      "open": "Open Collection",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 43,
+      "text": "Hive Mother\nHive Mother\nMythic\nBloodswarm Alpha\nBloodswarm Alpha\nRare\nDormant Egg Sac\nDormant Egg Sac\nRare\nOverclock Beast\nOverclock Beast\nRare\nBarrier Node\nBarrier Node\nUncommon\nBore Swarm\nBore Swarm\nUncommon\nYour rarest finishes first. Pinning cards comes with the Collection page.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "ladder",
+      "size": "L",
+      "title": "Ladder",
+      "open": "Open Stats",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 112,
+      "text": "Unranked\n0/5 placed\n—\nPlacement\n5 more rated matches to place\n0W 0L · ±350\nMythic\n1950+\nDiamond\n1800+\nPlatinum\n1650+\nGold\n1500+\nSilver\n1350+\nBronze\nbelow 1350\nPlacement\nfirst 5\nTop 4\n1\nVector Halcyon\nNova\n1774\n21W 2L\n2\nRook's agent\nRook\n1190\n1W 22L\n—\nHive Courier\nHouse Swarm · house\n—\n3W 1L\n—\nStatic Widow\nHouse Null · house\n—\n2W 2L\nAround you\n1\nVector Halcyon\nNova\n1774\n21W 2L\n2\nRook's agent\nRook\n1190\n1W 22L\n⋯\n—\nMoth Lantern\nWren · you\n—\n0W 0L\n4 owners rated · 2 placed · Glicko-2, one rating per owner. A tier shows after 5 rated matches.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "form",
+      "size": "L",
+      "title": "Rating & form",
+      "open": "Open Stats",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 51,
+      "text": "—\nPlacement · 0 rated\n±0\nthis week\nGold\n1520\n1480\n24 Oct\nToday\nNo streak\n0W\n0L\nBest streak\n0\nForm\nlast 0\nNo results yet.\n—\n0 matches\n0 credits from matches\nWin rate by deck faction\nCortex\nnone\nSwarm\nnone\nAegis\nnone\nNull\nnone\nRecent\nNo results yet.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "history",
+      "size": "L",
+      "title": "Match history",
+      "open": "Open Agent match",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 10,
+      "text": "No matches yet. Your results and their replays show here.",
+      "actions": [],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "notif",
+      "size": "L",
+      "title": "Notifications",
+      "open": "Open the notifications",
+      "box": {
+       "w": 556,
+       "h": 668
+      },
+      "overflowPx": 0,
+      "words": 37,
+      "text": "1\n1 unread\nlatest just now\nMark all read\nMatch results\n0\nBig pulls\n0\nDaily pack\n1\nAuto-play\n0\nYour free daily pack is waiting\nClaim it in the Store (up to 2 wait)\njust now",
+      "actions": [
+       "Mark all read",
+       "Your free daily pack is waitingClaim it in the Store (up to 2 wait)"
+      ],
+      "hasCanvasOrFrame": false
+     },
+     {
+      "type": "store",
+      "size": "L",
+      "title": "Store",
+      "open": "Open Store",
+      "box": {
+       "w": 1132,
+       "h": 496
+      },
+      "overflowPx": 0,
+      "words": 87,
+      "text": "0\ncredits\nDaily reset in\n12:07:10\nmidnight Sydney\nAI·TCG\nSEASON ZERO\nS0\nFREE\nFree daily pack\nOne a day, yours to claim\nClaim\nAI·TCG\nSEASON ZERO\nS0\n100\ncredits\n1 pack\nBuy\n100 credits short\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nAI·TCG\nSEASON ZERO\nS0\n×10\n1,000\ncredits\n10 packs\nBuy\n1,000 credits short\nCosmetics\n300\ncredits\nBoot Sequence\nBuy\n300 credits short\n300\ncredits\nDial-Up Fireworks\nBuy\n300 credits short\n300\ncredits\nDial-Up Dime\nBuy\n300 credits short\n300\ncredits\nNeon Nickel\nBuy\n300 credits short",
+      "actions": [
+       "Claim",
+       "Buy, 100 credits",
+       "Buy, 1,000 credits",
+       "Buy, 300 credits",
+       "Buy, 300 credits",
+       "Buy, 300 credits",
+       "Buy, 300 credits"
+      ],
+      "hasCanvasOrFrame": true
+     }
+    ]
+   },
+   "dupesS": [
+    {
+     "fact": "agent name",
+     "needle": "Moth Lantern",
+     "tiles": [
+      "My agent (S)",
+      "Agent controls (S)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (S)",
+      "Ladder (S)",
+      "Rating & form (S)"
+     ]
+    }
+   ],
+   "dupesM": [
+    {
+     "fact": "agent name",
+     "needle": "Moth Lantern",
+     "tiles": [
+      "My agent (M)",
+      "Agent controls (M)",
+      "Ladder (M)"
+     ]
+    },
+    {
+     "fact": "rating uncertainty (±)",
+     "needle": "/±\\d+/",
+     "tiles": [
+      "My agent (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "streak",
+     "needle": "/streak/",
+     "tiles": [
+      "My agent (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "win/loss record",
+     "needle": "/\\b\\d+\\s*[–-]\\s*\\d+\\b|\\b\\d+W\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (M)",
+      "Watch live (M)",
+      "Ladder (M)",
+      "Rating & form (M)"
+     ]
+    }
+   ],
+   "dupesL": [
+    {
+     "fact": "agent name",
+     "needle": "Moth Lantern",
+     "tiles": [
+      "My agent (L)",
+      "Agent controls (L)",
+      "Ladder (L)"
+     ]
+    },
+    {
+     "fact": "rating uncertainty (±)",
+     "needle": "/±\\d+/",
+     "tiles": [
+      "My agent (L)",
+      "Ladder (L)",
+      "Rating & form (L)"
+     ]
+    },
+    {
+     "fact": "streak",
+     "needle": "/streak/",
+     "tiles": [
+      "My agent (L)",
+      "Daily rewards (L)",
+      "Rating & form (L)"
+     ]
+    },
+    {
+     "fact": "auto-play on/off",
+     "needle": "/auto-?play|Running|Stopped|Paused/",
+     "tiles": [
+      "Agent controls (L)",
+      "Notifications (L)"
+     ]
+    },
+    {
+     "fact": "win/loss record",
+     "needle": "/\\b\\d+\\s*[–-]\\s*\\d+\\b|\\b\\d+W\\b/",
+     "tiles": [
+      "My agent (L)",
+      "Watch live (L)",
+      "Ladder (L)",
+      "Rating & form (L)"
+     ]
+    },
+    {
+     "fact": "tier name",
+     "needle": "/\\b(Bronze|Silver|Gold|Platinum|Diamond|Placement|Unranked)\\b/",
+     "tiles": [
+      "My agent (L)",
+      "Watch live (L)",
+      "Ladder (L)",
+      "Rating & form (L)"
+     ]
+    }
+   ],
+   "phone": {
+    "sw": 390,
+    "w": 390,
+    "h": 2898
+   }
+  }
+ }
+}
