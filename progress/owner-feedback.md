@@ -5036,3 +5036,44 @@ Adds to the entry above (the head start on the Season 1 arena).
 6. **Owner's note for the prototype:** zoom the arena in a little, especially the tile version.
 
 Next session by alternation: game 103 (hardening and fixes only), then render 80 (the render hardening pass).
+
+---
+
+## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan
+
+From the owner's review of PRs #187–#189, the Season 0 launch on the Mac mini, and the owner's look at the Season 0 Home page (a screenshot in chat, not in the repo).
+
+**Season 0**
+1. **Decision:** Season 0 started early, on Sun 22 Nov 2026 at 08:09 Sydney, on the Mac mini, from main at 89abe46 (after #189), with a fresh `season-0.db` (the rehearsal file and its logs moved aside, not deleted). It ends by itself at 00:00 Sun 27 Dec 2026 Sydney (2026-12-26T13:00Z), the default end time. The 2–4 Dec clean-up and final dry run did not happen before the launch.
+2. **Decision:** five bots for the whole season: the owner's agent plus House Cortex, Swarm, Aegis and Null. No more agents.
+3. **Decision:** the Mac mini is not updated mid-season unless something is actually broken. Nothing a session merges reaches the running season unless the owner pulls.
+4. **Owner's note:** the restart test was not done (owner's choice).
+5. **Bug, for the game lane when it resumes:** `season:setup` asks for "at least 12 characters", but the check (and the Mac mini guide) say 10. Make them match.
+6. **For the game lane when it resumes:** add the rehearsal-to-launch switch to `progress/mac-mini-guide.md`: stop both launch agents, move the rehearsal file and logs aside, `git pull`, `npm ci`, `season:setup` on the new file, `install.sh` with its path, `bootstrap` both.
+
+**How sessions run from now**
+7. **Decision:** the scheduled sessions run the **render lane only**. The game lane stays off until the owner decides Season 1's server, domain and sign-in. This replaces TASKS.md's alternation until the owner says otherwise. The owner may also start extra sessions by hand; still only one session at a time (TASKS.md step 0).
+8. **Decision:** all of this work goes in `render/season1/`, under the same fence as the arena: nothing outside imports it, no Season 0 page links to it, and no Season 0 page changes.
+9. **Decision:** the plan below has no hard finish; it is a guide, not a deadline.
+10. **Decision, two rules:** (a) a call only the owner can make goes in the notes as "waiting on owner", and the session moves on to the next decided item; never guess. (b) When the list is done, sessions do hardening and fixes only: no new features.
+
+**The owner's feedback on Home (for Season 1)**
+11. **Owner:** he likes the theme and being able to customise and move tiles around. But the tiles don't clearly say what they are, and their data isn't easy to read or meaningful: not intuitive for a new player, not engaging for an experienced one. The navigation doesn't feel intuitive either. (He couldn't yet say what would look better, so sessions show options for him to pick from.)
+12. **Owner:** S / M / L tiles: a small tile keeps to the core info, and it expands as the tile gets larger.
+13. **Owner:** the Watch live tile should show the actual arena playing, in a 9:16 vertical format at M and L, with basic info at S.
+14. **Owner:** the music tile is missing (music selection and creation, the drum machine). See `progress/season-1-ideas.md`, "Music tools" (2026-11-06).
+15. **Owner:** the pack opening is jarring with the flashing lights and needs revisiting.
+16. **Owner:** the pack art should be more Pokémon-like or in the style of MTG (original art and our own faction mascots, never copies).
+17. **Observations from the chat review (not owner decisions):** the rating (1517) shows in three tiles (My agent, Rating & form, Ladder); the agent's name and status in two (My agent, Agent controls); labels like "±109", "0 since a Full Art" and "Open 10 needs 10 waiting" need explaining; the Collection tile says "No packs opened yet" with no prompt while 3 packs wait in the Packs tile.
+
+**The plan (render lane, one session a night; dates are a guide)**
+18. **Phase 1, design:** (1) a tile audit and spec: for every tile, the one question it answers, what it shows at S / M / L, what a new player sees, its next action; merge the duplicates in 17. (2) Home mockup A with its navigation. (3) Home mockups B and C. (4) A pack-opening flash audit, an automatic flash check, and a storyboard for the new opening. (5) A Watch live prototype on the Season 1 arena: 9:16 at M and L, basic info at S. (6) The music tool spec: drum machine, loop creator, 5 save slots, S / M / L tiles. **Waiting on owner:** pick a Home direction.
+19. **Phase 2, foundations (after the owner picks):** the S / M / L tile framework and the navigation in the chosen direction; then the tiles in groups: the agent tile (My agent + Agent controls), the Ladder tile (Rating & form merged in), Packs and Store, Collection and Daily rewards; then three pack-wrapper designs with placeholder art. **Waiting on owner:** the music spec and a pack art design.
+20. **Phase 3:** the Watch live tile in the new Home; the pack opening rework in two parts (the build-up: shake, tear, sound, no strobe; then the reveal and big-pull moments within the flash limit, plus a reduced-flash setting); new-player states for every tile; a checkpoint: a full browser check and a summary of what is waiting on the owner.
+21. **Phase 4, decided work only:** the new navigation across every page; the music tool (only once the owner approves its spec); the chosen pack art design with placeholder art; hardening (flash and reduced-motion checks, phone layouts, speed, browser checks); then a summary of everything built.
+22. **Decision, flashing:** pack opening and every effect meet WCAG 2.3.1: no more than three flashes in any one second, no saturated red flashing; an automatic flash check keeps it so, and a reduced-flash setting is offered.
+23. **Decision, pack art:** placeholder art until the owner approves the cost of generating the real art through the existing Replicate GitHub Action. The game never calls Replicate.
+24. **Decision, music:** spec first; build only after the owner approves the spec.
+25. **Not decided:** the Home direction (A, B or C), the pack art design, the music spec, and Open 10 calls 1–2.
+
+Next session: render 82 (the tile audit and spec, phase 1 step 1).
