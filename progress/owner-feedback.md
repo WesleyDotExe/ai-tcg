@@ -5113,3 +5113,13 @@ From the owner's review of render 83's mockup A (PR #191, `render/season1/output
 4. **Owner's note for mockups B and C:** bring back the Season 0 theme (the owner loves it; mockup A's plain dark look lost it); push harder on visuals so Home is engaging, not just clear; fix the empty space (a new player's Match history at L, Store and Daily rewards at L) and the left navigation rail's background stopping short of the page bottom.
 
 Next session: render 84 (Home mockups B and C, phase 1 step 3).
+
+---
+
+## 2026-11-22 — Owner: the Actions-minutes fix (PR #192)
+
+The private repo used up its monthly GitHub Actions minutes (about 30 per build session: `test` on the PR, `auto-merge` polling while it ran, `test` again on the push to main). The owner made the repo public for now and approved the fix in PR #192.
+1. **Decision:** `test.yml` runs on PRs and by hand only, not on pushes to main. A PR that only changes `*.md` notes or pictures under `progress/` still reports `test` but skips the steps.
+2. **Decision:** `auto-merge.yml` starts when a `test` run finishes (`workflow_run`) and merges only on success, with the same guards (claude/* branches in this repo, the tested sha only, 409 is not a failure, server errors retried). The PR's checks list shows `test` only; a failed `test` re-run is enough, auto-merge follows by itself.
+3. **Decision:** `server/vitest.config.ts` gives the server suite a 30 s per-test limit (as the render suite), so a slow shared runner doesn't fail a PR for nothing.
+4. **Standing rule:** keep the Actions minutes low. Don't add a push-to-main test run or a polling wait back, and keep new CI steps proportionate; each false failure costs a full re-run.
