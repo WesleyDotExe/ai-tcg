@@ -1,37 +1,74 @@
 name: test
 
 # Gives the auto-merge workflow (auto-merge.yml) something real to wait on:
-# it only merges once every check whose name contains "test"/"build"/
-# "deploy" on the PR's head commit has completed successfully, and until
-# this workflow existed there was no such check, so PRs merged without any
-# automated verification actually running. Runs the same things a
-# contributor runs locally (typecheck across every workspace, engine's
-# vitest suite) on every push and PR against main.
+# it only merges a PR once this `test` run on the PR's head commit has
+# succeeded (auto-merge now starts when this run finishes, instead of
+# polling while it runs). Until this workflow existed there was no such
+# check, so PRs merged without any automated verification actually running.
+# Runs the same things a contributor runs locally (typecheck across every
+# workspace, engine's vitest suite) on every PR against main.
+#
+# Actions minutes (owner 2026-11-22, after the private repo used up its monthly
+# minutes): this runs on PRs and by hand only, not again on every push to main.
+# Main only changes through tested PRs (squash merges), the owner's notes and
+# the mythic-wards bot, so the second run after each merge was a repeat. A PR
+# that only changes notes and pictures under progress/ (*.md, images) still
+# gets a `test` check, for auto-merge to wait on, but skips the steps: about
+# 10 seconds instead of about 10 minutes. Nothing a test or check reads is in
+# that set (tests read render/EFFECTS.md and render/season1/HOME_TILES.md,
+# which are outside progress/). A newer commit on the same PR cancels the
+# older commit's run.
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
+      - name: what changed (notes only?)
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --jq '.[].filename')
+          echo "$files"
+          if [ -n "$files" ] && ! printf '%s\n' "$files" | grep -v -E '^progress/.*\.(md|jpg|jpeg|png|gif|webp)$' | grep -q .; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+            echo "Only notes and pictures under progress/ changed: the test steps are skipped."
+          fi
       - uses: actions/checkout@v4
+        if: steps.changes.outputs.docs_only != 'true'
       - uses: actions/setup-node@v4
+        if: steps.changes.outputs.docs_only != 'true'
         with:
           node-version: 22
       - run: npm ci
+        if: steps.changes.outputs.docs_only != 'true'
       - name: typecheck (all workspaces)
+        if: steps.changes.outputs.docs_only != 'true'
         run: npm run typecheck --workspaces --if-present
       - name: engine test suite (vitest)
+        if: steps.changes.outputs.docs_only != 'true'
         run: npm test
       # The standing balance check (owner-feedback 2026-10-04, A.5): the six
       # ring edges at the gate's seed counts against engine/src/dev/
       # ringBaseline.json. Fails if any band verdict worsens, or an
       # accepted-OUT edge moves further out. About 15 seconds.
       - name: balance ring regression
+        if: steps.changes.outputs.docs_only != 'true'
         run: npm run ring -w @ai-tcg/engine
       # The demo drift check in CI (owner 2026-11-06, session 75's option a):
       # re-runs the fast demos in progress/demos.json and fails if any
@@ -40,6 +77,7 @@ jobs:
       # --write, then read the diff). The slow ones (--all) stay local.
       # About 35 seconds locally on 4 cores.
       - name: demo drift check (fast demos)
+        if: steps.changes.outputs.docs_only != 'true'
         run: npm run demos
       # The site contract check (game session 90): the website's own client
       # (render/src/site/siteApi.ts) calls the real owner API over a season
@@ -51,12 +89,14 @@ jobs:
       # a site type that needs a field the server doesn't send. Its last
       # record: progress/site-contract-003.txt. About 10 seconds.
       - name: site contract check (site types vs served answers)
+        if: steps.changes.outputs.docs_only != 'true'
         run: npm run check:site-contract -w server
       # The same six edges the way a real match plays (owner 2026-10-18,
       # option A): set Mythic in the deck, each side an approved menu line
       # as its signature card, against ringBaselineReal.json. The set-Mythic
       # signature mode (npm run ring:signature) is a report now, not a check.
       - name: balance ring regression (real matches)
+        if: steps.changes.outputs.docs_only != 'true'
         run: npm run ring:real -w @ai-tcg/engine
       # The render's browser check (owner 2026-10-29): the six boasts draw
       # nothing past the winner's side, the Skip sizes, one replay's intro
@@ -70,6 +110,7 @@ jobs:
       # image; only if the browser can't start without more are they
       # installed. About 45-60 seconds.
       - name: render browser check (pinned Chromium)
+        if: steps.changes.outputs.docs_only != 'true'
         env:
           PW_CORE: ${{ runner.temp }}/pw/node_modules/playwright-core/index.mjs
           PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/pw-browsers
