@@ -5,7 +5,7 @@ name: mythic-wards
 # Owner-approved 2026-10-03. Build-time only: the game itself never calls Replicate,
 # and a Mythic without art uses the code-generated fallback ward until this runs.
 #
-# Triggers: after each auto-merge run (new cards usually land that way), once a day as a
+# Triggers: after each successful auto-merge run (new cards usually land that way), once a day as a
 # backstop, and by hand from the Actions tab. It exits in seconds when nothing is missing.
 # Spend cap: MAX_PER_RUN cards per run (about $0.15 each), at most 3 attempts per card.
 
@@ -27,6 +27,12 @@ concurrency:
 jobs:
   wards:
     runs-on: ubuntu-latest
+    # Actions minutes (owner 2026-11-22): after auto-merge, only when it actually
+    # ran and succeeded (it now starts after every `test` run and skips itself
+    # unless there is a build PR to merge). The daily cron and the button still run.
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
         with:

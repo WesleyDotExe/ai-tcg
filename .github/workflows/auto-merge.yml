@@ -3,46 +3,52 @@ name: Auto-merge build PRs
 # Automatically merges pull requests opened by the scheduled build runs.
 # Safety: only acts on PRs whose head branch lives in THIS repo and is named
 # claude/* (external contributors come from forks and cannot push such branches),
-# and only after the `test` check run for the head commit has passed (and
-# any other build/deploy/test checks with it). It never merges forked or human PRs.
+# and only after the `test` run for the PR's head commit has succeeded. It never
+# merges forked or human PRs.
+#
+# Actions minutes (owner 2026-11-22, after the private repo used up its monthly
+# minutes): this now starts when a `test` run FINISHES (workflow_run) instead of
+# starting with the PR and polling for up to 12 minutes while the tests run;
+# the waiting was billed like the tests themselves. It runs for seconds, and only
+# merges when that run concluded `success`. Re-running a failed `test` run from
+# the PR's Checks tab starts this again by itself when it passes.
+#
+# What carries over from before (owner 2026-11-06): only the exact head commit
+# the `test` run checked is merged (the `sha` pin; a newer commit is merged by
+# its own run's job, and a 409 is not a failure); a PR GitHub runs no tests on
+# (one with conflicts, PR #137) is never merged, it simply stays open; a GitHub
+# server error or rate limit is retried a few times before giving up (PR #131).
+# Its name is unchanged: mythic-wards.yml runs after it by that name.
 
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize]
+  workflow_run:
+    workflows: ["test"]
+    types: [completed]
 
 permissions:
   contents: write
   pull-requests: write
-  checks: read
 
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: >
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      startsWith(github.event.pull_request.head.ref, 'claude/')
-    # One auto-merge job per PR (owner 2026-11-06, after PR #139): a newer
-    # commit's job cancels the older commit's job while it waits. The Merge
-    # step's `sha` pin still holds if a cancel arrives late.
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      startsWith(github.event.workflow_run.head_branch, 'claude/')
     concurrency:
-      group: auto-merge-pr-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+      group: auto-merge-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
     steps:
-      - name: Wait for checks to pass
+      - name: Merge
         uses: actions/github-script@v7
         with:
           script: |
-            const pr = context.payload.pull_request;
-            const sha = pr.head.sha;
-            // Up to 12 minutes (72 polls, 10 s apart). It was 5, which timed
-            // out once with tests green (PR #88); the render's browser check
-            // (owner 2026-10-29) adds about a minute to the test run.
-            //
-            // A GitHub server error (5xx) or a rate limit (429, or 403 with
-            // no requests left) is retried up to 4 times, 5/10/20/40 s apart,
-            // before the step gives up (owner 2026-11-06: PR #131 failed on
-            // one HTTP 500 while every test had passed). Any other error, or
-            // a check that really failed, still stops the merge.
+            const run = context.payload.workflow_run;
+            const sha = run.head_sha;
+            const { owner, repo } = context.repo;
             const RETRY_DELAYS_MS = [5000, 10000, 20000, 40000];
             const sleep = ms => new Promise(r => setTimeout(r, ms));
             const retryable = e => {
@@ -52,71 +58,43 @@ jobs:
               const left = e.response && e.response.headers && e.response.headers['x-ratelimit-remaining'];
               return s === 403 && String(left) === '0';
             };
-            async function listRuns() {
+            async function withRetry(what, fn) {
               for (let attempt = 0; ; attempt++) {
-                try {
-                  return await github.rest.checks.listForRef({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    ref: sha,
-                    filter: 'latest',
-                    per_page: 100,
-                  });
-                } catch (e) {
+                try { return await fn(); } catch (e) {
                   if (!retryable(e) || attempt >= RETRY_DELAYS_MS.length) throw e;
-                  core.warning(`Listing check runs failed (HTTP ${e.status}); retry ${attempt + 1} of ${RETRY_DELAYS_MS.length} in ${RETRY_DELAYS_MS[attempt] / 1000} s.`);
+                  core.warning(`${what} failed (HTTP ${e.status}); retry ${attempt + 1} of ${RETRY_DELAYS_MS.length} in ${RETRY_DELAYS_MS[attempt] / 1000} s.`);
                   await sleep(RETRY_DELAYS_MS[attempt]);
                 }
               }
             }
-            // The `test` check run (test.yml's job) must exist for this exact
-            // head commit and have concluded `success` before anything merges
-            // (owner 2026-11-06, after PR #137: GitHub runs no `pull_request`
-            // workflow on a PR with conflicts, so there was no check at all
-            // and the old "nothing relevant, merge" rule passed in 1 s). A
-            // missing run is waited for until the timeout, then fails.
-            const REQUIRED = 'test';
-            let sawRequired = false;
-            for (let i = 0; i < 72; i++) {
-              const { data } = await listRuns();
-              const runs = data.check_runs.filter(r => r.name !== 'auto-merge');
-              const relevant = runs.filter(r => r.name.toLowerCase().includes('deploy') || r.name.toLowerCase().includes('build') || r.name.toLowerCase().includes('test'));
-              const anyFail = relevant.some(r => ['failure','cancelled','timed_out','action_required','stale'].includes(r.conclusion));
-              if (anyFail) { core.setFailed('A required check failed; not merging.'); return; }
-              const required = runs.filter(r => r.name === REQUIRED);
-              sawRequired = sawRequired || required.length > 0;
-              const allDone = relevant.every(r => r.status === 'completed');
-              const requiredGreen = required.length > 0 && required.every(r => r.status === 'completed' && r.conclusion === 'success');
-              if (allDone && requiredGreen) return;
-              if (allDone && required.length > 0 && !requiredGreen) {
-                core.setFailed(`The ${REQUIRED} check run concluded "${required.map(r => r.conclusion).join(', ')}", not success; not merging.`);
-                return;
-              }
-              await sleep(10000);
+            // The open PR from this branch in this repo (the run's own list first,
+            // then a lookup by branch, since the list can come back empty).
+            let numbers = (run.pull_requests || []).map(p => p.number);
+            if (numbers.length === 0) {
+              const { data } = await withRetry('Listing PRs', () => github.rest.pulls.list({
+                owner, repo, state: 'open', head: `${owner}:${run.head_branch}`, per_page: 10,
+              }));
+              numbers = data.map(p => p.number);
             }
-            core.setFailed(sawRequired ? 'Timed out waiting for checks.' : `Timed out: no ${REQUIRED} run for this commit (${sha}); not merging.`);
-      - name: Merge
-        uses: actions/github-script@v7
-        with:
-          script: |
-            // Merge only the commit whose `test` run the wait step checked
-            // (owner 2026-11-06, after PR #139: without `sha`, GitHub merged
-            // whatever the head was, a newer commit whose tests were still
-            // running). If the head has moved, GitHub refuses with 409; that
-            // is not a failure: the newer commit's own job merges it.
-            const sha = context.payload.pull_request.head.sha;
-            try {
-              await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-                merge_method: 'squash',
-                sha,
-              });
-            } catch (e) {
-              if (e && e.status === 409) {
-                core.notice(`Not merging ${sha}: a newer commit was pushed; its own auto-merge job merges it.`);
-                return;
+            if (numbers.length === 0) { core.notice(`No open PR for ${run.head_branch}; nothing to merge.`); return; }
+            for (const number of numbers) {
+              const { data: pr } = await withRetry('Reading the PR', () => github.rest.pulls.get({ owner, repo, pull_number: number }));
+              if (pr.state !== 'open' || pr.base.ref !== 'main' || pr.head.repo.full_name !== `${owner}/${repo}` || !pr.head.ref.startsWith('claude/')) {
+                core.notice(`PR #${number} is not an open claude/* PR from this repo into main; not merging.`);
+                continue;
               }
-              throw e;
+              if (pr.head.sha !== sha) {
+                core.notice(`PR #${number}'s head is ${pr.head.sha}, not the tested ${sha}; the newer commit's own test run merges it.`);
+                continue;
+              }
+              try {
+                await withRetry('Merging', () => github.rest.pulls.merge({ owner, repo, pull_number: number, merge_method: 'squash', sha }));
+                core.notice(`Merged PR #${number} at ${sha}.`);
+              } catch (e) {
+                if (e && e.status === 409) {
+                  core.notice(`Not merging ${sha}: a newer commit was pushed; its own test run merges it.`);
+                  continue;
+                }
+                throw e;
+              }
             }
