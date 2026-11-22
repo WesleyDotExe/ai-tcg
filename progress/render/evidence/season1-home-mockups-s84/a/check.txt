@@ -1,0 +1,91 @@
+Mockup A (home-mockup-a.html)
+
+=== Nova (weeks in) ===
+
+[recommended board, 1440x900] 9 tiles: My agent M 641x386, Watch live M 314x586, Packs S 314x186, Daily rewards S 314x186, Ladder M 641x386, Collection S 314x186, Match history M 641x386, Store S 314x186, Notifications S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[all at S, 1440x900] 10 tiles: My agent S 314x186, Ladder S 314x186, Watch live S 314x186, Packs S 314x186, Store S 314x186, Collection S 314x186, Daily rewards S 314x186, Match history S 314x186, Notifications S 314x186, Music S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[all at M, 1440x900] 10 tiles: My agent M 641x386, Ladder M 641x386, Watch live M 314x586, Packs M 641x386, Store M 641x386, Collection M 641x386, Daily rewards M 641x386, Match history M 641x386, Notifications M 641x386, Music M 641x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[all at L, 1440x900] 10 tiles: My agent L 1296x386, Ladder L 1296x386, Watch live L 641x586, Packs L 1296x386, Store L 1296x386, Collection L 1296x386, Daily rewards L 1296x386, Match history L 1296x386, Notifications L 1296x386, Music L 1296x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+
+[phone 390x844, recommended] 9 tiles, 2312px tall (2.7 screens); places: Home | My agent | Watch | Cards | Ladder
+PASS phone: no sideways scroll (0px)
+PASS phone: five places, no rail
+PASS phone: no tile overflows
+PASS phone: every tile shows its S face (Watch live its 9:16 M)
+
+=== Wren (just signed up) ===
+
+[recommended board, 1440x900] 9 tiles: My agent M 641x386, Watch live M 314x586, Packs S 314x186, Daily rewards S 314x186, Ladder M 641x386, Collection S 314x186, Match history M 641x386, Store S 314x186, Notifications S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[all at S, 1440x900] 10 tiles: My agent S 314x186, Ladder S 314x186, Watch live S 314x186, Packs S 314x186, Store S 314x186, Collection S 314x186, Daily rewards S 314x186, Match history S 314x186, Notifications S 314x186, Music S 314x186
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[all at M, 1440x900] 10 tiles: My agent M 641x386, Ladder M 641x386, Watch live M 314x586, Packs M 641x386, Store M 641x386, Collection M 641x386, Daily rewards M 641x386, Match history M 641x386, Notifications M 641x386, Music M 641x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[all at L, 1440x900] 10 tiles: My agent L 1296x386, Ladder L 1296x386, Watch live L 641x586, Packs L 1296x386, Store L 1296x386, Collection L 1296x386, Daily rewards L 1296x386, Match history L 1296x386, Notifications L 1296x386, Music L 1296x386
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+
+[phone 390x844, recommended] 9 tiles, 2413px tall (2.9 screens); places: Home | My agent | Watch | Cards | Ladder
+PASS phone: no sideways scroll (0px)
+PASS phone: five places, no rail
+PASS phone: no tile overflows
+PASS phone: every tile shows its S face (Watch live its 9:16 M)
+
+=== navigation (Nova, 1440x900) ===
+navigation: Home | My agent | Watch | Cards | Ladder | Settings
+PASS five places, then Settings
+PASS Home has no wallet or bell (the Store and Notifications tiles are their homes)
+PASS the rail's glass runs the page's full height (936 of 936px)
+tile arrows: agent -> #/agent, ladder -> #/ladder, watch -> #/watch, packs -> #/cards, store -> #/cards, collection -> #/cards, daily -> #/ladder, history -> #/agent, notif -> #/alerts
+PASS every tile arrow opens the page the mockup says (one page per question)
+PASS My agent: the wallet and the bell are there, and the navigation marks it
+PASS Watch: the wallet and the bell are there, and the navigation marks it
+PASS Cards: the wallet and the bell are there, and the navigation marks it
+PASS Ladder: the wallet and the bell are there, and the navigation marks it
+PASS the free pack's alert shows the Daily rewards tile (where it is claimed)
+PASS Edit board: Ladder -> L
+PASS no page errors
+PASS no outside requests
+
+60 PASS, 0 FAIL

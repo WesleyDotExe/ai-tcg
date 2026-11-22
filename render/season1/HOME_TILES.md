@@ -91,20 +91,28 @@ Phase 1 step 5 prototypes this tile on the Season 1 arena.
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | packs waiting and Open; the free daily pack | "3 packs waiting · [Open]" | Open (or Claim, when only the free pack waits) |
-| M | + how soon a Full Art and a Mythic are guaranteed | "3 packs waiting. Open them to add cards your agent can use." | Open / Claim free pack |
-| L | + the last pulls | "Your pulls appear here after your first pack." | Open / Claim free pack |
+| S | the packs you have and haven't opened | "3 packs waiting · [Open a pack]" | Open a pack |
+| M | + how soon a Full Art and a Mythic are guaranteed | "3 packs waiting. Open them to add cards your agent can use." | Open a pack |
+| L | + the last pulls | "Your pulls appear here after your first pack." | Open a pack |
 
-This is the one place to claim the free daily pack.
+**Owner 2026-11-22 (replaces render 82 call 2):** each pack action has one home: **claim** in Daily rewards, **open**
+in Packs, **buy** in Store. Packs keeps only the packs you have and haven't opened. With none, its button is "Buy packs
+in Store".
 
 ### Store
 **Question:** What can I spend my credits on?
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | credits, buy packs | "0 credits · Your agent earns credits by winning." | Buy a pack |
-| M | + cosmetics on sale | prices shown, Buy greyed with "Win matches to earn credits" | Buy a pack / a cosmetic |
-| L | the same, every cosmetic | as M | Buy |
+| S | credits, and how many things they buy ("Enough for 4 packs or 1 cosmetic") | "0 credits · Win matches to earn credits" | Buy (or How to earn credits) |
+| M | + the featured pack and 2-3 featured cosmetics, as pictures with prices and Buy | the same pictures, Buy greyed | See the whole Store |
+| L | + the full shelf: the packs in one row (1 and 10), the cosmetics grouped by type | as M | See the whole Store |
+
+**Owner 2026-11-22:** the Store tile is a visual shop window. The pictures are Season 0's own art: the sealed pack
+the opening tears (its plate), the coins drawn by the coin painter, the boasts' emblems. Only what the server sells is
+drawn; a type with nothing on sale (arenas, card backs, avatars in Season 0) is named in one line. "How many things"
+counts what the credits buy together (449 buys one 300-credit cosmetic, not four). The cosmetics readability rule
+still holds.
 
 ### Collection (Collection + Showcase)
 **Question:** What cards do I have, and what's new?
@@ -122,11 +130,12 @@ Showcase folds in as the M / L "best cards". The last pulls move to Packs, where
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | earned today of the day's most, what the next win pays | "0 of 90 today · first win pays 30" | Open Stats |
-| M | + the win-by-win pay, when the day resets | "Wins pay credits, the first win most. Up to 90 a day; resets at midnight Sydney." | Open Stats |
-| L | the same (L no longer needs to be tall) | as M | Open Stats |
+| S | earned today of the day's most, what the next win pays, the free daily pack | "0 of 90 today · first win pays 30 · Free daily pack ready" | Claim free pack (when one waits), else Open Stats |
+| M | + the win-by-win pay, when the day resets | "Wins pay credits, the first win most. Up to 90 a day; resets at midnight Sydney." | Claim free pack, else Open Stats |
+| L | the same (L no longer needs to be tall) | as M | Claim free pack, else Open Stats |
 
-Its Claim node goes; Packs now owns the free pack.
+**Owner 2026-11-22 (replaces render 82 call 2):** the free daily pack is claimed here ("Claim free pack"); a claimed
+pack lands in Packs.
 
 ### Match history
 **Question:** How did my agent's last matches go?
@@ -145,10 +154,10 @@ M shows 3, not 6, so the tile no longer overflows by 423 px.
 | | Shows | A new player sees | Next |
 |---|---|---|---|
 | S | unread count, the latest | "1 new" | Open the latest |
-| M | + the alerts, newest first | the one alert, "Your free daily pack is waiting", which links to Packs | Open an alert / Mark all read |
+| M | + the alerts, newest first | the one alert, "Your free daily pack is waiting", which links to Daily rewards | Open an alert / Mark all read |
 | L | + by kind | as M | Filter by kind |
 
-Each alert links to the tile or page that owns its subject: a result goes to Match history, a pack to Packs. It drops
+Each alert links to the tile or page that owns its subject: a result goes to Match history, the free pack to Daily rewards. It drops
 the agent's name when the owner has only one agent.
 
 ### Music (waiting on owner)

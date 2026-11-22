@@ -7,14 +7,27 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home mockup A (session 83, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home mockups A, B and C (sessions 83-84, fenced off in render/season1/; Season 1 scope)
+
+- **Three mockups, no direction yet**: phase 2 waits on the owner's pick; until then three copies of the page
+  plumbing exist (A's own, and `homeShell.ts` for B and C). The pick should retire two.
+- **The masonry packing is a script** (row spans set from each tile's height after drawing, again on resize and when
+  B's "?" opens). Without JavaScript the tiles stack in 2 px rows. A real build would want CSS masonry or a measured
+  layout with no flash of the unpacked grid.
+- **C's "needs you" rules are this session's reading** of the server's state (`needsOf`); "Your credits can buy
+  something" may always be up for a winning agent (asked as call 2). The ranking is fixed, not learned.
+- **B's greeting** reads the time the data was taken, in the server's day zone; it is decoration with no test.
+- **The Store's Buy buttons don't buy**; a disabled Buy for a new player relies on the one "Win matches to earn
+  credits" line for its reason.
+- **The comparison page's frames** load the three pages from the same folder; it needs them built first (no check
+  that the three exist).
 
 - **Watch live's 9:16 arena is a stand-in**: a flat board drawn from the live feed's `now` (units, health, energy,
   whose turn), not the Season 1 arena; it doesn't play, it's one still moment. Plan step 5 replaces it.
 - **The pages behind the navigation are stubs** that list what they'll hold; only Home is drawn. Whether five places
   hold everything Season 0's nine did is argued in `HOME_MOCKUPS.md`, not shown.
-- **At L some tiles have empty space** (Store, Daily rewards, Match history: their L adds little to M, as the spec
-  says); the all-L board is tall. The spec allows L = M for those; A doesn't yet shrink them.
+- **At L some of A's tiles have empty space** (fixed rows; B and C size tiles to their content instead). The Store's
+  L is now the full shelf.
 - **One snapshot**: the demo's Nova (23 matches, 2 agents, 24 alerts) and Wren; a heavier owner (hundreds of
   matches, long agent names) may overflow differently. The browser check's overflow test is the guard, run by hand
   (it is not in CI yet, like the arena check).

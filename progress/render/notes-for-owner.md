@@ -1559,3 +1559,13 @@ season mark) is proposed as a mark, call 1.
 2. **Waiting on owner (not new):** the Home direction (after mockups B and C, render 84), the music spec (step 6),
    Open 10 calls 1-2.
 3. **Nothing needed from you to continue:** render 84 draws B and C on the same tiles and data.
+
+## 2026-11-22 — Render session 84
+
+1. **Pick a Home direction (waiting on owner):** open `render/season1/output/home-compare.html` for A, B and C side by
+   side (or the stills in `progress/render/evidence/season1-home-mockups-s84/`). Parts of two are fine. Four small calls
+   in `progress/render/checkpoints.md` (session 84).
+2. **Your pack and Store note is in all three:** claim in Daily rewards, open in Packs, buy in Store (a shop window
+   with pictures and prices).
+3. **Nothing needed from you to continue:** render 85 does phase 1 step 4 (the pack-opening flash audit, check and
+   storyboard); phase 2 waits for the pick.

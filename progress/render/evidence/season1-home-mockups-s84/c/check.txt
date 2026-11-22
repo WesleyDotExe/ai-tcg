@@ -1,0 +1,109 @@
+Mockup C (home-mockup-c.html)
+
+=== Nova (weeks in) ===
+
+[recommended board, 1440x900] 9 tiles: Daily rewards S 280x263, Watch live M 280x690, Packs S 280x186, Notifications M 576x245, Store M 576x604, My agent M 576x283, Ladder M 576x362, Match history M 576x210, Collection S 280x172
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", watch "Your agent is playing now", packs "Packs to open", notif "New alerts", store "Your credits can buy something"
+
+[all at S, 1440x900] 10 tiles: Daily rewards S 280x263, Watch live S 280x203, Packs S 280x186, Notifications S 280x186, Store S 280x212, My agent S 280x197, Ladder S 280x199, Collection S 280x172, Match history S 280x149, Music S 280x199
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", watch "Your agent is playing now", packs "Packs to open", notif "New alerts", store "Your credits can buy something"
+
+[all at M, 1440x900] 10 tiles: Daily rewards M 576x348, Watch live M 280x690, Packs M 576x197, Notifications M 576x245, Store M 576x604, My agent M 576x283, Ladder M 576x362, Collection M 576x292, Match history M 576x210, Music M 576x153
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", watch "Your agent is playing now", packs "Packs to open", notif "New alerts", store "Your credits can buy something"
+
+[all at L, 1440x900] 10 tiles: Daily rewards L 1168x278, Watch live L 576x745, Packs L 1168x226, Notifications L 1168x310, Store L 1168x626, My agent L 1168x306, Ladder L 1168x383, Collection L 1168x352, Match history L 1168x181, Music L 1168x165
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the rating (1,774) only in Ladder: ladder
+PASS the credits (449) only in Store: store
+PASS the agent's name only in My agent (and Watch live, where it is a player) (and on alerts: two agents): agent
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", watch "Your agent is playing now", packs "Packs to open", notif "New alerts", store "Your credits can buy something"
+
+[phone 390x844, recommended] 9 tiles, 2678px tall (3.2 screens); places: Home | My agent | Watch | Cards | Ladder
+PASS phone: no sideways scroll (0px)
+PASS phone: five places, no rail
+PASS phone: no tile overflows
+PASS phone: every tile shows its S face (Watch live its 9:16 M)
+
+=== Wren (just signed up) ===
+
+[recommended board, 1440x900] 9 tiles: Daily rewards S 280x263, My agent M 576x362, Packs S 280x196, Notifications M 576x200, Watch live M 280x703, Store M 576x575, Ladder M 576x346, Match history M 576x181, Collection S 280x199
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", agent "Your agent hasn't started yet", packs "Packs to open", notif "New alerts"
+
+[all at S, 1440x900] 10 tiles: Daily rewards S 280x263, My agent S 280x225, Packs S 280x196, Notifications S 280x186, Ladder S 280x199, Watch live S 280x175, Store S 280x203, Collection S 280x199, Match history S 280x168, Music S 280x199
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", agent "Your agent hasn't started yet", packs "Packs to open", notif "New alerts"
+
+[all at M, 1440x900] 10 tiles: Daily rewards M 576x348, My agent M 576x362, Packs M 576x197, Notifications M 576x200, Ladder M 576x346, Watch live M 280x703, Store M 576x575, Collection M 576x320, Match history M 576x181, Music M 576x153
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", agent "Your agent hasn't started yet", packs "Packs to open", notif "New alerts"
+
+[all at L, 1440x900] 10 tiles: Daily rewards L 1168x278, My agent L 1168x365, Packs L 1168x197, Notifications L 1168x200, Ladder L 1168x345, Watch live L 576x758, Store L 1168x598, Collection L 1168x352, Match history L 1168x153, Music L 1168x165
+PASS every tile shows the spec's facts at its size, its name, its question and one next action
+PASS no tile overflows
+PASS no two tiles overlap (masonry)
+PASS no sideways scroll (0px)
+PASS the new player sees none of the labels the audit flagged (±n, "0 since a", "No packs opened yet", "credits short")
+PASS what needs you comes first, most urgent first, each with its reason: daily "A free pack to claim", agent "Your agent hasn't started yet", packs "Packs to open", notif "New alerts"
+
+[phone 390x844, recommended] 9 tiles, 2772px tall (3.3 screens); places: Home | My agent | Watch | Cards | Ladder
+PASS phone: no sideways scroll (0px)
+PASS phone: five places, no rail
+PASS phone: no tile overflows
+PASS phone: every tile shows its S face (Watch live its 9:16 M)
+
+=== navigation (Nova, 1440x900) ===
+navigation: Home | My agent | Watch | Cards | Ladder | Settings
+PASS five places, then Settings
+PASS Home has no wallet or bell (the Store and Notifications tiles are their homes)
+PASS the rail's glass runs the page's full height (1080 of 1080px)
+tile arrows: agent -> #/agent, ladder -> #/ladder, watch -> #/watch, packs -> #/cards, store -> #/cards, collection -> #/cards, daily -> #/ladder, history -> #/agent, notif -> #/alerts
+PASS every tile arrow opens the page the mockup says (one page per question)
+PASS My agent: the wallet and the bell are there, and the navigation marks it
+PASS Watch: the wallet and the bell are there, and the navigation marks it
+PASS Cards: the wallet and the bell are there, and the navigation marks it
+PASS Ladder: the wallet and the bell are there, and the navigation marks it
+PASS the free pack's alert shows the Daily rewards tile (where it is claimed)
+PASS the jump palette finds a tile: "/" then "daily" then Enter -> #/home, Daily rewards shown
+PASS key 5 opens Ladder
+PASS Edit board: Ladder -> L
+PASS no page errors
+PASS no outside requests
+
+78 PASS, 0 FAIL
