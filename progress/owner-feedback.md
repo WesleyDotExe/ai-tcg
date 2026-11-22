@@ -5089,3 +5089,15 @@ Next session: render 82 (the tile audit and spec, phase 1 step 1).
 4. **Keep:** "Settling / Settled" instead of ±151 next to the rating, the number only in an explainer.
 
 Next session: render 83 (Home mockup A with its navigation, phase 1 step 2).
+
+---
+
+## 2026-11-22 — Owner: answers to render session 83 (Season 1 Home mockup A with its navigation), keep all 4
+
+**Render session 83** (PR #191, `progress/render/checkpoints.md`, `render/season1/output/home-mockup-a.html`, `render/season1/HOME_MOCKUPS.md`, `progress/render/evidence/season1-home-mockup-a-s83/`).
+1. **Keep:** "Settled" when the rating's ± is 100 or under, "Settling" above.
+2. **Keep:** on a phone every tile shows its S face (Watch live its 9:16 M), whatever size was picked on the desktop.
+3. **Keep:** Tournament (Soon) leaves the navigation until tournaments exist.
+4. **Keep:** Cards is one place for Packs, Store and Collection (tabs inside it).
+
+Next session: render 84 (Home mockups B and C, phase 1 step 3).
