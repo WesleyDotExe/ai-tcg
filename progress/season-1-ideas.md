@@ -322,9 +322,10 @@ Three layers, each with one job, built from what already exists:
   theme and tie together** (2026-11-22). Proposal for how: each month's drop is a named **collection** with its own
   style tile in the art bible (one idea, one colour accent within the house palette, one motif), and every item in it
   (mat, card back, coin, boast, avatar) is made from that one tile, so they read as a set when equipped together, in
-  the arena and on the Store's shelf. Each theme still passes the vibe test (section 1). Open questions for the owner:
-  does the month's cosmetic theme follow that month's card set drop, and should the Store show "this month's
-  collection" together (as well as by type)?
+  the arena and on the Store's shelf. Each theme still passes the vibe test (section 1).
+- **[owner] The month's cosmetic theme follows that month's card set drop** (2026-11-22): the packs, the cards and
+  the cosmetics launch as one story each month, from one theme in the art bible.
+- Still open: should the Store show "this month's collection" together (as well as by type)?
 - **Arenas / playmats:** the default arena's floor, rim and sky (it must look finished too), then the mats for sale,
   as a circle under the play area only (owner 2026-11-08).
 - **Card backs:** the default back (every match shows it), then the backs for sale.
