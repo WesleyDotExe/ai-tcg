@@ -5130,3 +5130,14 @@ The private repo used up its monthly GitHub Actions minutes (about 30 per build 
 
 From the owner's chat review of the January art plan (`progress/season-1-ideas.md`, "the January art plan", section 1).
 1. **Owner's note:** the game is supposed to be a **cyberpunk hacker, semi-neo retro-future, virtual world vibe**. Mockups B and C (render 84) and every later visual session lean into it, on top of the 2026-11-22 note (bring back the Season 0 theme, push harder on visuals): the virtual world, hacker and retro-future motifs as accents and details, never at the cost of the plain-words labels or legibility. What it means for the art is written out in the art plan's section 1.
+
+---
+
+## 2026-11-23 — Owner: answers to render session 84 (Season 1 Home mockups B and C): the direction is B, on a uniform grid
+
+**Render session 84** (PR #193, `progress/render/checkpoints.md`, `render/season1/output/home-mockup-b.html`, `render/season1/HOME_MOCKUPS.md`, `progress/render/evidence/season1-home-mockups-s84/`).
+1. **Decision: the Season 1 Home direction is mockup B, "the headline first"** (the Season 0 glass look, each tile leading with its answer in large type beside a picture, the question behind a "?", the top-bar navigation). Phase 2 builds B.
+2. **Decision (replaces call 1, masonry): every tile fits one uniform tile size ratio, so all tiles line up regardless of whether they are S, M or L.** Tiles snap to one grid built from a single unit, and S, M and L are fixed multiples of it, so edges and rows align across the board. Each tile's content is designed to fill its size (the S / M / L spec), which is how the empty space the owner saw goes away, rather than tiles of free height.
+3. **Not decided:** call 2 (C's "needs you" reasons) is C's alone; B has no such ordering. Call 3 (Store: a small Buy under each picture plus "See the whole Store"). Call 4 (the default theme: B's light, Season 0's default, or dark). The exact unit shapes (S / M / L as grid multiples) and Watch live's 9:16 tile on that grid.
+
+Next session: render 85 (phase 1 step 4, the pack-opening flash audit, flash check and storyboard). Phase 2 (the tile framework and navigation in B) follows.
