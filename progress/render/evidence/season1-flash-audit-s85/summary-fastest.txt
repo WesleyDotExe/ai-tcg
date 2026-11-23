@@ -1,0 +1,13 @@
+Flash check (WCAG 2.3.1), render/output/pack-opening.html, 1024x768, 30 fps, tapping as fast as the page allows
+FAIL pack=1 (No hit): worst 4.5 flashes/s (9 changes), red 0/s, 2 counted flashes, screen jump 0.04->0.022, 2.7 s, 7 taps, ended at the summary
+FAIL pack=2 (Foil): worst 3.5 flashes/s (7 changes), red 0/s, 4 counted flashes, screen jump 0.031->0.117, 3.1 s, 8 taps, ended at the summary
+FAIL pack=3 (Full Art): worst 4.5 flashes/s (9 changes), red 0/s, 5 counted flashes, screen jump 0.022->0.103, 3.4 s, 8 taps, ended at the summary
+PASS pack=4 (Alt Art): worst 2.5 flashes/s (5 changes), red 0/s, 4 counted flashes, screen jump 0.021->0.095, 3.5 s, 8 taps, ended at the summary
+FAIL pack=5 (Glitch): worst 4 flashes/s (8 changes), red 0/s, 4 counted flashes, screen jump 0.014->0.114, 3.4 s, 8 taps, ended at the summary
+FAIL pack=6 (Secret): worst 4 flashes/s (8 changes), red 0/s, 5 counted flashes, screen jump 0.126->0.015, 4.0 s, 8 taps, ended at the summary
+FAIL pack=7 (Gold): worst 5 flashes/s (10 changes), red 0/s, 4 counted flashes, screen jump 0.03->0.137, 3.9 s, 8 taps, ended at the summary
+PASS pack=8 (Zero-Day): worst 2.5 flashes/s (5 changes), red 0.5/s, 3 counted flashes, screen jump 0.022->0.085, 4.6 s, 8 taps, ended at the summary
+PASS pack=9 (Prototype): worst 3 flashes/s (6 changes), red 0/s, 4 counted flashes, screen jump 0.044->0.128, 4.8 s, 9 taps, ended at the summary
+PASS pack=10 (Jackpot): worst 2.5 flashes/s (5 changes), red 0.5/s, 7 counted flashes, screen jump 0.112->0.022, 5.3 s, 11 taps, ended at the summary
+PASS bulk=1 (10 packs): worst 2 flashes/s (4 changes), red 0/s, 15 counted flashes, screen jump 0.018->0.068, 11.4 s, 27 taps, ended at the summary
+6 of 11 fail

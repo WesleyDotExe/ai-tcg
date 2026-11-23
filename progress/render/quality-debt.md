@@ -7,6 +7,32 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The flash check and the pack-opening storyboard (session 85, fenced off in render/season1/; Season 1 scope)
+
+- **Season 0's own pack page is at or over the flash limit and nothing changed it** (the fence and the owner's
+  mid-season rule): with reduced motion on, Glitch and Jackpot strobe (10-12 changes in one second; `later()`'s
+  120 ms cap re-fires `glitchLoop` every 120 ms); at a calm pace Gold failed 1 of 6 runs and Zero-Day sits at exactly
+  3 flashes; tapping fast fails 6 of 11. Waiting on the owner (render notes-for-owner, 2026-11-23).
+- **The sampler is not exactly repeatable**: with the virtual clock, seeded `Math.random` and begin-frame control, a
+  run still moves a tap by up to 0.1 s and a worst second by about 1 change. The source wasn't pinned down (likely
+  images decoding and shaders compiling on real time). Near the line it needs `--repeat`; a CI gate on it would be
+  flaky at the margin.
+- **The check is by hand, not in CI**: about 1 minute a pack in software WebGL, ~5 minutes for the 11 runs at 3 at
+  once (the owner's Actions-minutes rule). Only the measure's and the storyboard's unit tests run in the suite.
+- **One screen size**: 1024 x 768, WCAG's reference. A phone, where the same effects fill more of the view, wasn't
+  sampled; nor the Season 0 website's own Open-pack overlay (it is the same page in `site` mode, untested here) or the
+  first-time flow.
+- **The measure uses 8 px blocks and averages linear light inside each**: a fine pattern (text, thin rays) flickering
+  inside one block can average out; WCAG's tools work per pixel. The red test ignores blocks under 0.02 luminance (my
+  threshold, not WCAG's).
+- **Card swaps count as flashes**: correct by the letter (the content changes over a field), but it means a fast
+  thumb fails pages that never strobe on their own. The storyboard's answer (an edge-on flip, the next card already
+  under) is a claim until phase 3 builds and samples it.
+- **The storyboard's light plans are numbers I chose** (peaks, areas, rise and fall), not measured from a build;
+  they are checked against the limit, not against how it feels. The sketches are placeholder shapes. The grip beat
+  (hold the pack) is new interaction and untested on a phone.
+- **The page's charts show the light at the screen's centre only** (every light covers it), not each light's area.
+
 ## The Season 1 Home mockups A, B and C (sessions 83-84, fenced off in render/season1/; Season 1 scope)
 
 - **Three mockups, no direction yet**: phase 2 waits on the owner's pick; until then three copies of the page

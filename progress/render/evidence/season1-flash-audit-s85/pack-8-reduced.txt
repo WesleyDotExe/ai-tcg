@@ -1,0 +1,12 @@
+pack=8 (Zero-Day), reduced motion, tapping 900 ms after the page is ready: PASS
+  300 frames at 30 fps (10.0 s, 300 drawn), 8 taps, ended at the summary
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 2 flashes (4 changes) from 7.10 s (flashed area 95% of a field); worst red: 0 (0 changes) from 0.00 s
+  biggest whole-screen jump (within 250 ms): mean luminance 0.039 -> 0.101 at 6.87 s
+  single flashes big enough to count (over 25% of a field): 2.10 s (29%), 3.10 s (42%), 7.13 s (85%)
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:2/88%  0.27:3/88%  0.53:2/55%  0.80:1/18%  1.07:0/1%  1.33:2/29%  1.60:2/29%  1.87:2/29%
+    2.13:2/38%  2.40:2/42%  2.67:2/42%  2.93:2/42%  3.20:0/22%  3.47:0/22%  3.73:0/22%  4.00:0/22%
+    4.27:1/14%  4.53:1/15%  4.80:1/21%  5.07:1/21%  5.33:1/23%  5.60:1/23%  5.87:1/0%  6.13:1/7%
+    6.40:2/88%  6.67:4/91%  6.93:4/94%  7.20:4/64%  7.47:4/67%  7.73:2/61%  8.00:2/48%  8.27:2/26%
+    8.53:0/0%  8.80:0/0%

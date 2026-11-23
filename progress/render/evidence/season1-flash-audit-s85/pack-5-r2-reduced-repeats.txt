@@ -1,0 +1,13 @@
+pack=5#2 (Glitch), reduced motion, tapping 900 ms after the page is ready: FAIL
+  294 frames at 30 fps (9.8 s, 294 drawn), 8 taps, ended at the summary
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 5.5 flashes (11 changes) from 7.17 s (flashed area 89% of a field); worst red: 0 (0 changes) from 0.00 s
+  FAILS: seconds starting 6.73-7.60 s: up to 5.5 flashes (11 changes) in one second
+  biggest whole-screen jump (within 250 ms): mean luminance 0.031 -> 0.113 at 7.13 s
+  single flashes big enough to count (over 25% of a field): 1.03 s (33%), 2.10 s (27%), 3.10 s (45%), 4.10 s (41%), 7.17 s (70%), 7.60 s (25%), 7.93 s (34%)
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:2/88%  0.27:4/89%  0.53:3/57%  0.80:2/33%  1.07:1/1%  1.33:2/27%  1.60:2/27%  1.87:2/27%
+    2.13:2/37%  2.40:2/45%  2.67:2/45%  2.93:2/45%  3.20:2/41%  3.47:2/41%  3.73:2/41%  4.00:2/41%
+    4.27:1/14%  4.53:1/15%  4.80:1/23%  5.07:1/23%  5.33:1/15%  5.60:1/15%  5.87:1/0%  6.13:1/7%
+    6.40:4/83%  6.67:6/93%  6.93:8/93%  7.20:10/88%  7.47:8/83%  7.73:6/80%  8.00:3/67%  8.27:0/0%
+    8.53:0/0%  8.80:0/0%

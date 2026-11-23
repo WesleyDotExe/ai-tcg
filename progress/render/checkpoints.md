@@ -7,6 +7,46 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-23 — Render session 85: the pack-opening flash audit, the automatic flash check and the storyboard (phase 1 step 4) — [OWNER CHECK-IN] AWAITING FEEDBACK (one Season 0 bug, four calls)
+
+**Start here:** `render/season1/output/pack-opening-storyboard.html` (open in a browser): the new opening beat by
+beat, each with a sketch, what you see, hear and feel, what reduced flash does, and its light curve; then Season 0's
+opening as measured. The write-up: `render/season1/FLASH.md`. Records and stills:
+`progress/render/evidence/season1-flash-audit-s85/` (`stills/` shows the worst moments).
+
+**Season 0's opening, measured** (WCAG 2.3.1 at 1024 x 768, every frame at 30 fps on a virtual clock):
+- At an owner's pace, 11 of 11 pass, but its biggest moments sit **on** the line: Zero-Day's breach 3 flashes in
+  one second (the limit), Gold's hit 2-3.5 (it failed 1 of 6 runs). Each hit is an instant screen flash (up to full
+  opacity) on top of the room brightening, the ward and the motes.
+- Tapping as fast as the page allows, 6 of 11 fail (new card faces under a fast thumb count too).
+- **A bug:** with reduced motion on, the Glitch card strobes (5-6 flashes a second; Jackpot too) in every run. See
+  the notes (2026-11-23): a small Season 0 fix, if you want it mid-season.
+
+**The storyboard** (what phase 3 builds): the build-up is a new **grip** (hold the pack: it trembles harder the
+longer you hold, the foil crinkles), a **tear** that follows the finger with scraps and a sound that follows its
+speed, and the honest tell kept as a seam that glows and holds. The reveal: **one bloom per hit**, rising in 250 ms
+and falling over 900 ms, instead of the instant flash; the size of a pull is in the build's length, the sound, the
+shake, the ward and the motes. Zero-Day keeps its takeover, in green and violet (no saturated red) with a glitch made
+of motion. A **reduced-flash** setting keeps every light under the line, so nothing flashes at all.
+
+**Strong:** the check is real and measured: frames with known answers (11 tests), the storyboard's light held to
+the limit by the same code (10 tests), Season 0 audited three ways with repeats. **Thin:** runs differ by about one
+change, so near the line it takes repeats; it runs by hand (about 5 minutes for the 11 packs), not on every PR; one
+screen size; the storyboard's light numbers are a plan, checked against the limit, not yet against how it feels.
+
+**Calls for you (none blocks; phase 2 starts next):**
+1. **The budget:** at most 1 counted flash in any second (WCAG allows 3), big lights 1 s apart. Keep, or allow 2?
+2. **The grip beat:** hold the pack before the tear (a tap still works, playing it in 600 ms). Keep?
+3. **Zero-Day's red:** Season 0's red-to-green ring becomes green and violet (red never flashes). Keep, or keep a red
+   accent that doesn't flash (a still red, for the "danger" read)?
+4. **Reduced flash on by default with reduced motion** (the system setting turns both on; a toggle in the opening's
+   bar and Settings turns it off). Keep?
+
+**Next:** phase 2 in B, on your 2026-11-23 grid (S 1x1, M 2x1, L 2x2; Watch live tall), with the top-bar navigation
+and the light theme by default. A hardening pass is overdue (the last was render 80).
+
+---
+
 ## 2026-11-22 — Render session 84: Season 1 Home mockups B and C, side by side with A (phase 1 step 3) — [OWNER CHECK-IN] AWAITING FEEDBACK (pick a direction; four calls)
 
 **Start here:** `render/season1/output/home-compare.html` (open in a browser): A, B and C live side by side, the same

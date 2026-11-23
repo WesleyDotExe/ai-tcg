@@ -1569,3 +1569,26 @@ season mark) is proposed as a mark, call 1.
    with pictures and prices).
 3. **Nothing needed from you to continue:** render 85 does phase 1 step 4 (the pack-opening flash audit, check and
    storyboard); phase 2 waits for the pick.
+
+---
+
+## 2026-11-23 — Render session 85: a Season 0 bug, found by the flash check (your call whether to fix it mid-season)
+
+**With reduced motion on, Season 0's pack opening strobes on a Glitch card.** Measured in every run: 10-11 light
+changes in one second over most of the screen (Glitch), 11-12 (Jackpot, which holds a Glitch); WCAG 2.3.1's line is 7.
+Without reduced motion the same packs pass. Still: `progress/render/evidence/season1-flash-audit-s85/stills/s0-glitch-reduced-motion-7.6s-strobe.jpg`.
+
+**Why:** `render/src/packPage.ts`, `later(fn, ms)` runs every scheduled beat after at most 120 ms when reduced motion
+is on (`REDUCE ? Math.min(ms, 120) : ms`), to shorten the show. The Glitch card's `glitchLoop` uses `later` for its
+next burst (2.2-3.4 s away) and for its burst's fall (160 ms), so under reduced motion it bursts every 120 ms: a
+strobe, for exactly the people who asked for less motion.
+
+**The fix (small; not made: the Season 1 fence and your mid-season rule):** in `glitchLoop`, stop the loop when
+`REDUCE` is on (one burst, or none), or schedule its timers with a plain `setTimeout` pushed to `S.timers` so the cap
+doesn't touch them. Worth a look at any other loop that reschedules itself through `later`. Then re-run
+`npx tsx render/season1/flash/sample.ts --reduce --runs pack=5,pack=10` (it should pass). It reaches the Mac mini
+only if you pull.
+
+Also measured, not bugs by themselves: at a calm pace, Zero-Day's breach is at exactly 3 flashes in a second and
+Gold's hit failed 1 of 6 runs; tapping as fast as the page allows fails 6 of 11 packs. The Season 1 storyboard is the
+answer to those (`render/season1/FLASH.md`).

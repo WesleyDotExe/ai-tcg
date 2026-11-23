@@ -1,0 +1,6 @@
+Flash check (WCAG 2.3.1), render/output/pack-opening.html, 1024x768, 30 fps, reduced motion, tapping 900 ms after the page is ready
+FAIL pack=5#1 (Glitch): worst 5.5 flashes/s (11 changes), red 0/s, 7 counted flashes, screen jump 0.029->0.113, 9.8 s, 8 taps, ended at the summary
+FAIL pack=5#2 (Glitch): worst 5.5 flashes/s (11 changes), red 0/s, 7 counted flashes, screen jump 0.031->0.113, 9.8 s, 8 taps, ended at the summary
+FAIL pack=10#1 (Jackpot): worst 5.5 flashes/s (11 changes), red 0.5/s, 8 counted flashes, screen jump 0.026->0.101, 13.2 s, 11 taps, ended at the summary
+FAIL pack=10#2 (Jackpot): worst 6 flashes/s (12 changes), red 0/s, 8 counted flashes, screen jump 0.026->0.097, 13.2 s, 11 taps, ended at the summary
+4 of 4 fail

@@ -1,0 +1,10 @@
+pack=3 (Full Art), tapping as fast as the page allows: FAIL
+  102 frames at 30 fps (3.4 s, 102 drawn), 8 taps, ended at the summary
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 4.5 flashes (9 changes) from 0.10 s (flashed area 91% of a field); worst red: 0 (0 changes) from 0.00 s
+  FAILS: seconds starting 0.00-0.43 s: up to 4.5 flashes (9 changes) in one second
+  biggest whole-screen jump (within 250 ms): mean luminance 0.022 -> 0.103 at 1.43 s
+  single flashes big enough to count (over 25% of a field): 0.17 s (45%), 0.50 s (47%), 0.90 s (60%), 1.57 s (92%), 2.07 s (30%)
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:9/80%  0.27:9/79%  0.53:5/77%  0.80:4/99%  1.07:2/98%  1.33:3/95%  1.60:3/54%  1.87:2/32%
+    2.13:1/12%  2.40:0/0%
