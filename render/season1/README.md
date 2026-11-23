@@ -56,3 +56,21 @@ Query options on a built page: `?pov=p2` (start watching as p2), `?mode=tile`, `
 - `test/arenaModel.test.ts`, `ci/arena-check.mjs`.
 
 The Season 1 Home (tile spec and mockups A, B and C, and their comparison page) lives alongside: `HOME_TILES.md`, `HOME_MOCKUPS.md`.
+
+## The flash check and the pack-opening storyboard (render session 85)
+
+The owner's plan, phase 1 step 4, and decision 22 (WCAG 2.3.1: no more than three flashes in any one second, no
+saturated red flashing, an automatic check, a reduced-flash setting). Written up in `FLASH.md`.
+
+- `src/flashScan.ts`: the measure (pure): PNG frames -> 8 px blocks -> luminance and red-flash changes -> every
+  one-second window, over WCAG's field of view (341 x 256 px at 1024 x 768). Tests: `test/flashScan.test.ts`.
+- `flash/sample.ts`: the frame sampler: a page in headless Chromium on a virtual clock (begin-frame control plus
+  Playwright's fake clock), every frame at 30 fps, driven like an owner; fails over the limit.
+- `src/openingStoryboard.ts`: the new opening's beats, each with its light plan; `test/openingStoryboard.test.ts`
+  holds the plan to the limit (and the design's tighter budget) with the same measure.
+- `src/storyboardPage.ts`, `flash/buildStoryboard.ts` -> `output/pack-opening-storyboard.html`.
+
+    npx tsx render/season1/flash/sample.ts --stills            # Season 0's pack page, every showcase pack and a ten-pack
+    npx tsx render/season1/flash/sample.ts --pace 0            # tapping as fast as the page allows
+    npx tsx render/season1/flash/sample.ts --reduce            # with prefers-reduced-motion
+    npx tsx render/season1/flash/buildStoryboard.ts            # the storyboard page, with the audit's results

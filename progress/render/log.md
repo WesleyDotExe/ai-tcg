@@ -6650,3 +6650,48 @@ label), the alert check on a board with no alert list (moved to all-M). Typechec
 **Worked:** reusing Season 0's real pack plate, coins and boast emblems made the Store pictures look like the game, not
 placeholders. **Thin:** in quality-debt.md. **Blocked:** the direction waits on the owner (phase 2). **Next:** render
 85, the pack-opening flash audit, check and storyboard.
+
+## 2026-11-23 — Render session 85: the pack-opening flash audit, the automatic flash check and the storyboard (phase 1 step 4)
+
+**Lane:** render. The owner's 2026-11-22 entry (point 7) runs every scheduled session on the render lane; the last
+merged PR was render 84 (#193), no PR was open. Owner feedback read first: the Home direction is B on a uniform grid
+(2026-11-23), and the grid's shapes, Watch live's tall tiles, the Store's Buy and the light default. Both name this
+session as phase 1 step 4 and phase 2 after it; both are noted in owner-feedback.md for phase 2. All work in
+`render/season1/`; no Season 0 page or source changed.
+
+**Built (all fenced off in `render/season1/`):**
+- `src/flashScan.ts`: the measure, WCAG 2.2's definitions: relative-luminance changes of 0.1 with the darker state
+  under 0.8, per 8 px block, with a hysteresis tracker; red changes (R/(R+G+B) >= 0.8, u'v' distance > 0.2); the
+  area test over WCAG's field of view (341 x 256 at 1024 x 768, scaled); every one-second window; fails at 7 changes
+  (more than three flashes); the counted flashes and the biggest whole-screen jump. A small PNG decoder (no new
+  dependency). 11 tests on frames with known answers.
+- `flash/sample.ts`: the frame sampler. Chromium under begin-frame control (HeadlessExperimental.beginFrame) with
+  Playwright's fake clock advanced by the same step and `Math.random` seeded: every frame at 30 fps, however slow
+  software WebGL is; driven like an owner (a tap 900 ms after the page takes one, or `--pace 0`), `--reduce`,
+  `--repeat`, `--stills`, 3 browsers at once. First tries: real-time screenshots were too slow; one browser with
+  three begin-frame pages stalled (one browser a job); `optimizeForSpeed` PNGs cut a frame from 300 to 100 ms.
+- `src/openingStoryboard.ts`: Season 1's opening as typed beats (arrive, grip, tear, open, plain cards, the build,
+  the hit, the summary; the big pull's blackout, terminal and arrival), each with what you see, hear and feel, what
+  reduced flash does, what Season 0 did, and a light plan. `lightFrames` draws a plan as frames for the measure.
+  10 tests: a Gold, a Zero-Day and a no-hit pack within 1 flash a second and no red; reduced flash none counted; the
+  hit and the arrival keep their one flash; bright lights rise and fall no faster than the budget; Season 0's style of
+  hit, drawn the same way, counts.
+- `src/storyboardPage.ts` + `flash/buildStoryboard.ts` -> `output/pack-opening-storyboard.html` (80 KB): a sketch per
+  beat, the words, the beat's light curve normal and reduced against the 0.1 line, the storyboard's verdicts, and the
+  Season 0 audit's tables (3 tests).
+- `FLASH.md`: the check, the audit's findings and the storyboard; README section.
+
+**Ran it:** the full audit on Season 0's `render/output/pack-opening.html` (all 10 showcase packs and a ten-pack;
+`progress/render/evidence/season1-flash-audit-s85/`): at an owner's pace 11 of 11 pass (Zero-Day 6 changes, 3
+flashes, at its breach; one red change from its ring); repeats: Gold 5, 4, 5, 4 and, in the session's first pass, 7
+(FAIL, `gold-first-run-fail.txt`); Zero-Day 5 four times. Tapping as fast as the page allows: 6 of 11 fail (Gold 10
+changes). Reduced motion: Glitch 10-11 and Jackpot 11-12 fail in every run: Season 0's `later()` caps every beat at
+120 ms under reduced motion, so `glitchLoop` re-fires every 120 ms. Stills of the worst moments. The storyboard page
+in a browser: desktop and phone, no sideways scroll, no errors, no outside requests (stills). Typecheck clean; the
+render suite 1160 of 1160 (1136 + 24).
+
+**Worked:** the virtual clock made a slow software renderer usable for frame-exact sampling, and it found a real
+accessibility bug no one was looking for (reduced motion causing the strobe). **Thin:** in quality-debt.md (repeat
+runs differ by about one change; by hand, not in CI; one screen size; the storyboard's light numbers are a plan).
+**Blocked:** nothing; the Season 0 fix is the owner's call (notes). **Next:** phase 2 in B (the owner's order): the
+S / M / L tile framework on the uniform grid and the top-bar navigation; a hardening pass is overdue (last was 80).

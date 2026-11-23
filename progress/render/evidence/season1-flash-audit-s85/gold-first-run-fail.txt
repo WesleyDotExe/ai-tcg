@@ -1,0 +1,14 @@
+The first full owner-pace pass of this session (killed and re-run after the report's wording changed from whole
+pairs to changes; the measure and the fail test were the same) recorded Gold failing. Its lines, as printed then
+(the old wording: "3 flashes" there counted whole pairs; the fail line was the same, 7 or more changes):
+
+pack=7 (Gold), tapping 900 ms after the page is ready: FAIL
+  324 frames at 30 fps (10.8 s, 324 drawn), 8 taps, ended at the summary
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 3 flashes at 7.53 s (flashed area 100% of a field); worst red: 0 at 0.00 s
+  FAILS 7.73-8.93 s: up to 3 flashes in one second
+  biggest whole-screen jump (within 250 ms): mean luminance 0.026 -> 0.124 at 8.13 s
+  single flashes big enough to count (over 25% of a field): 1.07 s (89%), 2.23 s (32%), 3.23 s (40%), 8.17 s (94%), 9.23 s (48%)
+
+Since then Gold at an owner's pace: 4 changes (summary.txt), then 5, 4, 5, 4 (summary-repeats.txt). So Gold's hit
+is at 4-7 changes in its worst second depending on the run: it failed 1 of 6 runs.

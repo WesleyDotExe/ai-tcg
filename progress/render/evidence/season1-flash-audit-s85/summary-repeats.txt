@@ -1,0 +1,10 @@
+Flash check (WCAG 2.3.1), render/output/pack-opening.html, 1024x768, 30 fps, tapping 900 ms after the page is ready
+PASS pack=7#1 (Gold): worst 2.5 flashes/s (5 changes), red 0/s, 4 counted flashes, screen jump 0.021->0.136, 11.0 s, 8 taps, ended at the summary
+PASS pack=7#2 (Gold): worst 2 flashes/s (4 changes), red 0/s, 4 counted flashes, screen jump 0.03->0.136, 11.0 s, 8 taps, ended at the summary
+PASS pack=7#3 (Gold): worst 2.5 flashes/s (5 changes), red 0/s, 4 counted flashes, screen jump 0.03->0.137, 11.0 s, 8 taps, ended at the summary
+PASS pack=7#4 (Gold): worst 2 flashes/s (4 changes), red 0/s, 4 counted flashes, screen jump 0.03->0.137, 11.0 s, 8 taps, ended at the summary
+PASS pack=8#1 (Zero-Day): worst 2.5 flashes/s (5 changes), red 0.5/s, 3 counted flashes, screen jump 0.022->0.089, 11.8 s, 8 taps, ended at the summary
+PASS pack=8#2 (Zero-Day): worst 2.5 flashes/s (5 changes), red 0.5/s, 3 counted flashes, screen jump 0.021->0.094, 11.7 s, 8 taps, ended at the summary
+PASS pack=8#3 (Zero-Day): worst 2.5 flashes/s (5 changes), red 0.5/s, 3 counted flashes, screen jump 0.035->0.093, 12.3 s, 8 taps, ended at the summary
+PASS pack=8#4 (Zero-Day): worst 2.5 flashes/s (5 changes), red 0.5/s, 3 counted flashes, screen jump 0.022->0.09, 12.3 s, 8 taps, ended at the summary
+0 of 8 fail

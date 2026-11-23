@@ -1,0 +1,14 @@
+pack=10#1 (Jackpot), reduced motion, tapping 900 ms after the page is ready: FAIL
+  396 frames at 30 fps (13.2 s, 396 drawn), 11 taps, ended at the summary
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 5.5 flashes (11 changes) from 10.57 s (flashed area 88% of a field); worst red: 0.5 (1 changes) from 9.80 s
+  FAILS: seconds starting 10.13-11.00 s: up to 5.5 flashes (11 changes) in one second
+  biggest whole-screen jump (within 250 ms): mean luminance 0.026 -> 0.101 at 8.20 s
+  single flashes big enough to count (over 25% of a field): 1.03 s (26%), 2.10 s (39%), 4.27 s (92%), 6.37 s (88%), 8.47 s (88%), 10.57 s (64%), 10.90 s (30%), 11.23 s (25%)
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:2/88%  0.27:4/89%  0.53:3/52%  0.80:2/28%  1.07:1/1%  1.33:3/94%  1.60:3/95%  1.87:3/95%
+    2.13:3/93%  2.40:1/8%  2.67:1/7%  2.93:1/6%  3.20:1/2%  3.47:2/95%  3.73:2/95%  4.00:2/95%
+    4.27:2/93%  4.53:1/9%  4.80:1/7%  5.07:0/4%  5.33:0/3%  5.60:2/93%  5.87:2/94%  6.13:2/94%
+    6.40:1/13%  6.67:0/9%  6.93:0/7%  7.20:0/6%  7.47:0/0%  7.73:2/92%  8.00:2/92%  8.27:2/93%
+    8.53:1/20%  8.80:1/7%  9.07:1/6%  9.33:1/6%  9.60:1/14%  9.87:4r1/85%  10.13:7r1/92%  10.40:10r1/92%
+    10.67:10r1/88%  10.93:8/82%  11.20:5/78%  11.47:2/53%  11.73:0/0%  12.00:0/0%

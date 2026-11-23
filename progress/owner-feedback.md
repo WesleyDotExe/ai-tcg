@@ -5039,7 +5039,7 @@ Next session by alternation: game 103 (hardening and fixes only), then render 80
 
 ---
 
-## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; render 83 did 18 (2), Home mockup A with its navigation: `render/season1/HOME_MOCKUPS.md`, `render/season1/output/home-mockup-a.html`, `progress/render/evidence/season1-home-mockup-a-s83/`; render 84 did 18 (3), Home mockups B and C and the side-by-side page: `render/season1/output/home-mockup-b.html`, `home-mockup-c.html`, `home-compare.html`, `progress/render/evidence/season1-home-mockups-s84/`; **waiting on owner: pick a Home direction** (`progress/render/checkpoints.md`, render 84); 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); the rest of the plan continues from 18 (4))
+## 2026-11-22 — Owner: Season 0 launched early (22 Nov); render lane only; the Season 1 Home, Watch live, pack opening, pack art and music plan (IN PROGRESS: render 82 followed 7-10 (render lane only; everything in `render/season1/`, no Season 0 page changed) and did plan step 18 (1), the tile audit and spec: `render/season1/HOME_TILES.md`, `src/homeSpec.ts` and its tests, the audit `progress/render/evidence/season1-home-audit-s82/`; render 83 did 18 (2), Home mockup A with its navigation: `render/season1/HOME_MOCKUPS.md`, `render/season1/output/home-mockup-a.html`, `progress/render/evidence/season1-home-mockup-a-s83/`; render 84 did 18 (3), Home mockups B and C and the side-by-side page: `render/season1/output/home-mockup-b.html`, `home-mockup-c.html`, `home-compare.html`, `progress/render/evidence/season1-home-mockups-s84/`; the owner picked B (2026-11-23); render 85 did 18 (4), the pack-opening flash audit, the automatic flash check and the storyboard (decision 22 and point 15): `render/season1/FLASH.md`, `src/flashScan.ts`, `flash/sample.ts`, `src/openingStoryboard.ts`, `output/pack-opening-storyboard.html`, `progress/render/evidence/season1-flash-audit-s85/`; Season 0 measured (a reduced-motion strobe on Glitch found: in the render notes for the owner); 1-4 noted; 5-6 left for the game lane when it resumes (listed in current.md); phase 2 next, then 18 (5) and (6))
 
 From the owner's review of PRs #187–#189, the Season 0 launch on the Mac mini, and the owner's look at the Season 0 Home page (a screenshot in chat, not in the repo).
 
@@ -5133,7 +5133,7 @@ From the owner's chat review of the January art plan (`progress/season-1-ideas.m
 
 ---
 
-## 2026-11-23 — Owner: answers to render session 84 (Season 1 Home mockups B and C): the direction is B, on a uniform grid
+## 2026-11-23 — Owner: answers to render session 84 (Season 1 Home mockups B and C): the direction is B, on a uniform grid (READ 2026-11-23, render session 85: recorded in current.md and the render checkpoint; render 85 did step 4 as the entry says; phase 2 builds B on the grid from render 86)
 
 **Render session 84** (PR #193, `progress/render/checkpoints.md`, `render/season1/output/home-mockup-b.html`, `render/season1/HOME_MOCKUPS.md`, `progress/render/evidence/season1-home-mockups-s84/`).
 1. **Decision: the Season 1 Home direction is mockup B, "the headline first"** (the Season 0 glass look, each tile leading with its answer in large type beside a picture, the question behind a "?", the top-bar navigation). Phase 2 builds B.
@@ -5144,7 +5144,7 @@ Next session: render 85 (phase 1 step 4, the pack-opening flash audit, flash che
 
 ---
 
-## 2026-11-23 — Owner: the Season 1 Home grid (mockup B): tile shapes, Watch live, the Store, the default theme
+## 2026-11-23 — Owner: the Season 1 Home grid (mockup B): tile shapes, Watch live, the Store, the default theme (READ 2026-11-23, render session 85: the shapes, Watch live's tall tiles, the Store's Buy and the light default written into current.md's next step for phase 2, render 86; not built yet)
 
 Follows the entry above ("the direction is B, on a uniform grid"); settles its "not decided" items except call 2 (C's only).
 1. **Decision, the tile shapes:** one square grid unit; **S = 1×1, M = 2×1 (two units side by side), L = 2×2.** Every tile is one of these, so every edge lines up.
