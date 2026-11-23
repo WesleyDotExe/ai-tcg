@@ -5141,3 +5141,19 @@ From the owner's chat review of the January art plan (`progress/season-1-ideas.m
 3. **Not decided:** call 2 (C's "needs you" reasons) is C's alone; B has no such ordering. Call 3 (Store: a small Buy under each picture plus "See the whole Store"). Call 4 (the default theme: B's light, Season 0's default, or dark). The exact unit shapes (S / M / L as grid multiples) and Watch live's 9:16 tile on that grid.
 
 Next session: render 85 (phase 1 step 4, the pack-opening flash audit, flash check and storyboard). Phase 2 (the tile framework and navigation in B) follows.
+
+---
+
+## 2026-11-23 — Owner: the Season 1 Home grid (mockup B): tile shapes, Watch live, the Store, the default theme
+
+Follows the entry above ("the direction is B, on a uniform grid"); settles its "not decided" items except call 2 (C's only).
+1. **Decision, the tile shapes:** one square grid unit; **S = 1×1, M = 2×1 (two units side by side), L = 2×2.** Every tile is one of these, so every edge lines up.
+2. **Decision, Watch live is the exception in shape, not in grid:** it still snaps to the same unit, in tall shapes. **At L it takes as many units as it needs to show the whole arena** (9:16; the owner's words: "as many units as it needs to show the whole arena as the L format"). M is a reduced-info version, 1 unit wide and 2 high; S is the basic info. Delegated to the owner's assistant, so this is the spec:
+   - **L:** the whole arena, 9:16, as large as the tile; the scoreboard (both agents' names, factions and health) above it, the turn line, both hands; Full screen.
+   - **M (1×2):** the live arena, 9:16, smaller; only names and health bars over it, no card text and no hand details; Full screen.
+   - **S (1×1):** no arena; the two names in their faction colours, their health, the turn, a Live badge, and Watch.
+   Phones keep the earlier rule (S faces, Watch live its 9:16 M).
+3. **Keep (call 3):** the Store tile has a small Buy under each picture, plus "See the whole Store" as the tile's one button.
+4. **Decision (call 4):** B's default theme is **light** (Season 0's default, the glass look), with dark as the option.
+
+Next session: render 85 (phase 1 step 4, the pack-opening flash audit). Phase 2 then builds B on this grid.
