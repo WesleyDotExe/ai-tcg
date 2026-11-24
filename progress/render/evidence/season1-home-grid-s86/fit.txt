@@ -1,0 +1,36 @@
+The fit table (render session 86): does each tile's content fit its fixed box?
+Each cell: owner@screen width: "fits", or how many px of content run past the box.
+The "tiles in groups" sessions drive this to all "fits".
+
+agent S         4 of  4 fit   
+agent M         0 of  6 fit   nova@1440: 105px · nova@1280: 132px · nova@1024: 92px · wren@1440: 122px · wren@1280: 186px · wren@1024: 109px
+agent L         1 of  6 fit   nova@1440: 18px · nova@1280: 124px · wren@1440: 55px · wren@1280: 159px · wren@1024: 29px
+watch S         2 of  2 fit   
+watch M         8 of  8 fit   
+watch L         6 of  6 fit   
+ladder S        3 of  4 fit   wren@390: 19px
+ladder M        0 of  6 fit   nova@1440: 199px · nova@1280: 245px · nova@1024: 164px · wren@1440: 254px · wren@1280: 301px · wren@1024: 202px
+ladder L        0 of  6 fit   nova@1440: 146px · nova@1280: 238px · nova@1024: 120px · wren@1440: 126px · wren@1280: 179px · wren@1024: 100px
+store S         4 of  4 fit   
+store M         6 of  6 fit   
+store L         0 of  6 fit   nova@1440: 473px · nova@1280: 526px · nova@1024: 447px · wren@1440: 473px · wren@1280: 526px · wren@1024: 447px
+daily S         4 of  8 fit   nova@1280: 25px · nova@390: 37px · wren@1280: 25px · wren@390: 37px
+daily M         0 of  6 fit   nova@1440: 85px · nova@1280: 129px · nova@1024: 26px · wren@1440: 85px · wren@1280: 129px · wren@1024: 26px
+daily L         6 of  6 fit   
+collection S    4 of  4 fit   
+collection M    0 of  6 fit   nova@1440: 143px · nova@1280: 170px · nova@1024: 130px · wren@1440: 143px · wren@1280: 170px · wren@1024: 130px
+collection L    2 of  6 fit   nova@1440: 30px · nova@1280: 195px · nova@1024: 4px · wren@1280: 132px
+packs S         2 of  4 fit   wren@1440: 25px · wren@390: 110px
+packs M         5 of  6 fit   wren@1280: 13px
+packs L         6 of  6 fit   
+history S       3 of  4 fit   wren@390: 32px
+history M       6 of  6 fit   
+history L       6 of  6 fit   
+notif S         8 of  8 fit   
+notif M         3 of  6 fit   nova@1440: 56px · nova@1280: 83px · nova@1024: 23px
+notif L         4 of  6 fit   nova@1440: 8px · nova@1280: 86px
+music S         2 of  2 fit   
+music M         6 of  6 fit   
+music L         6 of  6 fit   
+
+107 of 166 tile renders fit.

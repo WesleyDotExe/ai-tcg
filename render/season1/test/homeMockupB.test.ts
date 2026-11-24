@@ -1,4 +1,5 @@
-// Season 1 Home mockups B and C held to the spec (render session 84), and
+// Season 1 Home mockup B held to the spec (render session 84; A and C were
+// retired in render session 86, once the owner picked B), and
 // the owner's 2026-11-22 pack decision (claim in Daily rewards, open in
 // Packs, buy in Store as a shop window). The data is the real snapshot of
 // the Season 0 site demo's owner API: Nova (weeks in) and Wren (new).
@@ -8,9 +9,7 @@ import { join } from "node:path";
 import { TILES, homeOf, type Size } from "../src/homeSpec.js";
 import { factsIn, nextAction, type HomeData } from "../src/homeFacts.js";
 import { B_BOARDS, B_RECOMMENDED, heroArt, mockupBPage, tileHtml as tileB } from "../src/homeMockupB.js";
-import { C_BOARDS, C_RECOMMENDED, mockupCPage, needsOf, tileHtml as tileC } from "../src/homeMockupC.js";
 import { PLACES, opensOf } from "../src/homeShell.js";
-import { MOCKUPS, comparePage } from "../src/homeCompare.js";
 
 const data = JSON.parse(readFileSync(join(import.meta.dirname, "..", "mockup", "data", "home-data.json"), "utf8")) as HomeData;
 const nova = data.owners.nova!, wren = data.owners.wren!;
@@ -47,8 +46,8 @@ describe("the owner's pack decision (2026-11-22, replaces render 82 call 2)", ()
   });
 });
 
-describe("mockups B and C draw the spec", () => {
-  for (const [name, tile] of [["B", tileB], ["C", tileC]] as const) {
+describe("mockup B draws the spec", () => {
+  for (const [name, tile] of [["B", tileB]] as const) {
     it(`${name}: exactly the spec's facts in each tile at each size, its question and one next action`, () => {
       for (const t of TILES) for (const s of SIZES) for (const d of [nova, wren]) {
         const html = tile(t.id, s, d);
@@ -69,22 +68,10 @@ describe("mockups B and C draw the spec", () => {
     expect(heroArt("daily", wren)).toContain("--p:0.0");
   });
 
-  it("C reads what needs you off the server's answers, most urgent first", () => {
-    expect(needsOf(wren)).toEqual([
-      { tile: "daily", why: "A free pack to claim" },
-      { tile: "agent", why: "Your agent hasn't started yet" },
-      { tile: "packs", why: "Packs to open" },
-      { tile: "notif", why: "New alerts" },
-    ]);
-    expect(needsOf(nova).map((n) => n.tile)).toEqual(["daily", "watch", "packs", "notif", "store"]);
-    expect(tileC("daily", "S", wren)).toContain('class="nd"');
-    expect(tileC("ladder", "S", wren)).not.toContain('class="nd"');
-  });
-
-  it("recommends nine tiles each, every decided tile once, Music left out until its spec", () => {
+  it("recommends nine tiles, every decided tile once, Music left out until its spec", () => {
     const decided = TILES.filter((t) => t.status === "decided").map((t) => t.id).sort();
-    for (const b of [B_RECOMMENDED, C_RECOMMENDED]) expect(b.map((x) => x.tile).sort()).toEqual(decided);
-    for (const boards of [B_BOARDS, C_BOARDS]) for (const s of SIZES) expect(boards[s]!.every((b) => b.size === s)).toBe(true);
+    expect(B_RECOMMENDED.map((x) => x.tile).sort()).toEqual(decided);
+    for (const s of SIZES) expect(B_BOARDS[s]!.every((b) => b.size === s)).toBe(true);
   });
 
   it("navigates the same five places; every tile's arrow lands on one", () => {
@@ -94,22 +81,20 @@ describe("mockups B and C draw the spec", () => {
   });
 
   it("builds self-contained pages: no outside URLs, both owners", () => {
-    for (const html of [mockupBPage(data), mockupCPage(data), comparePage(data)]) {
-      expect(html).not.toMatch(/(src|href)="https?:/);
-      expect(html).not.toMatch(/@import|url\(http/);
-    }
-    for (const html of [mockupBPage(data), mockupCPage(data)]) expect(html).toContain('"wren"');
-    expect(MOCKUPS.map((m) => m.file)).toEqual(["home-mockup-a.html", "home-mockup-b.html", "home-mockup-c.html"]);
+    const html = mockupBPage(data);
+    expect(html).not.toMatch(/(src|href)="https?:/);
+    expect(html).not.toMatch(/@import|url\(http/);
+    expect(html).toContain('"wren"');
   });
 
-  it("is fenced off: no Season 0 file names B, C, the shell or the comparison", () => {
+  it("is fenced off: no Season 0 file names B, the shell, the grid or the Home page", () => {
     const hits: string[] = [];
     const walk = (dir: string) => {
       for (const f of readdirSync(dir)) {
         const p = join(dir, f);
         if (f === "node_modules" || f === "output") continue;
         if (statSync(p).isDirectory()) walk(p);
-        else if (/\.(ts|mjs|js|html)$/.test(f) && /homeMockupB|homeMockupC|homeShell|homeCompare/.test(readFileSync(p, "utf8"))) hits.push(p);
+        else if (/\.(ts|mjs|js|html)$/.test(f) && /homeMockupB|homeShell|homeGrid\.js|homePage\.js/.test(readFileSync(p, "utf8"))) hits.push(p);
       }
     };
     walk(join(import.meta.dirname, "..", "..", "src"));

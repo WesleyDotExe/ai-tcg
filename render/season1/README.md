@@ -55,7 +55,24 @@ Query options on a built page: `?pov=p2` (start watching as p2), `?mode=tile`, `
 - `src/build.ts`: plays a match and writes the page.
 - `test/arenaModel.test.ts`, `ci/arena-check.mjs`.
 
-The Season 1 Home (tile spec and mockups A, B and C, and their comparison page) lives alongside: `HOME_TILES.md`, `HOME_MOCKUPS.md`.
+The Season 1 Home (the tile spec, the mockups and the Home built on the grid) lives alongside: `HOME_TILES.md`,
+`HOME_MOCKUPS.md`.
+
+## The Season 1 Home on the grid (render session 86, phase 2)
+
+Mockup B (the owner's pick, 2026-11-23) on a uniform grid: one square unit, S 1x1, M 2x1, L 2x2, Watch live
+S 1x1, M 1x2 and L two units wide by as many as its whole 9:16 arena needs; B's top bar; light by default.
+
+- `src/homeGrid.ts`: the columns and unit for a width, the shapes, the placement (first free spot, row by row). One
+  plain-JavaScript source (`GRID_JS`) the page embeds and the tests evaluate. Tests: `test/homeGrid.test.ts`.
+- `src/homePage.ts`: the page (B's look from `homeMockupB.ts`'s `bCss`, each size's anatomy, Watch live's shapes,
+  Edit board's cells). Built by `mockup/buildHome.ts` -> `output/home.html`.
+- `ci/home-grid-check.mjs`: headless Chromium, both owners, 1440/1280/1024 and a phone: the grid's geometry, the
+  spec's facts, Watch live's arena, the navigation, the theme, Edit board; and **the fit table** (`fit.txt`): which
+  tiles' content fits its fixed box yet. The "tiles in groups" sessions drive it to all "fits".
+
+    npx tsx season1/mockup/buildHome.ts          # (in render/) -> season1/output/home.html
+    node render/season1/ci/home-grid-check.mjs   # -> progress/render/evidence/season1-home-grid-s86/
 
 ## The flash check and the pack-opening storyboard (render session 85)
 

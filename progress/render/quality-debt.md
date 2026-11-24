@@ -7,6 +7,28 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The Season 1 Home on the grid (session 86, fenced off in render/season1/; Season 1 scope)
+
+- **59 of 166 tile renders don't fit their box** (`season1-home-grid-s86/fit.txt`): Store L by 447-526 px, Ladder M
+  by 164-301 and L by 100-238, Collection M by 130-170, My agent M by 92-186 and L by 18-159, Daily rewards M by
+  26-129, Notifications M and L at some widths, and a few S faces on a phone (Packs S for a new player by 110 px,
+  Daily rewards S by 37). They are clipped by the tile, not hidden on purpose. Phase 2's tiles in groups owns this.
+- **The recommended board doesn't fit yet at any width** (My agent L, Ladder L, Collection L; Daily rewards S at
+  1280): the check reports it as OPEN, not FAIL. This is the first thing a visitor sees.
+- **In Edit board, S headers lose their name** to the move and size buttons (the buttons share the header row).
+- **My agent's personality names are dark on the dark hero tile** (`.styles li b` uses `--ink`; mockup B has the same).
+- **Watch live L's height comes from a constant** (`GRID.watchChrome`, 318 px for the scoreboard, lists and button),
+  set by measuring; if those parts change, the rows can be off by one. The browser check catches a misfit, not a
+  wasted row.
+- **Store M hides its third featured cosmetic with CSS** (the fact draws 3; the grid's M shows 2): the markup still
+  holds it. A per-size count in the fact would be cleaner.
+- **Placement is board order, first free spot.** A board edited into a bad order can leave holes (the all-M board
+  leaves 2 at 6 columns). There's no "tidy" button and no drag and drop yet; the move buttons step one place.
+- **1280 px is the tightest screen** (191 px units at 6 columns), and the fit table is worst there.
+- **The page is still a prototype**: the strip, the stub pages, Edit board not saved, buttons that don't act,
+  Watch live's stand-in arena (plan step 5), one data snapshot.
+- **The grid check runs by hand** (about 1.5 minutes), not in CI (the owner's Actions-minutes rule).
+
 ## The flash check and the pack-opening storyboard (session 85, fenced off in render/season1/; Season 1 scope)
 
 - **Season 0's own pack page is at or over the flash limit and nothing changed it** (the fence and the owner's
@@ -33,20 +55,14 @@ items are removed, with the fix in `log.md`.
   (hold the pack) is new interaction and untested on a phone.
 - **The page's charts show the light at the screen's centre only** (every light covers it), not each light's area.
 
-## The Season 1 Home mockups A, B and C (sessions 83-84, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home mockups (sessions 83-84; A and C retired in session 86, B kept as the record of the pick)
 
-- **Three mockups, no direction yet**: phase 2 waits on the owner's pick; until then three copies of the page
-  plumbing exist (A's own, and `homeShell.ts` for B and C). The pick should retire two.
 - **The masonry packing is a script** (row spans set from each tile's height after drawing, again on resize and when
   B's "?" opens). Without JavaScript the tiles stack in 2 px rows. A real build would want CSS masonry or a measured
   layout with no flash of the unpacked grid.
-- **C's "needs you" rules are this session's reading** of the server's state (`needsOf`); "Your credits can buy
-  something" may always be up for a winning agent (asked as call 2). The ranking is fixed, not learned.
 - **B's greeting** reads the time the data was taken, in the server's day zone; it is decoration with no test.
 - **The Store's Buy buttons don't buy**; a disabled Buy for a new player relies on the one "Win matches to earn
   credits" line for its reason.
-- **The comparison page's frames** load the three pages from the same folder; it needs them built first (no check
-  that the three exist).
 
 - **Watch live's 9:16 arena is a stand-in**: a flat board drawn from the live feed's `now` (units, health, energy,
   whose turn), not the Season 1 arena; it doesn't play, it's one still moment. Plan step 5 replaces it.

@@ -7,6 +7,42 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-24 — Render session 86: the Season 1 Home on the uniform grid, with B's top bar (phase 2, step 1) — [OWNER CHECK-IN] AWAITING FEEDBACK (five calls)
+
+**Start here:** `render/season1/output/home.html` (open in a browser; the strip at the top switches owner, board and
+theme; Edit board shows the grid). Stills: `progress/render/evidence/season1-home-grid-s86/` (`nova-recommended.jpg`,
+`nova-edit-board.jpg` with Watch live at L, `nova-phone.jpg`, `wren-recommended-dark.jpg`). What fits so far:
+`fit.txt` there.
+
+**What it is:** mockup B on your grid. One square unit; S 1x1, M 2x1, L 2x2; Watch live S 1x1, M 1x2, L two units
+wide by as many as its whole arena needs. Every tile is placed on the grid by row and column, and the browser check
+measures every tile against its grid lines to the pixel (100 PASS). The top bar, light by default, dark on the strip.
+
+**Strong:** the grid itself: square units, edges lining up, no hole on the recommended board at 1440, 1280 or 1024,
+no overlaps on 300 random boards (tests). Watch live follows your spec at all three sizes, and its arena is always
+9:16 and wholly inside the tile. Store M is a real shop window in a short tile. **Thin:** 107 of 166 tile renders fit
+their box yet. Tiles that were designed for free height (Ladder, My agent, Collection, Daily rewards at M, Store
+at L) run past it, clipped. That is phase 2's next work, the tiles in groups.
+
+**Calls for you (none blocks):**
+1. **The unit:** squares of about 200 px (at least 188), an even number of columns: 6 at 1280-1440 px, 4 at
+   900-1180, 2 on a phone. Keep, or bigger units (fewer columns)?
+2. **Watch live L is taller than a laptop screen:** at 1440 px it is 2 x 5 units (1154 px), because the arena fills
+   the tile's width at 9:16. So the recommended board uses Watch live M, and L is on Edit board. Keep, or cap L to the
+   screen's height (a narrower arena, with room beside it)?
+3. **The recommended board:** My agent L, Watch live M, Ladder L, Store M, Daily rewards S, Collection L, Packs L,
+   Match history M, Notifications S (no hole at 6 or 4 columns). Keep?
+4. **Store M shows the featured pack and 2 cosmetics** (your "2-3"; 3 don't fit a short tile with a Buy each), as
+   pictures with prices and a small Buy, no names. Keep?
+5. **Some tiles hold more than their box at M or L** (Ladder M has 9 facts, L 13; My agent M 6). The next sessions
+   design them denser first. Any fact that still has to move up a size (M to L) changes the spec, so it comes to you
+   as a call, never silently.
+
+**Next:** render 87, the overdue hardening pass. Then the tiles in groups, starting with the agent tile (My agent
+and Agent controls), until the fit table is all "fits".
+
+---
+
 ## 2026-11-23 — Render session 85: the pack-opening flash audit, the automatic flash check and the storyboard (phase 1 step 4) — [OWNER CHECK-IN] AWAITING FEEDBACK (one Season 0 bug, four calls)
 
 **Start here:** `render/season1/output/pack-opening-storyboard.html` (open in a browser): the new opening beat by

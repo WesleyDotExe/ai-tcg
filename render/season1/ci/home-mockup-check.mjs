@@ -25,7 +25,7 @@
 // Writes stills and check.txt per mockup to
 // progress/render/evidence/season1-home-mockups-s84/<a|b|c>/.
 //
-//   node render/season1/ci/home-mockup-check.mjs [a|b|c|all] [outDir]
+//   node render/season1/ci/home-mockup-check.mjs b [outDir]   (B only since render 86)
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -33,7 +33,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const which = ['a', 'b', 'c'].includes(process.argv[2]) ? [process.argv[2]] : ['a', 'b', 'c'];
+// Mockups A and C were retired in render session 86 (the owner picked B);
+// their pages are gone, their last runs stay in the s83 / s84 evidence.
+const which = ['b'];
 const OUT_ROOT = resolve(process.argv[3] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-mockups-s84'));
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));
 // The spec, read from its source so the check holds the pages to the same lists.

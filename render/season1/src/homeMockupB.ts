@@ -117,17 +117,11 @@ export function tileHtml(tileId: string, size: Size, d: OwnerData): string {
 
 const rgb = (c: readonly number[]) => `rgb(${c.map((x) => Math.round(x * 255)).join(",")})`;
 
-export function mockupBPage(data: HomeData): string {
-  const owners = ownersPayload(data, tileHtml);
+/** B's look (Season 0's glass, the vibe as accents), shared by the mockup
+ * and the Season 1 Home built on it (homePage.ts, render session 86). */
+export function bCss(art: { css: string }): string {
   const g = BACKGROUNDS.glacier as unknown as { light: number[][]; dark: number[][] };
-  const pages = PLACES.map((p) => ({ ...p, from: [...p.from].map((id) => TILES.find((t) => t.id === id)!.name) }));
-  const art = homeArt();
-  const payload = payloadJson({ owners, boards: B_BOARDS, pages, takenAt: data.takenAt, theme: "light", tz: Object.values(data.owners)[0]!.daily.timeZone });
-  const places = PLACES.map((p) => `<a href="#/${p.id}" data-go="${p.id}" class="nav">${icon(p.icon as keyof typeof ICONS, 18)}<span>${p.name}</span></a>`).join("");
-  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Season 1 Home, mockup B</title>
-<style>
-:root { color-scheme: light; --ink: #141a33; --muted: #4f5a78; --line: rgba(60,70,120,.14); --accent: #4f6bff; --accent2: #8b5cff;
+  return `:root { color-scheme: light; --ink: #141a33; --muted: #4f5a78; --line: rgba(60,70,120,.14); --accent: #4f6bff; --accent2: #8b5cff;
   --glass: rgba(255,255,255,.46); --glass-edge: rgba(255,255,255,.66); --shadow: 0 10px 34px rgba(50,40,140,.16), inset 0 1px 0 rgba(255,255,255,.75);
   --soft: rgba(255,255,255,.55); --soft-edge: inset 0 1px 0 rgba(255,255,255,.8); --ok: #1f9a56; --live: #e8355a; --warn: #b8690f; --gap: 16px;
   --grid-line: rgba(79,107,255,.09); --horizon: rgba(139,92,255,.22);
@@ -318,7 +312,19 @@ ${art.css}
   .edit button[data-sz] { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
-</style></head><body>
+`;
+}
+
+export function mockupBPage(data: HomeData): string {
+  const owners = ownersPayload(data, tileHtml);
+  const pages = PLACES.map((p) => ({ ...p, from: [...p.from].map((id) => TILES.find((t) => t.id === id)!.name) }));
+  const art = homeArt();
+  const payload = payloadJson({ owners, boards: B_BOARDS, pages, takenAt: data.takenAt, theme: "light", tz: Object.values(data.owners)[0]!.daily.timeZone });
+  const places = PLACES.map((p) => `<a href="#/${p.id}" data-go="${p.id}" class="nav">${icon(p.icon as keyof typeof ICONS, 18)}<span>${p.name}</span></a>`).join("");
+  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Season 1 Home, mockup B</title>
+<style>
+${bCss(art)}</style></head><body>
 ${mockStrip("Mockup B · the headline first", owners, data.takenAt, "light")}
 <header class="topnav" aria-label="Main">
   <a class="brand" href="#/home" data-go="home"><b>AI·TCG</b><small>SEASON 1</small></a>
