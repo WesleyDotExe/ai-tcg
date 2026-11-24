@@ -6695,3 +6695,52 @@ accessibility bug no one was looking for (reduced motion causing the strobe). **
 runs differ by about one change; by hand, not in CI; one screen size; the storyboard's light numbers are a plan).
 **Blocked:** nothing; the Season 0 fix is the owner's call (notes). **Next:** phase 2 in B (the owner's order): the
 S / M / L tile framework on the uniform grid and the top-bar navigation; a hardening pass is overdue (last was 80).
+
+## 2026-11-24 — Render session 86: the Season 1 Home on the uniform grid, with B's top bar (phase 2, step 1)
+
+**Lane:** render. The last merged PR (#194) is a "Render:" PR, which would make this a game session, but the
+owner's 2026-11-22 entry (point 7) runs the render lane only until the owner says otherwise. No open render PR.
+Owner feedback: the 2026-11-23 entries (B on a uniform grid; S 1x1, M 2x1, L 2x2; Watch live in tall shapes, L as
+many units as the whole arena needs, M 1x2, S basic info; a small Buy under each Store picture; light by default)
+are this session's brief. Nothing new since. All work in `render/season1/`; no Season 0 page or source changed.
+
+**Built:**
+- `src/homeGrid.ts`: the grid. Columns from the board's width (as many square units of at least 188 px as fit,
+  rounded down to even, at least 2; a phone 2 with a 12 px gap): 6 x 218 px at 1440, 6 x 191 at 1280, 4 x 231 at
+  1024, 2 x 175 on a 390 phone. The shapes (the owner's), with Watch live L's rows worked out from its arena: two
+  units wide, the arena 9:16 at the tile's inner width plus its scoreboard, lists and button (5 rows at 218 px:
+  1154 px). Placement: board order, first free spot row by row (CSS's dense packing, made explicit). One
+  plain-JavaScript source the page embeds and the tests evaluate (no drift between them). 11 tests: columns at every
+  width from 300 to 1440, the shapes, Watch L's rows at six unit sizes, 300 random boards never overlapping, the
+  recommended board with no hole at 1440/1280/1024.
+- `src/homePage.ts` -> `output/home.html` (`mockup/buildHome.ts`): B on the grid. Tiles placed explicitly (row and
+  column) at fixed sizes; each size its own anatomy (S stacked; M wide: the headline and button left, the details
+  right; L stacked with two-column details); the "?" opens over the tile, not in the flow, so it never resizes it;
+  Watch live by the owner's spec (S: names in faction colours, health, the turn, a Live badge beside Watch; M: the
+  arena 9:16 with names and health bars only; L: the whole arena, the scoreboard, the turn line, both hands, the
+  other matches, the play-by-play), the arena sized by a CSS size container so it's always 9:16 and inside its box;
+  Store M redesigned for a short tile (the credits, what they buy and the button left; the pack and two cosmetics
+  as tall pictures with prices and Buy right); Edit board shows the grid's cells. B's look shared through
+  `homeMockupB.ts`'s new `bCss` (the mockup's page rebuilt byte-identical before the arena wrapper went in).
+- A recommended board for the grid: agent L, Watch live M, Ladder L, Store M, Daily rewards S, Collection L, Packs
+  L, Match history M, Notifications S. Found by a search over sizes and orders: no hole at 6 columns or 4.
+- `ci/home-grid-check.mjs`: headless Chromium, both owners, 1440/1280/1024 and a phone: every tile its shape on
+  square units, on its grid lines, where the layout says, none overlapping; no hole on the recommended board; the
+  spec's facts at every size; Watch live's arena 9:16 and inside; the top bar; light by default, dark as the
+  option; the "?" not resizing; Edit board's cells and a resize; no errors, no outside requests. And **the fit
+  table** (`fit.txt`): per tile, size, owner and screen, whether the content fits its fixed box.
+- Retired mockups A and C and the side-by-side page (code, pages, A's tests and C's); their stills stay. Mockup B
+  stays as the record of the pick; its check (B only now) still 68 PASS.
+
+**Ran it:** `progress/render/evidence/season1-home-grid-s86/`: check.txt 100 PASS, 0 FAIL, 6 OPEN; fit.txt **107
+of 166 tile renders fit**. Fits everywhere: Watch live S/M/L, Store S and M, Packs L, Match history M and L,
+Notifications S, Collection S, agent S, Music. Furthest off: Store L (473 px), Ladder M (199-301) and L (100-238),
+Collection M (130-170), agent M (92-186) and L (18-159), Daily rewards M (26-129). Typecheck clean; the season1
+tests 70 of 70; the render suite 1159 of 1159.
+
+**Worked:** making the layout explicit (one JS source, placed by row and column) made the grid checkable to the
+pixel: every tile's rectangle is compared with unit x shape + gaps at its grid line. Container query units gave a
+9:16 arena that fits any box without script. **Thin:** most M and L tiles were designed for free height and don't
+fit a fixed box yet (the fit table); 1280 px (191 px units) is the tightest screen. **Blocked:** nothing. **Next:**
+a render hardening pass is overdue (last was 80): take it at 87; then phase 2's tiles in groups, starting with the
+agent tile, driving the fit table to all "fits".

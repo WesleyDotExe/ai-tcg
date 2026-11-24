@@ -272,10 +272,10 @@ export const RENDER: Record<Fact, Render> = {
   },
   liveArena: (d) => {
     const m = featured(d);
-    if (!m) return fx("liveArena", `<div class="arena916 empty"><span>The arena plays here when a match is on.</span></div>`);
+    if (!m) return fx("liveArena", `<div class="afit"><div class="arena916 empty"><span>The arena plays here when a match is on.</span></div></div>`);
     const row = (p: "p1" | "p2") => `<div class="arow" style="--fc:${FACTION_HEX[m[p].faction] ?? "#999"}">${m.now[p].board.map((u) => `<span class="unit${u.pending ? " pend" : ""}" title="${esc(u.name)}"><i>${esc(u.name)}</i><b>${u.attack}/${u.health}</b></span>`).join("") || `<span class="none">no units</span>`}</div>`;
     const hud = (p: "p1" | "p2") => `<div class="ahud"><b>${esc(m[p].agentName)}</b><span>${m.now[p].health} hp · ${m.now[p].energy}/${m.now[p].maxEnergy} energy · ${m.now[p].hand} in hand</span></div>`;
-    return fx("liveArena", `<div class="arena916" role="img" aria-label="the arena, turn ${m.now.turn}">${hud("p2")}${row("p2")}<div class="disc"><span>turn ${m.now.turn} · ${esc(m[m.now.activePlayer].agentName)} to play</span></div>${row("p1")}${hud("p1")}<span class="proto">9:16 · arena prototype: step 5</span></div>${d.play.liveMatch ? "" : `<span class="sub">Your agent's matches show here once you press Start.</span>`}`);
+    return fx("liveArena", `<div class="afit"><div class="arena916" role="img" aria-label="the arena, turn ${m.now.turn}">${hud("p2")}${row("p2")}<div class="disc"><span>turn ${m.now.turn} · ${esc(m[m.now.activePlayer].agentName)} to play</span></div>${row("p1")}${hud("p1")}<span class="proto">9:16 · arena prototype: step 5</span></div></div>${d.play.liveMatch ? "" : `<span class="sub">Your agent's matches show here once you press Start.</span>`}`);
   },
   alsoLive: (d) => {
     const m = featured(d);

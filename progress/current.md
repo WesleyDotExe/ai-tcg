@@ -1,6 +1,6 @@
 # Current status
 
-**Season 0 is running (owner 2026-11-22: launched early on Sun 22 Nov 08:09 Sydney on the Mac mini from main at 89abe46; five bots; it ends by itself at 00:00 27 Dec Sydney; the Mac mini is not updated mid-season unless something breaks). The scheduled sessions run the render lane only, on the owner's Season 1 plan, all in `render/season1/`. Phase 1 so far: render 82 the Home tile audit and spec (`HOME_TILES.md`, `src/homeSpec.ts`); render 83 mockup A; render 84 mockups B and C and the side-by-side page. **The owner picked B on a uniform grid** (2026-11-23: S 1x1, M 2x1, L 2x2; Watch live tall, as many units as the whole 9:16 arena needs at L, 1x2 at M; a small Buy under each Store picture plus "See the whole Store"; light by default). Render session 85 did phase 1 step 4: the automatic flash check (`render/season1/src/flashScan.ts`, the virtual-clock frame sampler `flash/sample.ts`), Season 0's pack opening measured (`progress/render/evidence/season1-flash-audit-s85/`: at a calm pace on the line at Zero-Day and Gold; reduced motion makes Glitch strobe, a Season 0 bug left with the owner in `progress/render/notes-for-owner.md`), and the storyboard for Season 1's opening (`src/openingStoryboard.ts`, `output/pack-opening-storyboard.html`, `FLASH.md`), at an owner check-in.**
+**Season 0 is running (owner 2026-11-22: launched early on Sun 22 Nov 08:09 Sydney on the Mac mini from main at 89abe46; five bots; it ends by itself at 00:00 27 Dec Sydney; the Mac mini is not updated mid-season unless something breaks). The scheduled sessions run the render lane only, on the owner's Season 1 plan, all in `render/season1/`. Phase 1: render 82 the Home tile audit and spec; 83 mockup A; 84 mockups B and C; the owner picked **B on a uniform grid** (2026-11-23); 85 the flash check and the pack-opening storyboard (four calls waiting in the render checkpoints). **Render session 86 started phase 2:** the S / M / L framework on one square unit (`render/season1/src/homeGrid.ts`: S 1x1, M 2x1, L 2x2; Watch live S 1x1, M 1x2, L two units by the rows its whole 9:16 arena needs) and B's top bar, light by default (`src/homePage.ts` -> `output/home.html`); the browser check `ci/home-grid-check.mjs` (100 PASS) and its fit table (107 of 166 tile renders fit their fixed box; the rest is phase 2's tiles in groups); mockups A and C retired (stills kept). Five small calls at an owner check-in (`progress/render/checkpoints.md`).**
 
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
@@ -52,16 +52,16 @@ At the start: check for an open render PR; if one is open, fix it if it has fail
 as step 0 says. Read owner-feedback.md (answers to render 85's four calls, and the Season 0 reduced-motion bug, may be
 there).
 
-Next: **render 86, phase 2 in B** (the owner's 2026-11-23 order: "Phase 2 then builds B on this grid"): the S / M / L
-tile framework on one square grid unit (S 1x1, M 2x1, L 2x2; Watch live in tall shapes: L as many units as the whole
-9:16 arena needs, M 1x2, S 1x1 basic info) and B's top-bar navigation, light by default with dark as the option, in
-`render/season1/`; retire mockups A and C (keep their stills). Then the tiles in groups (agent, Ladder, Packs and
-Store with the small Buy under each picture and "See the whole Store", Collection and Daily rewards). Phase 1's step 5
-(Watch live 9:16 on the Season 1 arena) and step 6 (the music spec) are still open: take them when phase 2 reaches
-Watch live and Music. **A render hardening pass is overdue** (last was 80; 85 and 86 went to the owner's order): take
-it at 87 at the latest; candidates: the flash sampler's repeat-run spread, the stale checks list, the storyboard page
-check in a browser script. A call only the owner can make goes in the notes as "waiting on owner" and the session
-moves on (owner rule 10a).
+Next: **render 87, the overdue render hardening pass** (the last was 80; no new features): candidates from
+`progress/render/quality-debt.md`: the flash sampler's repeat-run spread, the storyboard page's browser check as a
+script, the stale checks list, the grid page's small faults (Edit board's S headers lose their name; My agent's
+personality names dark on the hero tile). Then **phase 2's tiles in groups** on the grid, in order: the agent tile
+(My agent + Agent controls), the Ladder tile (Rating & form merged in), Packs and Store, Collection and Daily
+rewards: each group's tiles designed to fit their box at S, M and L, measured by
+`node render/season1/ci/home-grid-check.mjs` until its `fit.txt` is all "fits" (107 of 166 now). A fact that can't
+fit its size goes to the owner as a call (owner rule 10a), never moved silently. Phase 1's step 5 (Watch live 9:16
+on the Season 1 arena) and step 6 (the music spec) are still open: take them when phase 2 reaches Watch live and
+Music. A call only the owner can make goes in the notes as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

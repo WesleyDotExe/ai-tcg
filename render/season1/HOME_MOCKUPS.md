@@ -1,5 +1,11 @@
 # Season 1 Home: the mockups
 
+**Render session 86: the owner picked B (2026-11-23), on a uniform grid.** Mockups A and C and the side-by-side page
+were retired (their code and pages removed; their stills stay in `progress/render/evidence/season1-home-mockup-a-s83/`
+and `season1-home-mockups-s84/`). Mockup B stays as the record of what was picked (`output/home-mockup-b.html`,
+masonry). The Home built on the grid is `output/home.html` (see the README, "The Season 1 Home on the grid"). The
+sections on A and C below describe what they were.
+
 Phase 1 steps 2 and 3 of the owner's 2026-11-22 plan: Home mockups A, B and C, each with its navigation, so the owner
 can pick a direction (point 11: "sessions show options for him to pick from"). Each one draws the **same tiles** from the
 **same spec** (`src/homeSpec.ts`, `HOME_TILES.md`) and the **same real data**. Only the look and the navigation differ.

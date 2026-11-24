@@ -1592,3 +1592,14 @@ only if you pull.
 Also measured, not bugs by themselves: at a calm pace, Zero-Day's breach is at exactly 3 flashes in a second and
 Gold's hit failed 1 of 6 runs; tapping as fast as the page allows fails 6 of 11 packs. The Season 1 storyboard is the
 answer to those (`render/season1/FLASH.md`).
+
+---
+
+## 2026-11-24 — Render session 86: the Season 1 Home on your grid (five calls, none blocking)
+
+1. **Open `render/season1/output/home.html`** (or the stills in `progress/render/evidence/season1-home-grid-s86/`):
+   mockup B on your uniform grid, with Watch live in its tall shapes, the top bar, light by default.
+2. **Five calls** in `progress/render/checkpoints.md` (session 86): the unit's size, Watch live L being taller than
+   a laptop screen, the recommended board, Store M's two cosmetics, and how facts that don't fit a size are handled.
+3. **Mockups A and C are retired** (their stills stay). Nothing needed from you to continue: render 87 is the
+   overdue hardening pass, then the tiles in groups.
