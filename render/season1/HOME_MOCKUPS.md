@@ -1,4 +1,10 @@
-# Season 1 Home: the mockups
+# Season 1 Home: the mockups (retired)
+
+**Render session 86: the owner picked B on a uniform grid (2026-11-23), so mockups A and C are retired and B is built
+on the grid as the Season 1 Home: see `HOME.md` and `output/home.html`.** Their pages and sources were removed; this
+file keeps what each was, and their stills stay in `progress/render/evidence/season1-home-mockup-a-s83/` and
+`progress/render/evidence/season1-home-mockups-s84/{a,b,c}/` (with the comparison page's stills, `compare-*.jpg`). The
+build and check commands below are history: the files they name are gone.
 
 Phase 1 steps 2 and 3 of the owner's 2026-11-22 plan: Home mockups A, B and C, each with its navigation, so the owner
 can pick a direction (point 11: "sessions show options for him to pick from"). Each one draws the **same tiles** from the

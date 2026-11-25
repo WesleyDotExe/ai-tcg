@@ -55,7 +55,9 @@ Query options on a built page: `?pov=p2` (start watching as p2), `?mode=tile`, `
 - `src/build.ts`: plays a match and writes the page.
 - `test/arenaModel.test.ts`, `ci/arena-check.mjs`.
 
-The Season 1 Home (tile spec and mockups A, B and C, and their comparison page) lives alongside: `HOME_TILES.md`, `HOME_MOCKUPS.md`.
+The Season 1 Home lives alongside: its tile spec `HOME_TILES.md`; the mockups A, B and C (retired in render 86) in
+`HOME_MOCKUPS.md`; and the Home itself, B on the owner's uniform grid, in `HOME.md` (`src/home.ts`, `src/homeGrid.ts`,
+`output/home.html`, `ci/home-check.mjs`).
 
 ## The flash check and the pack-opening storyboard (render session 85)
 

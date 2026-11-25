@@ -7,6 +7,25 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The Season 1 Home on the grid (session 86, fenced off in render/season1/; Season 1 scope)
+
+- **The tiles are re-laid out, not redesigned**: every tile's facts are render 84's B markup placed into its shape's
+  anatomy. Some L tiles fill by spreading rows apart (`align-content: space-evenly`) rather than by showing more or
+  drawing bigger; Match history and Notifications at L for a new player, and Music, are the emptiest (32-36% empty
+  band). Phase 2 step 2 (the tiles in groups) is where each gets designed for its shapes.
+- **The fill measure is approximate**: it unions the vertical spans of leaf boxes, so a big box that is mostly empty
+  (a picture's frame, a wide grid cell) counts as filled, and a full-width row of short text counts the same as a
+  dense one. It measures height only, not width. A painted-pixel measure would be honest; not built.
+- **The Watch live arena is still the 9:16 stand-in** (render 83's), not the Season 1 arena: units, hands as counted
+  card backs and the turn line, drawn from the live match's real state, but nothing moves. Plan step 5.
+- **Watch live L is 1388 px tall on a desktop** and a phone's Home is 4.8 screens: both follow the owner's shapes
+  literally and are at an owner check-in (render checkpoint, session 86).
+- **The grid is checked at three widths only** (1440, 1024, 390). Between 1181 and about 1300 px the unit is under
+  280 px and an M's details get narrow; not measured. Very wide screens (the board caps at 1440) not checked.
+- **Edit board on a phone** still hides the size buttons (sizes apply on wider screens); moving tiles works.
+- **No keyboard pass**: the "?" overlay can cover a tile's facts and doesn't close on Escape or a click elsewhere.
+- **The check is by hand** (about 1.5 minutes), not in CI, like every Season 1 browser check.
+
 ## The flash check and the pack-opening storyboard (session 85, fenced off in render/season1/; Season 1 scope)
 
 - **Season 0's own pack page is at or over the flash limit and nothing changed it** (the fence and the owner's

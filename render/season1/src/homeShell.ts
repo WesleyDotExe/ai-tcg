@@ -1,15 +1,11 @@
-// What Season 1 Home mockups B and C share (render session 84): the mockup's
-// own control strip, the per-owner payload, and the page script's plumbing
-// (owner / board / theme switches, the hash routes, Edit board's size and
-// move buttons, the stub pages, and the masonry packing). Mockup A (render
-// 83) keeps its own copy as built; B and C differ from it, and from each
-// other, only in the look, the tile's anatomy and the navigation.
-//
-// The masonry packing is the answer to the owner's 2026-11-22 note on A's
-// empty space ("a new player's Match history at L, Store and Daily rewards
-// at L"): a tile takes its content's height, not a fixed row's, and the
-// small tiles fill the holes (grid-auto-flow: dense). Sizes still decide a
-// tile's width and which facts it shows (the spec), never a fixed height.
+// What the Season 1 Home page shares with its mockups' plumbing (render
+// session 84; render 86 retired mockups A and C, which the owner did not pick,
+// and replaced the masonry with the owner's uniform grid, homeGrid.ts): the
+// page's own control strip (owner / board / theme: a prototype's switches, not
+// part of the design), the per-owner payload, and the page script's plumbing
+// (the hash routes, Edit board's size and move buttons, the stub pages). The
+// layout itself is the page's: SHELL.start(draw, layout) calls layout() after
+// every draw and on every resize.
 //
 // Pure: strings out. Fenced off: nothing outside render/season1/ imports it.
 
@@ -100,16 +96,9 @@ export const MOCK_STRIP_CSS = `
 .mock button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
 `;
 
-/** Masonry: a grid of 2 px rows; the script sets each tile's row span from
- * its own height. */
-export const MASONRY_CSS = `
-.mgrid { display: grid; grid-auto-rows: 2px; row-gap: 0; grid-auto-flow: row dense; align-items: start; }
-.mgrid > .tile { margin-bottom: var(--gap); }
-`;
-
 /** The page script's shared plumbing: window.SHELL. A mockup's own script
  * then calls SHELL.start(draw), where draw() renders the current page into
- * <main id="main">. */
+ * <main id="main"> and layout() places the tiles. */
 export const SHELL_SCRIPT = `window.SHELL = (() => {
   const D = JSON.parse(document.getElementById('data').textContent);
   const q = new URLSearchParams(location.search);
@@ -124,26 +113,16 @@ export const SHELL_SCRIPT = `window.SHELL = (() => {
   // On a phone every tile shows its S face, Watch live its 9:16 M (owner's
   // answer to render 83, call 2).
   const sizeOn = (b) => (!phone() ? b.size : b.tile === 'watch' && b.size !== 'S' ? 'M' : 'S');
-  function masonry(root) {
-    (root || document).querySelectorAll('.mgrid').forEach((g) => {
-      const unit = parseFloat(getComputedStyle(g).gridAutoRows) || 2;
-      const tiles = [...g.children].filter((t) => t.classList.contains('tile'));
-      tiles.forEach((t) => { t.style.gridRowEnd = 'span 1'; });
-      tiles.forEach((t) => {
-        const gap = parseFloat(getComputedStyle(t).marginBottom) || 0;
-        t.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil((t.getBoundingClientRect().height + gap) / unit));
-      });
-    });
-  }
   function stub(title, pg) {
     const holds = pg ? pg.holds : title === 'Settings' ? ['the account, sign-in and theme', 'sound and music', 'which alerts you get', 'the house admin (when you are)'] : ['every alert, newest first, by kind', 'each links to the page that owns it'];
     const from = pg ? pg.from : title === 'Alerts' ? ['Notifications'] : [];
-    return '<div class="pg"><h2>' + title + '</h2><span class="sub">This mockup draws Home only; this page is the navigation\\'s promise: what it holds, and which Home tiles open it.</span><ul>' + holds.map((h) => '<li>' + h + '</li>').join('') + '</ul>' + (from.length ? '<span class="sub">Opened from: ' + from.join(', ') + '.</span>' : '') + '</div>';
+    return '<div class="pg"><h2>' + title + '</h2><span class="sub">Phase 2 draws Home first; this page is the navigation\\'s promise: what it holds, and which Home tiles open it.</span><ul>' + holds.map((h) => '<li>' + h + '</li>').join('') + '</ul>' + (from.length ? '<span class="sub">Opened from: ' + from.join(', ') + '.</span>' : '') + '</div>';
   }
   const titleOf = (p) => { const pg = D.pages.find((x) => x.id === p); return pg ? pg.name : p === 'settings' ? 'Settings' : 'Alerts'; };
   const TO = { packs: 'cards', history: 'agent', collection: 'cards', agent: 'agent' };
-  function start(draw) {
-    const redraw = () => { draw(); requestAnimationFrame(() => masonry()); };
+  function start(draw, layout) {
+    const place = () => layout && layout();
+    const redraw = () => { draw(); place(); };
     document.addEventListener('click', (e) => {
       const t = e.target.closest('button, a');
       if (!t) return;
@@ -170,10 +149,10 @@ export const SHELL_SCRIPT = `window.SHELL = (() => {
     });
     window.addEventListener('hashchange', redraw);
     matchMedia(PHONE).addEventListener('change', redraw);
-    window.addEventListener('resize', () => masonry());
+    window.addEventListener('resize', place);
     press('#m-owner', 'owner', st.owner); press('#m-board', 'board', st.boardName); press('#m-theme', 'theme', theme);
     redraw();
     return { redraw };
   }
-  return { D, st, phone, page, sizeOn, masonry, stub, titleOf, start };
+  return { D, st, phone, page, sizeOn, stub, titleOf, start };
 })();`;

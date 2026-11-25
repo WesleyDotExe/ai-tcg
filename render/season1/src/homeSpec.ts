@@ -52,9 +52,7 @@ export const FACTS = {
   factionWinRate: "win rate by deck faction",
   // Watch live.
   liveMatch: "the featured live match (players, health, turn)",
-  liveArena: "the arena itself, playing (9:16 at M and L)",
-  alsoLive: "the other live matches",
-  playByPlay: "the play-by-play of the featured match",
+  liveArena: "the arena itself, playing (9:16 at M and L; at L with the turn line and both hands)",
   // Packs.
   unopened: "packs you have and haven't opened, and Open a pack",
   guarantee: "how soon a Full Art and a Mythic are guaranteed",
@@ -162,17 +160,17 @@ export const TILES: TileSpec[] = [
     sizes: {
       S: ["liveMatch"],
       M: ["liveMatch", "liveArena"],
-      L: ["liveMatch", "liveArena", "alsoLive", "playByPlay"],
+      L: ["liveMatch", "liveArena"],
     },
     newPlayer: {
-      S: "The featured match's two names, health and turn (the same for everyone).",
-      M: "The arena playing, 9:16. Under it: \"Your agent's matches show here once you press Start.\"",
-      L: "As M, with the other live matches and the play-by-play.",
+      S: "The featured match's two names in their faction colours, their health, the turn and a Live badge (the same for everyone).",
+      M: "The featured arena playing, 9:16, smaller, with only the names and health bars over it (the same for everyone).",
+      L: "The whole arena, 9:16, as large as the tile, with the scoreboard above it, the turn line and both hands. Under it: \"Your agent's matches show here once you press Start.\"",
     },
-    next: { S: "Watch", M: "Full screen", L: "Full screen / switch match" },
+    next: { S: "Watch", M: "Full screen", L: "Full screen" },
     opens: "live",
     status: "decided",
-    note: "Owner point 13: the actual arena in 9:16 at M and L, basic info at S. Phase 1 step 5 prototypes it. Players' ratings stay on Ladder; the match shows names, factions and health.",
+    note: "Owner point 13, and the owner's 2026-11-23 shapes: S 1x1 basic info; M 1x2, the arena smaller with names and health bars only; L as many units as the whole 9:16 arena needs, with the scoreboard, the turn line and both hands. The other live matches and the play-by-play live on the Watch page (render 86: the L spec has no room for them). Phase 1 step 5 puts the Season 1 arena in. Players' ratings stay on Ladder.",
   },
   {
     id: "packs",

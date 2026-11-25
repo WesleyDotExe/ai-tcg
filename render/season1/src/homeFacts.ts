@@ -261,31 +261,43 @@ export const RENDER: Record<Fact, Render> = {
   },
 
   /* Watch live */
-  liveMatch: (d) => {
+  // Watch live, in the owner's 2026-11-23 shapes: S the basic info (the two
+  // names in their faction colours, their health, the turn, a Live badge);
+  // M names and health bars over a smaller arena, no card text and no hand
+  // details; L the scoreboard (names, factions, health) above the whole arena,
+  // with the turn line and both hands in it.
+  liveMatch: (d, size) => {
     const m = featured(d);
-    if (!m) return fx("liveMatch", `<span>Nothing is playing right now. The ladder's next round starts soon.</span>`);
-    const side = (p: "p1" | "p2") => {
-      const s = m.now[p], who = m[p];
-      return `<div class="side" style="--fc:${FACTION_HEX[who.faction] ?? "#999"}"><b>${esc(who.agentName)}</b><span class="sub">${esc(who.ownerName)} · ${esc(who.faction)}</span><span class="hp"><i style="width:${(100 * Math.max(0, s.health)) / s.maxHealth}%"></i></span><span class="sub">${s.health} health</span></div>`;
-    };
-    return fx("liveMatch", `<div class="vs">${side("p1")}<span class="vsx">vs<br><small>turn ${m.now.turn}</small></span>${side("p2")}</div>`);
+    if (!m) return fx("liveMatch", `<span class="sub">Nothing is playing right now. The ladder's next round starts soon.</span>`);
+    const hue = (p: "p1" | "p2") => FACTION_HEX[m[p].faction] ?? "#999";
+    const hp = (p: "p1" | "p2") => `<span class="hp"><i style="width:${((100 * Math.max(0, m.now[p].health)) / m.now[p].maxHealth).toFixed(1)}%"></i></span>`;
+    if (size === "S") {
+      const side = (p: "p1" | "p2") => `<li style="--fc:${hue(p)}"><b>${esc(m[p].agentName)}</b><span>${m.now[p].health} health</span>${hp(p)}</li>`;
+      return fx("liveMatch", `<span class="livebadge">Live</span><ul class="lm-s">${side("p1")}${side("p2")}</ul><span class="sub">Turn ${m.now.turn} · ${esc(m[m.now.activePlayer].agentName)} to play</span>`, "blk");
+    }
+    if (size === "M") {
+      const side = (p: "p1" | "p2") => `<div class="side" style="--fc:${hue(p)}"><b>${esc(m[p].agentName)}</b>${hp(p)}</div>`;
+      return fx("liveMatch", `<div class="lm-m">${side("p2")}${side("p1")}</div>`);
+    }
+    const side = (p: "p1" | "p2") => `<div class="side" style="--fc:${hue(p)}"><b>${esc(m[p].agentName)}</b><span class="sub">${esc(m[p].ownerName)} · ${esc(m[p].faction)}</span>${hp(p)}<span class="sub">${m.now[p].health} of ${m.now[p].maxHealth} health</span></div>`;
+    return fx("liveMatch", `<div class="vs">${side("p1")}<span class="vsx"><span class="livebadge">Live</span>vs</span>${side("p2")}</div>`);
   },
-  liveArena: (d) => {
+  liveArena: (d, size) => {
     const m = featured(d);
+    const mine = d.play.liveMatch ? "" : `<span class="sub mine">Your agent's matches show here once you press Start.</span>`;
     if (!m) return fx("liveArena", `<div class="arena916 empty"><span>The arena plays here when a match is on.</span></div>`);
-    const row = (p: "p1" | "p2") => `<div class="arow" style="--fc:${FACTION_HEX[m[p].faction] ?? "#999"}">${m.now[p].board.map((u) => `<span class="unit${u.pending ? " pend" : ""}" title="${esc(u.name)}"><i>${esc(u.name)}</i><b>${u.attack}/${u.health}</b></span>`).join("") || `<span class="none">no units</span>`}</div>`;
-    const hud = (p: "p1" | "p2") => `<div class="ahud"><b>${esc(m[p].agentName)}</b><span>${m.now[p].health} hp · ${m.now[p].energy}/${m.now[p].maxEnergy} energy · ${m.now[p].hand} in hand</span></div>`;
-    return fx("liveArena", `<div class="arena916" role="img" aria-label="the arena, turn ${m.now.turn}">${hud("p2")}${row("p2")}<div class="disc"><span>turn ${m.now.turn} · ${esc(m[m.now.activePlayer].agentName)} to play</span></div>${row("p1")}${hud("p1")}<span class="proto">9:16 · arena prototype: step 5</span></div>${d.play.liveMatch ? "" : `<span class="sub">Your agent's matches show here once you press Start.</span>`}`);
-  },
-  alsoLive: (d) => {
-    const m = featured(d);
-    const rest = d.live.matches.filter((x) => x !== m);
-    return fx("alsoLive", `${lab("Also live")}${rest.length ? `<ul class="list">${rest.map((x) => `<li>${esc(x.p1.agentName)} vs ${esc(x.p2.agentName)} <span class="sub">turn ${x.now.turn}</span></li>`).join("")}</ul>` : `<span>No other match right now.</span>`}`, "blk");
-  },
-  playByPlay: (d) => {
-    const m = featured(d);
-    const lines = (m?.recentLines ?? []).map((l) => l.trim()).filter((l) => l && !/passes priority/.test(l)).slice(-5);
-    return fx("playByPlay", `${lab("Play-by-play")}${lines.length ? `<ul class="list pbp">${lines.map((l) => `<li>${esc(l.replace(/^---\s*|\s*---$/g, "").replace(/\bp1\b/g, m!.p1.agentName).replace(/\bp2\b/g, m!.p2.agentName))}</li>`).join("")}</ul>` : `<span>The calls show here as the match plays.</span>`}`, "blk");
+    const full = size === "L";
+    // At M no card text: a unit is its attack / health only.
+    const unit = (u: LiveMatch["now"]["p1"]["board"][number]) => full
+      ? `<span class="unit${u.pending ? " pend" : ""}" title="${esc(u.name)}"><i>${esc(u.name)}</i><b>${u.attack}/${u.health}</b></span>`
+      : `<span class="unit bare${u.pending ? " pend" : ""}" title="${esc(u.name)}"><b>${u.attack}/${u.health}</b></span>`;
+    const row = (p: "p1" | "p2") => `<div class="arow" style="--fc:${FACTION_HEX[m[p].faction] ?? "#999"}">${m.now[p].board.map(unit).join("") || `<span class="none">no units</span>`}</div>`;
+    // Both hands, as the arena holds them: card backs, counted (a spectator
+    // never sees the faces).
+    const hand = (p: "p1" | "p2", far: boolean) => `<div class="hand${far ? " far" : ""}" style="--fc:${FACTION_HEX[m[p].faction] ?? "#999"}" aria-label="${esc(m[p].agentName)}: ${plural(m.now[p].hand, "card")} in hand">${Array.from({ length: Math.min(8, m.now[p].hand) }, () => `<i class="back"></i>`).join("")}<span>${m.now[p].hand} in hand · ${m.now[p].energy}/${m.now[p].maxEnergy} energy</span></div>`;
+    const turn = `<div class="disc"><span>Turn ${m.now.turn} · ${esc(m[m.now.activePlayer].agentName)} to play</span></div>`;
+    const inner = full ? `${hand("p2", true)}${row("p2")}${turn}${row("p1")}${hand("p1", false)}` : `${row("p2")}<div class="disc slim"><span>Turn ${m.now.turn}</span></div>${row("p1")}`;
+    return fx("liveArena", `<div class="arena916 a-${size}" role="img" aria-label="the arena, turn ${m.now.turn}">${inner}<span class="proto">9:16 stand-in · the Season 1 arena: plan step 5</span></div>${full ? mine : ""}`);
   },
 
   /* Packs */

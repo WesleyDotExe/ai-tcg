@@ -6695,3 +6695,48 @@ accessibility bug no one was looking for (reduced motion causing the strobe). **
 runs differ by about one change; by hand, not in CI; one screen size; the storyboard's light numbers are a plan).
 **Blocked:** nothing; the Season 0 fix is the owner's call (notes). **Next:** phase 2 in B (the owner's order): the
 S / M / L tile framework on the uniform grid and the top-bar navigation; a hardening pass is overdue (last was 80).
+
+## 2026-11-25 — Render session 86: the Season 1 Home as B on the owner's uniform grid (phase 2 step 1)
+
+**Lane:** render. The owner's 2026-11-22 entry (point 7) runs every scheduled session on the render lane; the last
+merged PR was render 85 (#194); no render PR was open (GitHub was unreachable from this session at the start, so the
+check was main's history: #194 is its last merge). Owner feedback read first: the two 2026-11-23 entries (B on a
+uniform grid; the shapes, Watch live, the Store, light by default) are this session's order; both marked handled. All
+work in `render/season1/`; no Season 0 page or source changed. A hardening pass is overdue (last 80); this session
+took the owner's order, as current.md allowed ("at 87 at the latest"), and 87 is the hardening pass.
+
+**Built (fenced off in `render/season1/`):**
+- `src/homeGrid.ts`: the grid as one piece of browser JavaScript (`GRID_JS`) the page inlines and the tests run:
+  4 / 2 / 1 columns, a square unit, the owner's shapes, Watch live's L rows counted from its 9:16 arena and the tile's
+  chrome, and a dense first-fit packer that gives each tile its column and row.
+- `src/home.ts` (was `homeMockupB.ts`) -> `output/home.html`: B on the grid. Each shape its own anatomy (S the
+  headline in the middle, M the headline column and detail columns, L the headline across the top), pictures and type
+  scaled with the shape, the "?" as an overlay, Ladder's and Store's headlines of two or three facts, the recommended
+  board re-cut to fill four rows; light by default.
+- Watch live in the owner's three shapes (`homeFacts.ts` `liveMatch` / `liveArena` by size): S names in faction
+  colours, health, turn, Live badge; M the arena with names and health bars over it, units as stats only; L the
+  scoreboard above the whole arena with both hands (card backs) and the turn line. The spec (`homeSpec.ts`,
+  `HOME_TILES.md`) moves the other live matches and the play-by-play to the Watch page.
+- `src/homeShell.ts`: the masonry is gone; `SHELL.start(draw, layout)`.
+- Retired: mockups A and C, the comparison page, mockup B's masonry page, their sources and tests (stills kept in
+  `season1-home-mockup-a-s83/` and `season1-home-mockups-s84/`); `HOME_MOCKUPS.md` says so.
+- `ci/home-check.mjs` (was `home-mockup-check.mjs`): the grid's rules in a browser (shape and position to 1 px, no
+  overlaps, nothing spilling past its tile, under its header or into its button, no region scrolling, the arena whole
+  and 9:16), a fill measure (the largest empty band per tile, under 40%), a tablet and a phone, the navigation, the
+  "?" keeping the tile's size, Edit board repacking, the theme.
+- Tests: `test/homeGrid.test.ts` (5: columns, shapes, Watch live's rows exact both ways, 200 random boards packed
+  with no overlap, dense fill), `test/home.test.ts` (B's and the pack-decision tests kept, Watch live's shapes, the
+  recommended board with no hole, the page's light default and grid code).
+- `HOME.md`; README, `HOME_TILES.md`.
+
+**Ran it:** `node render/season1/ci/home-check.mjs` -> 141 PASS, 0 FAIL
+(`progress/render/evidence/season1-home-grid-s86/check.txt`, 20 stills). First runs found: Watch live M's stage only
+175 px wide (it took M's two-column layout: given its own), the L arena 205 px wide (the L details grid caught it),
+the "?" badge's uppercase text failing a /Live/ match (the check, fixed), Packs' fanned packs 7 px past the tile edge
+(the fan given room), a new player's Ladder M 23 px over its button (the rating, tier and place moved to the
+headline), and, before the check existed, a two-column phone whose 175 px squares couldn't hold an S face (a phone is
+one column now). Typecheck clean; the render suite 1155 of 1155 (76 files); season1's 66.
+
+**Worked:** packing in code rather than leaving it to CSS's auto-placement made every position checkable to the
+pixel. **Thin:** in quality-debt.md (the tiles re-laid out, not redesigned; the fill measure counts boxes, not
+pixels). **Blocked:** nothing; five calls at an owner check-in. **Next:** render 87, the hardening pass.

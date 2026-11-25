@@ -1,0 +1,199 @@
+
+=== Nova (weeks in) ===
+
+[recommended, 1440] My agent M 2x1, Watch live M 1x2, Daily rewards S 1x1, Packs S 1x1, Notifications S 1x1, Ladder L 2x2, Store M 2x1, Collection S 1x1, Match history M 2x1
+PASS recommended, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS recommended, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 4 rows)
+PASS recommended, 1440: no two tiles overlap
+PASS recommended, 1440: nothing spills out of its tile, under its header or into its button
+PASS recommended, 1440: Watch live M's arena is whole and 9:16 (301x535, 9.00:16)
+PASS recommended, 1440: no sideways scroll (0px)
+PASS recommended, 1440: the recommended board fills 4 whole rows with no hole (16 of 16 units)
+  fill (largest empty band, % of height): agent M 14, watch M 6, daily S 14, packs S 21, notif S 25, ladder L 6, store M 12, collection S 24, history M 26
+PASS recommended, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS recommended, 1440: one home per fact: the rating (1,774) in ladder, the credits (449) in store, the agent's name in agent (and Watch live, where it plays)
+
+[all S, 1440] My agent S 1x1, Ladder S 1x1, Watch live S 1x1, Packs S 1x1, Store S 1x1, Collection S 1x1, Daily rewards S 1x1, Match history S 1x1, Notifications S 1x1, Music S 1x1
+PASS all S, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS all S, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 3 rows)
+PASS all S, 1440: no two tiles overlap
+PASS all S, 1440: nothing spills out of its tile, under its header or into its button
+PASS all S, 1440: no sideways scroll (0px)
+  fill (largest empty band, % of height): agent S 21, ladder S 23, watch S 17, packs S 21, store S 27, collection S 24, daily S 14, history S 26, notif S 25, music S 32
+PASS all S, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS all S, 1440: Watch live S: the two names, their health, the turn and a Live badge, no arena
+PASS all S, 1440: one home per fact: the rating (1,774) in ladder, the credits (449) in store, the agent's name in agent (and Watch live, where it plays)
+
+[all M, 1440] My agent M 2x1, Ladder M 2x1, Watch live M 1x2, Packs M 2x1, Store M 2x1, Collection M 2x1, Daily rewards M 2x1, Match history M 2x1, Notifications M 2x1, Music M 2x1
+PASS all M, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS all M, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 6 rows)
+PASS all M, 1440: no two tiles overlap
+PASS all M, 1440: nothing spills out of its tile, under its header or into its button
+PASS all M, 1440: Watch live M's arena is whole and 9:16 (301x535, 9.00:16)
+PASS all M, 1440: no sideways scroll (0px)
+  fill (largest empty band, % of height): agent M 14, ladder M 7, watch M 6, packs M 19, store M 12, collection M 6, daily M 8, history M 26, notif M 17, music M 29
+PASS all M, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS all M, 1440: Watch live M: names and health bars over the arena, no card text (units 2/2 1/1 1/3), no hand details
+PASS all M, 1440: one home per fact: the rating (1,774) in ladder, the credits (449) in store, the agent's name in agent (and Watch live, where it plays)
+
+[all L, 1440] My agent L 2x2, Ladder L 2x2, Watch live L 2x4, Packs L 2x2, Store L 2x2, Collection L 2x2, Daily rewards L 2x2, Match history L 2x2, Notifications L 2x2, Music L 2x2
+PASS all L, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS all L, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 12 rows)
+PASS all L, 1440: no two tiles overlap
+PASS all L, 1440: nothing spills out of its tile, under its header or into its button
+PASS all L, 1440: Watch live L's arena is whole and 9:16 (652x1159, 9.00:16)
+PASS all L, 1440: no sideways scroll (0px)
+  fill (largest empty band, % of height): agent L 13, ladder L 6, watch L 3, packs L 22, store L 6, collection L 9, daily L 18, history L 31, notif L 19, music L 36
+PASS all L, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS all L, 1440: Watch live L: 2x4 units (the rows its arena needs), the scoreboard, the turn line and both hands (9 card backs)
+PASS all L, 1440: one home per fact: the rating (1,774) in ladder, the credits (449) in store, the agent's name in agent (and Watch live, where it plays)
+
+[tablet 1024, recommended] 2 columns, unit 478px, 4189px tall (5.5 screens): agent M 2x1, watch M 1x2, daily S 1x1, packs S 1x1, notif S 1x1, ladder L 2x2, store M 2x1, collection S 1x1, history M 2x1
+PASS tablet 1024, recommended: every tile is its shape and sits on the grid (unit 478px, 2 columns, 8 rows)
+PASS tablet 1024, recommended: no two tiles overlap
+PASS tablet 1024, recommended: nothing spills out of its tile, under its header or into its button
+PASS tablet 1024, recommended: Watch live M's arena is whole and 9:16 (444x789, 9.00:16)
+PASS tablet 1024, recommended: no sideways scroll (0px)
+  fill: agent M 25, watch M 7, daily S 25, packs S 30, notif S 33, ladder L 14, store M 29, collection S 31, history M 33
+PASS tablet 1024, recommended: two columns
+
+[tablet 1024, all L] 2 columns, unit 478px, 10611px tall (13.8 screens): agent L 2x2, ladder L 2x2, watch L 1x3, packs L 2x2, store L 2x2, collection L 2x2, daily L 2x2, history L 2x2, notif L 2x2, music L 2x2
+PASS tablet 1024, all L: every tile is its shape and sits on the grid (unit 478px, 2 columns, 21 rows)
+PASS tablet 1024, all L: no two tiles overlap
+PASS tablet 1024, all L: nothing spills out of its tile, under its header or into its button
+PASS tablet 1024, all L: Watch live L's arena is whole and 9:16 (444x789, 9.00:16)
+PASS tablet 1024, all L: no sideways scroll (0px)
+  fill: agent L 23, ladder L 14, watch L 33, packs L 30, store L 14, collection L 21, daily L 22, history L 36, notif L 28, music L 41
+PASS tablet 1024, all L: two columns
+
+[phone 390, recommended] 1 columns, unit 362px, 4084px tall (4.8 screens): agent S 1x1, watch M 1x2, daily S 1x1, packs S 1x1, notif S 1x1, ladder S 1x1, store S 1x1, collection S 1x1, history S 1x1
+PASS phone 390, recommended: every tile is its shape and sits on the grid (unit 362px, 1 columns, 10 rows)
+PASS phone 390, recommended: no two tiles overlap
+PASS phone 390, recommended: nothing spills out of its tile, under its header or into its button
+PASS phone 390, recommended: Watch live M's arena is whole and 9:16 (338x601, 9.00:16)
+PASS phone 390, recommended: no sideways scroll (0px)
+  fill: agent S 26, watch M 7, daily S 20, packs S 26, notif S 30, ladder S 27, store S 32, collection S 28, history S 30
+PASS phone 390, recommended: one column; every tile its S face, Watch live its 9:16 M
+PASS phone 390, recommended: the five places in a row under the brand (Home | My agent | Watch | Cards | Ladder)
+
+[phone 390, all L] 1 columns, unit 362px, 4458px tall (5.3 screens): agent S 1x1, ladder S 1x1, watch M 1x2, packs S 1x1, store S 1x1, collection S 1x1, daily S 1x1, history S 1x1, notif S 1x1, music S 1x1
+PASS phone 390, all L: every tile is its shape and sits on the grid (unit 362px, 1 columns, 11 rows)
+PASS phone 390, all L: no two tiles overlap
+PASS phone 390, all L: nothing spills out of its tile, under its header or into its button
+PASS phone 390, all L: Watch live M's arena is whole and 9:16 (338x601, 9.00:16)
+PASS phone 390, all L: no sideways scroll (0px)
+  fill: agent S 26, ladder S 27, watch M 7, packs S 26, store S 32, collection S 28, daily S 20, history S 30, notif S 30, music S 36
+PASS phone 390, all L: one column; every tile its S face, Watch live its 9:16 M
+PASS phone 390, all L: the five places in a row under the brand (Home | My agent | Watch | Cards | Ladder)
+
+=== Wren (just signed up) ===
+
+[recommended, 1440] My agent M 2x1, Watch live M 1x2, Daily rewards S 1x1, Packs S 1x1, Notifications S 1x1, Ladder L 2x2, Store M 2x1, Collection S 1x1, Match history M 2x1
+PASS recommended, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS recommended, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 4 rows)
+PASS recommended, 1440: no two tiles overlap
+PASS recommended, 1440: nothing spills out of its tile, under its header or into its button
+PASS recommended, 1440: Watch live M's arena is whole and 9:16 (301x535, 9.00:16)
+PASS recommended, 1440: no sideways scroll (0px)
+PASS recommended, 1440: the recommended board fills 4 whole rows with no hole (16 of 16 units)
+  fill (largest empty band, % of height): agent M 11, watch M 6, daily S 14, packs S 21, notif S 25, ladder L 10, store M 12, collection S 24, history M 21
+PASS recommended, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS recommended, 1440: the new player sees none of the labels the audit flagged
+
+[all S, 1440] My agent S 1x1, Ladder S 1x1, Watch live S 1x1, Packs S 1x1, Store S 1x1, Collection S 1x1, Daily rewards S 1x1, Match history S 1x1, Notifications S 1x1, Music S 1x1
+PASS all S, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS all S, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 3 rows)
+PASS all S, 1440: no two tiles overlap
+PASS all S, 1440: nothing spills out of its tile, under its header or into its button
+PASS all S, 1440: no sideways scroll (0px)
+  fill (largest empty band, % of height): agent S 21, ladder S 20, watch S 17, packs S 21, store S 24, collection S 24, daily S 14, history S 26, notif S 25, music S 32
+PASS all S, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS all S, 1440: Watch live S: the two names, their health, the turn and a Live badge, no arena
+PASS all S, 1440: the new player sees none of the labels the audit flagged
+
+[all M, 1440] My agent M 2x1, Ladder M 2x1, Watch live M 1x2, Packs M 2x1, Store M 2x1, Collection M 2x1, Daily rewards M 2x1, Match history M 2x1, Notifications M 2x1, Music M 2x1
+PASS all M, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS all M, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 6 rows)
+PASS all M, 1440: no two tiles overlap
+PASS all M, 1440: nothing spills out of its tile, under its header or into its button
+PASS all M, 1440: Watch live M's arena is whole and 9:16 (301x535, 9.00:16)
+PASS all M, 1440: no sideways scroll (0px)
+  fill (largest empty band, % of height): agent M 11, ladder M 4, watch M 6, packs M 16, store M 12, collection M 6, daily M 8, history M 21, notif M 24, music M 29
+PASS all M, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS all M, 1440: Watch live M: names and health bars over the arena, no card text (units 2/2 1/1 1/3), no hand details
+PASS all M, 1440: the new player sees none of the labels the audit flagged
+
+[all L, 1440] My agent L 2x2, Ladder L 2x2, Watch live L 2x4, Packs L 2x2, Store L 2x2, Collection L 2x2, Daily rewards L 2x2, Match history L 2x2, Notifications L 2x2, Music L 2x2
+PASS all L, 1440: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS all L, 1440: every tile is its shape and sits on the grid (unit 335px, 4 columns, 12 rows)
+PASS all L, 1440: no two tiles overlap
+PASS all L, 1440: nothing spills out of its tile, under its header or into its button
+PASS all L, 1440: Watch live L's arena is whole and 9:16 (652x1159, 9.00:16)
+PASS all L, 1440: no sideways scroll (0px)
+  fill (largest empty band, % of height): agent L 11, ladder L 10, watch L 1, packs L 30, store L 6, collection L 9, daily L 18, history L 32, notif L 32, music L 36
+PASS all L, 1440: every tile fills its shape (no empty band over 40% of its height)
+PASS all L, 1440: Watch live L: 2x4 units (the rows its arena needs), the scoreboard, the turn line and both hands (9 card backs)
+PASS all L, 1440: the new player sees none of the labels the audit flagged
+
+[tablet 1024, recommended] 2 columns, unit 478px, 4189px tall (5.5 screens): agent M 2x1, watch M 1x2, daily S 1x1, packs S 1x1, notif S 1x1, ladder L 2x2, store M 2x1, collection S 1x1, history M 2x1
+PASS tablet 1024, recommended: every tile is its shape and sits on the grid (unit 478px, 2 columns, 8 rows)
+PASS tablet 1024, recommended: no two tiles overlap
+PASS tablet 1024, recommended: nothing spills out of its tile, under its header or into its button
+PASS tablet 1024, recommended: Watch live M's arena is whole and 9:16 (444x789, 9.00:16)
+PASS tablet 1024, recommended: no sideways scroll (0px)
+  fill: agent M 22, watch M 7, daily S 25, packs S 30, notif S 33, ladder L 16, store M 27, collection S 31, history M 32
+PASS tablet 1024, recommended: two columns
+
+[tablet 1024, all L] 2 columns, unit 478px, 10611px tall (13.8 screens): agent L 2x2, ladder L 2x2, watch L 1x3, packs L 2x2, store L 2x2, collection L 2x2, daily L 2x2, history L 2x2, notif L 2x2, music L 2x2
+PASS tablet 1024, all L: every tile is its shape and sits on the grid (unit 478px, 2 columns, 21 rows)
+PASS tablet 1024, all L: no two tiles overlap
+PASS tablet 1024, all L: nothing spills out of its tile, under its header or into its button
+PASS tablet 1024, all L: Watch live L's arena is whole and 9:16 (444x789, 9.00:16)
+PASS tablet 1024, all L: no sideways scroll (0px)
+  fill: agent L 22, ladder L 16, watch L 32, packs L 36, store L 14, collection L 21, daily L 22, history L 37, notif L 37, music L 41
+PASS tablet 1024, all L: two columns
+
+[phone 390, recommended] 1 columns, unit 362px, 4084px tall (4.8 screens): agent S 1x1, watch M 1x2, daily S 1x1, packs S 1x1, notif S 1x1, ladder S 1x1, store S 1x1, collection S 1x1, history S 1x1
+PASS phone 390, recommended: every tile is its shape and sits on the grid (unit 362px, 1 columns, 10 rows)
+PASS phone 390, recommended: no two tiles overlap
+PASS phone 390, recommended: nothing spills out of its tile, under its header or into its button
+PASS phone 390, recommended: Watch live M's arena is whole and 9:16 (338x601, 9.00:16)
+PASS phone 390, recommended: no sideways scroll (0px)
+  fill: agent S 26, watch M 7, daily S 20, packs S 26, notif S 30, ladder S 27, store S 29, collection S 28, history S 30
+PASS phone 390, recommended: one column; every tile its S face, Watch live its 9:16 M
+PASS phone 390, recommended: the five places in a row under the brand (Home | My agent | Watch | Cards | Ladder)
+
+[phone 390, all L] 1 columns, unit 362px, 4458px tall (5.3 screens): agent S 1x1, ladder S 1x1, watch M 1x2, packs S 1x1, store S 1x1, collection S 1x1, daily S 1x1, history S 1x1, notif S 1x1, music S 1x1
+PASS phone 390, all L: every tile is its shape and sits on the grid (unit 362px, 1 columns, 11 rows)
+PASS phone 390, all L: no two tiles overlap
+PASS phone 390, all L: nothing spills out of its tile, under its header or into its button
+PASS phone 390, all L: Watch live M's arena is whole and 9:16 (338x601, 9.00:16)
+PASS phone 390, all L: no sideways scroll (0px)
+  fill: agent S 26, ladder S 27, watch M 7, packs S 26, store S 29, collection S 28, daily S 20, history S 30, notif S 30, music S 36
+PASS phone 390, all L: one column; every tile its S face, Watch live its 9:16 M
+PASS phone 390, all L: the five places in a row under the brand (Home | My agent | Watch | Cards | Ladder)
+
+=== navigation, the "?", Edit board and the theme (Nova, 1440x900) ===
+PASS five places, then Settings: Home | My agent | Watch | Cards | Ladder | Settings
+PASS Home has no wallet or bell (the Store and Notifications tiles are their homes)
+PASS light by default (the owner's call 4)
+PASS every tile arrow opens its page: agent -> #/agent, ladder -> #/ladder, watch -> #/watch, packs -> #/cards, store -> #/cards, collection -> #/cards, daily -> #/ladder, history -> #/agent, notif -> #/alerts
+PASS My agent: the wallet and the bell are there, and the navigation marks it
+PASS Watch: the wallet and the bell are there, and the navigation marks it
+PASS Cards: the wallet and the bell are there, and the navigation marks it
+PASS Ladder: the wallet and the bell are there, and the navigation marks it
+PASS the free pack's alert shows the Daily rewards tile (where it is claimed)
+PASS the "?" shows the tile's question over the tile, which keeps its size (686px): "How good is my agent, and is it getting better?"
+PASS Edit board: Ladder L -> S (1x1)
+PASS after Edit board: every tile is its shape and sits on the grid (unit 335px, 4 columns, 4 rows)
+PASS after Edit board: no two tiles overlap
+PASS after Edit board: nothing spills out of its tile, under its header or into its button
+PASS after Edit board: Watch live M's arena is whole and 9:16 (301x535, 9.00:16)
+PASS after Edit board: no sideways scroll (0px)
+PASS the theme switch turns it dark
+PASS no page errors
+PASS no outside requests
+
+least filled at 1440 (largest empty band): music L (nova, L) 36%, music L (wren, L) 36%, history L (wren, L) 32%, notif L (wren, L) 32%, music S (nova, S) 32%, music S (wren, S) 32%
+
+141 PASS, 0 FAIL

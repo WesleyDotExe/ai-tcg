@@ -7,6 +7,52 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-25 — Render session 86: the Season 1 Home as B on the owner's uniform grid (phase 2 step 1) — [OWNER CHECK-IN] AWAITING FEEDBACK (five calls)
+
+**Start here:** `render/season1/output/home.html` (open in a browser; switch owner, board and theme on the strip at
+the top), or the stills in `progress/render/evidence/season1-home-grid-s86/` (`nova-recommended.jpg`,
+`wren-recommended.jpg`, `nova-all-L.jpg` for Watch live's tall L, `*-phone-*.jpg`, `*-tablet-*.jpg`,
+`nova-recommended-dark.jpg`). The write-up: `render/season1/HOME.md`.
+
+**What it delivers:** your grid. One square unit; S 1x1, M 2x1, L 2x2; Watch live S 1x1, M 1x2, and L as many units
+as its whole 9:16 arena needs at the tile's full width (2x4 on a desktop: 686 x 1388 px at 1440, the arena 652 x
+1159). Every tile sits on the grid to the pixel (checked), and each shape has its own layout so the content fills it:
+S the answer big in the middle, M the answer in a column on the left and the details in columns on the right, L the
+answer across the top and the details in columns. Watch live is drawn to your spec at all three sizes. Light by
+default, dark on the switch. The "?" now opens over the tile so a tile never changes size. Mockups A and C are
+retired (their stills stay).
+
+**Evidence:** the browser check (`render/season1/ci/home-check.mjs`): 141 PASS, 0 FAIL: both owners, every board at
+1440, a tablet and a phone; shapes and positions to 1 px; no overlaps; no fact spilling past its tile, under its
+header or into its button; Watch live's arena whole and 9:16 to 1%; and a **fill measure** (the largest empty band
+inside each tile, as a share of its height): every tile under 40% at 1440; the worst are Music L 36% (waiting on its
+spec), Match history and Notifications L for a new player 32%. 66 unit tests (the grid's own code, the facts, the
+shapes). Typecheck clean; the render suite 1155 of 1155.
+
+**Strong:** the grid is one piece of code the page and the tests both run, so what is tested is what is drawn. The
+recommended board fills four whole rows with no hole. **Thin:** the tiles' contents are B's from render 84, re-laid
+out, not yet redesigned for their shapes (that is phase 2's next step, the tiles in groups); some L tiles fill by
+spreading rows apart rather than by showing more; the Watch live arena is still the stand-in (plan step 5).
+
+**Calls for you (each is built one way; say if you want the other):**
+1. **Watch live L is 1388 px tall on a desktop** (2x4), taller than a laptop screen, because a 9:16 arena two units
+   wide needs it. The other way: L stays 2x2 like every other L, with the whole arena at the tile's height on the left
+   (about 370 x 655 px) and the scoreboard and hands beside it.
+2. **A phone is one column** (each S a full-width square; Home is 4.8 screens for Nova, Season 0's was 3.4). Two
+   columns of 175 px squares were tried and can't hold an S face's facts (Daily rewards' three ran over its button).
+   The other way: two columns with a smaller S face on phones, which means the spec's S showing fewer facts there.
+3. **On a tablet (two columns) Watch live's L is one unit wide** (1x3 at 1024), so its arena stays about a screen
+   tall; two units wide it would be about three screens.
+4. **The other live matches and the play-by-play moved off the tile to the Watch page** (render 82's L had them; your
+   L spec has no room). And the new player's "Your agent's matches show here once you press Start" shows only at L
+   (your M is names and health bars only).
+5. **The recommended board now has Ladder at L** (it was M), so the board packs into four whole rows with no hole.
+
+**Next:** render 87, the overdue render hardening pass (no features); then render 88, phase 2 step 2: the tiles in
+groups, starting with the agent tile and the Ladder tile, each designed for its three shapes.
+
+---
+
 ## 2026-11-23 — Render session 85: the pack-opening flash audit, the automatic flash check and the storyboard (phase 1 step 4) — [OWNER CHECK-IN] AWAITING FEEDBACK (one Season 0 bug, four calls)
 
 **Start here:** `render/season1/output/pack-opening-storyboard.html` (open in a browser): the new opening beat by

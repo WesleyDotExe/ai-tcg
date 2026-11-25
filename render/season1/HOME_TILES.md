@@ -79,12 +79,13 @@ player in the match. The sidebar's agent card is a navigation call for the mocku
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | the featured match: the two names, health, the turn | the same as everyone | Watch |
-| M | + **the arena itself, playing, 9:16** (owner point 13) | the arena, and under it "Your agent's matches show here once you press Start." | Full screen |
-| L | + the other live matches, the play-by-play | as M | Full screen / switch match |
+| S (1x1) | the featured match: the two names in their faction colours, their health, the turn, a Live badge | the same as everyone | Watch |
+| M (1x2) | + **the arena itself, playing, 9:16**, smaller, with only the names and health bars over it: no card text, no hand details | the same as everyone | Full screen |
+| L (as many units as the arena needs: 2x4 on a desktop) | the scoreboard (names, factions, health) above **the whole arena, 9:16, as large as the tile**, with the turn line and both hands | as L, and under it "Your agent's matches show here once you press Start." | Full screen |
 
-Ratings and tiers are left off the scoreboard (Ladder owns them). The players' names, factions and health stay.
-Phase 1 step 5 prototypes this tile on the Season 1 arena.
+The shapes are the owner's (2026-11-23), built in render 86 (`src/home.ts`, `src/homeGrid.ts`). Ratings and tiers
+are left off the scoreboard (Ladder owns them). The other live matches and the play-by-play (render 82's L) moved to
+the Watch page: the owner's L has no room for them. Phase 1 step 5 puts the Season 1 arena in this tile.
 
 ### Packs
 **Question:** Do I have packs to open?
