@@ -5157,3 +5157,24 @@ Follows the entry above ("the direction is B, on a uniform grid"); settles its "
 4. **Decision (call 4):** B's default theme is **light** (Season 0's default, the glass look), with dark as the option.
 
 Next session: render 85 (phase 1 step 4, the pack-opening flash audit). Phase 2 then builds B on this grid.
+
+---
+
+## 2026-11-25 — Owner: answers to render sessions 85 (the pack-opening flash audit) and 86 (the Home on the uniform grid); Watch live's surround matches the dashboard
+
+**Render session 85** (PR #194, `progress/render/checkpoints.md`, `render/season1/FLASH.md`, `render/season1/output/pack-opening-storyboard.html`, `progress/render/evidence/season1-flash-audit-s85/`).
+1. **Keep:** the budget, at most 1 counted flash in any second (WCAG allows 3), big lights 1 s apart.
+2. **Keep:** the grip beat, holding the pack before the tear (a tap still works, playing it in 600 ms).
+3. **Decision (call 3):** Zero-Day keeps a **still red accent that never flashes** (the "danger" read); its flashing ring is green and violet, so red never flashes.
+4. **Keep:** reduced flash is on by default with reduced motion, with a toggle in the opening's bar and Settings to turn it off.
+5. **Decision, the Season 0 bug** (with reduced motion on, the Glitch and Jackpot cards strobe): **not fixed mid-season.** It waits for Season 1, where the new opening replaces that code; the mid-season rule stands.
+
+**Render session 86** (PR #195, `progress/render/checkpoints.md`, `render/season1/output/home.html`, `progress/render/evidence/season1-home-grid-s86/`).
+6. **Keep:** the unit, squares of about 200 px (at least 188), an even number of columns: 6 at 1280–1440 px, 4 at 900–1180, 2 on a phone.
+7. **Keep:** Watch live L takes the arena's whole 9:16 at the tile's width, even when that is taller than a laptop screen; the recommended board uses Watch live M, and L is on Edit board.
+8. **Keep:** the recommended board (My agent L, Watch live M, Ladder L, Store M, Daily rewards S, Collection L, Packs L, Match history M, Notifications S).
+9. **Keep:** Store M shows the featured pack and 2 cosmetics, as pictures with prices and a small Buy.
+10. **Keep:** tiles that hold more than their box are designed denser first; any fact that still has to move up a size (M to L) comes to the owner as a call, never silently.
+11. **Owner's note: the arena surround in the Watch live tile matches the look of the rest of the dashboard.** Today the tile around the arena is a dark maroon panel beside the light glass tiles. It becomes the same glass tile as every other (light and dark themes, the same header, buttons and edges); only the arena inside it keeps the neon night.
+
+Next session: render 87 (the hardening pass), then the tiles in groups, starting with the agent tile.
