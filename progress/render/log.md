@@ -6744,3 +6744,39 @@ pixel: every tile's rectangle is compared with unit x shape + gaps at its grid l
 fit a fixed box yet (the fit table); 1280 px (191 px units) is the tightest screen. **Blocked:** nothing. **Next:**
 a render hardening pass is overdue (last was 80): take it at 87; then phase 2's tiles in groups, starting with the
 agent tile, driving the fit table to all "fits".
+
+## 2026-11-26 — Render session 87: the render hardening pass on the Season 1 Home
+
+**Lane:** render. The last merged PR (#195) is a "Render:" PR, but the owner's 2026-11-22 entry (point 7) runs the
+render lane only until the owner says otherwise. No open render PR. The branch starts from origin/main at 9683896,
+which contains #195 (the owner's 2026-11-26 rule after PR #196). Owner feedback: the 2026-11-25 answers (all kept;
+point 11, Watch live's surround, is a fix) and the 2026-11-26 note (#196's two checks may be borrowed). A hardening
+pass (the last was 80): no new features. All work in `render/season1/`; no Season 0 page or source changed.
+
+**Fixed (each with a browser check that fails on main's page and passes now):**
+- **Watch live's surround is the dashboard's glass** (owner point 11): it is no longer a hero tile in
+  `src/homePage.ts`; the names and health bars re-coloured to read on light and dark glass; only the arena keeps
+  the neon night. Check: Watch live's computed background equals a plain tile's, every board and width, and dark.
+- **Edit board's headers keep their names**: the move and size buttons moved out of the header row into a bar over
+  the tile's foot (the footer hidden while editing: its buttons don't act then); no tile changes size. Checks: no
+  `h3` cut, recommended board and all-S at 1440 (main: cut on all ten S tiles).
+- **Text on the dark My agent tile is light**: `.tile.hero` now sets `--ink` to white (the personality names were
+  `--ink` dark on dark, 1.7:1), and the hero "Playing now" pill lightened from 4.5:1 to 5.3:1. Check: the lowest
+  contrast of any text leaf against the hero's lighter stop, 4.5:1 or more. Mockup B (the record of the pick) shares
+  the CSS and was rebuilt with the fix; its check still 68 PASS.
+- **Store M's markup holds only its two cosmetics**: `tileFacts` takes a per-page option (`FactOpts`), the grid
+  page asks for 2 at M; the CSS that hid the third is gone.
+- **PR #196's two measures, adapted** to #195's grid: what spills where (past the tile, under the header, into the
+  button) and the largest empty band per tile, in a new `fill.txt`; over 40% is listed as OPEN, not FAIL, because
+  the tiles in groups are still to come.
+
+**Ran it:** `progress/render/evidence/season1-home-grid-s87/`: check.txt **133 PASS, 0 FAIL, 7 OPEN** (fit and fill);
+the same check on main's page `before-s87/check.txt` **103 PASS, 30 FAIL**. fit.txt unchanged, 107 of 166; fill.txt
+38 of 148 desktop renders with an empty band over 40%, 65 with a spill. Stills: light, dark, Edit board, all-S Edit
+board. Typecheck clean; season1 tests 73 of 73 (3 new); the render suite 1162 of 1162.
+
+**Worked:** writing each fix's check first against the old page (30 FAIL) proved the checks bite. **Thin:** the
+contrast check uses one fixed background luminance; the fill table's OPEN lines aren't all read against stills; the
+other debt candidates (the flash sampler's spread, the storyboard's browser check as a script) were not taken.
+**Blocked:** nothing. **Next:** phase 2's tiles in groups, starting with the agent tile (My agent + Agent controls),
+driving fit.txt and fill.txt to all clear.

@@ -23,6 +23,19 @@
 //   - light by default, dark as the option;
 //   - Edit board shows the grid's cells and a resize snaps to them;
 //   - no page errors and no outside requests; no sideways scroll.
+// Render session 87 (the hardening pass) added:
+//   - Watch live's surround is the dashboard's glass, not the hero panel
+//     (owner 2026-11-25, point 11), in light and dark; its arena keeps the
+//     neon night;
+//   - in Edit board every header keeps its whole name (the move and size
+//     buttons sit in a bar over the tile's foot), and no tile changes size;
+//   - text on the dark hero tile is light (contrast 4.5:1 or more against
+//     the tile's own background, measured);
+//   - Store M's markup holds exactly the two cosmetics it shows;
+//   - two measures borrowed from PR #196 (closed), reported, not failed:
+//     which facts spill (past the tile, under its header, into its button)
+//     and the largest empty band in each tile (fill.txt; over 40% of the
+//     tile's height is listed as OPEN).
 // Writes stills, fit.txt and check.txt to
 // progress/render/evidence/season1-home-grid-s86/ (or the folder given).
 //
@@ -34,7 +47,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s86'));
+const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s87'));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', 'home.html')).href;
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));
@@ -106,6 +119,33 @@ const readBoard = (page) => page.evaluate(() => {
         overflow: Math.round(Math.max(0, el.scrollHeight - el.clientHeight, b ? b.scrollHeight - b.clientHeight : 0, past)),
         sideways: Math.max(0, el.scrollWidth - el.clientWidth),
         arena: ar ? { w: ar.width, h: ar.height, inside: ar.left >= r.left - 0.5 && ar.right <= r.right + 0.5 && ar.top >= r.top - 0.5 && ar.bottom <= r.bottom + 0.5 } : null,
+        hero: el.classList.contains('hero'), bg: getComputedStyle(el).backgroundImage + ' ' + getComputedStyle(el).backgroundColor,
+        nameCut: (() => { const h = el.querySelector('h3'); return h.scrollWidth > h.clientWidth + 1 || h.clientWidth < 8; })(),
+        ...(() => {
+          // PR #196's two measures, adapted: what spills where, and the
+          // largest empty band between the header's foot and the padding's.
+          const visible = (e) => { const q = e.getBoundingClientRect(); const cs = getComputedStyle(e); return q.width > 0 && q.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+          const cs = getComputedStyle(el);
+          const pad = { b: parseFloat(cs.paddingBottom), l: parseFloat(cs.paddingLeft), r: parseFloat(cs.paddingRight) };
+          const hd = el.querySelector(':scope > header').getBoundingClientRect();
+          const btn = el.querySelector(':scope > footer button, :scope > footer .btn');
+          const fb = btn ? btn.getBoundingClientRect() : null;
+          const spills = new Set();
+          for (const e of el.querySelectorAll(':scope > .headline *, :scope > .body *')) {
+            if (e.closest('.q') || !visible(e)) continue;
+            const q = e.getBoundingClientRect();
+            const n = e.closest('[data-fact]')?.dataset.fact ?? 'headline';
+            if (q.bottom > r.bottom - pad.b + 1 || q.right > r.right - pad.r + 1 || q.left < r.left + pad.l - 1) spills.add(n + ' past the tile');
+            else if (q.top < hd.bottom - 1) spills.add(n + ' under the header');
+            else if (fb && q.bottom > fb.top + 1 && q.right > fb.left + 1 && q.left < fb.right - 1 && q.top < fb.bottom) spills.add(n + ' into the button');
+          }
+          const leaves = [...el.querySelectorAll(':scope > .headline *, :scope > .body *, :scope > footer *')].filter((e) => !e.closest('.q') && visible(e) && (!e.children.length || e.matches('svg, button, .btn, .bar, .ring, .arena916, .spk, .si, .mcard, .unit, .ava')));
+          const spans = leaves.map((e) => { const q = e.getBoundingClientRect(); return [q.top, Math.min(q.bottom, r.bottom - pad.b)]; }).sort((x, y) => x[0] - y[0]);
+          let at = hd.bottom, band = 0;
+          for (const [t, b] of spans) { if (t > at) band = Math.max(band, t - at); at = Math.max(at, b); }
+          band = Math.max(band, r.bottom - pad.b - at);
+          return { spills: [...spills], band: band / r.height };
+        })(),
       };
     }),
   };
@@ -134,8 +174,11 @@ function gridChecks(B, label, wantNoHoles) {
   if (wantNoHoles) check(B.holes === 0 && pk.holes === 0, `${label}: the recommended board has no hole (${B.rows} rows)`);
 }
 
+const w0 = (B) => B.tiles.find((t) => t.tile === 'watch');
 const fitOf = (t) => (t.overflow > 1 || t.sideways > 1 ? `${t.overflow}px${t.sideways > 1 ? ` (sideways ${t.sideways})` : ''}` : 'fits');
 const FIT = {}; // tile -> size -> Map(owner@screen -> result)
+const FILL = {}; // tile -> size -> Map(owner@screen -> { band, spills })
+const BAND_CEILING = 0.4;
 
 try {
   for (const owner of ['nova', 'wren']) {
@@ -157,9 +200,34 @@ try {
           if (t.buttons.length !== 1) bad.push(`${t.tile} ${t.size} has ${t.buttons.length} footer buttons`);
           if (/undefined|NaN|\bnull\b|(^|\s)—(\s|$)/.test(t.text)) bad.push(`${t.tile} ${t.size} shows a placeholder`);
           ((FIT[t.tile] ??= {})[t.size] ??= new Map()).set(`${owner}@${vw}`, fitOf(t));
+          if (!FILL[t.tile]?.[t.size]?.has(`${owner}@${vw}`)) ((FILL[t.tile] ??= {})[t.size] ??= new Map()).set(`${owner}@${vw}`, { band: t.band, spills: t.spills });
+        }
+        // Watch live's surround is the glass every other tile is (point 11).
+        const plain = B.tiles.find((t) => !t.hero && t.tile !== 'watch');
+        if (w0(B) && plain) check(!w0(B).hero && w0(B).bg === plain.bg, `${label}: Watch live ${w0(B).size} is the same glass as the other tiles (not the hero panel)`);
+        if (vw === 1440) {
+          const hero = await page.evaluate(() => {
+            // Text on the dark hero tile: the lowest contrast of any visible
+            // text leaf against the tile's own background (the gradient's
+            // lighter stop, the worst case).
+            const lum = (c) => { const m = c.match(/[\d.]+/g).map(Number); const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+            const el = document.querySelector('.tile.hero');
+            if (!el) return null;
+            const bgL = 0.055; // the hero gradient's lightest stop measured from a still, about rgb(52,60,120)
+            let worst = 99, who = '';
+            for (const e of el.querySelectorAll(':scope > .headline *, :scope > .body *')) {
+              if (e.closest('.q, .ring, .art, .ava') || !e.childNodes.length || ![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+              const q = e.getBoundingClientRect(); if (!q.width || getComputedStyle(e).visibility === 'hidden') continue;
+              const L = lum(getComputedStyle(e).color);
+              const cr = (Math.max(L, bgL) + 0.05) / (Math.min(L, bgL) + 0.05);
+              if (cr < worst) { worst = cr; who = (e.closest('[data-fact]')?.dataset.fact ?? '') + ' "' + e.textContent.trim().slice(0, 24) + '"'; }
+            }
+            return { size: el.dataset.size, worst, who };
+          });
+          if (hero) check(hero.worst >= 4.5, `${label}: text on the dark My agent ${hero.size} is light (lowest contrast ${hero.worst.toFixed(1)}:1, ${hero.who})`);
         }
         check(!bad.length, `${label}: every tile shows the spec's facts at its size, its name, its question and one next action${bad.length ? ': ' + bad.join('; ') : ''}`);
-        const w = B.tiles.find((t) => t.tile === 'watch');
+        const w = w0(B);
         if (w && w.size !== 'S' && owner === 'nova') {
           const r = w.arena.w / w.arena.h;
           check(Math.abs(r - 9 / 16) < 0.01 && w.arena.inside, `${label}: Watch live ${w.size}'s arena is 9:16 (${w.arena.w.toFixed(0)}x${w.arena.h.toFixed(0)}) and wholly inside the tile`);
@@ -207,7 +275,11 @@ try {
   await shot(page, 'nova-question-open', false);
   await page.click('.tile[data-tile="ladder"] .qb');
   // Edit board: the cells show, and a resize snaps.
+  const B00 = await readBoard(page);
   await page.click('#edit');
+  const Bed = await readBoard(page);
+  check(Bed.tiles.every((t, i) => Math.abs(t.height - B00.tiles[i].height) < 0.5 && Math.abs(t.width - B00.tiles[i].width) < 0.5), 'Edit board changes no tile\'s size');
+  check(Bed.tiles.every((t) => !t.nameCut), `Edit board: every header keeps its whole name${Bed.tiles.some((t) => t.nameCut) ? ': cut on ' + Bed.tiles.filter((t) => t.nameCut).map((t) => t.tile + ' ' + t.size).join(', ') : ''}`);
   const cells = await page.$$eval('#grid > .cell', (x) => x.length);
   const B0 = await readBoard(page);
   check(cells === B0.cols * (B0.rows + 1), `Edit board shows the grid's cells (${cells}: ${B0.cols} columns x ${B0.rows + 1} rows)`);
@@ -218,6 +290,15 @@ try {
   check(st.size === 'L' && st.w === 2 && st.h === 2 && wl.size === 'L', `Edit board: Store -> L (2x2 at ${st.x},${st.y}), Watch live -> L (2x${wl.h})`);
   gridChecks(B1, '[after the resize]', false);
   await shot(page, 'nova-edit-board');
+  await page.goto(PAGE + '?owner=nova&board=S#/home');
+  await page.waitForSelector('main .tile');
+  await page.click('#edit');
+  const BS = await readBoard(page);
+  check(BS.tiles.every((t) => !t.nameCut), `Edit board, all S (1440): every 1-unit header keeps its whole name${BS.tiles.some((t) => t.nameCut) ? ': cut on ' + BS.tiles.filter((t) => t.nameCut).map((t) => t.tile).join(', ') : ''}`);
+  await shot(page, 'nova-edit-board-all-S', false);
+  await page.click('#edit');
+  const cosM = await page.evaluate(() => { const D = JSON.parse(document.getElementById('data').textContent); return Object.fromEntries(Object.entries(D.owners).map(([k, o]) => { const m = o.tiles.store.M; const i = m.indexOf('data-fact="cosmetics"'); return [k, (m.slice(i).match(/class="si[ "]/g) || []).length]; })); });
+  check(Object.values(cosM).every((n) => n === 2), `Store M's markup holds exactly the two cosmetics it shows (${JSON.stringify(cosM)})`);
   await page.click('#edit');
   const arrows = [];
   for (const [tile, want] of Object.entries(OPENS)) {
@@ -238,6 +319,12 @@ try {
   await page.context().close();
   const dark = await open({ width: 1440, height: 900 }, '?owner=wren&theme=dark');
   check(await dark.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'dark is the option (?theme=dark, or the strip)');
+  const DB = await readBoard(dark);
+  const dplain = DB.tiles.find((t) => !t.hero && t.tile !== 'watch');
+  check(!w0(DB).hero && w0(DB).bg === dplain.bg, `dark: Watch live ${w0(DB).size} is the same glass as the other tiles`);
+  const nd = await open({ width: 1440, height: 900 }, '?owner=nova&theme=dark');
+  await shot(nd, 'nova-recommended-dark', false);
+  await nd.context().close();
   await shot(dark, 'wren-recommended-dark', false);
   await dark.context().close();
   const L1440 = await open({ width: 1440, height: 900 }, '?owner=nova&board=L');
@@ -254,7 +341,7 @@ try {
 
 // The fit table.
 let fits = 0, all = 0;
-fitLines.push('The fit table (render session 86): does each tile\'s content fit its fixed box?');
+fitLines.push('The fit table (render sessions 86-87): does each tile\'s content fit its fixed box?');
 fitLines.push('Each cell: owner@screen width: "fits", or how many px of content run past the box.');
 fitLines.push('The "tiles in groups" sessions drive this to all "fits".\n');
 for (const [tile, sizes] of Object.entries(FIT)) for (const size of ['S', 'M', 'L']) {
@@ -267,6 +354,20 @@ for (const [tile, sizes] of Object.entries(FIT)) for (const size of ['S', 'M', '
 fitLines.push(`\n${fits} of ${all} tile renders fit.`);
 writeFileSync(join(OUT, 'fit.txt'), fitLines.join('\n') + '\n');
 say(`\nfit: ${fits} of ${all} tile renders fit (fit.txt)`);
+const fillLines = ['The fill table (render session 87, after PR #196): per tile render, the largest empty band', 'between the header and the tile\'s foot (% of the tile\'s height), and what spills where.', `Over ${100 * BAND_CEILING}% is listed as OPEN (the "tiles in groups" sessions' work, like fit.txt).\n`];
+let emptyN = 0, spillN = 0, fillAll = 0;
+for (const [tile, sizes] of Object.entries(FILL)) for (const size of ['S', 'M', 'L']) {
+  if (!sizes[size]) continue;
+  for (const [k, v] of sizes[size]) {
+    fillAll++;
+    const e = v.band > BAND_CEILING; if (e) emptyN++; if (v.spills.length) spillN++;
+    fillLines.push(`${(tile + ' ' + size).padEnd(14)} ${k.padEnd(11)} band ${String(Math.round(100 * v.band)).padStart(3)}%${e ? ' OPEN' : '     '}${v.spills.length ? '  spills: ' + v.spills.slice(0, 4).join(', ') : ''}`);
+  }
+}
+fillLines.push(`\n${fillAll} tile renders: ${emptyN} with an empty band over ${100 * BAND_CEILING}%, ${spillN} with something spilling.`);
+writeFileSync(join(OUT, 'fill.txt'), fillLines.join('\n') + '\n');
+say(`fill: ${emptyN} of ${fillAll} tile renders with an empty band over ${100 * BAND_CEILING}%, ${spillN} with a spill (fill.txt)`);
+if (emptyN) open_++;
 say(`\n${pass} PASS, ${fail} FAIL, ${open_} OPEN (fit, the next sessions' work)`);
 writeFileSync(join(OUT, 'check.txt'), lines.join('\n') + '\n');
 await browser.close();

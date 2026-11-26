@@ -62,7 +62,7 @@ main { padding: 22px 26px 48px; max-width: 1440px; margin: 0 auto; min-width: 0;
 .tile { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px 16px; border-radius: 24px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--shadow); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); overflow: hidden; }
 .s-S { grid-column: span 1; } .s-M { grid-column: span 2; } .s-L { grid-column: span 4; }
 .tile[data-tile="watch"].s-M { grid-column: span 1; } .tile[data-tile="watch"].s-L { grid-column: span 2; }
-.tile.hero { color: #fff; --muted: #c6cbe8; --soft: rgba(255,255,255,.12); --soft-edge: inset 0 1px 0 rgba(255,255,255,.14); border-color: rgba(255,255,255,.2);
+.tile.hero { color: #fff; --ink: #fff; --muted: #c6cbe8; --soft: rgba(255,255,255,.12); --soft-edge: inset 0 1px 0 rgba(255,255,255,.14); border-color: rgba(255,255,255,.2);
   background: linear-gradient(140deg, color-mix(in srgb, var(--c) 34%, rgba(20,24,58,.84)), rgba(16,20,50,.82) 68%); }
 .tile.hero .btn:not(.pri) { color: #fff; }
 /* A scan sheen on the hero glass (static: no flashing). */
@@ -107,7 +107,7 @@ main { padding: 22px 26px 48px; max-width: 1440px; margin: 0 auto; min-width: 0;
 .s-S .ava { width: 40px; height: 40px; } .headline [data-fact="agentName"] .big { font-size: 24px; } .s-S .headline [data-fact="agentName"] .big { font-size: 19px; }
 .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 750; font-size: 12.5px; background: var(--soft); }
 .pill.live { color: var(--live); box-shadow: inset 0 0 0 1.5px var(--live); } .pill.ok { color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); } .pill.warn { color: var(--warn); box-shadow: inset 0 0 0 1.5px var(--warn); }
-.tile.hero .pill.live { color: #ff8aa0; box-shadow: inset 0 0 0 1.5px #ff8aa0; } .tile.hero .pill.ok { color: #7ff0ae; box-shadow: inset 0 0 0 1.5px #7ff0ae; }
+.tile.hero .pill.live { color: #ffa3b5; box-shadow: inset 0 0 0 1.5px #ffa3b5; } .tile.hero .pill.ok { color: #7ff0ae; box-shadow: inset 0 0 0 1.5px #7ff0ae; }
 .tier { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 750; color: color-mix(in srgb, var(--tc) 70%, var(--ink)); box-shadow: inset 0 0 0 1.5px var(--tc); background: color-mix(in srgb, var(--tc) 14%, transparent); }
 .tier.sm { font-size: 11px; padding: 0 7px; margin-left: auto; }
 .bar { display: block; height: 7px; border-radius: 999px; background: var(--soft); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; flex: 1 1 100%; }

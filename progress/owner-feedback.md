@@ -5160,7 +5160,7 @@ Next session: render 85 (phase 1 step 4, the pack-opening flash audit). Phase 2 
 
 ---
 
-## 2026-11-25 — Owner: answers to render sessions 85 (the pack-opening flash audit) and 86 (the Home on the uniform grid); Watch live's surround matches the dashboard
+## 2026-11-25 — Owner: answers to render sessions 85 (the pack-opening flash audit) and 86 (the Home on the uniform grid); Watch live's surround matches the dashboard (HANDLED 2026-11-26, render session 87: 1-4 and 6-10 kept as built, nothing to change; 5 noted (the Season 0 strobe waits for Season 1, nothing changed); 10 standing for the tiles-in-groups sessions; 11 done: Watch live is no longer a hero tile, it is the same glass as every other tile in light and dark (`render/season1/src/homePage.ts`), the names and health bars re-coloured to read on the glass, only the arena keeps the neon night; the browser check fails if Watch live's background differs from a plain tile's, at every board and width and in dark (`progress/render/evidence/season1-home-grid-s87/check.txt`; the same check on the page before the fix: `before-s87/check.txt`, 30 FAIL))
 
 **Render session 85** (PR #194, `progress/render/checkpoints.md`, `render/season1/FLASH.md`, `render/season1/output/pack-opening-storyboard.html`, `progress/render/evidence/season1-flash-audit-s85/`).
 1. **Keep:** the budget, at most 1 counted flash in any second (WCAG allows 3), big lights 1 s apart.
@@ -5181,7 +5181,7 @@ Next session: render 87 (the hardening pass), then the tiles in groups, starting
 
 ---
 
-## 2026-11-26 — Owner: PR #196 closed (a stale-checkout rerun of render session 86)
+## 2026-11-26 — Owner: PR #196 closed (a stale-checkout rerun of render session 86) (HANDLED 2026-11-26, render session 87: started from origin/main at 9683896, which contains #195; #196's two browser measures borrowed and adapted to #195's grid in `render/season1/ci/home-grid-check.mjs`: what spills where and the largest empty band, reported in `fill.txt` (over 40% listed as OPEN, like the fit table, since the tiles in groups are still to come))
 
 1. **Decision:** PR #196 is closed without merging. Its session started from #194's commit (1e394a2), so it never saw #195 (render session 86, merged 2026-11-24) or the 2026-11-25 answers, and rebuilt render 86 with choices that differ from the owner's recorded ones. #195 stands. Its branch is kept: render 87 may borrow #196's two extra browser checks (no text spilling past a tile, its header or its button; the largest empty band under 40%) if they help, adapted to #195's grid.
 2. **Standing rule:** every session starts its branch from the newest `origin/main` (fetch first) and checks that its checkout contains the newest merged PR before choosing work; if not, it stops and says so instead of building on old work.
