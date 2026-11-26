@@ -5178,3 +5178,12 @@ Next session: render 85 (phase 1 step 4, the pack-opening flash audit). Phase 2 
 11. **Owner's note: the arena surround in the Watch live tile matches the look of the rest of the dashboard.** Today the tile around the arena is a dark maroon panel beside the light glass tiles. It becomes the same glass tile as every other (light and dark themes, the same header, buttons and edges); only the arena inside it keeps the neon night.
 
 Next session: render 87 (the hardening pass), then the tiles in groups, starting with the agent tile.
+
+---
+
+## 2026-11-26 — Owner: PR #196 closed (a stale-checkout rerun of render session 86)
+
+1. **Decision:** PR #196 is closed without merging. Its session started from #194's commit (1e394a2), so it never saw #195 (render session 86, merged 2026-11-24) or the 2026-11-25 answers, and rebuilt render 86 with choices that differ from the owner's recorded ones. #195 stands. Its branch is kept: render 87 may borrow #196's two extra browser checks (no text spilling past a tile, its header or its button; the largest empty band under 40%) if they help, adapted to #195's grid.
+2. **Standing rule:** every session starts its branch from the newest `origin/main` (fetch first) and checks that its checkout contains the newest merged PR before choosing work; if not, it stops and says so instead of building on old work.
+
+Next session: render 87 (the hardening pass), then the tiles in groups, starting with the agent tile.
