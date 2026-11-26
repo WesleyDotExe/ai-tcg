@@ -142,3 +142,24 @@ describe("the Season 1 Home page (B on the grid)", () => {
     expect(hits).toEqual([]);
   });
 });
+
+describe("render session 87 (the hardening pass)", () => {
+  const cosmeticsIn = (html: string) => { const i = html.indexOf('data-fact="cosmetics"'); return (html.slice(i).match(/class="si[ "]/g) ?? []).length; };
+  it("Watch live is the dashboard's glass, not the hero panel (owner 2026-11-25, point 11); My agent keeps it", () => {
+    for (const d of [nova, wren]) for (const s of SIZES) {
+      expect(gridTileHtml("watch", s, d)).not.toMatch(/class="tile [^"]*\bhero\b/);
+      expect(gridTileHtml("agent", s, d)).toMatch(/class="tile [^"]*\bhero\b/);
+    }
+  });
+  it("Store M's markup holds only the two cosmetics it shows; Store L still the whole shelf", () => {
+    for (const d of [nova, wren]) {
+      expect(cosmeticsIn(gridTileHtml("store", "M", d))).toBe(2);
+      expect(cosmeticsIn(gridTileHtml("store", "L", d))).toBe(d.store.cosmetics.length);
+    }
+  });
+  it("Edit board's buttons sit in a bar over the tile's foot, not in the header's row", () => {
+    const html = homePage(data);
+    expect(html).toContain(".ugrid.editing .tile .edit { position: absolute;");
+    expect(html).toContain(".ugrid.editing .tile header { position: static; }");
+  });
+});

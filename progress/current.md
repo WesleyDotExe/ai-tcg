@@ -2,6 +2,12 @@
 
 **Season 0 is running (owner 2026-11-22: launched early on Sun 22 Nov 08:09 Sydney on the Mac mini from main at 89abe46; five bots; it ends by itself at 00:00 27 Dec Sydney; the Mac mini is not updated mid-season unless something breaks). The scheduled sessions run the render lane only, on the owner's Season 1 plan, all in `render/season1/`. Phase 1: render 82 the Home tile audit and spec; 83 mockup A; 84 mockups B and C; the owner picked **B on a uniform grid** (2026-11-23); 85 the flash check and the pack-opening storyboard (four calls waiting in the render checkpoints). **Render session 86 started phase 2:** the S / M / L framework on one square unit (`render/season1/src/homeGrid.ts`: S 1x1, M 2x1, L 2x2; Watch live S 1x1, M 1x2, L two units by the rows its whole 9:16 arena needs) and B's top bar, light by default (`src/homePage.ts` -> `output/home.html`); the browser check `ci/home-grid-check.mjs` (100 PASS) and its fit table (107 of 166 tile renders fit their fixed box; the rest is phase 2's tiles in groups); mockups A and C retired (stills kept). Five small calls at an owner check-in (`progress/render/checkpoints.md`).**
 
+**Render session 87 (the hardening pass, 2026-11-26):** Watch live's surround is now the dashboard's glass (owner
+2026-11-25, point 11); Edit board's buttons sit in a bar over the tile's foot so every header keeps its name; the
+dark My agent tile's text is light (5.3:1 lowest); Store M's markup holds only its two cosmetics; PR #196's spill
+and empty-band measures in the grid check (`fill.txt`). `progress/render/evidence/season1-home-grid-s87/` 133 PASS,
+0 FAIL (main's page: 30 FAIL); fit.txt still 107 of 166.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -52,13 +58,11 @@ At the start: check for an open render PR; if one is open, fix it if it has fail
 as step 0 says. Read owner-feedback.md (answers to render 85's four calls, and the Season 0 reduced-motion bug, may be
 there).
 
-Next: **render 87, the overdue render hardening pass** (the last was 80; no new features): candidates from
-`progress/render/quality-debt.md`: the flash sampler's repeat-run spread, the storyboard page's browser check as a
-script, the stale checks list, the grid page's small faults (Edit board's S headers lose their name; My agent's
-personality names dark on the hero tile). Then **phase 2's tiles in groups** on the grid, in order: the agent tile
+Next: render 87 (the hardening pass) is done. **Render 88: phase 2's tiles in groups** on the grid, in order: the agent tile
 (My agent + Agent controls), the Ladder tile (Rating & form merged in), Packs and Store, Collection and Daily
 rewards: each group's tiles designed to fit their box at S, M and L, measured by
-`node render/season1/ci/home-grid-check.mjs` until its `fit.txt` is all "fits" (107 of 166 now). A fact that can't
+`node render/season1/ci/home-grid-check.mjs` until its `fit.txt` is all "fits" (107 of 166 now) and `fill.txt` has no
+OPEN line (38 of 148 now). A fact that can't
 fit its size goes to the owner as a call (owner rule 10a), never moved silently. Phase 1's step 5 (Watch live 9:16
 on the Season 1 arena) and step 6 (the music spec) are still open: take them when phase 2 reaches Watch live and
 Music. A call only the owner can make goes in the notes as "waiting on owner" and the session moves on.

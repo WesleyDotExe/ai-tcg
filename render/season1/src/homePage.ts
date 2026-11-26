@@ -38,7 +38,13 @@ import { GRID, GRID_JS } from "./homeGrid.js";
 
 const TILE_ICON: Record<string, string> = { agent: ICONS.match, ladder: ICONS.trophy, watch: ICONS.eye, packs: ICONS.spark, store: ICONS.store, collection: ICONS.col, daily: ICONS.stats, history: ICONS.list, notif: ICONS.bell, music: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>' };
 const svg = (paths: string, size = 18) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
-const HERO = new Set(["agent", "watch"]);
+// The deep indigo hero glass: My agent only. Watch live is the same light
+// (or dark) glass as every other tile; only its arena keeps the neon night
+// (owner 2026-11-25, point 11).
+const HERO = new Set(["agent"]);
+// Store M shows the featured pack and two cosmetics (owner 2026-11-23,
+// point 3): the fact draws only those two, not three with one hidden.
+const factOpts = (tileId: string, size: Size) => (tileId === "store" && size === "M" ? { featuredCosmetics: 2 } : undefined);
 
 /** The recommended first board on the grid. Chosen so it packs with no hole
  * at 6 columns (1280-1440 px) and at 4 (900-1180 px), with the agent and
@@ -65,7 +71,7 @@ export function gridTileHtml(tileId: string, size: Size, d: OwnerData): string {
   const act = nextAction(t, size, d);
   const opens = opensOf(t.id);
   const waiting = t.status === "waiting on owner";
-  const facts = tileFacts(t, size, d);
+  const facts = tileFacts(t, size, d, factOpts(t.id, size));
   const isAct = (f: string) => f.startsWith('<div class="fx act"');
   const [head, ...body] = facts.filter((f) => !isAct(f));
   const art = heroArt(t.id, d);
@@ -125,6 +131,11 @@ export const GRID_CSS = `
 .tile[data-tile="watch"] .arena916 { width: min(100cqw, 100cqh * 9 / 16); height: min(100cqh, 100cqw * 16 / 9); max-width: none; margin: 0 auto; aspect-ratio: auto; flex: none; }
 .tile[data-tile="watch"] .headline { display: block; }
 .tile[data-tile="watch"] .vs { gap: 6px; }
+/* Watch live's surround is the dashboard's glass (owner 2026-11-25, point
+   11): the names and health bars read on it in both themes; the arena
+   inside keeps its own neon night. */
+.tile[data-tile="watch"] .vs .side b { color: color-mix(in srgb, var(--fc) 72%, var(--ink)); }
+.tile[data-tile="watch"] .vs .hp { background: color-mix(in srgb, var(--ink) 12%, transparent); }
 /* M: names and health bars only. */
 .tile[data-tile="watch"].s-M .vs .sub, .tile[data-tile="watch"].s-M .vsx small { display: none; }
 .tile[data-tile="watch"].s-M .ahud span, .tile[data-tile="watch"].s-M .unit i, .tile[data-tile="watch"].s-M .proto { display: none; }
@@ -138,6 +149,15 @@ export const GRID_CSS = `
 .tile[data-tile="watch"].s-S .vsx br { display: none; }
 /* L: the lists under the arena keep to their newest lines. */
 .tile[data-tile="watch"].s-L [data-fact="playByPlay"] .pbp li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+/* Edit board: the move and size buttons sit in a bar over the tile's foot,
+   not in its header, so every header keeps its name (a 1-unit S header has
+   no room for five more buttons). The bar never changes the tile's size. */
+.ugrid.editing .tile header { position: static; }
+.ugrid.editing .tile > footer { visibility: hidden; } /* the bar sits over it; its buttons don't act while editing */
+.ugrid.editing .tile .edit { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 4; justify-content: center; gap: 4px; padding: 5px; border-radius: 12px; background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 4px 14px rgba(30,30,90,.16), inset 0 0 0 1px var(--glass-edge); }
+.ugrid.editing .tile .edit button { padding: 3px 9px; font-size: 12px; color: var(--ink); }
+.ugrid.editing .tile.hero .edit { background: rgba(16,20,50,.9); }
+.ugrid.editing .tile .edit button[aria-pressed="true"] { color: #fff; }
 /* S headers: a smaller chip and buttons, so the name fits a 1-unit tile. */
 .ugrid .s-S header { gap: 6px; }
 .ugrid .s-S .ic { width: 26px; height: 26px; border-radius: 9px; } .ugrid .s-S .ic svg { width: 15px; height: 15px; }
@@ -169,7 +189,6 @@ export const GRID_CSS = `
 .ugrid .tile[data-tile="store"].s-M :is([data-fact="buyPacks"], [data-fact="cosmetics"]) { min-height: 0; display: flex; }
 .ugrid .tile[data-tile="store"].s-M :is([data-fact="buyPacks"], [data-fact="cosmetics"]) > .lab { display: none; }
 .ugrid .tile[data-tile="store"].s-M .shelf { display: flex; flex: 1; flex-wrap: nowrap; gap: 8px; min-height: 0; min-width: 0; }
-.ugrid .tile[data-tile="store"].s-M [data-fact="cosmetics"] .si:nth-child(n+3) { display: none; }
 .ugrid .tile[data-tile="store"].s-M .si { width: auto; flex: 1 1 0; min-width: 0; padding: 4px; gap: 4px; border-radius: 12px; }
 .ugrid .tile[data-tile="store"].s-M .si-art { height: auto; flex: 1 1 0; min-height: 0; border-radius: 8px; }
 .ugrid .tile[data-tile="store"].s-M .si-art .spk { --pw: 44px !important; }

@@ -138,7 +138,10 @@ export function miniCard(cardId: string, name: string, rarity: string, finish = 
 
 /* ------------------------------------------------------- the facts */
 
-type Render = (d: OwnerData, size: Size) => string;
+/** Per-page drawing options (a page whose box is tighter than the spec's
+ * default asks for fewer items, so the markup holds only what is shown). */
+export type FactOpts = { featuredCosmetics?: number };
+type Render = (d: OwnerData, size: Size, opts?: FactOpts) => string;
 
 export const RENDER: Record<Fact, Render> = {
   /* My agent */
@@ -331,10 +334,10 @@ export const RENDER: Record<Fact, Render> = {
       tone: "#8b5cff",
     })).join("")}</div>`, "blk");
   },
-  cosmetics: (d, size) => {
+  cosmetics: (d, size, opts) => {
     const all = forSale(d);
     if (size !== "L") {
-      const featured = [...all.filter((c) => !c.owned), ...all.filter((c) => c.owned)].slice(0, 3);
+      const featured = [...all.filter((c) => !c.owned), ...all.filter((c) => c.owned)].slice(0, opts?.featuredCosmetics ?? 3);
       return fx("cosmetics", `${lab("Featured cosmetics")}<div class="shelf">${featured.map((c) => cosmeticItem(c, d)).join("")}</div>`, "blk");
     }
     const kinds = [...new Set(all.map((c) => c.kind))];
@@ -550,8 +553,8 @@ export function nextAction(t: TileSpec, size: Size, d: OwnerData): Action {
 }
 
 /** A tile's facts at a size, drawn. */
-export function tileFacts(t: TileSpec, size: Size, d: OwnerData): string[] {
-  return t.sizes[size].map((f) => RENDER[f](d, size));
+export function tileFacts(t: TileSpec, size: Size, d: OwnerData, opts?: FactOpts): string[] {
+  return t.sizes[size].map((f) => RENDER[f](d, size, opts));
 }
 
 /** The spec's facts in a drawn fragment, in order (for the tests). */
