@@ -5190,7 +5190,7 @@ Next session: render 87 (the hardening pass), then the tiles in groups, starting
 
 ---
 
-## 2026-11-27 — Owner: the My agent tile is glass like the rest
+## 2026-11-27 — Owner: the My agent tile is glass like the rest (HANDLED 2026-11-27, render session 88: My agent is the same glass as every tile in light and dark; no tile on Home is the hero panel (`render/season1/src/homePage.ts`); the grid check fails if any tile is the hero or My agent's background differs from a plain tile's (`progress/render/evidence/season1-home-grid-s88/check.txt`, 146 PASS; main's page `before-s88/`, 21 FAIL); its text measured from the pixels on the glass, 4.8:1 lowest in light and 5.0:1 in dark, in twelve auto-play states (`season1-agent-tile-s88/check.txt`, 58 PASS); the tile designed for its S, M and L boxes, 16 of 16 renders fit)
 
 From the owner's review of render session 87 (PR #197, `render/season1/output/home.html`, `progress/render/evidence/season1-home-grid-s87/nova-recommended.jpg`).
 1. **Decision: the My agent tile becomes the same glass tile as every other tile** (light and dark themes, the same header, buttons and edges), as Watch live did in render 87. It is no longer a dark hero tile; no tile on Home is. Its text keeps the contrast render 87 set (nothing under 4.5:1).

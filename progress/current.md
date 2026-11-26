@@ -8,6 +8,13 @@ dark My agent tile's text is light (5.3:1 lowest); Store M's markup holds only i
 and empty-band measures in the grid check (`fill.txt`). `progress/render/evidence/season1-home-grid-s87/` 133 PASS,
 0 FAIL (main's page: 30 FAIL); fit.txt still 107 of 166.
 
+**Render session 88 (the agent tile, phase 2's tiles in groups, group 1, 2026-11-27):** My agent is glass like the
+rest (owner 2026-11-27), no tile on Home is the hero; the tile is designed for its S / M / L boxes and fits 16 of 16
+(was 5); its state (pill, reason, button) comes from one function on the owner API's real auto-play shape (the
+play-time line read a field the API never sends: fixed); `output/agent-states.html` draws twelve states, checked by
+`ci/agent-states-check.mjs` (58 PASS, contrast measured from the pixels). Grid check `season1-home-grid-s88/` 146
+PASS, 0 FAIL (main: 21 FAIL); fit.txt 118 of 166. Five small calls at the render checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -55,17 +62,17 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 85's four calls, and the Season 0 reduced-motion bug, may be
-there).
+as step 0 says. Read owner-feedback.md (answers to render 88's five calls may be there).
 
-Next: render 87 (the hardening pass) is done. **Render 88: phase 2's tiles in groups** on the grid, in order: the agent tile
-(My agent + Agent controls), the Ladder tile (Rating & form merged in), Packs and Store, Collection and Daily
-rewards: each group's tiles designed to fit their box at S, M and L, measured by
-`node render/season1/ci/home-grid-check.mjs` until its `fit.txt` is all "fits" (107 of 166 now) and `fill.txt` has no
-OPEN line (38 of 148 now). A fact that can't
-fit its size goes to the owner as a call (owner rule 10a), never moved silently. Phase 1's step 5 (Watch live 9:16
-on the Season 1 arena) and step 6 (the music spec) are still open: take them when phase 2 reaches Watch live and
-Music. A call only the owner can make goes in the notes as "waiting on owner" and the session moves on.
+Next: render 88 did the agent tile. **Render 89: group 2, the Ladder tile (Rating & form merged in)** on the grid:
+Ladder M is the worst fit left after Store L (164-301 px over), and Ladder L 100-238. Design each size for its box,
+measured by `node render/season1/ci/home-grid-check.mjs` (fit.txt, fill.txt) the way render 88 did the agent tile: a
+states sheet if the tile has states the snapshot doesn't show (placement, unrated, a tier change), and text
+contrast measured from the pixels (`agent-states-check.mjs`'s `contrast()` can be lifted into a shared helper).
+Then Packs and Store, then Collection and Daily rewards, until fit.txt is all "fits" and fill.txt has no OPEN line.
+Every 5th render session is the hardening pass (render 87 was; render 92 next). Phase 1's step 5 (Watch live 9:16
+on the Season 1 arena) and step 6 (the music spec) are still open. A call only the owner can make goes in the notes
+as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

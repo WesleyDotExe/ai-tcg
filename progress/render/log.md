@@ -6780,3 +6780,45 @@ contrast check uses one fixed background luminance; the fill table's OPEN lines 
 other debt candidates (the flash sampler's spread, the storyboard's browser check as a script) were not taken.
 **Blocked:** nothing. **Next:** phase 2's tiles in groups, starting with the agent tile (My agent + Agent controls),
 driving fit.txt and fill.txt to all clear.
+
+## 2026-11-27 — Render session 88: the agent tile on the grid, glass like the rest (phase 2, the tiles in groups, group 1)
+
+**Lane:** render (owner 2026-11-22 point 7: render lane only; no open render PR; the checkout contains #197, the
+newest merged PR). **Owner feedback acted on:** 2026-11-27, "the My agent tile is glass like the rest".
+
+**Built (all in `render/season1/`, no Season 0 page changed):**
+- **My agent is glass** (owner 2026-11-27): no tile on Home is the hero panel any more (`src/homePage.ts`, `HERO`
+  empty; mockup B's record page keeps its own). The avatar and the name re-coloured for the glass.
+- **My agent designed for its three boxes:** S the picture and name, the status pill, the button; M the name and
+  button on the left, on the right the pill with a short reason and one line each for today, the personality and
+  the play time; L the name with the button beside it, the pill and the full reason, today and the play time side by
+  side, the deck, and all six personalities in one line each (two columns of three, the agent's own marked), with
+  "Change" and "Pick one" opening My agent.
+- **One source for the agent's state** (`agentState` in `src/homeFacts.ts`): the pill, its reason (short for M, full
+  for L) and the button come from one function, read from the owner API's auto-play answer in its own shape: no
+  agent, playing, waiting for a round, ready, finishing, time's up, done for today, ready not playing yet, stopped.
+- **A bug fixed:** the play-time line read `allowance.minutes`, a field the API never serves (it serves `state`,
+  `label`, `totalMinutes`, `minutesLeft`, `endsAtReset`, and `canAddTime` beside it), so a running allowance would
+  have read "No time limit". Now it shows the minutes left, and "+15 min" only when the API says time can be added.
+- **The states sheet** (`src/agentStates.ts` -> `output/agent-states.html`): twelve states, each the snapshot's
+  real answer with only the documented auto-play fields changed, at S, M and L on the grid's three units (191, 218,
+  231 px). Its browser check `ci/agent-states-check.mjs` fails on any overflow, spill, a name over two lines, a size
+  that disagrees with another, a hero tile, or text under 4.5:1 **measured from the pixels** (the tile shot with its
+  text made transparent, each line's colour against the glass behind it), light and dark.
+- **The status pills on Home's glass:** the pure status colours read about 3:1 on the light glass; the pill words are
+  now the colour mixed toward the ink (45%), 5.0:1 at the lowest. This applies to every tile's pills.
+- **The grid check** (`ci/home-grid-check.mjs`): the hero-contrast check (a fixed background number) retired; new:
+  no tile is the hero panel and My agent's background equals a plain tile's, every board, width and dark.
+
+**Ran it:** `progress/render/evidence/season1-agent-tile-s88/check.txt` **58 PASS, 0 FAIL** (36 state x unit rows,
+12 agreement rows, 6 contrast rows, 2 hero rows, errors, requests); stills `agent-states-1280-light.jpg` and
+`-dark.jpg` (the 191 px unit). `season1-home-grid-s88/check.txt` **146 PASS, 0 FAIL, 7 OPEN**; on main's page
+`before-s88/check.txt` **125 PASS, 21 FAIL** (the hero rows; its one still kept, `nova-recommended.jpg`). fit.txt: My agent **16 of 16** renders fit (was 5 of
+16); the board **118 of 166** (was 107). fill.txt: no agent line OPEN or spilling (was 2 OPEN, 12 spilling); the
+board 36 of 148 OPEN, 54 spilling (was 38, 65). Tests: season1 84 of 84 (11 new in `test/agentTile.test.ts`, one
+changed: "no tile is the hero panel"); the render suite 1173 of 1173; typecheck clean.
+
+**Worked:** the pixel-measured contrast found two things a computed-style check would not: the pills at 3:1 on
+light glass, and a parser bug in my own first draft (`color-mix` computes to `color(srgb 0-1 ...)`, read as 0-255 it
+made every mixed colour look black, passing light and failing dark falsely). **Thin:** in render/quality-debt.md.
+**Blocked:** nothing. **Next:** group 2, the Ladder tile (Rating & form merged in): Ladder M is the worst fit left.

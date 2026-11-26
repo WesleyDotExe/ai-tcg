@@ -39,7 +39,15 @@ export interface OwnerData {
     deckChoice: string;
     rebuild: { reasons: string[] };
     liveMatch: { matchId: string } | null;
-    autoPlay: { on: boolean; stopped: { reason?: string } | null; dailyRewardsMaxed: boolean; allowance: { endsAt?: string; minutes?: number } | null; house: boolean };
+    autoPlay: {
+      on: boolean;
+      stopped: { reason?: string } | null;
+      dailyRewardsMaxed: boolean;
+      /** The play-time allowance (server/OWNER_API.md, "The play-time allowance", session 76): null for no time limit, or off. */
+      allowance: { state: "waiting" | "running" | "finishing" | "done"; label: string; totalMinutes: number; minutesLeft: number; endsAtReset: boolean } | null;
+      canAddTime?: boolean;
+      house: boolean;
+    };
   };
   rating: { rating: { rating: number; rd: number; ratedMatches: number; tier: string } };
   ladder: {
@@ -136,6 +144,42 @@ export function miniCard(cardId: string, name: string, rarity: string, finish = 
     `<i class="mcc">${card?.cost ?? ""}</i><i class="mca"></i><i class="mcn">${esc(name)}</i>${stats}${fin ? `<i class="mcf">${esc(fin)}</i>` : ""}</span>`;
 }
 
+
+/* ------------------------------------------------------- My agent's state */
+
+export interface AgentState { label: string; tone: "live" | "ok" | "warn" | "off"; why: string; short: string; action: "Start" | "Stop" | "Connect an agent" }
+
+/** What the agent is doing, in the owner's words (one place, so the pill,
+ * the reason and the button never disagree). The states follow the owner
+ * API's auto-play answer (server/OWNER_API.md, sessions 67, 76, 94). */
+export function agentState(d: OwnerData): AgentState {
+  const ap = d.play.autoPlay, al = ap.allowance;
+  if (!d.play.connectedAgent) return { label: "No agent", tone: "off", why: "Connect an agent on My agent; then press Start.", short: "Connect one on My agent.", action: "Connect an agent" };
+  if (al && al.state === "finishing") return { label: "Finishing match", tone: "live", why: "Its time is up; this match plays to the end and counts as normal.", short: "Its time is up; this match still counts.", action: "Stop" };
+  if (d.play.liveMatch) return { label: "Playing now", tone: "live", why: "A ladder match is on: watch it in Watch live.", short: "Watch it in Watch live.", action: ap.on ? "Stop" : "Start" };
+  if (ap.on && al && al.state === "waiting") return { label: "Waiting for a round", tone: "ok", why: "It joins the ladder's next round; its minutes start at its first match.", short: "Its minutes start at its first match.", action: "Stop" };
+  if (ap.on) return { label: "Ready", tone: "ok", why: "It joins the ladder's next round.", short: "It joins the next round.", action: "Stop" };
+  if (ap.dailyRewardsMaxed || ap.stopped?.reason === "dailyRewardsMaxed") return { label: "Done for today", tone: "warn", why: "Today's rewards are all earned; it can play again after midnight.", short: "All of today's rewards earned.", action: "Start" };
+  if ((al && al.state === "done") || ap.stopped?.reason === "timeUp") return { label: "Time's up", tone: "warn", why: "Its play time ran out. Press Start with new minutes to carry on.", short: "Start again with new minutes.", action: "Start" };
+  if (!hasMatches(d)) return { label: "Ready, not playing yet", tone: "ok", why: "Press Start and it joins the ladder's next round; it plays until you stop it or its time runs out.", short: "Press Start: it joins the next round.", action: "Start" };
+  return { label: "Stopped", tone: "off", why: "Press Start and it joins the ladder's next round.", short: "Press Start to play again.", action: "Start" };
+}
+
+const agentStyle = (d: OwnerData) => d.play.playStyles.find((p) => p.id === d.play.connectedAgent?.playStyle) ?? d.play.playStyles[0]!;
+
+/** Each personality in a few words, for the L tile's one line each (the
+ * server's summary stays in the title and on My agent). A personality the
+ * page doesn't know yet shows its summary's first clause. */
+const STYLE_TAG: Record<string, string> = {
+  calculator: "the best move each turn",
+  rusher: "goes for health, fast",
+  controller: "answers threats, plays long",
+  tempo: "the wider board, first",
+  fortress: "tough units, safe trades",
+  gambler: "risky, hard to read",
+};
+export const styleTag = (p: { id: string; summary: string }) => STYLE_TAG[p.id] ?? p.summary.split(/[.,;:]/)[0]!.trim();
+
 /* ------------------------------------------------------- the facts */
 
 /** Per-page drawing options (a page whose box is tighter than the spec's
@@ -144,49 +188,55 @@ export type FactOpts = { featuredCosmetics?: number };
 type Render = (d: OwnerData, size: Size, opts?: FactOpts) => string;
 
 export const RENDER: Record<Fact, Render> = {
-  /* My agent */
-  agentName: (d) => {
+  /* My agent (render session 88: one glass tile, each size's copy written for its box) */
+  agentName: (d, size) => {
     const a = d.play.connectedAgent;
-    if (!a) return fx("agentName", `${big("No agent connected")}<span class="sub">Connect one to start playing.</span>`);
-    return fx("agentName", `<span class="ava">${avatarSvg(a.name)}</span><b class="big">${esc(a.name)}</b>`, "row");
+    if (!a) return fx("agentName", `${big("No agent connected")}${size === "M" ? `<span class="sub">Connect one to start playing.</span>` : ""}`);
+    return fx("agentName", `<span class="ava">${avatarSvg(a.name)}</span><b class="big${a.name.length > 16 ? " long" : ""}" title="${esc(a.name)}">${esc(a.name)}</b>`, "row");
   },
   agentStatus: (d, size) => {
-    const ap = d.play.autoPlay;
-    let s: string, tone: string, why: string;
-    if (d.play.liveMatch) { s = "Playing now"; tone = "live"; why = "A ladder match is on: watch it in Watch live."; }
-    else if (ap.on) { s = "Ready"; tone = "ok"; why = "It joins the ladder's next round."; }
-    else if (ap.dailyRewardsMaxed) { s = "Done for today"; tone = "warn"; why = "Today's rewards are all earned; it can play again after midnight."; }
-    else if (ap.stopped) { s = "Out of time"; tone = "warn"; why = "Its play time ran out. Give it more to carry on."; }
-    else if (!hasMatches(d)) { s = "Ready, not playing yet"; tone = "ok"; why = "Press Start and it joins the ladder's next round; it plays until you stop it or its time runs out."; }
-    else { s = "Stopped"; tone = "off"; why = "Press Start and it joins the ladder's next round."; }
-    return fx("agentStatus", `<span class="pill ${tone}">${esc(s)}</span>${size === "S" ? "" : `<span class="sub">${esc(why)}</span>`}`);
+    const st = agentState(d);
+    // S: the pill only. M: the short reason (the tile's right column is
+    // about 190 px at 1280). L: the full sentence.
+    const why = size === "S" ? "" : size === "M" ? st.short : st.why;
+    return fx("agentStatus", `<span class="pill ${st.tone}">${esc(st.label)}</span>${why ? `<span class="sub why">${esc(why)}</span>` : ""}`);
   },
   startStop: (d) => {
-    const on = d.play.autoPlay.on;
-    return fx("startStop", `<button class="btn ${on ? "" : "pri"}" type="button">${on ? "Stop" : "Start"}</button>`, "act");
+    const st = agentState(d);
+    return fx("startStop", `<button class="btn ${st.action === "Stop" ? "" : "pri"}" type="button">${st.action}</button>`, "act");
   },
   todayRecord: (d) => {
     const w = d.daily.wins.length, l = d.daily.losses;
-    return fx("todayRecord", w + l === 0 ? `${lab("Today")}<span>No matches yet today</span>` : `${lab("Today")}<span><b>${w}</b> won · <b>${l}</b> lost</span>`, "kv");
+    return fx("todayRecord", w + l === 0 ? `${lab("Today")}<span>No matches yet</span>` : `${lab("Today")}<span><b>${w}</b> won · <b>${l}</b> lost</span>`, "kv");
   },
   personality: (d, size) => {
-    const a = d.play.connectedAgent;
-    const style = d.play.playStyles.find((p) => p.id === a?.playStyle) ?? d.play.playStyles[0]!;
+    const style = agentStyle(d);
     if (size === "L") {
-      return fx("personality", `${lab("Personality")}<ul class="styles">${d.play.playStyles.map((p) => `<li class="${p.id === style.id ? "on" : ""}"><b>${esc(p.name)}</b> ${esc(p.summary)}</li>`).join("")}</ul>`, "blk");
+      // Every personality explained in one line (the spec's L), the agent's
+      // own marked; "Change" opens My agent, where the dial is.
+      return fx("personality", `<span class="labrow">${lab("Personality")}<a class="chg" href="#/agent" data-go="agent">Change</a></span><ul class="styles">${d.play.playStyles.map((p) => `<li class="${p.id === style.id ? "on" : ""}" title="${esc(p.summary)}"${p.id === style.id ? ' aria-current="true"' : ""}><b>${esc(p.name)}</b><span>${esc(styleTag(p))}</span></li>`).join("")}</ul>`, "blk");
     }
-    return fx("personality", `${lab("Personality")}<span><b>${esc(style.name)}</b> · ${esc(style.summary)}</span>`, "kv");
+    return fx("personality", `${lab("Personality")}<span title="${esc(style.summary)}"><b>${esc(style.name)}</b></span>`, "kv");
   },
-  playTime: (d) => {
+  playTime: (d, size) => {
     const ap = d.play.autoPlay;
-    const s = ap.allowance?.minutes ? `${ap.allowance.minutes} min allowance running` : ap.on ? "No time limit: it plays until you stop it" : "Choose 15, 30 or 60 minutes, or no limit, when you press Start";
-    return fx("playTime", `${lab("Play time")}<span>${esc(s)}</span>${ap.on && ap.allowance ? `<button class="btn sm" type="button">+15 min</button>` : ""}`, "kv");
+    const al = ap.allowance;
+    let s: string;
+    if (al && al.state === "waiting") s = size === "L" ? `${al.totalMinutes} min, from its first match` : `${al.totalMinutes} min, not started`;
+    else if (al && al.state === "running") s = size === "L" ? `${al.minutesLeft} min left of ${al.totalMinutes}${al.endsAtReset ? ", to midnight" : ""}` : `${al.minutesLeft} min left`;
+    else if (al && al.state === "finishing") s = "Time's up";
+    else if (al && al.state === "done") s = size === "L" ? "Time's up: start again with new minutes" : "Time's up";
+    else if (ap.on) s = size === "L" ? "No limit: it plays until you stop it" : "No limit";
+    else s = size === "L" ? "Pick 15, 30 or 60 min, or no limit, at Start" : "Set when you press Start";
+    const add = ap.canAddTime && al && al.state !== "done" && !al.endsAtReset ? `<button class="btn sm add" type="button">+15 min</button>` : "";
+    return fx("playTime", `${lab("Play time")}<span class="val">${esc(s)}${add}</span>`, "kv");
   },
   deck: (d) => {
     const deck = d.play.deckChoice === "forced" ? d.play.activeDeck : d.play.agentDeck;
-    if (!deck) return fx("deck", `${lab("Deck")}<span>Your agent builds its own deck from your cards before its first match.</span>`, "kv");
+    const head = `<span class="labrow">${lab("Deck")}<a class="chg" href="#/agent" data-go="agent">${d.play.deckChoice === "forced" ? "Change" : "Pick one"}</a></span>`;
+    if (!deck) return fx("deck", `${head}<span>Your agent builds its own deck from your cards.</span>`, "kv");
     const by = d.play.deckChoice === "forced" ? "your pick" : "built by your agent";
-    return fx("deck", `${lab("Deck")}<span><b>${esc(deck.name)}</b> · ${esc(deck.faction ?? "mixed")} · ${deck.cards} cards · ${by}</span>`, "kv");
+    return fx("deck", `${head}<span><b>${esc(deck.name)}</b> · ${esc(deck.faction ?? "mixed")} · ${deck.cards} cards · ${by}</span>`, "kv");
   },
 
   /* Ladder */
@@ -525,7 +575,7 @@ export function nextAction(t: TileSpec, size: Size, d: OwnerData): Action {
     case "agent":
       // The spec's next at every size is Start / Stop: the startStop fact
       // itself, which the mockups draw where their action goes.
-      return { label: d.play.autoPlay.on ? "Stop" : "Start", to: "agent", primary: !d.play.autoPlay.on };
+      { const a = agentState(d); return { label: a.action, to: "agent", primary: a.action !== "Stop" }; }
     case "ladder":
       return { label: placed ? "Open Stats" : "How placement works", to: "ladder", primary: false };
     case "watch":

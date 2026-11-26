@@ -7,6 +7,39 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-27 — Render session 88: the agent tile on the grid, glass like the rest (phase 2, the tiles in groups, group 1) — AWAITING FEEDBACK (five small calls)
+
+**Start here:** `render/season1/output/home.html` (My agent, top left), and `render/season1/output/agent-states.html`
+(the tile in every auto-play state, at S, M and L). Stills: `progress/render/evidence/season1-agent-tile-s88/`
+(`agent-states-1280-light.jpg` and `-dark.jpg`, the tightest box), `season1-home-grid-s88/nova-recommended.jpg`.
+
+**What it is:** My agent is now the same glass as every tile (your 2026-11-27 decision), and each size is laid out for
+its box: S name, status and the button; M adds a short reason, today, the personality and the play time; L adds the
+full reason, the deck and all six personalities explained in one line each. It fits its box at every size, on every
+screen, for both owners and in twelve states the API can serve (58 PASS). The text reads at 4.5:1 or more on the
+glass, measured from the pixels, light and dark.
+
+**Strong:** one function decides the status, its reason and the button, so they never disagree. A real bug fixed:
+the play-time line read a field the server never sends, so a running allowance would have said "No time limit".
+**Thin:** the states are drawn from the API's documented shapes, not captured from a live server in each state.
+
+**Calls for you (none blocks):**
+1. **The personality one-liners are our words** ("the best move each turn", "goes for health, fast", ...), because
+   the server's summaries are a sentence each and six of them don't fit L. The full summary shows on hover and on My
+   agent. Keep, or should the server send a short line for each?
+2. **Long agent names** (over 16 characters) take a smaller size; at S and M a name still longer than two lines ends
+   in "..." (the whole name at L and on hover). Keep?
+3. **At L, Start / Stop sits beside the name** (top right), not at the tile's foot like the other tiles, so the six
+   personalities have the room. Keep?
+4. **"Change" (personality) and "Pick one" / "Change" (deck) open My agent**, where the dial and the deck picker are;
+   the tile itself doesn't change them. Keep?
+5. **Status pills on every tile are a little darker** (the colour mixed toward the text colour), because the pure
+   green and red read about 3:1 on the light glass. The ring keeps the pure colour. Keep?
+
+**Next:** group 2, the Ladder tile with Rating & form merged in.
+
+---
+
 ## 2026-11-24 — Render session 86: the Season 1 Home on the uniform grid, with B's top bar (phase 2, step 1) — [OWNER CHECK-IN] AWAITING FEEDBACK (five calls)
 
 **Start here:** `render/season1/output/home.html` (open in a browser; the strip at the top switches owner, board and

@@ -29,13 +29,17 @@
 //     neon night;
 //   - in Edit board every header keeps its whole name (the move and size
 //     buttons sit in a bar over the tile's foot), and no tile changes size;
-//   - text on the dark hero tile is light (contrast 4.5:1 or more against
+//   - (retired in render 88: no hero tile is left) text on the dark hero tile is light (contrast 4.5:1 or more against
 //     the tile's own background, measured);
 //   - Store M's markup holds exactly the two cosmetics it shows;
 //   - two measures borrowed from PR #196 (closed), reported, not failed:
 //     which facts spill (past the tile, under its header, into its button)
 //     and the largest empty band in each tile (fill.txt; over 40% of the
 //     tile's height is listed as OPEN).
+// Render session 88 (the agent tile): My agent is glass like the rest (owner
+// 2026-11-27): no tile on Home is the hero panel, in light and dark (the
+// hero-contrast check is replaced; agent-states-check.mjs measures the agent
+// tile's contrast on the glass from the pixels, in every auto-play state).
 // Writes stills, fit.txt and check.txt to
 // progress/render/evidence/season1-home-grid-s86/ (or the folder given).
 //
@@ -47,7 +51,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s87'));
+const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s88'));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', 'home.html')).href;
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));
@@ -203,29 +207,14 @@ try {
           if (!FILL[t.tile]?.[t.size]?.has(`${owner}@${vw}`)) ((FILL[t.tile] ??= {})[t.size] ??= new Map()).set(`${owner}@${vw}`, { band: t.band, spills: t.spills });
         }
         // Watch live's surround is the glass every other tile is (point 11).
-        const plain = B.tiles.find((t) => !t.hero && t.tile !== 'watch');
+        const plain = B.tiles.find((t) => !t.hero && t.tile !== 'watch' && t.tile !== 'agent');
         if (w0(B) && plain) check(!w0(B).hero && w0(B).bg === plain.bg, `${label}: Watch live ${w0(B).size} is the same glass as the other tiles (not the hero panel)`);
-        if (vw === 1440) {
-          const hero = await page.evaluate(() => {
-            // Text on the dark hero tile: the lowest contrast of any visible
-            // text leaf against the tile's own background (the gradient's
-            // lighter stop, the worst case).
-            const lum = (c) => { const m = c.match(/[\d.]+/g).map(Number); const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
-            const el = document.querySelector('.tile.hero');
-            if (!el) return null;
-            const bgL = 0.055; // the hero gradient's lightest stop measured from a still, about rgb(52,60,120)
-            let worst = 99, who = '';
-            for (const e of el.querySelectorAll(':scope > .headline *, :scope > .body *')) {
-              if (e.closest('.q, .ring, .art, .ava') || !e.childNodes.length || ![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
-              const q = e.getBoundingClientRect(); if (!q.width || getComputedStyle(e).visibility === 'hidden') continue;
-              const L = lum(getComputedStyle(e).color);
-              const cr = (Math.max(L, bgL) + 0.05) / (Math.min(L, bgL) + 0.05);
-              if (cr < worst) { worst = cr; who = (e.closest('[data-fact]')?.dataset.fact ?? '') + ' "' + e.textContent.trim().slice(0, 24) + '"'; }
-            }
-            return { size: el.dataset.size, worst, who };
-          });
-          if (hero) check(hero.worst >= 4.5, `${label}: text on the dark My agent ${hero.size} is light (lowest contrast ${hero.worst.toFixed(1)}:1, ${hero.who})`);
-        }
+        // No hero tile on Home (owner 2026-11-27): My agent is the same glass
+        // as every other tile, as Watch live became in render 87. Its text
+        // contrast on the glass is measured from the pixels in every state by
+        // agent-states-check.mjs (render session 88).
+        const ag = B.tiles.find((t) => t.tile === 'agent');
+        check(B.tiles.every((t) => !t.hero) && (!ag || !plain || ag.bg === plain.bg), `${label}: no tile is the hero panel; My agent${ag ? ' ' + ag.size : ''} is the same glass as the other tiles`);
         check(!bad.length, `${label}: every tile shows the spec's facts at its size, its name, its question and one next action${bad.length ? ': ' + bad.join('; ') : ''}`);
         const w = w0(B);
         if (w && w.size !== 'S' && owner === 'nova') {
@@ -320,8 +309,10 @@ try {
   const dark = await open({ width: 1440, height: 900 }, '?owner=wren&theme=dark');
   check(await dark.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'dark is the option (?theme=dark, or the strip)');
   const DB = await readBoard(dark);
-  const dplain = DB.tiles.find((t) => !t.hero && t.tile !== 'watch');
+  const dplain = DB.tiles.find((t) => !t.hero && t.tile !== 'watch' && t.tile !== 'agent');
   check(!w0(DB).hero && w0(DB).bg === dplain.bg, `dark: Watch live ${w0(DB).size} is the same glass as the other tiles`);
+  const dag = DB.tiles.find((t) => t.tile === 'agent');
+  check(DB.tiles.every((t) => !t.hero) && dag.bg === dplain.bg, `dark: no tile is the hero panel; My agent ${dag.size} is the same glass as the other tiles`);
   const nd = await open({ width: 1440, height: 900 }, '?owner=nova&theme=dark');
   await shot(nd, 'nova-recommended-dark', false);
   await nd.context().close();

@@ -72,7 +72,9 @@ S 1x1, M 1x2 and L two units wide by as many as its whole 9:16 arena needs; B's 
   tiles' content fits its fixed box yet. The "tiles in groups" sessions drive it to all "fits".
 
     npx tsx season1/mockup/buildHome.ts          # (in render/) -> season1/output/home.html
-    node render/season1/ci/home-grid-check.mjs   # -> progress/render/evidence/season1-home-grid-s86/
+    node render/season1/ci/home-grid-check.mjs   # -> progress/render/evidence/season1-home-grid-s88/
+    node render/season1/ci/agent-states-check.mjs   # My agent in every auto-play state (output/agent-states.html, built
+                                                    # by buildHome.ts) -> progress/render/evidence/season1-agent-tile-s88/
 
 ## The flash check and the pack-opening storyboard (render session 85)
 
