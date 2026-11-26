@@ -38,10 +38,11 @@ import { GRID, GRID_JS } from "./homeGrid.js";
 
 const TILE_ICON: Record<string, string> = { agent: ICONS.match, ladder: ICONS.trophy, watch: ICONS.eye, packs: ICONS.spark, store: ICONS.store, collection: ICONS.col, daily: ICONS.stats, history: ICONS.list, notif: ICONS.bell, music: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>' };
 const svg = (paths: string, size = 18) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
-// The deep indigo hero glass: My agent only. Watch live is the same light
-// (or dark) glass as every other tile; only its arena keeps the neon night
-// (owner 2026-11-25, point 11).
-const HERO = new Set(["agent"]);
+// No hero tile: every tile on Home is the same light (or dark) glass. Watch
+// live went first (owner 2026-11-25, point 11; only its arena keeps the neon
+// night), then My agent (owner 2026-11-27, render session 88). Mockup B's
+// record page keeps its deep indigo hero (homeMockupB.ts).
+const HERO = new Set<string>();
 // Store M shows the featured pack and two cosmetics (owner 2026-11-23,
 // point 3): the fact draws only those two, not three with one hidden.
 const factOpts = (tileId: string, size: Size) => (tileId === "store" && size === "M" ? { featuredCosmetics: 2 } : undefined);
@@ -101,7 +102,6 @@ export const GRID_CSS = `
 .ugrid > .tile { z-index: 1; }
 /* The question opens over the tile (it never changes the tile's size). */
 .ugrid .q { position: absolute; left: 10px; right: 10px; top: 50px; z-index: 3; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: color-mix(in srgb, var(--c) 18%, var(--glass)); box-shadow: 0 8px 24px rgba(30,30,90,.18), inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent); }
-.ugrid .tile.hero .q { background: color-mix(in srgb, var(--c) 30%, rgba(16,20,50,.92)); }
 .ugrid .body { flex: 1 1 auto; min-height: 0; }
 .ugrid .body:empty { display: block; }
 .ugrid .tile footer { margin-top: 0; }
@@ -124,6 +124,59 @@ export const GRID_CSS = `
 /* L (2x2): stacked, its details in two columns. */
 .ugrid .tile.s-L:not([data-tile="watch"]) .body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; align-content: start; }
 .ugrid .s-L :is([data-fact="recentMatches"], [data-fact="alerts"], [data-fact="personality"], [data-fact="lastPulls"], [data-fact="winSchedule"], [data-fact="bestCards"], [data-fact="trend"], [data-fact="cosmetics"]) { grid-column: 1 / -1; }
+/* The status pills on the glass (render session 88, measured from the
+   pixels): the pure status colours read at about 3:1 on the light glass, so
+   the words take the colour mixed toward the ink; the ring keeps the pure
+   colour. */
+.ugrid .pill.live { color: color-mix(in srgb, var(--live) 45%, var(--ink)); }
+.ugrid .pill.ok { color: color-mix(in srgb, var(--ok) 45%, var(--ink)); }
+.ugrid .pill.warn { color: color-mix(in srgb, var(--warn) 45%, var(--ink)); }
+/* My agent (render session 88): one glass tile like the rest (owner
+   2026-11-27), each size laid out for its box. */
+.tile[data-tile="agent"] .ava { color: color-mix(in srgb, var(--c) 55%, var(--ink)); filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--c) 35%, transparent)); }
+.tile[data-tile="agent"] [data-fact="agentName"] .big { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; line-height: 1.08; }
+.tile[data-tile="agent"] [data-fact="agentStatus"] .why { line-height: 1.3; }
+.tile[data-tile="agent"] .labrow { display: flex; align-items: baseline; gap: 8px; }
+.tile[data-tile="agent"] .chg { font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--accent) 62%, var(--ink)); text-decoration: none; }
+.ugrid .tile[data-tile="agent"]:is(.s-S, .s-M, .s-L) .headline [data-fact="agentName"] .big.long { font-size: 16px; }
+.tile[data-tile="agent"] .chg:hover { text-decoration: underline; }
+.tile[data-tile="agent"] [data-fact="playTime"] .val { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.tile[data-tile="agent"] .btn.add { padding: 1px 8px; font-size: 11.5px; }
+/* S: the picture and the name, the pill, the button. */
+.ugrid .tile[data-tile="agent"].s-S .headline [data-fact="agentName"] .big { font-size: 18px; }
+/* M: the name and the button on the left; on the right the pill with its
+   short reason, then one line each: today, the personality, the play time. */
+.ugrid .tile[data-tile="agent"].s-M { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+.ugrid .tile[data-tile="agent"].s-M .headline [data-fact="agentName"] { flex-wrap: nowrap; gap: 8px; }
+.ugrid .tile[data-tile="agent"].s-M .headline [data-fact="agentName"] .big { font-size: 18px; }
+.ugrid .tile[data-tile="agent"].s-M .ava { width: 40px; height: 40px; }
+.ugrid .tile[data-tile="agent"].s-M > .body { gap: 5px; justify-content: center; }
+.ugrid .tile[data-tile="agent"].s-M [data-fact="agentStatus"] { gap: 2px; }
+.ugrid .tile[data-tile="agent"].s-M [data-fact="agentStatus"] .why { font-size: 12px; }
+.ugrid .tile[data-tile="agent"].s-M .fx.kv { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: baseline; column-gap: 6px; font-size: 13px; line-height: 1.3; }
+/* L: the name with the button beside it, the pill and its reason, today
+   and the play time side by side, the deck, then every personality in one
+   line each (two columns of three). */
+.ugrid .tile[data-tile="agent"].s-L { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hd hd" "nm ft" "bd bd"; column-gap: 12px; row-gap: 6px; }
+.ugrid .tile[data-tile="agent"].s-L > header { grid-area: hd; }
+.ugrid .tile[data-tile="agent"].s-L > .headline { grid-area: nm; }
+.ugrid .tile[data-tile="agent"].s-L > footer { grid-area: ft; align-self: center; padding: 0; }
+.ugrid .tile[data-tile="agent"].s-L > .body { grid-area: bd; gap: 6px 16px; font-size: 13.5px; line-height: 1.3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: 10px; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] .labrow { flex-direction: column; gap: 0; }
+.ugrid .tile[data-tile="agent"].s-L .headline [data-fact="agentName"] .big { font-size: 21px; }
+.ugrid .tile[data-tile="agent"].s-L .ava { width: 38px; height: 38px; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="agentStatus"] { grid-area: 1 / 1 / 2 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="todayRecord"] { grid-area: 2 / 1; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="playTime"] { grid-area: 2 / 2; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] { grid-area: 3 / 1 / 4 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="personality"] { grid-area: 4 / 1 / 5 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="agentStatus"] { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="agentStatus"] .why { font-size: 12.5px; }
+.ugrid .tile[data-tile="agent"].s-L .styles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; margin: 0; padding: 0; list-style: none; }
+.ugrid .tile[data-tile="agent"].s-L .styles li { display: flex; flex-direction: column; min-width: 0; padding: 2px 8px; border-radius: 9px; background: var(--soft); box-shadow: var(--soft-edge); font-size: 12.5px; line-height: 1.25; }
+.ugrid .tile[data-tile="agent"].s-L .styles li > span { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ugrid .tile[data-tile="agent"].s-L .styles li.on { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: inset 0 0 0 1.5px var(--c); }
 /* Watch live: the arena 9:16, as large as its box allows (a size container). */
 .tile[data-tile="watch"] .body { display: flex; flex-direction: column; gap: 6px; }
 .tile[data-tile="watch"] [data-fact="liveArena"] { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -156,7 +209,6 @@ export const GRID_CSS = `
 .ugrid.editing .tile > footer { visibility: hidden; } /* the bar sits over it; its buttons don't act while editing */
 .ugrid.editing .tile .edit { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 4; justify-content: center; gap: 4px; padding: 5px; border-radius: 12px; background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 4px 14px rgba(30,30,90,.16), inset 0 0 0 1px var(--glass-edge); }
 .ugrid.editing .tile .edit button { padding: 3px 9px; font-size: 12px; color: var(--ink); }
-.ugrid.editing .tile.hero .edit { background: rgba(16,20,50,.9); }
 .ugrid.editing .tile .edit button[aria-pressed="true"] { color: #fff; }
 /* S headers: a smaller chip and buttons, so the name fits a 1-unit tile. */
 .ugrid .s-S header { gap: 6px; }

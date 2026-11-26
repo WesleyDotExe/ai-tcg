@@ -7,38 +7,41 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-87, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-88, fenced off in render/season1/; Season 1 scope)
 
-Session 87 (hardening) fixed: Watch live's dark surround (now the dashboard's glass, owner point 11), Edit board's S
-headers losing their name, the dark-on-dark personality names (and the "Playing now" pill at 4.5:1, now 5.3:1), and
-Store M's hidden third cosmetic. Each has a browser check that fails on the page before (`before-s87/check.txt`).
+Session 88 (the agent tile) fixed: My agent didn't fit at M (0 of 6) or L (1 of 6), was the last hero tile (owner
+2026-11-27: glass now), and its play-time line read a field the API never sends; the status pills read about 3:1 on
+the light glass. Checks: `season1-agent-tile-s88/check.txt` (58 PASS), `season1-home-grid-s88/before-s88/` (21 FAIL
+on main). Session 87 fixed Watch live's dark surround, Edit board's S headers, Store M's hidden cosmetic.
 
-- **38 of 148 desktop tile renders have an empty band over 40% of their height, and 65 spill** (`season1-home-grid-s87/fill.txt`,
-  PR #196's two measures, adapted): the empty ones are mostly the tiles that also overflow (Store L, Ladder M,
-  Collection M: content clipped below, a gap above) and Music L, Notifications S/L, History L, Packs L. The band
-  measure looks at vertical gaps across the whole width, so a two-column tile with one short column isn't flagged; I
-  haven't read every OPEN line against a still. The phone isn't in the fill table. Reported, not failed.
-- **The hero contrast check uses a fixed background luminance** (0.055, the hero gradient's lighter stop read off a
-  still), not the pixels behind each word; it guards the colours, not the gradient. The rest of the page's text
-  contrast isn't measured at all.
-- **Edit board's bar covers the tile's foot**: the footer is hidden while editing (its buttons don't act then) and
-  the bar sits over the lowest ~40 px of content, so a tile's last line can be under it while you edit.
-
-- **59 of 166 tile renders don't fit their box** (`season1-home-grid-s87/fit.txt`, unchanged from s86): Store L by 447-526 px, Ladder M
-  by 164-301 and L by 100-238, Collection M by 130-170, My agent M by 92-186 and L by 18-159, Daily rewards M by
-  26-129, Notifications M and L at some widths, and a few S faces on a phone (Packs S for a new player by 110 px,
-  Daily rewards S by 37). They are clipped by the tile, not hidden on purpose. Phase 2's tiles in groups owns this.
-- **The recommended board doesn't fit yet at any width** (My agent L, Ladder L, Collection L; Daily rewards S at
-  1280): the check reports it as OPEN, not FAIL. This is the first thing a visitor sees.
-- **Watch live L's height comes from a constant** (`GRID.watchChrome`, 318 px for the scoreboard, lists and button),
-  set by measuring; if those parts change, the rows can be off by one. The browser check catches a misfit, not a
-  wasted row.
-- **Placement is board order, first free spot.** A board edited into a bad order can leave holes (the all-M board
-  leaves 2 at 6 columns). There's no "tidy" button and no drag and drop yet; the move buttons step one place.
+- **48 of 166 tile renders don't fit their box** (`season1-home-grid-s88/fit.txt`; My agent now 16 of 16): Store L
+  by about 450-530 px, Ladder M and L, Collection M, Daily rewards M, Notifications M and L at some widths, and a few
+  phone S faces (Packs S for a new player, Daily rewards S). Clipped by the tile. The next groups own this, Ladder
+  first.
+- **36 of 148 desktop tile renders have an empty band over 40%, and 54 spill** (`fill.txt`); none of them My agent.
+  The band measure looks across the whole width, so one short column in a two-column tile isn't flagged; the phone
+  isn't in the fill table. Reported, not failed.
+- **The recommended board still doesn't fit at any width** (Ladder L, Collection L; Daily rewards S at 1280).
+- **Text contrast is measured from the pixels only on My agent** (`agent-states-check.mjs`); the other tiles'
+  text isn't measured at all. The pill fix applies to every tile but was measured on My agent's. The measure takes
+  the mean of the glass behind each line, not its lightest pixel, and a pill's ring pixels are in its box.
+- **My agent's states are built, not captured**: `agentStates.ts` changes the snapshot's documented auto-play fields
+  by hand (OWNER_API.md's shapes); none was read from a live server in that state. A `house` owner (no Start) and a
+  live match after the owner pressed Stop (pill "Playing now", button Start) aren't on the sheet.
+- **My agent's copy for M is short by design** ("It joins the next round.", "Set when you press Start", the
+  personality's name only) and the personality one-liners are the render's own words (call 1 at the s88 checkpoint);
+  a new personality from the server falls back to its summary's first clause, unmeasured.
+- **Long agent names end in "..." at S and M** past two lines (24 characters do); the whole name is at L and on hover.
+- **The tile's buttons don't act** ("Start", "+15 min", "Change", "Pick one"): a prototype; there's no confirm on
+  Stop and no minutes picker on Start yet (the Season 0 widget has one).
+- **Edit board's bar covers the tile's foot** while editing (the footer is hidden then; its buttons don't act).
+- **Watch live L's height comes from a constant** (`GRID.watchChrome`, 318 px); a misfit is caught, a wasted row not.
+- **Placement is board order, first free spot**: an edited board can leave holes (all-M leaves 2 at 6 columns); no
+  tidy button, no drag and drop.
 - **1280 px is the tightest screen** (191 px units at 6 columns), and the fit table is worst there.
-- **The page is still a prototype**: the strip, the stub pages, Edit board not saved, buttons that don't act,
-  Watch live's stand-in arena (plan step 5), one data snapshot.
-- **The grid check runs by hand** (about 15 s here), not in CI (the owner's Actions-minutes rule).
+- **The page is still a prototype**: the strip, the stub pages, Edit board not saved, Watch live's stand-in arena
+  (plan step 5), one data snapshot.
+- **The grid and agent checks run by hand** (about 15 s and 10 s here), not in CI (the owner's Actions-minutes rule).
 
 ## The flash check and the pack-opening storyboard (session 85, fenced off in render/season1/; Season 1 scope)
 

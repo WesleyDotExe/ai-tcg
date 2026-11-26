@@ -1603,3 +1603,10 @@ answer to those (`render/season1/FLASH.md`).
    a laptop screen, the recommended board, Store M's two cosmetics, and how facts that don't fit a size are handled.
 3. **Mockups A and C are retired** (their stills stay). Nothing needed from you to continue: render 87 is the
    overdue hardening pass, then the tiles in groups.
+
+## 2026-11-27 — Render session 88: the agent tile (five small calls, none blocking)
+
+My agent is now glass like the rest and fits its box at S, M and L in every auto-play state. Five small calls are at
+the top of `progress/render/checkpoints.md` (session 88): the personality one-liners are our words; long names end
+in "..." at S and M; Start / Stop sits beside the name at L; "Change" and "Pick one" open My agent; status pills on
+every tile a little darker for contrast. Waiting on owner; the next session moves on to the Ladder tile.

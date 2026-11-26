@@ -65,6 +65,15 @@ are the named facts in `src/homeSpec.ts` (`FACTS`).
 The rating moves out of this tile, to Ladder. The agent's name appears only here, and in Watch live when it's a
 player in the match. The sidebar's agent card is a navigation call for the mockups (see 5).
 
+**On the grid (render session 88):** one glass tile like the rest (owner 2026-11-27). S: the picture and name, the
+pill, the button. M: the name and the button on the left; on the right the pill and a short reason, then one line
+each for today, the personality (its name) and the play time ("+15 min" when the server allows it). L: the name with
+Start / Stop beside it, the pill and the full reason, today and the play time side by side, the deck ("Pick one" /
+"Change"), and all six personalities in one line each, the agent's own marked ("Change"). The pill, its reason and
+the button come from one function (`agentState` in `src/homeFacts.ts`) on the owner API's auto-play answer: No agent,
+Playing now, Waiting for a round, Ready, Finishing match, Time's up, Done for today, Ready not playing yet, Stopped.
+Every state at every size: `output/agent-states.html`, checked by `ci/agent-states-check.mjs`.
+
 ### Ladder (Ladder + Rating & form)
 **Question:** How good is my agent, and is it getting better?
 

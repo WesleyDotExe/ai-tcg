@@ -7,6 +7,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homePage } from "../src/homePage.js";
+import { agentStatesPage } from "../src/agentStates.js";
 import type { HomeData } from "../src/homeFacts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -16,3 +17,9 @@ mkdirSync(dirname(out), { recursive: true });
 const html = homePage(data);
 writeFileSync(out, html);
 console.log(`[home] wrote ${out} (${(html.length / 1024).toFixed(0)} KB)`);
+
+// The My agent tile in every auto-play state (render session 88).
+const states = join(here, "..", "output", "agent-states.html");
+const sheet = agentStatesPage(data);
+writeFileSync(states, sheet);
+console.log(`[home] wrote ${states} (${(sheet.length / 1024).toFixed(0)} KB)`);

@@ -1,0 +1,64 @@
+
+=== light ===
+PASS unit 191px, playing: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, waiting: S, M and L fit their boxes, nothing spills
+PASS unit 191px, running: S, M and L fit their boxes, nothing spills
+PASS unit 191px, running-reset: S, M and L fit their boxes, nothing spills
+PASS unit 191px, finishing: S, M and L fit their boxes, nothing spills
+PASS unit 191px, timeup: S, M and L fit their boxes, nothing spills
+PASS unit 191px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, stopped: S, M and L fit their boxes, nothing spills
+PASS unit 191px, picked: S, M and L fit their boxes, nothing spills
+PASS unit 191px, long-name: S, M and L fit their boxes, nothing spills
+PASS unit 191px, no-agent: S, M and L fit their boxes, nothing spills
+PASS unit 218px, playing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, waiting: S, M and L fit their boxes, nothing spills
+PASS unit 218px, running: S, M and L fit their boxes, nothing spills
+PASS unit 218px, running-reset: S, M and L fit their boxes, nothing spills
+PASS unit 218px, finishing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, timeup: S, M and L fit their boxes, nothing spills
+PASS unit 218px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, stopped: S, M and L fit their boxes, nothing spills
+PASS unit 218px, picked: S, M and L fit their boxes, nothing spills
+PASS unit 218px, long-name: S, M and L fit their boxes, nothing spills
+PASS unit 218px, no-agent: S, M and L fit their boxes, nothing spills
+PASS unit 231px, playing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, waiting: S, M and L fit their boxes, nothing spills
+PASS unit 231px, running: S, M and L fit their boxes, nothing spills
+PASS unit 231px, running-reset: S, M and L fit their boxes, nothing spills
+PASS unit 231px, finishing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, timeup: S, M and L fit their boxes, nothing spills
+PASS unit 231px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, stopped: S, M and L fit their boxes, nothing spills
+PASS unit 231px, picked: S, M and L fit their boxes, nothing spills
+PASS unit 231px, long-name: S, M and L fit their boxes, nothing spills
+PASS unit 231px, no-agent: S, M and L fit their boxes, nothing spills
+PASS playing: every size says the same ("Playing now", button "Stop")
+PASS new: every size says the same ("Ready, not playing yet", button "Start")
+PASS waiting: every size says the same ("Waiting for a round", button "Stop")
+PASS running: every size says the same ("Playing now", button "Stop")
+PASS running-reset: every size says the same ("Ready", button "Stop")
+PASS finishing: every size says the same ("Finishing match", button "Stop")
+PASS timeup: every size says the same ("Time's up", button "Start")
+PASS maxed: every size says the same ("Done for today", button "Start")
+PASS stopped: every size says the same ("Stopped", button "Start")
+PASS picked: every size says the same ("Playing now", button "Stop")
+PASS long-name: every size says the same ("Ready, not playing yet", button "Start")
+PASS no-agent: every size says the same ("No agent", button "Connect an agent")
+PASS light: no tile is the hero panel (108 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, personality "the best move each turn")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, personality "the best move each turn")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.9:1, personality "the best move each turn")
+
+=== dark ===
+PASS dark: no tile is the hero panel (108 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.0:1, agentStatus "Playing now")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.0:1, agentStatus "Ready")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.0:1, agentStatus "Ready")
+PASS no page errors
+PASS no outside requests
+
+58 PASS, 0 FAIL
