@@ -5187,3 +5187,12 @@ Next session: render 87 (the hardening pass), then the tiles in groups, starting
 2. **Standing rule:** every session starts its branch from the newest `origin/main` (fetch first) and checks that its checkout contains the newest merged PR before choosing work; if not, it stops and says so instead of building on old work.
 
 Next session: render 87 (the hardening pass), then the tiles in groups, starting with the agent tile.
+
+---
+
+## 2026-11-27 — Owner: the My agent tile is glass like the rest
+
+From the owner's review of render session 87 (PR #197, `render/season1/output/home.html`, `progress/render/evidence/season1-home-grid-s87/nova-recommended.jpg`).
+1. **Decision: the My agent tile becomes the same glass tile as every other tile** (light and dark themes, the same header, buttons and edges), as Watch live did in render 87. It is no longer a dark hero tile; no tile on Home is. Its text keeps the contrast render 87 set (nothing under 4.5:1).
+
+Next session: the tiles in groups, starting with the agent tile (My agent and Agent controls), which takes this.
