@@ -18,6 +18,7 @@ import { FACTION_HEX, esc } from "../../src/site/siteModel.js";
 import { TIER_HEX } from "../../src/site/siteStanding.js";
 import { avatarSvg } from "../../src/avatar.js";
 import { FACE_SCRIPT, SEALED_PACK_CSS, faceSymbols } from "../../src/site/siteFaces.js";
+import { ratingChart, ratingChartHtml, type Floor } from "./ratingChart.js";
 import { FACTS, TILES, type Fact, type Size, type TileSpec } from "./homeSpec.js";
 
 /* ------------------------------------------------------------------ data */
@@ -361,15 +362,9 @@ export const RENDER: Record<Fact, Render> = {
   },
   trend: (d) => {
     if (!isPlaced(d)) return fx("trend", `${lab("Where the ratings sit")}${tierScale(d)}`, "blk");
-    const pts = d.stats.rating.chart.filter((p) => p.rating !== null) as { rating: number }[];
-    const vals = pts.map((p) => p.rating);
-    const floors = d.ladder.tiers.filter((t) => t.from !== null);
-    const lo = Math.min(...vals) - 40, hi = Math.max(...vals) + 40;
-    const W = 300, H = 90, x = (i: number) => (i / Math.max(1, pts.length - 1)) * W, y = (v: number) => H - ((v - lo) / (hi - lo)) * H;
-    const lines = floors.filter((t) => t.from! > lo && t.from! < hi).map((t) => `<line x1="0" x2="${W}" y1="${y(t.from!).toFixed(1)}" y2="${y(t.from!).toFixed(1)}" stroke="${TIER_HEX[t.tier]}" stroke-dasharray="3 4" opacity=".9" vector-effect="non-scaling-stroke"/>`).join("");
-    const names = floors.filter((t) => t.from! > lo && t.from! < hi).map((t) => `<span style="top:${((100 * y(t.from!)) / H).toFixed(1)}%;--tc:${TIER_HEX[t.tier]}">${esc(t.tier)}</span>`).join("");
-    const path = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
-    return fx("trend", `${lab("Rating, 30 days")}<span class="chartbox"><svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="rating over 30 days, ${n0(vals[0] ?? 0)} to ${n0(vals[vals.length - 1] ?? 0)}, with the tier floors">${lines}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><span class="floors" aria-hidden="true">${names}</span></span>`, "blk");
+    const c = ratingChart(d.stats.rating.chart, d.ladder.tiers.filter((t) => t.from !== null) as Floor[], d.rating.rating.rating);
+    if (!c) return fx("trend", `${lab("Rating, 30 days")}<span>No rated match yet</span>`, "kv");
+    return fx("trend", `${lab("Rating, 30 days")}${ratingChartHtml(c, TIER_HEX, esc)}`, "blk");
   },
   factionWinRate: (d) => {
     const rows = d.stats.byFaction.filter((f) => f.matches > 0);

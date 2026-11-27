@@ -6961,3 +6961,48 @@ of 32); fill.txt: Store and Packs no spill and no OPEN band (were 8 OPEN, 21 spi
 **Worked:** the states sheet found the four-offer and the long-name cases the snapshot never reaches. **Thin:** in
 render/quality-debt.md. **Blocked:** nothing. **Next:** render 92, the hardening pass (with the owner's point 8, the
 Ladder chart); then group 4, Collection and Daily rewards.
+
+## 2026-11-28 — Render session 92: the hardening pass — the Ladder's rating chart (owner point 8) and contrast on every tile
+
+**Lane:** render. The last merged PR (#201) is "Render:", which would make this a game session, but the owner's
+2026-11-22 entry (point 7) keeps every scheduled session in the render lane; no render PR was open. Every 5th render
+session is the hardening pass (87, 92): no new tile, only deepen, test and fix. The owner's answers to render 91 (keep
+all 4) needed nothing built.
+
+**Built:**
+- **The rating chart (owner 2026-11-28 point 8)**, `render/season1/src/ratingChart.ts` (pure layout, used by the
+  Ladder tile's `trend` fact in `homeFacts.ts`). The old chart put each tier name at the left end of its floor line,
+  where the rating's line ran (Nova's "Diamond"), x by the index of the non-null points, and a one-day 118-point fall
+  as a straight drop at the right edge. Now: the tier names sit in a 50 px gutter left of the plot (two too close to
+  read apart keep the one nearer the rating now); x is by the day; a day whose slope would draw steeper than about 68
+  degrees on the smallest plot (120 x 110 px) and is 25 points or more is drawn as a step (flat, the step just after
+  the day before closed, flat across the day) with its value beside it ("−68"), the value placed in the first of
+  eight spots clear of the line, the plot's edges, the other values (2.5 px kept) and, if it can, the floors' dashed
+  lines; at most four values on the chart (the latest step first, then the biggest), every big day in the plot's title
+  and the chart's description; the line ends in a dot, clear of the right edge. The chart box is a fixed 110 px (it
+  was always 110 in every render measured).
+- **One source:** the line ends at the tile's rating. The snapshot's chart ended at 1,724, two demo matches past its
+  rating read (1,774); the tile said 1,774 and the chart 1,724. The chart's last row (today) takes the rating's value
+  now; on a live server the two are the same number by OWNER_API.md's definition.
+- **Two new chart states** on `output/ladder-states.html` (`ladderStates.ts`): a big day mid-month (+164 through the
+  Diamond floor) and a volatile month (big days across three floors).
+- **The check:** `ci/tile-states-check.mjs ladder` measures the chart in screen px at every unit: no slope steeper
+  than 75 degrees over 6 px, every vertical a big day named in the title, each value clear of the line (1 px or
+  more), inside the plot and clear of the others, the tier names clear of the line and of each other, the end dot on
+  the last point inside the plot, and the chart ending at the tile's rating. Unit tests `test/ratingChart.test.ts` (7).
+- **Contrast on every tile:** the pixel contrast measure moved to `ci/contrast.mjs` (shared by both checks), and the
+  grid check now measures every tile at S, M and L for both owners in light and dark (`contrast.txt`): the tiles
+  done in groups (agent, Ladder, Store, Packs, and Watch live's surround) fail under 4.5:1; the rest are OPEN lines.
+  It found three below the bar, fixed: Watch live's names in faction colours (Swarm's green 2.6:1 -> 5.0:1),
+  Match history's W / L (2.9:1 -> 5.6:1) and the alerts' links (3.8:1). The two left (Daily rewards M 1.2:1,
+  Notifications M 2.9:1) are text clipped in tiles that don't fit yet (group 4's work).
+
+**Ran it:** `season1-ladder-tile-s92/check.txt` **115 PASS, 0 FAIL** (first run 9 FAIL: the rating regex took the
+comma; a slope just under the old share threshold read near-vertical at 191 px; a value 0.8 px from the line);
+`season1-home-grid-s92/check.txt` **165 PASS, 0 FAIL, 6 OPEN** (fit.txt 140 of 166 unchanged; contrast.txt 2 OPEN);
+the agent, Store and Packs sheets and the play-style check re-run unchanged (104, 74, 52, 21 PASS, not committed: no
+change to them). Tests: the render suite 1201 of 1201 (season1 112); typecheck clean.
+
+**Worked:** the volatile state caught the cap that left a big day as a steep slope. **Thin:** the right-hand step is
+honest but short (a day is 4-6 px at this size); in a volatile month some big days have their value only in the
+title. **Blocked:** nothing. **Next:** render 93, group 4: Collection and Daily rewards.

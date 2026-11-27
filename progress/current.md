@@ -40,6 +40,15 @@ a pack holds from the live odds). States sheets `output/store-states.html` (8) a
 (the Buy flow clicked through); fit.txt 140 of 166 (Store and Packs 32 of 32). Four small calls at the render
 checkpoint.
 
+**Render session 92 (the hardening pass, 2026-11-28):** the owner's point 8, the Ladder's "Rating, 30 days" chart:
+the tier names in a gutter left of the plot (never on the line), x by the day, a near-vertical day drawn as a step
+with its value ("−68"), placed clear of the line, and the line ends at the tile's rating
+(`render/season1/src/ratingChart.ts`, `test/ratingChart.test.ts`; `ci/tile-states-check.mjs ladder` measures it,
+`season1-ladder-tile-s92/` 115 PASS, two new chart states). The contrast measure shared (`ci/contrast.mjs`) and run on
+every tile of the Home (`season1-home-grid-s92/contrast.txt`): Watch live's names, Match history's W / L and the
+alerts' links fixed; grid check 165 PASS, 0 FAIL, 6 OPEN; fit.txt 140 of 166. Three small calls at the render
+checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -87,18 +96,17 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 91's four calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 92's three calls may be there).
 
-Next: **render 92 is the hardening pass** (every 5th render session), and it takes the owner's 2026-11-28 point 8:
-the Ladder's "Rating, 30 days" chart (the "Diamond" label sits on the line, and the line drops straight down at the
-right-hand end): labels never on the line, no vertical drop unless the data has one (then a step with its value), and
-a check for it. Then **render 93: group 4, Collection and Daily rewards** (Collection M and L, Daily rewards S and
-M are most of the 26 renders that don't fit), then Notifications and History, until fit.txt is all "fits" and
-fill.txt has no OPEN line; then phase 2 step 3, three pack-wrapper designs with placeholder art. Write each tile's
-states sheet first (`statesSheet.ts`, as `storeStates.ts` / `packsStates.ts`) and add it to
-`ci/tile-states-check.mjs`, then fit it. Phase 1's step 5 (Watch live 9:16 on the Season 1 arena) and step 6 (the
-music spec) are still open. A call only the owner can make goes in the notes as "waiting on owner" and the session
-moves on.
+Next: **render 93: group 4, Collection and Daily rewards** (Collection M and L, Daily rewards S and M are most of the
+26 renders that don't fit; Daily rewards M's clipped text is also an OPEN line in contrast.txt), then Notifications
+and History, until fit.txt is all "fits", fill.txt has no OPEN line and contrast.txt has no OPEN line; add each tile
+to the grid check's `DONE` set as its group lands. Then phase 2 step 3, three pack-wrapper designs with placeholder
+art, which now carries the owner's 2026-11-28 Pocket-quality entries (the foil pack, its light and shine, the pick
+row; each pack its own server-held seed, no "same odds" line). Write each tile's states sheet first (`statesSheet.ts`,
+as `storeStates.ts` / `packsStates.ts`) and add it to `ci/tile-states-check.mjs`, then fit it. Phase 1's step 5
+(Watch live 9:16 on the Season 1 arena) and step 6 (the music spec) are still open. Render 97 is the next hardening
+pass. A call only the owner can make goes in the notes as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

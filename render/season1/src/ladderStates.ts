@@ -52,6 +52,13 @@ function rerank(d: OwnerData, rows: Standing[]) {
 
 const extra = (name: string, rating: number): Standing => ({ rank: 0, ownerName: name, agent: { name: `${name}'s agent` }, rating, tier: "", wins: 10, losses: 10 });
 
+/** Set the chart's last days to a series (render 92: the chart's own states;
+ * the days before the series hold its first value, as an idle stretch does). */
+function chartEndingIn(d: OwnerData, series: number[]) {
+  const ch = d.stats.rating.chart, off = ch.length - series.length;
+  ch.forEach((p, i) => { p.rating = series[Math.max(0, i - off)]!; p.rated = i >= off && i > 0 && series[i - off] !== series[Math.max(0, i - off - 1)] ? 3 : 0; });
+}
+
 export function ladderStateCases(data: HomeData): StateCase[] {
   const nova = data.owners.nova!, wren = data.owners.wren!;
   return [
@@ -71,6 +78,17 @@ export function ladderStateCases(data: HomeData): StateCase[] {
     }) },
     { id: "settled", name: "Settled, up this week", data: from(nova, (d) => placeAt(d, { rating: 1716, rd: 84, matches: 61, week: 42, recent: ["win", "win", "win", "loss", "win", "win", "loss", "win", "win", "win"], streak: { kind: "win", length: 3 } })) },
     { id: "top-tier", name: "The top tier: Mythic, #1", data: from(nova, (d) => placeAt(d, { rating: 2012, rd: 71, matches: 140, week: 0, recent: ["win", "win", "win", "win", "win", "win", "win", "win", "win", "win"], streak: { kind: "win", length: 12 }, best: 19 })) },
+    // The chart's own states (render 92, owner 2026-11-28 point 8): a big day
+    // in the middle of the month, crossing a floor; and a volatile month with
+    // more big days than the chart draws as steps.
+    { id: "big-day", name: "A big day mid-month: +164 in one day, up through the Diamond floor", data: from(nova, (d) => {
+      placeAt(d, { rating: 1866, rd: 96, matches: 74, week: 22, recent: ["win", "win", "loss", "win", "win", "win", "loss", "win", "win", "win"], streak: { kind: "win", length: 3 } });
+      chartEndingIn(d, [1668, 1671, 1665, 1672, 1676, 1680, 1677, 1683, 1690, 1686, 1694, 1858, 1851, 1847, 1855, 1849, 1844, 1850, 1856, 1852, 1858, 1861, 1857, 1860, 1864, 1866]);
+    }) },
+    { id: "volatile", name: "A volatile month: six big days, across three floors", data: from(nova, (d) => {
+      placeAt(d, { rating: 1712, rd: 168, matches: 31, week: -96, recent: ["loss", "win", "loss", "loss", "win", "win", "loss", "win", "loss", "win"], streak: { kind: "loss", length: 1 } });
+      chartEndingIn(d, [1500, 1500, 1610, 1622, 1615, 1490, 1484, 1495, 1690, 1702, 1698, 1560, 1566, 1559, 1571, 1745, 1752, 1740, 1808, 1801, 1795, 1712]);
+    }) },
     { id: "far-down", name: "Far down a long ladder: Bronze, #5 of 7, long names, a draw", data: from(nova, (d) => {
       d.ladder.standings.push(extra("Quantum Lattice Overseer", 1902), extra("Penumbra Cartographer", 1611), extra("Halcyon Driftworks", 1498), extra("Ossuary Nine", 1402), extra("Little Engine That Could", 1168));
       placeAt(d, { rating: 1291, rd: 122, matches: 48, week: -121, recent: ["loss", "loss", "draw", "loss", "loss", "win", "loss", "win", "loss", "loss"], streak: { kind: "loss", length: 2 }, best: 4 });

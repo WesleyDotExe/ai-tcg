@@ -1,0 +1,121 @@
+
+=== light ===
+PASS unit 191px, placed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, placing: S, M and L fit their boxes, nothing spills
+PASS unit 191px, just-placed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, settled: S, M and L fit their boxes, nothing spills
+PASS unit 191px, top-tier: S, M and L fit their boxes, nothing spills
+PASS unit 191px, big-day: S, M and L fit their boxes, nothing spills
+PASS unit 191px, volatile: S, M and L fit their boxes, nothing spills
+PASS unit 191px, far-down: S, M and L fit their boxes, nothing spills
+PASS unit 218px, placed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, placing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, just-placed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, settled: S, M and L fit their boxes, nothing spills
+PASS unit 218px, top-tier: S, M and L fit their boxes, nothing spills
+PASS unit 218px, big-day: S, M and L fit their boxes, nothing spills
+PASS unit 218px, volatile: S, M and L fit their boxes, nothing spills
+PASS unit 218px, far-down: S, M and L fit their boxes, nothing spills
+PASS unit 231px, placed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, placing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, just-placed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, settled: S, M and L fit their boxes, nothing spills
+PASS unit 231px, top-tier: S, M and L fit their boxes, nothing spills
+PASS unit 231px, big-day: S, M and L fit their boxes, nothing spills
+PASS unit 231px, volatile: S, M and L fit their boxes, nothing spills
+PASS unit 231px, far-down: S, M and L fit their boxes, nothing spills
+PASS placed: every size says the same rating and tier ("1,774", "Platinum")
+PASS placed: one bar at M and L ("Next tier"), none at S
+PASS placed: L's standings hold the owner's own row
+PASS placed: the form's dots sit on one line at every size
+PASS placed: the chart's tier names never touch the line (closest 5.1px) or each other
+PASS placed: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS placed: every vertical on the chart is a big day, each named with its value in the chart's title (1 step)
+PASS placed: each step's value (−68) is clear of the line (closest 4.1px), inside the plot and clear of the others
+PASS placed: the line ends in a dot on its last point, inside the plot
+PASS placed: the chart ends at the tile's rating ("1,774")
+PASS new: every size says the same rating and tier ("Unrated", "In placement")
+PASS new: one bar at M and L ("Placement"), none at S
+PASS new: L's standings hold the owner's own row
+PASS new: the form's dots sit on one line at every size
+PASS placing: every size says the same rating and tier ("Unrated", "In placement")
+PASS placing: one bar at M and L ("Placement"), none at S
+PASS placing: L's standings hold the owner's own row
+PASS placing: the form's dots sit on one line at every size
+PASS just-placed: every size says the same rating and tier ("1,583", "Gold")
+PASS just-placed: one bar at M and L ("Next tier"), none at S
+PASS just-placed: L's standings hold the owner's own row
+PASS just-placed: the form's dots sit on one line at every size
+PASS just-placed: the chart's tier names never touch the line (closest 5.0px) or each other
+PASS just-placed: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS just-placed: every vertical on the chart is a big day, each named with its value in the chart's title (0 steps)
+PASS just-placed: each step's value (none) is clear of the line (closest 99.0px), inside the plot and clear of the others
+PASS just-placed: the line ends in a dot on its last point, inside the plot
+PASS just-placed: the chart ends at the tile's rating ("1,583")
+PASS settled: every size says the same rating and tier ("1,716", "Platinum")
+PASS settled: one bar at M and L ("Next tier"), none at S
+PASS settled: L's standings hold the owner's own row
+PASS settled: the form's dots sit on one line at every size
+PASS settled: the chart's tier names never touch the line (closest 14.7px) or each other
+PASS settled: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS settled: every vertical on the chart is a big day, each named with its value in the chart's title (0 steps)
+PASS settled: each step's value (none) is clear of the line (closest 99.0px), inside the plot and clear of the others
+PASS settled: the line ends in a dot on its last point, inside the plot
+PASS settled: the chart ends at the tile's rating ("1,716")
+PASS top-tier: every size says the same rating and tier ("2,012", "Mythic")
+PASS top-tier: one bar at M and L ("Next tier"), none at S
+PASS top-tier: L's standings hold the owner's own row
+PASS top-tier: the form's dots sit on one line at every size
+PASS top-tier: the chart's tier names never touch the line (closest 99.0px) or each other
+PASS top-tier: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS top-tier: every vertical on the chart is a big day, each named with its value in the chart's title (0 steps)
+PASS top-tier: each step's value (none) is clear of the line (closest 99.0px), inside the plot and clear of the others
+PASS top-tier: the line ends in a dot on its last point, inside the plot
+PASS top-tier: the chart ends at the tile's rating ("2,012")
+PASS big-day: every size says the same rating and tier ("1,866", "Diamond")
+PASS big-day: one bar at M and L ("Next tier"), none at S
+PASS big-day: L's standings hold the owner's own row
+PASS big-day: the form's dots sit on one line at every size
+PASS big-day: the chart's tier names never touch the line (closest 5.5px) or each other
+PASS big-day: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS big-day: every vertical on the chart is a big day, each named with its value in the chart's title (1 step)
+PASS big-day: each step's value (+164) is clear of the line (closest 4.1px), inside the plot and clear of the others
+PASS big-day: the line ends in a dot on its last point, inside the plot
+PASS big-day: the chart ends at the tile's rating ("1,866")
+PASS volatile: every size says the same rating and tier ("1,712", "Platinum")
+PASS volatile: one bar at M and L ("Next tier"), none at S
+PASS volatile: L's standings hold the owner's own row
+PASS volatile: the form's dots sit on one line at every size
+PASS volatile: the chart's tier names never touch the line (closest 5.0px) or each other
+PASS volatile: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS volatile: every vertical on the chart is a big day, each named with its value in the chart's title (7 steps)
+PASS volatile: each step's value (+110, +195, −138) is clear of the line (closest 3.7px), inside the plot and clear of the others
+PASS volatile: the line ends in a dot on its last point, inside the plot
+PASS volatile: the chart ends at the tile's rating ("1,712")
+PASS far-down: every size says the same rating and tier ("1,291", "Bronze")
+PASS far-down: one bar at M and L ("Next tier"), none at S
+PASS far-down: L's standings hold the owner's own row
+PASS far-down: the form's dots sit on one line at every size
+PASS far-down: the chart's tier names never touch the line (closest 27.1px) or each other
+PASS far-down: no slope on the chart reads as a straight drop (steeper than 75deg and over 6px)
+PASS far-down: every vertical on the chart is a big day, each named with its value in the chart's title (0 steps)
+PASS far-down: each step's value (none) is clear of the line (closest 99.0px), inside the plot and clear of the others
+PASS far-down: the line ends in a dot on its last point, inside the plot
+PASS far-down: the chart ends at the tile's rating ("1,291")
+PASS light: no tile is the hero panel (81 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.6:1, form "W")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.6:1, form "W")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.7:1, standings "Nova (you)")
+
+=== dark ===
+PASS dark: no tile is the hero panel (81 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.6:1, standings "Nova (you)")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.7:1, standings "Nova (you)")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, standings "Nova (you)")
+PASS no page errors
+PASS no outside requests
+
+115 PASS, 0 FAIL
