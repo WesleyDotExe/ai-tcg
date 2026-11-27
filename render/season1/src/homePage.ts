@@ -31,7 +31,7 @@
 
 import { ICONS, esc, icon } from "../../src/site/siteModel.js";
 import { TILES, type Size } from "./homeSpec.js";
-import { featured, homeArt, nextAction, tileFacts, type HomeData, type OwnerData } from "./homeFacts.js";
+import { CARDS_PER_PACK, featured, homeArt, nextAction, tileFacts, type HomeData, type OwnerData } from "./homeFacts.js";
 import { B_TONE, bCss, heroArt } from "./homeMockupB.js";
 import { OPEN_LABEL, PLACES, SHELL_SCRIPT, boardsWith, editControls, mockStrip, opensOf, ownersPayload, payloadJson, type Board } from "./homeShell.js";
 import { GRID, GRID_JS } from "./homeGrid.js";
@@ -43,13 +43,10 @@ const svg = (paths: string, size = 18) => `<svg viewBox="0 0 24 24" width="${siz
 // night), then My agent (owner 2026-11-27, render session 88). Mockup B's
 // record page keeps its deep indigo hero (homeMockupB.ts).
 const HERO = new Set<string>();
-// Store M shows the featured pack and two cosmetics (owner 2026-11-23,
-// point 3): the fact draws only those two, not three with one hidden.
 // How many leading facts make a tile's headline (the rest is the body).
 // Ladder's headline is the rating, the tier and the rank together (render
 // session 89): the three S shows, and the left half of M.
 const HEAD_FACTS: Record<string, number> = { ladder: 3 };
-const factOpts = (tileId: string, size: Size) => (tileId === "store" && size === "M" ? { featuredCosmetics: 2 } : undefined);
 
 /** The recommended first board on the grid. Chosen so it packs with no hole
  * at 6 columns (1280-1440 px) and at 4 (900-1180 px), with the agent and
@@ -76,7 +73,7 @@ export function gridTileHtml(tileId: string, size: Size, d: OwnerData): string {
   const act = nextAction(t, size, d);
   const opens = opensOf(t.id);
   const waiting = t.status === "waiting on owner";
-  const facts = tileFacts(t, size, d, factOpts(t.id, size));
+  const facts = tileFacts(t, size, d);
   const isAct = (f: string) => f.startsWith('<div class="fx act"');
   const rest = facts.filter((f) => !isAct(f));
   const nHead = HEAD_FACTS[t.id] ?? 1;
@@ -95,7 +92,7 @@ export function gridTileHtml(tileId: string, size: Size, d: OwnerData): string {
     `<p class="q" id="q-${t.id}">${esc(t.question)}</p>` +
     `<div class="headline">${art}${head ?? ""}</div>` +
     `<div class="body">${body.join("")}</div>` +
-    `<footer>${size === "S" ? live : ""}${facts.some(isAct) ? facts.filter(isAct).join("") : `<button type="button" class="btn ${act.primary ? "pri" : ""}" data-go="${act.to}"${act.disabled ? " disabled" : ""}>${esc(act.label)}</button>`}</footer>` +
+    `<footer>${size === "S" ? live : ""}${facts.some(isAct) ? facts.filter(isAct).join("") : `<button type="button" class="btn ${act.primary ? "pri" : ""}" data-go="${act.to}"${act.buy ? ` data-buy="${esc(act.buy)}"` : ""}${act.disabled ? " disabled" : ""}>${esc(act.label)}</button>`}</footer>` +
     `</article>`;
 }
 
@@ -130,7 +127,7 @@ export const GRID_CSS = `
 .ugrid .tile.s-M:not([data-tile="watch"]) > .body:empty + footer { grid-column: 1 / -1; }
 /* L (2x2): stacked, its details in two columns. */
 .ugrid .tile.s-L:not([data-tile="watch"]) .body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; align-content: start; }
-.ugrid .s-L :is([data-fact="recentMatches"], [data-fact="alerts"], [data-fact="personality"], [data-fact="lastPulls"], [data-fact="winSchedule"], [data-fact="bestCards"], [data-fact="trend"], [data-fact="cosmetics"]) { grid-column: 1 / -1; }
+.ugrid .s-L :is([data-fact="recentMatches"], [data-fact="alerts"], [data-fact="personality"], [data-fact="lastPulls"], [data-fact="winSchedule"], [data-fact="bestCards"], [data-fact="trend"], [data-fact="buyPacks"]) { grid-column: 1 / -1; }
 /* The status pills on the glass (render session 88, measured from the
    pixels): the pure status colours read at about 3:1 on the light glass, so
    the words take the colour mixed toward the ink; the ring keeps the pure
@@ -337,31 +334,39 @@ export const GRID_CSS = `
 .tile[data-tile="watch"].s-S .vsx { font-size: 0; } .tile[data-tile="watch"].s-S .vsx small { font: 700 11px ui-monospace, Menlo, monospace; }
 .tile[data-tile="watch"].s-S .vs .side .sub { font-size: 11.5px; }
 .tile[data-tile="watch"].s-S footer { justify-content: space-between; align-items: center; }
-/* Store M: a shop window in a short tile. On the left the credits, what
-   they buy and the button; on the right the featured pack and two featured
-   cosmetics (the owner's "2-3") as tall pictures with prices and Buy. */
-.ugrid .tile[data-tile="store"].s-M { display: grid; grid-template-columns: 150px minmax(0, 1fr) minmax(0, 2fr); grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "hd hd hd" "hl pk co" "af pk co" "ft pk co"; column-gap: 8px; row-gap: 6px; }
+/* Packs (render session 91). M: the packs and how many wait across the
+   top (a new player's "open them" line beside them), the guarantee and Open
+   a pack below; the fan a little smaller. L: the guarantee one full line. */
+.ugrid .tile[data-tile="packs"].s-M { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); }
+.ugrid .tile[data-tile="packs"].s-M > .headline { grid-column: 1 / -1; grid-row: 2; align-self: start; }
+.ugrid .tile[data-tile="packs"].s-M > .body { grid-column: 1; grid-row: 3; align-self: end; }
+.ugrid .tile[data-tile="packs"].s-M > footer { grid-column: 2; grid-row: 3; align-self: end; }
+.ugrid .tile[data-tile="packs"]:is(.s-S, .s-M) .pk-fan { zoom: .84; }
+.ugrid .tile[data-tile="packs"] [data-fact="unopened"] { column-gap: 6px; row-gap: 0; align-items: baseline; }
+.ugrid .tile[data-tile="packs"] [data-fact="unopened"] .why { flex-basis: 100%; font-size: 12.5px; line-height: 1.3; }
+.ugrid .tile[data-tile="packs"].s-M [data-fact="guarantee"] { font-size: 12.5px; line-height: 1.3; }
+.ugrid .tile[data-tile="packs"].s-L [data-fact="guarantee"] { grid-column: 1 / -1; }
+/* Store (render session 91, owner 2026-11-28 point 9): the packs are the
+   hero. M: the credits, what they buy and See the whole Store on the left;
+   the featured pack (art, price, Buy) filling the right. L: the credits and
+   what they buy, then the packs on sale as a shelf filling the tile. */
+.ugrid .tile[data-tile="store"].s-M { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "hd hd" "hl pk" "af pk" "ft pk"; }
 .ugrid .tile[data-tile="store"].s-M > header { grid-area: hd; }
-.ugrid .tile[data-tile="store"].s-M > .headline { grid-area: hl; }
-.ugrid .tile[data-tile="store"].s-M [data-fact="credits"] { flex-wrap: wrap; column-gap: 6px; row-gap: 0; }
-.ugrid .tile[data-tile="store"].s-M > footer { grid-area: ft; justify-content: flex-start; }
-.ugrid .tile[data-tile="store"].s-M > footer .btn { padding: 7px 12px; font-size: 13px; }
+.ugrid .tile[data-tile="store"].s-M > .headline { grid-area: hl; grid-row: auto; grid-column: auto; align-self: start; }
+.ugrid .tile[data-tile="store"] [data-fact="credits"] { flex-wrap: wrap; column-gap: 6px; row-gap: 0; }
+.ugrid .tile[data-tile="store"].s-M > footer { grid-area: ft; grid-row: auto; grid-column: auto; justify-content: flex-start; align-self: end; }
+.ugrid .tile[data-tile="store"].s-M > footer .btn { padding: 6px 11px; font-size: 12.5px; }
 .ugrid .tile[data-tile="store"].s-M > .body { display: contents; }
 .ugrid .tile[data-tile="store"].s-M [data-fact="affordable"] { grid-area: af; }
-.ugrid .tile[data-tile="store"].s-M [data-fact="affordable"] .sub { font-size: 12px; }
-.ugrid .tile[data-tile="store"].s-M [data-fact="buyPacks"] { grid-area: pk; }
-.ugrid .tile[data-tile="store"].s-M [data-fact="cosmetics"] { grid-area: co; }
-.ugrid .tile[data-tile="store"].s-M :is([data-fact="buyPacks"], [data-fact="cosmetics"]) { min-height: 0; display: flex; }
-.ugrid .tile[data-tile="store"].s-M :is([data-fact="buyPacks"], [data-fact="cosmetics"]) > .lab { display: none; }
-.ugrid .tile[data-tile="store"].s-M .shelf { display: flex; flex: 1; flex-wrap: nowrap; gap: 8px; min-height: 0; min-width: 0; }
-.ugrid .tile[data-tile="store"].s-M .si { width: auto; flex: 1 1 0; min-width: 0; padding: 4px; gap: 4px; border-radius: 12px; }
-.ugrid .tile[data-tile="store"].s-M .si-art { height: auto; flex: 1 1 0; min-height: 0; border-radius: 8px; }
-.ugrid .tile[data-tile="store"].s-M .si-art .spk { --pw: 44px !important; }
-.ugrid .tile[data-tile="store"].s-M .si-art .sh-emb { width: 44px; height: 44px; }
-.ugrid .tile[data-tile="store"].s-M .si-art canvas { max-height: 100%; max-width: 100%; }
-.ugrid .tile[data-tile="store"].s-M .si figcaption { display: none; }
-.ugrid .tile[data-tile="store"].s-M .si-p { font-size: 11px; right: 3px; bottom: 3px; }
-.ugrid .tile[data-tile="store"].s-M .si-buy { padding: 2px 6px; font-size: 12px; }
+.ugrid .tile[data-tile="store"] [data-fact="affordable"] .sub { font-size: 12.5px; line-height: 1.3; }
+.ugrid .tile[data-tile="store"].s-M [data-fact="buyPacks"] { grid-area: pk; min-height: 0; display: flex; }
+.ugrid .tile[data-tile="store"].s-M .pb.hero { flex: 1; min-height: 0; grid-template-columns: minmax(64px, .8fr) minmax(0, 1fr); }
+.ugrid .tile[data-tile="store"].s-M .pb.hero .pb-art { min-height: 0; }
+.ugrid .tile.s-L[data-tile="store"]:not(.x) > .body { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 6px; }
+.ugrid .tile.s-L[data-tile="store"]:not(.x) [data-fact="affordable"] { flex: none; }
+.ugrid .tile[data-tile="store"].s-L [data-fact="buyPacks"] { align-self: stretch; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+.ugrid .tile[data-tile="store"].s-L .pshelf { flex: 1 1 auto; }
+.ugrid .tile[data-tile="store"].s-L .pb.shelf .pb-art { min-height: 0; }
 /* My agent's Play style section (the prototype draws only this part of the
    page): the six as choices, the picked one ready to confirm. */
 .ps { margin-bottom: 16px; } .ps h2 .subt { font: 600 13px system-ui, sans-serif; color: var(--muted); margin-left: 6px; }
@@ -401,7 +406,7 @@ export const GRID_CSS = `
 export function homePage(data: HomeData): string {
   // Each owner's play styles and the agent's own (the My agent page's
   // Play style step reads them; the tiles are drawn on the server side).
-  const owners = ownersPayload(data, gridTileHtml, (d) => ({ styles: d.play.playStyles, style: d.play.connectedAgent?.playStyle ?? null, live: !!d.play.liveMatch, agent: d.play.connectedAgent ? { id: d.play.connectedAgent.agentId, name: d.play.connectedAgent.name } : null }));
+  const owners = ownersPayload(data, gridTileHtml, (d) => ({ styles: d.play.playStyles, style: d.play.connectedAgent?.playStyle ?? null, live: !!d.play.liveMatch, agent: d.play.connectedAgent ? { id: d.play.connectedAgent.agentId, name: d.play.connectedAgent.name } : null, offer: d.packs.offer, credits: d.wallet.credits, perPack: CARDS_PER_PACK }));
   const pages = PLACES.map((p) => ({ ...p, from: [...p.from].map((id) => TILES.find((t) => t.id === id)!.name) }));
   const art = homeArt();
   const payload = payloadJson({ owners, boards: GRID_BOARDS, pages, takenAt: data.takenAt, theme: "light", tz: Object.values(data.owners)[0]!.daily.timeZone, grid: GRID });
@@ -482,6 +487,37 @@ ${art.defs}
     const f = document.querySelector(t.id === 'ps-ok' ? '.ps .saved' : '.ps [aria-pressed="true"]');
     if (f && f.focus) { if (f.tagName === 'P') f.tabIndex = -1; f.focus({ preventScroll: true }); }
   });
+  // Buying packs (render session 91, owner 2026-11-28 point 9). A Buy on
+  // the Store tile opens the Store (Cards) with that purchase ready to
+  // confirm; the tile never spends credits itself. The site then sends
+  // POST /api/packs/buy { setCode, count } (all or none); here the
+  // prototype only says what was bought. st.buy is the purchase waiting.
+  st.buy = null; st.bought = null;
+  const n0 = (x) => Number(x).toLocaleString('en-AU');
+  function buyPanel() {
+    const x = ex();
+    if (!st.buy && !st.bought) return '';
+    if (st.bought) return '<section class="pg ps buy" aria-labelledby="buy-h"><h2 id="buy-h">Packs</h2><p class="saved" role="status" tabindex="-1">' + escH(st.bought) + '</p><button type="button" class="btn" data-go="home">Back to Home</button></section>';
+    const [code, cnt] = st.buy.split(':');
+    const o = x.offer.find((q) => q.setCode === code) || x.offer[0];
+    const count = Number(cnt) || 1, price = o.priceCredits * count, left = x.credits - price;
+    const what = (count === 1 ? '1 ' + o.name + ' pack' : count + ' ' + o.name + ' packs') + ' (' + count * x.perPack + ' cards)';
+    return '<section class="pg ps buy" aria-labelledby="buy-h"><h2 id="buy-h">Buy packs</h2><div class="confirm" role="group" aria-label="Confirm the purchase"><p><b>Buy ' + escH(what) + ' for ' + n0(price) + ' credits?</b> ' +
+      (left >= 0 ? 'You keep ' + n0(left) + ' credits; the packs wait in Packs to open.' : 'You have ' + n0(x.credits) + ' credits: ' + n0(-left) + ' short.') + '</p>' +
+      (left >= 0 ? '<button type="button" class="btn pri" id="buy-ok">Buy for ' + n0(price) + '</button>' : '') + '<button type="button" class="btn" id="buy-no">Cancel</button></div></section>';
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-buy], #buy-ok, #buy-no');
+    if (!t) return;
+    // A Buy on the tile: remember it; the shell then opens Cards.
+    if (t.dataset.buy) { st.buy = t.dataset.buy; st.bought = null; return; }
+    if (t.id === 'buy-ok') { const [code, cnt] = st.buy.split(':'); const o = ex().offer.find((q) => q.setCode === code) || ex().offer[0]; st.bought = 'Bought ' + (cnt === '1' ? '1 ' + o.name + ' pack' : cnt + ' ' + o.name + ' packs') + ' (prototype: nothing is spent). They wait in Packs.'; }
+    else st.bought = null;
+    st.buy = null;
+    draw();
+    const f = document.querySelector('.buy .saved, .buy #buy-ok, .buy #buy-no');
+    if (f && f.focus) f.focus({ preventScroll: true });
+  });
   function right(p) {
     const o = D.owners[st.owner];
     const gear = '<a href="#/settings" data-go="settings" class="nav set" aria-label="Settings">${icon("gear", 18).replace(/'/g, "\\'")}<span>Settings</span></a>';
@@ -531,7 +567,7 @@ ${art.defs}
       return;
     }
     const title = S.titleOf(p);
-    main.innerHTML = '<div class="top"><div><span class="kick">// ' + p + '</span><h1>' + title + '</h1></div></div>' + (p === 'agent' ? stylePanel() : '') + S.stub(title, D.pages.find((x) => x.id === p));
+    main.innerHTML = '<div class="top"><div><span class="kick">// ' + p + '</span><h1>' + title + '</h1></div></div>' + (p === 'agent' ? stylePanel() : '') + (p === 'cards' ? buyPanel() : '') + S.stub(title, D.pages.find((x) => x.id === p));
   }
   document.addEventListener('click', (e) => {
     const b = e.target.closest('.qb');

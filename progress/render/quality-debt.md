@@ -7,7 +7,23 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-90, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-91, fenced off in render/season1/; Season 1 scope)
+
+Session 91 (Packs and Store; owner point 9) fixed: Store L ran 447-526 px past its box and the tile led with
+cosmetics; the Packs fan spilled past the tile in every render; a new player's Packs S ran 25-110 px over and L was
+43-46% empty. New debt it leaves:
+- **The Buy confirm lives only in the prototype page** (`homePage.ts` script): no `POST /api/packs/buy`, nothing
+  spent, the wallet and Packs' count unchanged after "Bought". The Store page itself (the cosmetics, this month's
+  collection row) is still the navigation's stub, so "See the whole Store" shows no cosmetics yet.
+- **The tile doesn't know when the season has ended** (the API then refuses every buy, 409): it still offers Buy.
+  `GET /api/season` isn't in the Home snapshot; the Season 0 Store page handles this, the Season 1 tile doesn't.
+- **"Featured" is the first offer the API lists.** There is no featured flag in the API; with Season 1 selling its
+  own pack beside Season 0's, the order decides. The two- and three-offer states use made-up packs and the Season 0
+  pack art with the set's name printed (no per-set art: that waits on the pack art design).
+- **The pack's printed logo is exempt from the contrast check** (aria-hidden art); the price on the art (white on a
+  dark chip) is measured.
+- **The states sheets add 1.8 MB of pages** (`store-states.html`, `packs-states.html`): the pack plate's SVG is
+  inlined for every pack drawn.
 
 Session 90 (play styles as choices, owner note 6) fixed: nothing on the tile said the personalities were choices or
 what they did. New debt it leaves:
@@ -31,10 +47,11 @@ Session 88 (the agent tile) fixed: My agent didn't fit at M (0 of 6) or L (1 of 
 the light glass. Checks: `season1-agent-tile-s88/check.txt` (58 PASS), `season1-home-grid-s88/before-s88/` (21 FAIL
 on main). Session 87 fixed Watch live's dark surround, Edit board's S headers, Store M's hidden cosmetic.
 
-- **35 of 166 tile renders don't fit their box** (`season1-home-grid-s90/fit.txt`; My agent and Ladder 16 of 16):
-  Store L by 447-526 px, Collection M and L, Daily rewards S and M, Notifications M and L at some widths, Packs S for
-  a new player, History S on a phone. Clipped by the tile. The next groups own this, Packs and Store first.
-- **29 of 148 desktop tile renders have an empty band over 40%, and 42 spill** (`fill.txt`); none My agent or Ladder.
+- **26 of 166 tile renders don't fit their box** (`season1-home-grid-s91/fit.txt`; My agent, Ladder, Store and Packs
+  all fit): Collection M and L, Daily rewards S and M, Notifications M and L at some widths, History S on a phone.
+  Clipped by the tile. The next group owns most of this: Collection and Daily rewards.
+- **21 of 148 desktop tile renders have an empty band over 40%, and 21 spill** (`fill.txt`); none My agent, Ladder,
+  Store or Packs.
   The band measure looks across the whole width, so one short column in a two-column tile isn't flagged; the phone
   isn't in the fill table. Reported, not failed.
 - **The recommended board still doesn't fit at any width** (Collection L; Daily rewards S at 1280).

@@ -59,9 +59,8 @@ export const FACTS = {
   lastPulls: "the cards from your last packs",
   // Store.
   credits: "credits to spend",
-  affordable: "how many of the things for sale the credits buy",
-  buyPacks: "packs for sale, as pictures with prices (M: the featured pack; L: every pack in one row)",
-  cosmetics: "cosmetics for sale, as pictures with prices (M: 2-3 featured; L: the full shelf, grouped by type)",
+  affordable: "how many packs the credits buy",
+  buyPacks: "packs for sale as the hero, pictures with prices and Buy (M: the featured pack; L: the packs on sale as a shelf)",
   // Collection.
   completion: "set completion (held of total, %)",
   chase: "Secrets and Prototypes found",
@@ -199,18 +198,18 @@ export const TILES: TileSpec[] = [
     question: "What can I spend my credits on?",
     sizes: {
       S: ["credits", "affordable"],
-      M: ["credits", "affordable", "buyPacks", "cosmetics"],
-      L: ["credits", "affordable", "buyPacks", "cosmetics"],
+      M: ["credits", "affordable", "buyPacks"],
+      L: ["credits", "affordable", "buyPacks"],
     },
     newPlayer: {
-      S: "0 credits · \"Your agent earns credits by winning.\"",
-      M: "The featured pack and 2-3 cosmetics as pictures with prices; Buy disabled with \"Win matches to earn credits\" (not \"100 credits short\").",
-      L: "As M, the full shelf: packs in one row, cosmetics grouped by type.",
+      S: "0 credits · \"Win matches to earn credits\"",
+      M: "The featured pack as the hero (its art, price, Buy greyed with how many more credits it needs) and \"Win matches to earn credits\" (not \"100 credits short\").",
+      L: "As M, the packs on sale as a shelf (1 pack and 10), each with its art, price and Buy, and See the whole Store.",
     },
     next: { S: "Buy", M: "Buy", L: "Buy" },
     opens: "store",
     status: "decided",
-    note: "Owner 2026-11-22: a visual shop window for what's for sale (packs and cosmetics, pictures with prices, Buy). S: credits and how many things they buy; M: a featured pack and 2-3 featured cosmetics; L: the full shelf. The cosmetics readability rule still holds.",
+    note: "Owner 2026-11-28, point 9 (replaces the tile part of 2026-11-22 point 3): the tile's hero is the extra packs, not the cosmetics. S: credits and how many packs they buy; M: the featured pack as the hero (art, price, Buy) and what the credits buy; L: the packs on sale as the hero shelf (art, price, Buy each) and See the whole Store. The cosmetics (arenas, card backs, boasts, coins, avatars, this month's collection as one row) stay in the Store page. Claim stays in Daily rewards, open in Packs. A Buy opens the Store with that purchase ready to confirm.",
   },
   {
     id: "collection",

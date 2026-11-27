@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 import { homePage } from "../src/homePage.js";
 import { agentStatesPage } from "../src/agentStates.js";
 import { ladderStatesPage } from "../src/ladderStates.js";
+import { storeStatesPage } from "../src/storeStates.js";
+import { packsStatesPage } from "../src/packsStates.js";
 import type { HomeData } from "../src/homeFacts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -30,3 +32,15 @@ const ladder = join(here, "..", "output", "ladder-states.html");
 const lsheet = ladderStatesPage(data);
 writeFileSync(ladder, lsheet);
 console.log(`[home] wrote ${ladder} (${(lsheet.length / 1024).toFixed(0)} KB)`);
+
+// The Store tile in every credits and pack-offer state (render session 91).
+const store = join(here, "..", "output", "store-states.html");
+const ssheet = storeStatesPage(data);
+writeFileSync(store, ssheet);
+console.log(`[home] wrote ${store} (${(ssheet.length / 1024).toFixed(0)} KB)`);
+
+// The Packs tile in every waiting and pity state (render session 91).
+const packs = join(here, "..", "output", "packs-states.html");
+const psheet = packsStatesPage(data);
+writeFileSync(packs, psheet);
+console.log(`[home] wrote ${packs} (${(psheet.length / 1024).toFixed(0)} KB)`);

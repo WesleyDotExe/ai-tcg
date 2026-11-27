@@ -116,8 +116,8 @@ Phase 1 step 5 prototypes this tile on the Season 1 arena.
 | | Shows | A new player sees | Next |
 |---|---|---|---|
 | S | the packs you have and haven't opened | "3 packs waiting · [Open a pack]" | Open a pack |
-| M | + how soon a Full Art and a Mythic are guaranteed | "3 packs waiting. Open them to add cards your agent can use." | Open a pack |
-| L | + the last pulls | "Your pulls appear here after your first pack." | Open a pack |
+| M | + how soon a Full Art and a Mythic are guaranteed ("in the next pack" when due) | "3 packs waiting. Open them to add cards your agent can use." | Open a pack |
+| L | + the last pulls | "Your pulls appear here after your first pack." and what one pack holds (the live table's five slots) | Open a pack |
 
 **Owner 2026-11-22 (replaces render 82 call 2):** each pack action has one home: **claim** in Daily rewards, **open**
 in Packs, **buy** in Store. Packs keeps only the packs you have and haven't opened. With none, its button is "Buy packs
@@ -128,15 +128,16 @@ in Store".
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | credits, and how many things they buy ("Enough for 4 packs or 1 cosmetic") | "0 credits · Win matches to earn credits" | Buy (or How to earn credits) |
-| M | + the featured pack and 2-3 featured cosmetics, as pictures with prices and Buy | the same pictures, Buy greyed | See the whole Store |
-| L | + the full shelf: the packs in one row (1 and 10), the cosmetics grouped by type | as M | See the whole Store |
+| S | credits, and how many packs they buy ("Enough for 4 packs") | "0 credits · Win matches to earn credits" | Buy a pack (or How to earn credits) |
+| M | + the featured pack as the hero: its art, price and Buy | the pack with "100 more credits" in place of Buy | See the whole Store |
+| L | + the packs on sale as the hero shelf: 1 pack and 10 of each offer (two offers at most, the rest named in one line), art, price and Buy each | as M, both with how many more credits | See the whole Store |
 
-**Owner 2026-11-22:** the Store tile is a visual shop window. The pictures are Season 0's own art: the sealed pack
-the opening tears (its plate), the coins drawn by the coin painter, the boasts' emblems. Only what the server sells is
-drawn; a type with nothing on sale (arenas, card backs, avatars in Season 0) is named in one line. "How many things"
-counts what the credits buy together (449 buys one 300-credit cosmetic, not four). The cosmetics readability rule
-still holds.
+**Owner 2026-11-28, point 9 (replaces the tile part of 2026-11-22 point 3 and render 86 call 4):** the tile's hero is
+the extra packs, not the cosmetics. The cosmetics (arenas, card backs, boasts, coins, avatars, and this month's
+collection as one row) stay in the Store page, shown when the owner opens it. Claim stays in Daily rewards, open in
+Packs. The art is Season 0's own sealed pack (the one the opening tears). A pack the credits don't cover says how many
+more credits it needs instead of a greyed Buy. A Buy never spends credits itself: it opens the Store with that
+purchase ready to confirm (`POST /api/packs/buy { setCode, count }`, 1 to 10, all or none). Render session 91.
 
 ### Collection (Collection + Showcase)
 **Question:** What cards do I have, and what's new?

@@ -1,0 +1,40 @@
+=== a tap on a style opens My agent with it ready to confirm ===
+PASS Home, Nova, recommended board: My agent at L marks Calculator current ({"size":"L","name":"Calculator","on":["calculator"],"marked":true})
+PASS the tap opened My agent (#/agent)
+PASS Rusher is selected, Calculator marked as the current one ({"pressed":["rusher"],"now":["calculator"]})
+PASS one more tap confirms: "Confirm Rusher" / "Keep Calculator", and it says from its next match
+
+=== on My agent, another pick moves the selection ===
+PASS Tempo picked there instead: "Confirm Tempo"
+
+=== Confirm saves it, and every size shows it ===
+PASS confirmed: "Saved: Vector Halcyon plays as Tempo from its next match."
+PASS back on Home, L marks Tempo current ({"size":"L","name":"Tempo","on":["tempo"],"marked":true})
+PASS S names the new style ("Tempo")
+PASS M names the new style ("Tempo")
+
+=== M's Change opens My agent with the current style selected ===
+PASS Change: My agent, Tempo selected, nothing to confirm ({"pressed":["tempo"],"confirm":""})
+
+=== Keep leaves it as it was ===
+PASS after Keep, Tempo is still the one (tempo)
+
+=== a tap on the current style says so ===
+PASS the current style opens My agent: "Tempo is its play style now", nothing to confirm
+
+=== the keyboard ===
+PASS Tab reaches Fortress on the tile (6 presses from the tile's "?")
+PASS a focused style shows a focus ring (solid 2px)
+PASS Enter on Fortress opens My agent with it ready ("Confirm Fortress")
+PASS focus stays in the Play style section after the pick
+
+=== the other owner, and dark ===
+PASS Wren's agent is still Calculator (a confirm is per owner) (calculator)
+PASS Wren: "Confirm Controller", in the agent's own name
+
+=== a phone ===
+PASS 390 px: My agent's S face names the style and fits ({"size":"S","name":"Calculator","on":[],"marked":true}, fits true)
+PASS no page errors
+PASS no outside requests
+
+21 PASS, 0 FAIL

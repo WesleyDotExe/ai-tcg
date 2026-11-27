@@ -207,7 +207,7 @@ ${MASONRY_CSS}
 .fx.row { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; } .fx.row.wrap { flex-wrap: wrap; }
 .fx.kv { display: flex; flex-direction: column; gap: 2px; } .fx.blk { display: flex; flex-direction: column; gap: 5px; }
 .fx.act { display: flex; }
-.s-M :is([data-fact="recentMatches"], [data-fact="alerts"], [data-fact="winSchedule"], [data-fact="lastPulls"], [data-fact="bestCards"], [data-fact="cosmetics"], [data-fact="liveArena"]) { grid-column: 1 / -1; }
+.s-M :is([data-fact="recentMatches"], [data-fact="alerts"], [data-fact="winSchedule"], [data-fact="lastPulls"], [data-fact="bestCards"], [data-fact="buyPacks"], [data-fact="liveArena"]) { grid-column: 1 / -1; }
 .s-L :is([data-fact="recentMatches"], [data-fact="alerts"], [data-fact="personality"], [data-fact="lastPulls"], [data-fact="winSchedule"]) { grid-column: span 2; }
 .s-L :is(.al, .styles) { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; }
 .al li { flex-wrap: nowrap; } .al li > span { min-width: 0; }
@@ -252,8 +252,10 @@ ${MASONRY_CSS}
 .art { flex: none; display: grid; place-items: center; }
 .ring { --p: 0; flex: none; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), color-mix(in srgb, var(--c) 14%, transparent) 0); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 35%, transparent)); }
 .ring > span { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--c); background: var(--glass); box-shadow: inset 0 0 0 1px var(--glass-edge); }
-.pk-fan { position: relative; width: 74px; height: 66px; } .pk-fan .spk { position: absolute; top: 0; } .pk-fan .spk:nth-child(1) { left: 17px; z-index: 3; }
-.pk-fan.n2 .spk:nth-child(2), .pk-fan.n3 .spk:nth-child(2) { left: 2px; transform: rotate(-11deg); z-index: 2; } .pk-fan.n3 .spk:nth-child(3) { left: 32px; transform: rotate(11deg); z-index: 1; }
+/* The fan stays inside its own box (render session 91: the tilted packs
+   ran past the tile's padding): a 40 x 64 pack turned 11deg is 51.5 x 70.5. */
+.pk-fan { position: relative; flex: none; width: 84px; height: 72px; } .pk-fan .spk { position: absolute; top: 4px; } .pk-fan .spk:nth-child(1) { left: 22px; z-index: 3; }
+.pk-fan.n2 .spk:nth-child(2), .pk-fan.n3 .spk:nth-child(2) { left: 8px; transform: rotate(-11deg); z-index: 2; } .pk-fan.n3 .spk:nth-child(3) { left: 36px; transform: rotate(11deg); z-index: 1; }
 .pk-none { width: 44px; height: 60px; border-radius: 9px; border: 2px dashed var(--line); }
 .badge { width: 52px; height: 52px; color: var(--c); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent)); } .badge svg { width: 100%; height: 100%; }
 .badge path { fill: color-mix(in srgb, var(--c) 24%, transparent); stroke: currentColor; stroke-width: 1.4; } .badge path.in { fill: color-mix(in srgb, var(--c) 55%, transparent); stroke-width: 1; }
@@ -293,9 +295,7 @@ ${MASONRY_CSS}
 ${art.css}
 .tile[data-tile="store"]:not(.s-S) .body { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: flex-start; }
 .tile[data-tile="store"]:not(.s-S) [data-fact="affordable"] { flex-basis: 100%; }
-.tile[data-tile="store"].s-L [data-fact="cosmetics"] { flex-direction: row; flex-wrap: wrap; gap: 6px 22px; flex: 1; }
-.tile[data-tile="store"].s-L [data-fact="cosmetics"] > .sub { flex-basis: 100%; }
-.tile.hero .si figcaption small { color: #c6cbe8; }
+.tile.hero .pb figcaption small { color: #c6cbe8; }
 .flash { animation: flash 1.6s ease-out 1; } @keyframes flash { 0% { box-shadow: 0 0 0 3px var(--c), var(--shadow); } 100% { box-shadow: var(--shadow); } }
 .pg { padding: 20px 22px; border-radius: 24px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--shadow); backdrop-filter: blur(28px); max-width: 760px; }
 .pg h2 { margin: 0 0 6px; } .pg ul { margin: 6px 0 12px; } .pg .sub { display: block; }

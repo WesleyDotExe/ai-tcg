@@ -1,0 +1,80 @@
+
+=== light ===
+PASS unit 191px, served: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, short: S, M and L fit their boxes, nothing spills
+PASS unit 191px, one: S, M and L fit their boxes, nothing spills
+PASS unit 191px, ten: S, M and L fit their boxes, nothing spills
+PASS unit 191px, two-offers: S, M and L fit their boxes, nothing spills
+PASS unit 191px, three-offers: S, M and L fit their boxes, nothing spills
+PASS unit 191px, none: S, M and L fit their boxes, nothing spills
+PASS unit 218px, served: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, short: S, M and L fit their boxes, nothing spills
+PASS unit 218px, one: S, M and L fit their boxes, nothing spills
+PASS unit 218px, ten: S, M and L fit their boxes, nothing spills
+PASS unit 218px, two-offers: S, M and L fit their boxes, nothing spills
+PASS unit 218px, three-offers: S, M and L fit their boxes, nothing spills
+PASS unit 218px, none: S, M and L fit their boxes, nothing spills
+PASS unit 231px, served: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, short: S, M and L fit their boxes, nothing spills
+PASS unit 231px, one: S, M and L fit their boxes, nothing spills
+PASS unit 231px, ten: S, M and L fit their boxes, nothing spills
+PASS unit 231px, two-offers: S, M and L fit their boxes, nothing spills
+PASS unit 231px, three-offers: S, M and L fit their boxes, nothing spills
+PASS unit 231px, none: S, M and L fit their boxes, nothing spills
+PASS served: every size says the same credits ("449")
+PASS served: no cosmetic on the tile at any size (the packs are the hero)
+PASS served: S draws no pack; M exactly the featured pack (Season Zero)
+PASS served: L draws 1 and 10 of each of 1 offer(s)
+PASS served: each pack has Buy (carrying its purchase) only when 449 credits cover it, else how many more; the price on the art is the price (9 packs)
+PASS new: every size says the same credits ("0")
+PASS new: no cosmetic on the tile at any size (the packs are the hero)
+PASS new: S draws no pack; M exactly the featured pack (Season Zero)
+PASS new: L draws 1 and 10 of each of 1 offer(s)
+PASS new: each pack has Buy (carrying its purchase) only when 0 credits cover it, else how many more; the price on the art is the price (9 packs)
+PASS short: every size says the same credits ("60")
+PASS short: no cosmetic on the tile at any size (the packs are the hero)
+PASS short: S draws no pack; M exactly the featured pack (Season Zero)
+PASS short: L draws 1 and 10 of each of 1 offer(s)
+PASS short: each pack has Buy (carrying its purchase) only when 60 credits cover it, else how many more; the price on the art is the price (9 packs)
+PASS one: every size says the same credits ("100")
+PASS one: no cosmetic on the tile at any size (the packs are the hero)
+PASS one: S draws no pack; M exactly the featured pack (Season Zero)
+PASS one: L draws 1 and 10 of each of 1 offer(s)
+PASS one: each pack has Buy (carrying its purchase) only when 100 credits cover it, else how many more; the price on the art is the price (9 packs)
+PASS ten: every size says the same credits ("2,350")
+PASS ten: no cosmetic on the tile at any size (the packs are the hero)
+PASS ten: S draws no pack; M exactly the featured pack (Season Zero)
+PASS ten: L draws 1 and 10 of each of 1 offer(s)
+PASS ten: each pack has Buy (carrying its purchase) only when 2350 credits cover it, else how many more; the price on the art is the price (9 packs)
+PASS two-offers: every size says the same credits ("1,000")
+PASS two-offers: no cosmetic on the tile at any size (the packs are the hero)
+PASS two-offers: S draws no pack; M exactly the featured pack (Season One)
+PASS two-offers: L draws 1 and 10 of each of 2 offer(s)
+PASS two-offers: each pack has Buy (carrying its purchase) only when 1000 credits cover it, else how many more; the price on the art is the price (15 packs)
+PASS three-offers: every size says the same credits ("449")
+PASS three-offers: no cosmetic on the tile at any size (the packs are the hero)
+PASS three-offers: S draws no pack; M exactly the featured pack (Season One)
+PASS three-offers: L draws 1 and 10 of each of 2 offer(s) and names the other 1
+PASS three-offers: each pack has Buy (carrying its purchase) only when 449 credits cover it, else how many more; the price on the art is the price (15 packs)
+PASS none: every size says the same credits ("449")
+PASS none: no cosmetic on the tile at any size (the packs are the hero)
+PASS none: S draws no pack; M exactly the featured pack (none on sale)
+PASS none: L draws 1 and 10 of each of 0 offer(s)
+PASS none: each pack has Buy (carrying its purchase) only when 449 credits cover it, else how many more; the price on the art is the price (0 packs)
+PASS light: no tile is the hero panel (72 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.2:1, buyPacks "Season One · 5 cards")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.1:1, buyPacks "100 more credits")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.1:1, buyPacks "100 more credits")
+
+=== dark ===
+PASS dark: no tile is the hero panel (72 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.2:1, buyPacks "Season One · 5 cards")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.1:1, buyPacks "100 more credits")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.1:1, buyPacks "100 more credits")
+PASS no page errors
+PASS no outside requests
+
+74 PASS, 0 FAIL

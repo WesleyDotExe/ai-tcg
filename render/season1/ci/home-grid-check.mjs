@@ -31,11 +31,16 @@
 //     buttons sit in a bar over the tile's foot), and no tile changes size;
 //   - (retired in render 88: no hero tile is left) text on the dark hero tile is light (contrast 4.5:1 or more against
 //     the tile's own background, measured);
-//   - Store M's markup holds exactly the two cosmetics it shows;
+//   - (retired in render 91: the Store tile holds no cosmetics) Store M's markup holds exactly the two cosmetics it shows;
 //   - two measures borrowed from PR #196 (closed), reported, not failed:
 //     which facts spill (past the tile, under its header, into its button)
 //     and the largest empty band in each tile (fill.txt; over 40% of the
 //     tile's height is listed as OPEN).
+// Render session 91 (Packs and Store, owner 2026-11-28 point 9): the Store
+// tile holds no cosmetic at any size and draws 0 / 1 / 2 ways to buy packs
+// at S / M / L; a Buy opens Cards with the purchase ready to confirm (a
+// real click-through: Confirm, and Cancel), and 10 packs it can't afford
+// says how many more credits instead of a Buy.
 // Render session 88 (the agent tile): My agent is glass like the rest (owner
 // 2026-11-27): no tile on Home is the hero panel, in light and dark (the
 // hero-contrast check is replaced; agent-states-check.mjs measures the agent
@@ -53,7 +58,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s90'));
+const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s91'));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', 'home.html')).href;
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));
@@ -288,9 +293,31 @@ try {
   check(BS.tiles.every((t) => !t.nameCut), `Edit board, all S (1440): every 1-unit header keeps its whole name${BS.tiles.some((t) => t.nameCut) ? ': cut on ' + BS.tiles.filter((t) => t.nameCut).map((t) => t.tile).join(', ') : ''}`);
   await shot(page, 'nova-edit-board-all-S', false);
   await page.click('#edit');
-  const cosM = await page.evaluate(() => { const D = JSON.parse(document.getElementById('data').textContent); return Object.fromEntries(Object.entries(D.owners).map(([k, o]) => { const m = o.tiles.store.M; const i = m.indexOf('data-fact="cosmetics"'); return [k, (m.slice(i).match(/class="si[ "]/g) || []).length]; })); });
-  check(Object.values(cosM).every((n) => n === 2), `Store M's markup holds exactly the two cosmetics it shows (${JSON.stringify(cosM)})`);
+  // Render session 91 (owner 2026-11-28 point 9): the Store tile's hero is
+  // the packs; no cosmetic in its markup at any size, for either owner.
+  const storeM = await page.evaluate(() => { const D = JSON.parse(document.getElementById('data').textContent); return Object.fromEntries(Object.entries(D.owners).map(([k, o]) => [k, Object.values(o.tiles.store).map((h) => ({ cos: /data-fact="cosmetics"|class="si[ "]|data-coin=|#lg-/.test(h), packs: (h.match(/class="pb /g) || []).length }))])); });
+  check(Object.values(storeM).every((a) => a.every((x) => !x.cos)) && Object.values(storeM).every((a) => a.map((x) => x.packs).join() === '0,1,2'), `Store: no cosmetic in its markup at S, M or L; packs drawn 0 / 1 / 2 (${JSON.stringify(storeM)})`);
   await page.click('#edit');
+  // A Buy on the Store tile opens Cards with that purchase ready to
+  // confirm; Confirm says what was bought; Cancel buys nothing.
+  await page.goto(PAGE + '?owner=nova#/home');
+  await page.waitForSelector('main .tile');
+  await page.click('.tile[data-tile="store"] .pb-buy[data-buy="S0:1"]');
+  await page.waitForSelector('main .buy .confirm');
+  const ask = await page.evaluate(() => ({ hash: location.hash, text: document.querySelector('.buy .confirm p').textContent, ok: document.getElementById('buy-ok')?.textContent, focus: document.activeElement?.id }));
+  check(ask.hash === '#/cards' && /Buy 1 Season Zero pack \(5 cards\) for 100 credits\?/.test(ask.text) && /keep 349 credits/.test(ask.text) && ask.ok === 'Buy for 100', `Buy on Store M opens Cards with the purchase ready to confirm ("${ask.text}", "${ask.ok}")`);
+  await page.click('#buy-ok');
+  const done = await page.evaluate(() => document.querySelector('.buy .saved')?.textContent ?? '');
+  check(/^Bought 1 Season Zero pack/.test(done), `Confirm says what was bought ("${done}")`);
+  await page.goto(PAGE + '?owner=nova&board=L#/home');
+  await page.waitForSelector('main .tile');
+  const tenBuy = await page.$('.tile[data-tile="store"] .pb-buy[data-buy="S0:10"]');
+  const tenNeed = await page.$eval('.tile[data-tile="store"] .pb[data-count="10"] .pb-need', (e) => e.textContent).catch(() => '');
+  check(!tenBuy && tenNeed === '551 more credits', `Store L: 10 packs (1,000) is not buyable on 449 credits; it says "${tenNeed}"`);
+  await page.click('.tile[data-tile="store"] .pb-buy[data-buy="S0:1"]');
+  await page.waitForSelector('#buy-no');
+  await page.click('#buy-no');
+  check(await page.evaluate(() => !document.querySelector('.buy')), 'Cancel buys nothing and closes the ask');
   const arrows = [];
   for (const [tile, want] of Object.entries(OPENS)) {
     await page.goto(PAGE + '?owner=nova&board=S#/home');

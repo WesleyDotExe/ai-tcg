@@ -5218,7 +5218,7 @@ Next session: group 2, the Ladder tile with Rating & form merged in; the play-st
 
 ---
 
-## 2026-11-28 — Owner: answers to render sessions 89 (the Ladder tile) and 90 (the play styles), keep all 7; the Ladder chart fix; the Store tile's hero is packs
+## 2026-11-28 — Owner: answers to render sessions 89 (the Ladder tile) and 90 (the play styles), keep all 7; the Ladder chart fix; the Store tile's hero is packs (1-7 kept as built, nothing to change; point 9 HANDLED 2026-11-28, render session 91: the Store tile shows packs for sale only, no cosmetic at any size (the `cosmetics` fact removed from the spec); S credits and how many packs they buy ("Enough for 4 packs"); M the featured pack as the hero (art, price, Buy); L the packs on sale as the hero shelf (1 pack and 10 of each offer, art, price, Buy each) and See the whole Store; a pack the credits don't cover says how many more credits; a Buy opens the Store with that purchase ready to confirm; `render/season1/output/home.html`, `output/store-states.html`; checks `progress/render/evidence/season1-store-tile-s91/check.txt` 74 PASS and `season1-home-grid-s91/check.txt` 150 PASS (no cosmetic in the markup; the Buy flow clicked through). Point 8 is left for render 92, the hardening pass, as written)
 
 **Render session 89** (PR #199, `progress/render/checkpoints.md`, `render/season1/output/ladder-states.html`, `progress/render/evidence/season1-ladder-tile-s89/`).
 1. **Keep:** the two merges (placement and next tier as one bar; "around you" and "top of the ladder" as one standings list, four rows at most).
