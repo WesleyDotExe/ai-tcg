@@ -5242,3 +5242,19 @@ Next session: group 2, the Ladder tile with Rating & form merged in; the play-st
    Claim stays in Daily rewards and open in Packs (2026-11-22, point 1).
 
 Next session: group 3, Packs and Store (taking point 9); render 92 the hardening pass (taking point 8).
+
+---
+
+## 2026-11-28 — Owner: Season 1 booster packs and their opening at the quality of Pokémon TCG Pocket (the pack, its light and shine, and picking a pack from several)
+
+From the owner in chat, with a Pokémon TCG Pocket screenshot as the reference (not committed: it is Pokémon's art). Applies to the Season 1 pack work: the pack-wrapper designs (phase 2) and the pack-opening rework (phase 3, `render/season1/FLASH.md` storyboard).
+1. **Owner: the packs and the opening should be more like Pokémon TCG Pocket. Not the art on the pack** (our art follows the January art plan: original, our mascots, the cyberpunk virtual-world look), **but the quality of the packs, with lighting and shiny effects, and the style of the opening, with multiple packs you can scroll through to pick one.**
+2. **The pack as an object** (what "the quality" means here; the design is the sessions', checked against the reference's feel):
+   - A sealed foil pack, not a flat card: crimped seal strips top and bottom, a soft pillow curve across the face, light catching the edges.
+   - **Lighting and shine:** a specular highlight that slides across the foil as the pack turns, and a holographic sheen in the foil; on desktop it follows the pointer, on a phone it follows the tilt where the browser allows it, otherwise a slow sweep. A soft reflection under the pack and a gentle glow behind it.
+   - Placeholder art until the January art pass; the pack's shape, light and shine are built now, so the real art drops in.
+3. **Picking a pack (the opening's first beat, before the grip and the tear):** several packs in a row; the centre one large and facing the owner, its neighbours angled back and dimmer, and more behind. Swipe, scroll, drag or the arrow keys move along the row with a little inertia and snap to the centre; a tap on the centre pack picks it: it lifts out of the row, then the storyboard's grip and tear follow. A tap on a side pack brings it to the centre.
+4. **The flash rules hold** (2026-11-25 points 1–4): the shine is a soft sweep, never a flash; reduced motion keeps the row and the light still and the pick instant.
+5. **Not decided:** what the packs in the row are. Proposal from the chat: every pack in the row is the same booster with the same odds (the pick is the ritual, as in the reference), and the screen says so plainly ("every pack has the same odds"); later, one row per set or cover. Until the owner decides, build it as the proposal.
+
+Next sessions: as planned (Packs and Store, then render 92 the hardening pass); this lands with the pack-wrapper designs and the pack-opening rework.
