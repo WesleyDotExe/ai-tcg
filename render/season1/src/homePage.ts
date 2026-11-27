@@ -45,6 +45,10 @@ const svg = (paths: string, size = 18) => `<svg viewBox="0 0 24 24" width="${siz
 const HERO = new Set<string>();
 // Store M shows the featured pack and two cosmetics (owner 2026-11-23,
 // point 3): the fact draws only those two, not three with one hidden.
+// How many leading facts make a tile's headline (the rest is the body).
+// Ladder's headline is the rating, the tier and the rank together (render
+// session 89): the three S shows, and the left half of M.
+const HEAD_FACTS: Record<string, number> = { ladder: 3 };
 const factOpts = (tileId: string, size: Size) => (tileId === "store" && size === "M" ? { featuredCosmetics: 2 } : undefined);
 
 /** The recommended first board on the grid. Chosen so it packs with no hole
@@ -74,7 +78,10 @@ export function gridTileHtml(tileId: string, size: Size, d: OwnerData): string {
   const waiting = t.status === "waiting on owner";
   const facts = tileFacts(t, size, d, factOpts(t.id, size));
   const isAct = (f: string) => f.startsWith('<div class="fx act"');
-  const [head, ...body] = facts.filter((f) => !isAct(f));
+  const rest = facts.filter((f) => !isAct(f));
+  const nHead = HEAD_FACTS[t.id] ?? 1;
+  const head = nHead > 1 ? `<div class="hstack">${rest.slice(0, nHead).join("")}</div>` : rest[0];
+  const body = rest.slice(nHead);
   const art = heroArt(t.id, d);
   const tone = B_TONE[t.id] ?? "#8b5cff";
   // Watch live's Live badge: in the header at L, beside Watch at S
@@ -177,6 +184,75 @@ export const GRID_CSS = `
 .ugrid .tile[data-tile="agent"].s-L .styles li { display: flex; flex-direction: column; min-width: 0; padding: 2px 8px; border-radius: 9px; background: var(--soft); box-shadow: var(--soft-edge); font-size: 12.5px; line-height: 1.25; }
 .ugrid .tile[data-tile="agent"].s-L .styles li > span { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ugrid .tile[data-tile="agent"].s-L .styles li.on { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: inset 0 0 0 1.5px var(--c); }
+/* Ladder (render session 89): the rating, the tier and the rank are one
+   headline; the body is the next step up (one bar), this week, the form;
+   at L also how settled, the streak and the decks, then the standings
+   beside the chart (or, unplaced, beside the tier ladder). */
+.tile[data-tile="ladder"] .hstack { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
+.tile[data-tile="ladder"] .hstack > [data-fact="rating"] { flex: none; }
+.tile[data-tile="ladder"] .hstack > [data-fact="rank"] { flex: 1 1 100%; font-size: 13px; line-height: 1.25; color: var(--muted); }
+.tile[data-tile="ladder"] .hstack > [data-fact="rank"] b { color: var(--ink); }
+/* Tier pills on the glass: the pure tier colours (Platinum, Silver) read
+   near 2:1 on light glass, so the word is mixed toward the ink. */
+.tile[data-tile="ladder"] .tier { padding: 1px 9px; font-size: 13px; white-space: nowrap; color: color-mix(in srgb, var(--tc) 38%, var(--ink)); }
+.tile[data-tile="ladder"] .badge { flex: none; }
+.tile[data-tile="ladder"] .fx.kv { font-size: 13px; line-height: 1.3; }
+.tile[data-tile="ladder"] .lab { white-space: nowrap; }
+.tile[data-tile="ladder"] [data-fact="climb"] .bar { margin-top: 3px; height: 6px; }
+.tile[data-tile="ladder"] [data-fact="climb"] .bar i { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 55%, var(--accent)), var(--c)); }
+.tile[data-tile="ladder"] .up { color: color-mix(in srgb, var(--ok) 50%, var(--ink)); } .tile[data-tile="ladder"] .down { color: color-mix(in srgb, var(--warn) 50%, var(--ink)); }
+.tile[data-tile="ladder"] .dots { flex-wrap: nowrap; gap: 2px; }
+.tile[data-tile="ladder"] .dot { width: 16px; height: 16px; border-radius: 5px; font-size: 9px; }
+.tile[data-tile="ladder"] .dot.win { background: #125c33; } .tile[data-tile="ladder"] .dot.loss { background: #9c1c34; } .tile[data-tile="ladder"] .dot.draw { background: #474c66; }
+/* S: the badge beside the rating, the tier and the rank; the button. */
+.ugrid .tile[data-tile="ladder"].s-S .headline .big { font-size: 24px; }
+.ugrid .tile[data-tile="ladder"].s-S .hstack > [data-fact="rank"] { font-size: 12.5px; }
+/* M: the headline and the button on the left; on the right the bar, this
+   week and the form (label and value on one line each). */
+.ugrid .tile[data-tile="ladder"].s-M { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ugrid .tile[data-tile="ladder"].s-M .headline .big { font-size: 26px; }
+.ugrid .tile[data-tile="ladder"].s-M > .body { gap: 8px; justify-content: center; }
+.ugrid .tile[data-tile="ladder"] :is(.s-M [data-fact="weekChange"], .s-L [data-fact="form"], .s-L [data-fact="streak"], .s-L [data-fact="factionWinRate"]) { flex-direction: row; align-items: baseline; gap: 8px; min-width: 0; }
+.ugrid .tile[data-tile="ladder"].s-M [data-fact="form"] .dot { width: 15px; height: 15px; }
+/* L: the headline with the button beside it; the bar; this week and how
+   settled; the form, the streak and the decks one line each; then the
+   standings beside the chart, which takes what height is left. */
+.ugrid .tile[data-tile="ladder"].s-L { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hd hd" "nm ft" "bd bd"; column-gap: 12px; row-gap: 6px; }
+.ugrid .tile[data-tile="ladder"].s-L > header { grid-area: hd; }
+.ugrid .tile[data-tile="ladder"].s-L > .headline { grid-area: nm; }
+.ugrid .tile[data-tile="ladder"].s-L > footer { grid-area: ft; align-self: start; padding: 0; }
+.ugrid .tile[data-tile="ladder"].s-L > .body { grid-area: bd; gap: 6px 14px; grid-template-rows: repeat(5, auto) minmax(0, 1fr); }
+.ugrid .tile[data-tile="ladder"].s-L .headline .big { font-size: 28px; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="climb"] { grid-area: 1 / 1 / 2 / 3; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="weekChange"] { grid-area: 2 / 1; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="ratingSettled"] { grid-area: 2 / 2; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="form"] { grid-area: 3 / 1 / 4 / 3; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="streak"] { grid-area: 4 / 1 / 5 / 3; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="factionWinRate"] { grid-area: 5 / 1 / 6 / 3; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="standings"] { grid-area: 6 / 1; min-height: 0; }
+.ugrid .tile[data-tile="ladder"].s-L [data-fact="trend"] { grid-area: 6 / 2; min-height: 0; }
+.ugrid .tile[data-tile="ladder"].s-L :is([data-fact="form"], [data-fact="streak"], [data-fact="factionWinRate"]) > .lab { flex: none; width: 58px; }
+.tile[data-tile="ladder"] .why[open] > span { position: absolute; left: 10px; right: 10px; z-index: 4; padding: 8px 10px; border-radius: 12px; background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 8px 24px rgba(30,30,90,.18), inset 0 0 0 1px var(--line); color: var(--ink); }
+.tile[data-tile="ladder"] .lad { gap: 2px; }
+.tile[data-tile="ladder"] .lad li { padding: 1px 7px; gap: 6px; font-size: 12.5px; line-height: 1.35; min-width: 0; }
+.tile[data-tile="ladder"] .lad li .who { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile[data-tile="ladder"] .lad li .pts { margin-left: auto; flex: none; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tile[data-tile="ladder"] .lad li.gap { background: none; box-shadow: none; padding: 0 8px; line-height: .7; color: var(--muted); }
+.tile[data-tile="ladder"] .lad li.me { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.tile[data-tile="ladder"] .wr { display: flex; flex-wrap: nowrap; gap: 0 9px; min-width: 0; overflow: hidden; }
+.tile[data-tile="ladder"] .wr > span { white-space: nowrap; } .tile[data-tile="ladder"] .wr .more { color: var(--muted); } .tile[data-tile="ladder"] .wr i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: .05em; }
+.tile[data-tile="ladder"] [data-fact="trend"] { display: flex; flex-direction: column; }
+.tile[data-tile="ladder"] .chartbox { position: relative; display: block; flex: 1 1 auto; min-height: 44px; max-height: 110px; }
+.tile[data-tile="ladder"] .chart { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tile[data-tile="ladder"] .floors > span { position: absolute; left: 2px; transform: translateY(-110%); font-size: 9.5px; font-weight: 750; line-height: 1; color: color-mix(in srgb, var(--tc) 40%, var(--ink)); }
+.tile[data-tile="ladder"] .scale { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.tile[data-tile="ladder"] .scale li { display: grid; grid-template-columns: 6px 1fr auto 34px; align-items: center; gap: 5px; font-size: 11px; line-height: 1.3; }
+.tile[data-tile="ladder"] .scale li > i { height: 100%; min-height: 12px; border-radius: 3px; background: var(--tc); }
+.tile[data-tile="ladder"] .scale .tn { font-weight: 750; color: color-mix(in srgb, var(--tc) 38%, var(--ink)); }
+.tile[data-tile="ladder"] .scale .fl { color: var(--muted); font-variant-numeric: tabular-nums; }
+.tile[data-tile="ladder"] .scale .who { display: flex; gap: 2px; align-items: center; justify-content: flex-end; }
+.tile[data-tile="ladder"] .scale .who b { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+.tile[data-tile="ladder"] .scale .who em { font-style: normal; font-size: 9.5px; font-weight: 700; color: var(--muted); }
 /* Watch live: the arena 9:16, as large as its box allows (a size container). */
 .tile[data-tile="watch"] .body { display: flex; flex-direction: column; gap: 6px; }
 .tile[data-tile="watch"] [data-fact="liveArena"] { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -260,6 +336,10 @@ export const GRID_CSS = `
   .ugrid .s-S .ava { width: 32px; height: 32px; }
   .ugrid .s-S footer .btn { padding: 6px 10px; font-size: 12.5px; }
   .ugrid .q { top: 40px; }
+  /* Ladder S on a phone (render session 89): the badge gives its width to
+     the rating, the tier and the rank, so each takes one line. */
+  .ugrid .tile[data-tile="ladder"].s-S .badge { display: none; }
+  .ugrid .tile[data-tile="ladder"].s-S .hstack > [data-fact="rank"] { font-size: 12px; }
 }
 `;
 

@@ -8,6 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homePage } from "../src/homePage.js";
 import { agentStatesPage } from "../src/agentStates.js";
+import { ladderStatesPage } from "../src/ladderStates.js";
 import type { HomeData } from "../src/homeFacts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -23,3 +24,9 @@ const states = join(here, "..", "output", "agent-states.html");
 const sheet = agentStatesPage(data);
 writeFileSync(states, sheet);
 console.log(`[home] wrote ${states} (${(sheet.length / 1024).toFixed(0)} KB)`);
+
+// The Ladder tile in every rating state (render session 89).
+const ladder = join(here, "..", "output", "ladder-states.html");
+const lsheet = ladderStatesPage(data);
+writeFileSync(ladder, lsheet);
+console.log(`[home] wrote ${ladder} (${(lsheet.length / 1024).toFixed(0)} KB)`);

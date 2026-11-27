@@ -7,6 +7,34 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-27 — Render session 89: the Ladder tile on the grid, Rating & form merged in (phase 2, the tiles in groups, group 2) — AWAITING FEEDBACK (four small calls)
+
+**Start here:** `render/season1/output/home.html` (Ladder, beside Watch live), and
+`render/season1/output/ladder-states.html` (the tile in seven rating states, at S, M and L). Stills:
+`progress/render/evidence/season1-ladder-tile-s89/ladder-states-1280-light.jpg` (the tightest box) and `-dark.jpg`.
+
+**What it is:** one tile answers "how good is my agent, and is it getting better?". S: the rating, the tier and the
+rank. M adds one bar (placement, or the points to the next tier), this week's change and the last ten results. L
+adds Settled / Settling, the streak, the decks, the standings and the 30-day chart. It fits its box at every size,
+screen and state (was 3 of 16 renders; now 16 of 16), and its text reads at 4.5:1 or more on the glass, measured.
+
+**Strong:** a new player no longer sees three "not yet" lines and an empty chart: the bar counts placement, and L
+draws the tiers as a ladder with where the ranked agents sit and where every agent starts. **Thin:** the states are
+built from the API's documented shapes, not captured live; the chart's tier labels can sit on the line.
+
+**Calls for you (none blocks):**
+1. **Two merges:** placement and next tier are now one bar (only one is ever true), and "around you" and "top of the
+   ladder" are one standings list (top three, then you with the one above, four rows at most). Keep?
+2. **M drops the standings and Settled / Settling** (they're at L and on Stats): M is the rating, one bar, this week
+   and the form. Keep?
+3. **Win rate by deck shows the two most-played decks** and "+2 more" (all four on hover and on Stats). Keep, or show
+   all four as small bars and drop the streak line at L?
+4. **The form dots are darker green and red** than Season 0's so their W / L read at 4.5:1. Keep?
+
+**Next:** your 2026-11-27 note 6, the play-style choices on the agent tile; then Packs and Store.
+
+---
+
 ## 2026-11-27 — Render session 88: the agent tile on the grid, glass like the rest (phase 2, the tiles in groups, group 1) — AWAITING FEEDBACK (five small calls)
 
 **Start here:** `render/season1/output/home.html` (My agent, top left), and `render/season1/output/agent-states.html`

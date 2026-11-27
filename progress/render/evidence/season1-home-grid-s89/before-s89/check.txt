@@ -1,0 +1,207 @@
+
+=== Nova (weeks in) ===
+
+[recommended, 1440x900] 6 columns, unit 218px, 4 rows, 0 holes: agent L 2x2@0,0, watch M 1x2@2,0, ladder L 2x2@3,0, store M 2x1@0,2, daily S 1x1@5,0, collection L 2x2@2,2, packs L 2x2@4,2, history M 2x1@0,3, notif S 1x1@5,1
+PASS [recommended, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [recommended, 1440x900]: the recommended board has no hole (4 rows)
+PASS [recommended, 1440x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [recommended, 1440x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [recommended, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [recommended, 1440x900]: Watch live M's arena is 9:16 (176x312) and wholly inside the tile
+OPEN [recommended, 1440x900]: not every tile fits its box yet (the "tiles in groups" sessions): ladder L by 146px, collection L by 30px
+PASS [recommended, 1440x900]: no sideways scroll (0px)
+
+[all S, 1440x900] 6 columns, unit 218px, 2 rows, 2 holes: agent S 1x1@0,0, ladder S 1x1@1,0, watch S 1x1@2,0, packs S 1x1@3,0, store S 1x1@4,0, collection S 1x1@5,0, daily S 1x1@0,1, history S 1x1@1,1, notif S 1x1@2,1, music S 1x1@3,1
+PASS [all S, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all S, 1440x900]: Watch live S is the same glass as the other tiles (not the hero panel)
+PASS [all S, 1440x900]: no tile is the hero panel; My agent S is the same glass as the other tiles
+PASS [all S, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all S, 1440x900]: Watch live S has the names, health, the turn, a Live badge and Watch
+PASS [all S, 1440x900]: no sideways scroll (0px)
+
+[all M, 1440x900] 6 columns, unit 218px, 4 rows, 4 holes: agent M 2x1@0,0, ladder M 2x1@2,0, watch M 1x2@4,0, packs M 2x1@0,1, store M 2x1@2,1, collection M 2x1@0,2, daily M 2x1@2,2, history M 2x1@4,2, notif M 2x1@0,3, music M 2x1@2,3
+PASS [all M, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all M, 1440x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [all M, 1440x900]: no tile is the hero panel; My agent M is the same glass as the other tiles
+PASS [all M, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all M, 1440x900]: Watch live M's arena is 9:16 (176x312) and wholly inside the tile
+PASS [all M, 1440x900]: no sideways scroll (0px)
+
+[all L, 1440x900] 6 columns, unit 218px, 8 rows, 2 holes: agent L 2x2@0,0, ladder L 2x2@2,0, watch L 2x5@4,0, packs L 2x2@0,2, store L 2x2@2,2, collection L 2x2@0,4, daily L 2x2@2,4, history L 2x2@4,5, notif L 2x2@0,6, music L 2x2@2,6
+PASS [all L, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all L, 1440x900]: Watch live L is the same glass as the other tiles (not the hero panel)
+PASS [all L, 1440x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [all L, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all L, 1440x900]: Watch live L's arena is 9:16 (418x743) and wholly inside the tile
+PASS [all L, 1440x900]: Watch live L is 2 x 5 units, the rows its whole arena needs at this unit; the arena 418px wide (the tile's width less its padding: 420px)
+PASS [all L, 1440x900]: no sideways scroll (0px)
+
+[recommended, 1280x900] 6 columns, unit 191.33px, 4 rows, 0 holes: agent L 2x2@0,0, watch M 1x2@2,0, ladder L 2x2@3,0, store M 2x1@0,2, daily S 1x1@5,0, collection L 2x2@2,2, packs L 2x2@4,2, history M 2x1@0,3, notif S 1x1@5,1
+PASS [recommended, 1280x900]: every tile its shape on the 6-column grid (unit 191.33px, square), on its grid lines, where the layout code says, none overlapping
+PASS [recommended, 1280x900]: the recommended board has no hole (4 rows)
+PASS [recommended, 1280x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [recommended, 1280x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [recommended, 1280x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [recommended, 1280x900]: Watch live M's arena is 9:16 (146x259) and wholly inside the tile
+OPEN [recommended, 1280x900]: not every tile fits its box yet (the "tiles in groups" sessions): ladder L by 238px, daily S by 25px, collection L by 195px
+PASS [recommended, 1280x900]: no sideways scroll (0px)
+
+[all M, 1280x900] 6 columns, unit 191.33px, 4 rows, 4 holes: agent M 2x1@0,0, ladder M 2x1@2,0, watch M 1x2@4,0, packs M 2x1@0,1, store M 2x1@2,1, collection M 2x1@0,2, daily M 2x1@2,2, history M 2x1@4,2, notif M 2x1@0,3, music M 2x1@2,3
+PASS [all M, 1280x900]: every tile its shape on the 6-column grid (unit 191.33px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all M, 1280x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [all M, 1280x900]: no tile is the hero panel; My agent M is the same glass as the other tiles
+PASS [all M, 1280x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all M, 1280x900]: Watch live M's arena is 9:16 (146x259) and wholly inside the tile
+PASS [all M, 1280x900]: no sideways scroll (0px)
+
+[all L, 1280x900] 6 columns, unit 191.33px, 8 rows, 2 holes: agent L 2x2@0,0, ladder L 2x2@2,0, watch L 2x5@4,0, packs L 2x2@0,2, store L 2x2@2,2, collection L 2x2@0,4, daily L 2x2@2,4, history L 2x2@4,5, notif L 2x2@0,6, music L 2x2@2,6
+PASS [all L, 1280x900]: every tile its shape on the 6-column grid (unit 191.33px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all L, 1280x900]: Watch live L is the same glass as the other tiles (not the hero panel)
+PASS [all L, 1280x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [all L, 1280x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all L, 1280x900]: Watch live L's arena is 9:16 (365x648) and wholly inside the tile
+PASS [all L, 1280x900]: Watch live L is 2 x 5 units, the rows its whole arena needs at this unit; the arena 365px wide (the tile's width less its padding: 366px)
+PASS [all L, 1280x900]: no sideways scroll (0px)
+
+[recommended, 1024x900] 4 columns, unit 231px, 6 rows, 0 holes: agent L 2x2@0,0, watch M 1x2@2,0, ladder L 2x2@0,2, store M 2x1@2,2, daily S 1x1@3,0, collection L 2x2@2,3, packs L 2x2@0,4, history M 2x1@2,5, notif S 1x1@3,1
+PASS [recommended, 1024x900]: every tile its shape on the 4-column grid (unit 231px, square), on its grid lines, where the layout code says, none overlapping
+PASS [recommended, 1024x900]: the recommended board has no hole (6 rows)
+PASS [recommended, 1024x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [recommended, 1024x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [recommended, 1024x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [recommended, 1024x900]: Watch live M's arena is 9:16 (190x338) and wholly inside the tile
+OPEN [recommended, 1024x900]: not every tile fits its box yet (the "tiles in groups" sessions): ladder L by 120px, collection L by 4px
+PASS [recommended, 1024x900]: no sideways scroll (0px)
+
+[all M, 1024x900] 4 columns, unit 231px, 6 rows, 4 holes: agent M 2x1@0,0, ladder M 2x1@2,0, watch M 1x2@0,1, packs M 2x1@1,1, store M 2x1@1,2, collection M 2x1@0,3, daily M 2x1@2,3, history M 2x1@0,4, notif M 2x1@2,4, music M 2x1@0,5
+PASS [all M, 1024x900]: every tile its shape on the 4-column grid (unit 231px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all M, 1024x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [all M, 1024x900]: no tile is the hero panel; My agent M is the same glass as the other tiles
+PASS [all M, 1024x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all M, 1024x900]: Watch live M's arena is 9:16 (190x338) and wholly inside the tile
+PASS [all M, 1024x900]: no sideways scroll (0px)
+
+[all L, 1024x900] 4 columns, unit 231px, 12 rows, 2 holes: agent L 2x2@0,0, ladder L 2x2@2,0, watch L 2x5@0,2, packs L 2x2@2,2, store L 2x2@2,4, collection L 2x2@2,6, daily L 2x2@0,7, history L 2x2@2,8, notif L 2x2@0,9, music L 2x2@2,10
+PASS [all L, 1024x900]: every tile its shape on the 4-column grid (unit 231px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all L, 1024x900]: Watch live L is the same glass as the other tiles (not the hero panel)
+PASS [all L, 1024x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [all L, 1024x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all L, 1024x900]: Watch live L's arena is 9:16 (444x789) and wholly inside the tile
+PASS [all L, 1024x900]: Watch live L is 2 x 5 units, the rows its whole arena needs at this unit; the arena 444px wide (the tile's width less its padding: 446px)
+PASS [all L, 1024x900]: no sideways scroll (0px)
+
+[phone 390x844] 2 columns, unit 175px, 5 rows, 0 holes, 1296px tall (1.5 screens); places: Home | My agent | Watch | Cards | Ladder
+PASS [phone 390x844]: every tile its shape on the 2-column grid (unit 175px, square), on its grid lines, where the layout code says, none overlapping
+PASS phone: two columns, every tile its S face (Watch live its 9:16 M)
+PASS phone: five places, no sideways scroll (0px)
+
+=== Wren (just signed up) ===
+
+[recommended, 1440x900] 6 columns, unit 218px, 4 rows, 0 holes: agent L 2x2@0,0, watch M 1x2@2,0, ladder L 2x2@3,0, store M 2x1@0,2, daily S 1x1@5,0, collection L 2x2@2,2, packs L 2x2@4,2, history M 2x1@0,3, notif S 1x1@5,1
+PASS [recommended, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [recommended, 1440x900]: the recommended board has no hole (4 rows)
+PASS [recommended, 1440x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [recommended, 1440x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [recommended, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+OPEN [recommended, 1440x900]: not every tile fits its box yet (the "tiles in groups" sessions): ladder L by 126px
+PASS [recommended, 1440x900]: no sideways scroll (0px)
+
+[all S, 1440x900] 6 columns, unit 218px, 2 rows, 2 holes: agent S 1x1@0,0, ladder S 1x1@1,0, watch S 1x1@2,0, packs S 1x1@3,0, store S 1x1@4,0, collection S 1x1@5,0, daily S 1x1@0,1, history S 1x1@1,1, notif S 1x1@2,1, music S 1x1@3,1
+PASS [all S, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all S, 1440x900]: Watch live S is the same glass as the other tiles (not the hero panel)
+PASS [all S, 1440x900]: no tile is the hero panel; My agent S is the same glass as the other tiles
+PASS [all S, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all S, 1440x900]: no sideways scroll (0px)
+
+[all M, 1440x900] 6 columns, unit 218px, 4 rows, 4 holes: agent M 2x1@0,0, ladder M 2x1@2,0, watch M 1x2@4,0, packs M 2x1@0,1, store M 2x1@2,1, collection M 2x1@0,2, daily M 2x1@2,2, history M 2x1@4,2, notif M 2x1@0,3, music M 2x1@2,3
+PASS [all M, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all M, 1440x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [all M, 1440x900]: no tile is the hero panel; My agent M is the same glass as the other tiles
+PASS [all M, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all M, 1440x900]: no sideways scroll (0px)
+
+[all L, 1440x900] 6 columns, unit 218px, 8 rows, 2 holes: agent L 2x2@0,0, ladder L 2x2@2,0, watch L 2x5@4,0, packs L 2x2@0,2, store L 2x2@2,2, collection L 2x2@0,4, daily L 2x2@2,4, history L 2x2@4,5, notif L 2x2@0,6, music L 2x2@2,6
+PASS [all L, 1440x900]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all L, 1440x900]: Watch live L is the same glass as the other tiles (not the hero panel)
+PASS [all L, 1440x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [all L, 1440x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all L, 1440x900]: no sideways scroll (0px)
+
+[recommended, 1280x900] 6 columns, unit 191.33px, 4 rows, 0 holes: agent L 2x2@0,0, watch M 1x2@2,0, ladder L 2x2@3,0, store M 2x1@0,2, daily S 1x1@5,0, collection L 2x2@2,2, packs L 2x2@4,2, history M 2x1@0,3, notif S 1x1@5,1
+PASS [recommended, 1280x900]: every tile its shape on the 6-column grid (unit 191.33px, square), on its grid lines, where the layout code says, none overlapping
+PASS [recommended, 1280x900]: the recommended board has no hole (4 rows)
+PASS [recommended, 1280x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [recommended, 1280x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [recommended, 1280x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+OPEN [recommended, 1280x900]: not every tile fits its box yet (the "tiles in groups" sessions): ladder L by 179px, daily S by 25px, collection L by 132px
+PASS [recommended, 1280x900]: no sideways scroll (0px)
+
+[all M, 1280x900] 6 columns, unit 191.33px, 4 rows, 4 holes: agent M 2x1@0,0, ladder M 2x1@2,0, watch M 1x2@4,0, packs M 2x1@0,1, store M 2x1@2,1, collection M 2x1@0,2, daily M 2x1@2,2, history M 2x1@4,2, notif M 2x1@0,3, music M 2x1@2,3
+PASS [all M, 1280x900]: every tile its shape on the 6-column grid (unit 191.33px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all M, 1280x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [all M, 1280x900]: no tile is the hero panel; My agent M is the same glass as the other tiles
+PASS [all M, 1280x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all M, 1280x900]: no sideways scroll (0px)
+
+[all L, 1280x900] 6 columns, unit 191.33px, 8 rows, 2 holes: agent L 2x2@0,0, ladder L 2x2@2,0, watch L 2x5@4,0, packs L 2x2@0,2, store L 2x2@2,2, collection L 2x2@0,4, daily L 2x2@2,4, history L 2x2@4,5, notif L 2x2@0,6, music L 2x2@2,6
+PASS [all L, 1280x900]: every tile its shape on the 6-column grid (unit 191.33px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all L, 1280x900]: Watch live L is the same glass as the other tiles (not the hero panel)
+PASS [all L, 1280x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [all L, 1280x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all L, 1280x900]: no sideways scroll (0px)
+
+[recommended, 1024x900] 4 columns, unit 231px, 6 rows, 0 holes: agent L 2x2@0,0, watch M 1x2@2,0, ladder L 2x2@0,2, store M 2x1@2,2, daily S 1x1@3,0, collection L 2x2@2,3, packs L 2x2@0,4, history M 2x1@2,5, notif S 1x1@3,1
+PASS [recommended, 1024x900]: every tile its shape on the 4-column grid (unit 231px, square), on its grid lines, where the layout code says, none overlapping
+PASS [recommended, 1024x900]: the recommended board has no hole (6 rows)
+PASS [recommended, 1024x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [recommended, 1024x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [recommended, 1024x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+OPEN [recommended, 1024x900]: not every tile fits its box yet (the "tiles in groups" sessions): ladder L by 100px
+PASS [recommended, 1024x900]: no sideways scroll (0px)
+
+[all M, 1024x900] 4 columns, unit 231px, 6 rows, 4 holes: agent M 2x1@0,0, ladder M 2x1@2,0, watch M 1x2@0,1, packs M 2x1@1,1, store M 2x1@1,2, collection M 2x1@0,3, daily M 2x1@2,3, history M 2x1@0,4, notif M 2x1@2,4, music M 2x1@0,5
+PASS [all M, 1024x900]: every tile its shape on the 4-column grid (unit 231px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all M, 1024x900]: Watch live M is the same glass as the other tiles (not the hero panel)
+PASS [all M, 1024x900]: no tile is the hero panel; My agent M is the same glass as the other tiles
+PASS [all M, 1024x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all M, 1024x900]: no sideways scroll (0px)
+
+[all L, 1024x900] 4 columns, unit 231px, 12 rows, 2 holes: agent L 2x2@0,0, ladder L 2x2@2,0, watch L 2x5@0,2, packs L 2x2@2,2, store L 2x2@2,4, collection L 2x2@2,6, daily L 2x2@0,7, history L 2x2@2,8, notif L 2x2@0,9, music L 2x2@2,10
+PASS [all L, 1024x900]: every tile its shape on the 4-column grid (unit 231px, square), on its grid lines, where the layout code says, none overlapping
+PASS [all L, 1024x900]: Watch live L is the same glass as the other tiles (not the hero panel)
+PASS [all L, 1024x900]: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS [all L, 1024x900]: every tile shows the spec's facts at its size, its name, its question and one next action
+PASS [all L, 1024x900]: no sideways scroll (0px)
+
+[phone 390x844] 2 columns, unit 175px, 5 rows, 0 holes, 1296px tall (1.5 screens); places: Home | My agent | Watch | Cards | Ladder
+PASS [phone 390x844]: every tile its shape on the 2-column grid (unit 175px, square), on its grid lines, where the layout code says, none overlapping
+PASS phone: two columns, every tile its S face (Watch live its 9:16 M)
+PASS phone: five places, no sideways scroll (0px)
+
+=== navigation, theme, Edit board (Nova, 1440x900) ===
+PASS light by default (light; a tile's glass rgba(255, 255, 255, 0.46))
+PASS the top bar: five places, then Settings (Home | My agent | Watch | Cards | Ladder | Settings)
+PASS Home has no wallet or bell (Store and Notifications own them)
+PASS the "?" shows the question over the tile, its size unchanged (452px): "How good is my agent, and is it getting better?"
+PASS Edit board changes no tile's size
+PASS Edit board: every header keeps its whole name
+PASS Edit board shows the grid's cells (30: 6 columns x 5 rows)
+PASS Edit board: Store -> L (2x2 at 0,2), Watch live -> L (2x5)
+PASS [after the resize]: every tile its shape on the 6-column grid (unit 218px, square), on its grid lines, where the layout code says, none overlapping
+PASS Edit board, all S (1440): every 1-unit header keeps its whole name
+PASS Store M's markup holds exactly the two cosmetics it shows ({"nova":2,"wren":2})
+PASS every tile's arrow opens its page
+PASS My agent: the wallet and the bell are in the top bar, and the bar marks the page
+PASS Watch: the wallet and the bell are in the top bar, and the bar marks the page
+PASS Cards: the wallet and the bell are in the top bar, and the bar marks the page
+PASS Ladder: the wallet and the bell are in the top bar, and the bar marks the page
+PASS dark is the option (?theme=dark, or the strip)
+PASS dark: Watch live M is the same glass as the other tiles
+PASS dark: no tile is the hero panel; My agent L is the same glass as the other tiles
+PASS no page errors
+PASS no outside requests
+
+fit: 118 of 166 tile renders fit (fit.txt)
+fill: 36 of 148 tile renders with an empty band over 40%, 54 with a spill (fill.txt)
+
+146 PASS, 0 FAIL, 7 OPEN (fit, the next sessions' work)

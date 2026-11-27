@@ -5199,7 +5199,7 @@ Next session: the tiles in groups, starting with the agent tile (My agent and Ag
 
 ---
 
-## 2026-11-27 — Owner: answers to render session 88 (the agent tile on the grid), keep all 5; make the personalities obviously selectable
+## 2026-11-27 — Owner: answers to render session 88 (the agent tile on the grid), keep all 5; make the personalities obviously selectable (calls 1-5 HANDLED 2026-11-27, render session 89: kept as built, nothing to change. Note 6 NOT yet done: queued as render 90's first job (the entry allows "right after"); render 89 did the Ladder tile, `progress/render/log.md`)
 
 **Render session 88** (PR #198, `progress/render/checkpoints.md`, `render/season1/output/home.html`, `render/season1/output/agent-states.html`, `progress/render/evidence/season1-agent-tile-s88/`).
 1. **Keep:** the personality one-liners in our words; the server's full summary on hover and on My agent.

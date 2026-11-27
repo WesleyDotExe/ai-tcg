@@ -72,16 +72,20 @@ Start / Stop beside it, the pill and the full reason, today and the play time si
 "Change"), and all six personalities in one line each, the agent's own marked ("Change"). The pill, its reason and
 the button come from one function (`agentState` in `src/homeFacts.ts`) on the owner API's auto-play answer: No agent,
 Playing now, Waiting for a round, Ready, Finishing match, Time's up, Done for today, Ready not playing yet, Stopped.
-Every state at every size: `output/agent-states.html`, checked by `ci/agent-states-check.mjs`.
+Every state at every size: `output/agent-states.html`, checked by `ci/tile-states-check.mjs agent` (or `ci/agent-states-check.mjs`).
 
 ### Ladder (Ladder + Rating & form)
 **Question:** How good is my agent, and is it getting better?
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | rating, tier, place (#n of N) | "Unrated · 0 of 5 placement matches" | Open Stats |
-| M | + placement progress, how far to the next tier, settled or settling, this week's change, form dots, the agents around you | "Your agent gets a rating after its first 5 matches. Until then it plays placement matches." No chart and no ±350. | Open Stats |
-| L | + streaks, the rating chart with tier floors, the top of the ladder, win rate by faction | as M, plus the top of the ladder, so a new player sees where ratings sit | Open Stats |
+| S | rating, tier, place (#n of N); unplaced, the placement count in the third line | "Unrated · In placement · 0 of 5 placement matches" | Open Stats / How placement works |
+| M | + **one bar** (placement n of 5 until placed, then the points to the next tier: never both), this week's change, form dots | "Unrated · In placement · Not ranked yet", the bar "0 of 5 matches", "This week: After placement", "Form: No results yet". No chart and no ±350. | Open Stats / How placement works |
+| L | + settled or settling (its "?" says the ±), the streak, win rate by deck (two most played, "+n more"), **the standings** (the top of the ladder and you in it, a gap when you're below) beside the rating chart with tier floors | as M, the top of the ladder with "Wren (you) placing" at its foot, and in place of the chart **the tiers as a ladder** (Mythic to Bronze, each floor, a dot per ranked agent, "start" at Gold, where every agent begins at 1,500) | Open Stats / How placement works |
+
+Render session 89 merged two pairs of facts: placement + next tier became **climb** (only one is ever true), around
+you + top of the ladder became **standings** (with few ranked agents they were the same rows twice). Every state at
+every size: `output/ladder-states.html`, checked by `ci/tile-states-check.mjs ladder`.
 
 ### Watch live
 **Question:** What is playing right now, and can I watch it?

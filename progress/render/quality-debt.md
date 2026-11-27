@@ -7,24 +7,34 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-88, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-89, fenced off in render/season1/; Season 1 scope)
+
+Session 89 (the Ladder tile) fixed: Ladder didn't fit at M (0 of 6) or L (0 of 6) or a new player's phone S; the
+tier words (Platinum 2.3:1) and the form dots' letters (3.2:1) read under 4.5:1. Check:
+`season1-ladder-tile-s89/check.txt` (59 PASS; the first draft 11 FAIL).
 
 Session 88 (the agent tile) fixed: My agent didn't fit at M (0 of 6) or L (1 of 6), was the last hero tile (owner
 2026-11-27: glass now), and its play-time line read a field the API never sends; the status pills read about 3:1 on
 the light glass. Checks: `season1-agent-tile-s88/check.txt` (58 PASS), `season1-home-grid-s88/before-s88/` (21 FAIL
 on main). Session 87 fixed Watch live's dark surround, Edit board's S headers, Store M's hidden cosmetic.
 
-- **48 of 166 tile renders don't fit their box** (`season1-home-grid-s88/fit.txt`; My agent now 16 of 16): Store L
-  by about 450-530 px, Ladder M and L, Collection M, Daily rewards M, Notifications M and L at some widths, and a few
-  phone S faces (Packs S for a new player, Daily rewards S). Clipped by the tile. The next groups own this, Ladder
-  first.
-- **36 of 148 desktop tile renders have an empty band over 40%, and 54 spill** (`fill.txt`); none of them My agent.
+- **35 of 166 tile renders don't fit their box** (`season1-home-grid-s89/fit.txt`; My agent and Ladder 16 of 16):
+  Store L by 447-526 px, Collection M and L, Daily rewards S and M, Notifications M and L at some widths, Packs S for
+  a new player, History S on a phone. Clipped by the tile. The next groups own this, Packs and Store first.
+- **29 of 148 desktop tile renders have an empty band over 40%, and 42 spill** (`fill.txt`); none My agent or Ladder.
   The band measure looks across the whole width, so one short column in a two-column tile isn't flagged; the phone
   isn't in the fill table. Reported, not failed.
-- **The recommended board still doesn't fit at any width** (Ladder L, Collection L; Daily rewards S at 1280).
-- **Text contrast is measured from the pixels only on My agent** (`agent-states-check.mjs`); the other tiles'
-  text isn't measured at all. The pill fix applies to every tile but was measured on My agent's. The measure takes
+- **The recommended board still doesn't fit at any width** (Collection L; Daily rewards S at 1280).
+- **Text contrast is measured from the pixels only on My agent and Ladder** (`tile-states-check.mjs`); the other
+  tiles' text isn't measured at all. The pill fix applies to every tile but was measured on My agent's. The measure takes
   the mean of the glass behind each line, not its lightest pixel, and a pill's ring pixels are in its box.
+- **Ladder's states are built, not captured** (`ladderStates.ts`): the chart's last week is a straight walk to the
+  rating, so the sheet's charts are smoother than a real one; a draw-heavy or abandoned-match form, a rank tie, a
+  house owner on the ladder, and more than 4 tiers above you aren't on the sheet. The chart's floor labels can sit on
+  the line (Nova's "Diamond"). The ladder sheet doesn't draw a phone unit (the grid check covers phone S for Nova
+  and Wren only). Settled's "?" opens over the tile but isn't checked open.
+- **Win rate by deck shows two decks at L** and "+n more" (the rest in a title only: no touch way to see them on the
+  tile); call 3 at the s89 checkpoint.
 - **My agent's states are built, not captured**: `agentStates.ts` changes the snapshot's documented auto-play fields
   by hand (OWNER_API.md's shapes); none was read from a live server in that state. A `house` owner (no Start) and a
   live match after the owner pressed Stop (pill "Playing now", button Start) aren't on the sheet.
