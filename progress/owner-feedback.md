@@ -5258,3 +5258,10 @@ From the owner in chat, with a Pokémon TCG Pocket screenshot as the reference (
 5. **Not decided:** what the packs in the row are. Proposal from the chat: every pack in the row is the same booster with the same odds (the pick is the ritual, as in the reference), and the screen says so plainly ("every pack has the same odds"); later, one row per set or cover. Until the owner decides, build it as the proposal.
 
 Next sessions: as planned (Packs and Store, then render 92 the hardening pass); this lands with the pack-wrapper designs and the pack-opening rework.
+
+---
+
+## 2026-11-28 — Owner: the packs in the pick row (settles point 5 of the entry above)
+
+1. **Decision:** every pack in the row is the same booster with the same odds. The pick is there so the owner gets to interact with the opening (the owner: "it gives people the illusion of being able to choose one, just a way for them to interact"); which pack is picked changes nothing in what it holds.
+2. **Not decided:** whether the screen says so in a small line ("every pack has the same odds"). Build it with the line until the owner decides.
