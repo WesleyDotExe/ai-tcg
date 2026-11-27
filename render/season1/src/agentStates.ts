@@ -14,12 +14,8 @@
 // Pure: data in, an HTML string out. Fenced off: nothing outside
 // render/season1/ imports it.
 
-import { esc } from "../../src/site/siteModel.js";
-import type { Size } from "./homeSpec.js";
-import { agentState, homeArt, type HomeData, type OwnerData } from "./homeFacts.js";
-import { bCss } from "./homeMockupB.js";
-import { GRID } from "./homeGrid.js";
-import { GRID_CSS, gridTileHtml } from "./homePage.js";
+import { agentState, type HomeData, type OwnerData } from "./homeFacts.js";
+import { STATE_UNITS, from, statesSheet, type StateCase } from "./statesSheet.js";
 
 type Allowance = NonNullable<OwnerData["play"]["autoPlay"]["allowance"]>;
 const allowance = (state: Allowance["state"], minutesLeft: number, totalMinutes = 30, endsAtReset = false): Allowance => ({
@@ -30,17 +26,12 @@ const allowance = (state: Allowance["state"], minutesLeft: number, totalMinutes 
   endsAtReset,
 });
 
-export interface AgentStateCase { id: string; name: string; data: OwnerData }
+export type AgentStateCase = StateCase;
 
 /** The states, each from a real owner's answer (deep-copied, then the
  * auto-play fields changed as the API documents). */
 export function agentStateCases(data: HomeData): AgentStateCase[] {
   const nova = data.owners.nova!, wren = data.owners.wren!;
-  const from = (base: OwnerData, f: (d: OwnerData) => void): OwnerData => {
-    const d = JSON.parse(JSON.stringify(base)) as OwnerData;
-    f(d);
-    return d;
-  };
   const ap = (d: OwnerData) => d.play.autoPlay;
   return [
     { id: "playing", name: "Playing, no time limit (Nova, as served)", data: nova },
@@ -58,43 +49,8 @@ export function agentStateCases(data: HomeData): AgentStateCase[] {
   ];
 }
 
-/** The unit (px) the grid gives at each screen the check measures. */
-export const STATE_UNITS = [
-  { screen: 1280, unit: 191 },
-  { screen: 1440, unit: 218 },
-  { screen: 1024, unit: 231 },
-] as const;
-
-const SIZES: Size[] = ["S", "M", "L"];
+export { STATE_UNITS };
 
 export function agentStatesPage(data: HomeData): string {
-  const art = homeArt();
-  const cases = agentStateCases(data);
-  const sections = STATE_UNITS.map(({ screen, unit }) =>
-    `<h2>Unit ${unit}px (the grid at ${screen} px wide)</h2>` +
-    cases.map((c) => {
-      const st = agentState(c.data);
-      // S at column 1, M at 2-3, L at 4-5 (rows 1-2): the grid's own shapes.
-      const place: Record<Size, string> = { S: "1 / 1 / 2 / 2", M: "1 / 2 / 2 / 4", L: "1 / 4 / 3 / 6" };
-      return `<section class="case" data-case="${c.id}" data-unit="${unit}"><h3>${esc(c.name)} <small>${esc(st.label)} · ${esc(st.action)}</small></h3>` +
-        `<div class="ugrid" style="--cols:5;--unit:${unit}px;--g:${GRID.gap}px">` +
-        SIZES.map((s) => gridTileHtml("agent", s, c.data).replace(`style="--c:`, `style="grid-area:${place[s]};--c:`)).join("") +
-        `</div></section>`;
-    }).join("")).join("");
-  return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My agent states</title>
-<style>
-${bCss(art)}
-${GRID_CSS}
-main { max-width: none; }
-h2 { font: 800 18px system-ui, sans-serif; margin: 28px 0 6px; }
-.case { margin: 10px 0 22px; }
-.case h3 { font: 700 13px system-ui, sans-serif; margin: 0 0 6px; } .case h3 small { color: var(--muted); font-weight: 600; }
-</style></head><body>
-<main id="main"><div class="top"><div><span class="kick">// prototype sheet</span><h1>My agent, every state</h1></div></div>
-<p class="sub">Season 1 Home, render session 88. Each row is one state the owner API can serve, drawn at S, M and L on the grid's unit. Not a page of the site.</p>
-${sections}</main>
-${art.defs}
-<script>${art.script}</script>
-</body></html>`;
+  return statesSheet({ tile: "agent", title: "My agent", session: 88, cases: agentStateCases(data), note: (c) => { const st = agentState(c.data); return `${st.label} · ${st.action}`; } });
 }

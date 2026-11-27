@@ -120,6 +120,63 @@ export const SETTLED_RD = 100;
 
 export const isPlaced = (d: OwnerData) => d.rating.rating.ratedMatches >= d.ladder.placementMatches && d.rating.rating.tier !== "Placement";
 const hasMatches = (d: OwnerData) => d.matches.total > 0;
+const ordinal = (n: number) => `${n}${n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"}`;
+
+/* The Ladder tile's numbers (render session 89), each from the owner API's
+   own fields (server/OWNER_API.md: rating, ladder, stats). */
+const rankedOf = (d: OwnerData) => d.ladder.standings.filter((s) => s.rank !== null).sort((a, b) => a.rank! - b.rank!);
+export const placementOf = (d: OwnerData) => ({ done: Math.min(d.rating.rating.ratedMatches, d.ladder.placementMatches), of: d.ladder.placementMatches });
+
+/** The tile's one bar: placement until placed, then the way to the next
+ * tier (the bar measures the current tier's span, floor to next floor). */
+export function climbOf(d: OwnerData): { kind: "placement" | "next" | "top"; pct: number; done?: number; of?: number; points?: number; next?: string; nextFrom?: number; color?: string } {
+  if (!isPlaced(d)) {
+    const p = placementOf(d);
+    return { kind: "placement", pct: (100 * p.done) / p.of, ...p };
+  }
+  const r = d.rating.rating.rating;
+  const floors = d.ladder.tiers.filter((t) => t.from !== null) as { tier: string; from: number }[];
+  const next = floors.find((t) => t.from > r);
+  if (!next) return { kind: "top", pct: 100, color: TIER_HEX[d.rating.rating.tier] };
+  const below = [...floors].reverse().find((t) => t.from <= r);
+  // The lowest tier has no floor: measure it over the next tier's span.
+  const span = below ? next.from - below.from : (floors[1]?.from ?? next.from + 150) - next.from;
+  const from = below ? below.from : next.from - span;
+  return { kind: "next", pct: Math.max(0, Math.min(100, (100 * (r - from)) / span)), points: Math.ceil(next.from - r), next: next.tier, nextFrom: next.from, color: TIER_HEX[next.tier] };
+}
+
+export interface StandingRow { rank: number | null; name: string; rating: number | null; me: boolean; gap?: boolean }
+
+/** The standings list: the top three ranked, then (if you're below them)
+ * a gap and you with the agent just above; unplaced, the top three and you
+ * "placing" at the foot. Four rows at most, so it fits L at every unit. */
+export function standingsRows(d: OwnerData): StandingRow[] {
+  const ranked = rankedOf(d);
+  const me = d.ladder.you.rank;
+  const row = (s: (typeof ranked)[number]): StandingRow => ({ rank: s.rank, name: s.ownerName, rating: s.rating, me: s.rank === me });
+  const you: StandingRow = { rank: null, name: d.ladder.you.ownerName, rating: null, me: true };
+  if (!me) return [...ranked.slice(0, 3).map(row), you];
+  const i = ranked.findIndex((s) => s.rank === me);
+  if (i < 4) return ranked.slice(0, 4).map(row);
+  return [...ranked.slice(0, 2).map(row), { rank: null, name: "", rating: null, me: false, gap: true }, row(ranked[i - 1]!), row(ranked[i]!)];
+}
+
+/** The tiers as a ladder, top to bottom, each with its floor and the
+ * ranked agents in it (what a new player sees in place of an empty chart:
+ * where the ratings sit, and that every agent starts at 1,500). */
+function tierScale(d: OwnerData): string {
+  const ranked = rankedOf(d);
+  const start = 1500;
+  const rows = [...d.ladder.tiers].map((t, i, all) => {
+    const to = all[i + 1]?.from ?? null;
+    const n = ranked.filter((s) => s.rating >= (t.from ?? -Infinity) && (to === null || s.rating < to));
+    const starts = start >= (t.from ?? -Infinity) && (to === null || start < to);
+    return `<li style="--tc:${TIER_HEX[t.tier]}"><i></i><span class="tn">${esc(t.tier)}</span><span class="fl">${t.from === null ? `under ${to}` : `${t.from}+`}</span><span class="who">${n.map((s) => `<b title="#${s.rank} ${esc(s.ownerName)}, ${n0(s.rating)}"></b>`).join("")}${starts ? `<em>start</em>` : ""}</span></li>`;
+  }).reverse().join("");
+  const range = ranked.length ? `${plural(ranked.length, "ranked agent")}, ${n0(Math.min(...ranked.map((s) => s.rating)))} to ${n0(Math.max(...ranked.map((s) => s.rating)))}` : "no agent ranked yet";
+  return `<ol class="scale" aria-label="the tiers, Mythic at the top; ${esc(range)}; every agent starts at 1,500">${rows}</ol>`;
+}
+
 const RARITY_RANK: Record<string, number> = { Common: 0, Uncommon: 1, Rare: 2, Mythic: 3 };
 const FINISH_RANK: Record<string, number> = { standard: 0, foil: 1, altArt: 2, fullArt: 3, glitch: 4, gold: 5, prototype: 6 };
 const FINISH_NAME: Record<string, string> = { standard: "", foil: "Foil", fullArt: "Full Art", altArt: "Alt Art", glitch: "Glitch", gold: "Gold", prototype: "Prototype" };
@@ -239,7 +296,8 @@ export const RENDER: Record<Fact, Render> = {
     return fx("deck", `${head}<span><b>${esc(deck.name)}</b> · ${esc(deck.faction ?? "mixed")} · ${deck.cards} cards · ${by}</span>`, "kv");
   },
 
-  /* Ladder */
+  /* Ladder (render session 89: one tile for the rating, tier, rank and
+     form, each size's copy written for its box) */
   rating: (d) => {
     const r = d.rating.rating;
     return fx("rating", isPlaced(d) ? big(n0(r.rating)) : big("Unrated"));
@@ -248,69 +306,73 @@ export const RENDER: Record<Fact, Render> = {
     const t = d.rating.rating.tier;
     return fx("tier", isPlaced(d) ? `<span class="tier" style="--tc:${TIER_HEX[t] ?? "#9aa0b8"}">${esc(t)}</span>` : `<span class="tier" style="--tc:${TIER_HEX.Placement}">In placement</span>`);
   },
-  rank: (d) => {
+  rank: (d, size) => {
     const you = d.ladder.you;
-    const ranked = d.ladder.standings.filter((s) => s.rank !== null).length;
-    return fx("rank", you.rank ? `<span><b>#${you.rank}</b> of ${ranked} ranked</span>` : `<span>Ranked after ${d.ladder.placementMatches} placement matches</span>`);
+    if (you.rank) return fx("rank", `<span><b>#${you.rank}</b> of ${rankedOf(d).length} ranked</span>`);
+    // S has no climb bar, so its third line carries placement's count; M
+    // and L show the count once, in the bar.
+    const p = placementOf(d);
+    return fx("rank", size === "S" ? `<span><b>${p.done} of ${p.of}</b> placement matches</span>` : `<span>Not ranked yet</span>`);
   },
-  placement: (d) => {
-    const done = Math.min(d.rating.rating.ratedMatches, d.ladder.placementMatches), of = d.ladder.placementMatches;
-    if (isPlaced(d)) return fx("placement", `${lab("Placement")}<span>Done (${plural(d.rating.rating.ratedMatches, "rated match", "rated matches")})</span>`, "kv");
-    return fx("placement", `${lab("Placement")}<span><b>${done} of ${of}</b> placement matches. Your agent gets a rating after its first ${of}.</span><span class="bar"><i style="width:${(100 * done) / of}%"></i></span>`, "kv");
+  climb: (d, size) => {
+    const c = climbOf(d);
+    const bar = `<span class="bar" role="img" aria-label="${Math.round(c.pct)}%"><i style="width:${c.pct.toFixed(1)}%${c.color ? `;--c:${c.color}` : ""}"></i></span>`;
+    if (c.kind === "placement") return fx("climb", `${lab("Placement")}<span><b>${c.done} of ${c.of}</b> matches${size === "L" ? `: a rating comes after the ${ordinal(c.of!)}` : ""}</span>${bar}`, "kv");
+    if (c.kind === "top") return fx("climb", `${lab("Next tier")}<span><b>Top tier</b>${size === "L" ? ": nothing above it" : ""}</span>${bar}`, "kv");
+    return fx("climb", `${lab("Next tier")}<span><b>${c.points}</b> points to ${esc(c.next!)}${size === "L" ? ` (from ${c.nextFrom})` : ""}</span>${bar}`, "kv");
   },
-  nextTier: (d) => {
-    if (!isPlaced(d)) return fx("nextTier", `${lab("Next tier")}<span>Your tier is set when placement ends.</span>`, "kv");
-    const r = d.rating.rating.rating;
-    const next = d.ladder.tiers.find((t) => t.from !== null && t.from > r);
-    return fx("nextTier", `${lab("Next tier")}<span>${next ? `<b>${Math.ceil(next.from! - r)}</b> points to ${esc(next.tier)} (${next.from})` : "Top tier"}</span>`, "kv");
+  weekChange: (d) => {
+    if (!isPlaced(d)) return fx("weekChange", `${lab("This week")}<span>After placement</span>`, "kv");
+    const c = Math.round(d.stats.rating.weekChange);
+    return fx("weekChange", `${lab("This week")}<span class="${c > 0 ? "up" : c < 0 ? "down" : ""}">${c === 0 ? "No change" : `${signed(c)} points`}</span>`, "kv");
   },
   ratingSettled: (d) => {
-    if (!isPlaced(d)) return fx("ratingSettled", `${lab("Rating")}<span>Not yet: it starts after placement.</span>`, "kv");
+    if (!isPlaced(d)) return fx("ratingSettled", `${lab("Rating")}<span>Set after placement</span>`, "kv");
     const rd = d.rating.rating.rd;
     const settled = rd <= SETTLED_RD;
     return fx("ratingSettled", `${lab("Rating")}<span><b>${settled ? "Settled" : "Settling"}</b> <details class="why"><summary aria-label="What does ${settled ? "Settled" : "Settling"} mean?">?</summary><span>${settled ? "Settled: a match moves the rating a little now." : "Settling: it can still move a lot each match."} The rating is a guess at your agent's strength, give or take ${Math.round(rd)} points; the more it plays, the smaller that gets.</span></details></span>`, "kv");
   },
-  weekChange: (d) => {
-    if (!isPlaced(d)) return fx("weekChange", `${lab("This week")}<span>Shows once you're placed.</span>`, "kv");
-    const c = Math.round(d.stats.rating.weekChange);
-    return fx("weekChange", `${lab("This week")}<span class="${c > 0 ? "up" : c < 0 ? "down" : ""}">${c === 0 ? "No change this week" : `${signed(c)} this week`}</span>`, "kv");
-  },
   form: (d) => {
     const r = d.stats.recent.slice(0, 10);
-    if (!r.length) return fx("form", `${lab("Form")}<span>Your last 10 results show here.</span>`, "kv");
-    return fx("form", `${lab("Form")}<span class="dots" aria-label="last ${r.length}, newest first">${r.map((x) => `<i class="dot ${x.result}" title="${x.result}">${x.result === "win" ? "W" : x.result === "loss" ? "L" : "D"}</i>`).join("")}</span>`, "kv");
-  },
-  aroundYou: (d) => {
-    const ranked = d.ladder.standings.filter((s) => s.rank !== null);
-    const i = ranked.findIndex((s) => s.rank === d.ladder.you.rank);
-    if (i < 0) return fx("aroundYou", `${lab("Around you")}<span>You join the ranks after placement.</span>`, "kv");
-    const near = ranked.slice(Math.max(0, i - 1), i + 2);
-    return fx("aroundYou", `${lab("Around you")}<ol class="lad">${near.map((s) => `<li class="${s.rank === d.ladder.you.rank ? "me" : ""}"><b>#${s.rank}</b> ${esc(s.ownerName)}${s.rank === d.ladder.you.rank ? " (you)" : ""}<span>${n0(s.rating)}</span></li>`).join("")}</ol>`, "blk");
+    if (!r.length) return fx("form", `${lab("Form")}<span>No results yet</span>`, "kv");
+    return fx("form", `${lab("Form")}<span class="dots" role="img" aria-label="last ${r.length} results, newest first: ${r.filter((x) => x.result === "win").length} won, ${r.filter((x) => x.result === "loss").length} lost">${r.map((x) => `<i class="dot ${x.result}" title="${x.result}">${x.result === "win" ? "W" : x.result === "loss" ? "L" : "D"}</i>`).join("")}</span>`, "kv");
   },
   streak: (d) => {
     const s = d.stats.totals.currentStreak;
-    return fx("streak", `${lab("Streak")}<span>${s ? `${plural(s.length, s.kind === "win" ? "win" : "loss", s.kind === "win" ? "wins" : "losses")} in a row` : "None yet"} · best ${plural(d.stats.totals.bestWinStreak, "win")}</span>`, "kv");
+    const best = d.stats.totals.bestWinStreak;
+    return fx("streak", `${lab("Streak")}<span>${s ? `<b>${plural(s.length, s.kind === "win" ? "win" : "loss", s.kind === "win" ? "wins" : "losses")}</b> in a row` : "None yet"}${best ? ` · best ${plural(best, "win")}` : ""}</span>`, "kv");
+  },
+  standings: (d) => {
+    const rows = standingsRows(d);
+    const li = (r: StandingRow) => r.gap ? `<li class="gap" aria-hidden="true">···</li>` :
+      `<li class="${r.me ? "me" : ""}"${r.me ? ' aria-current="true"' : ""}><b>${r.rank ? `#${r.rank}` : "–"}</b><span class="who" title="${esc(r.name)}">${esc(r.name)}${r.me ? " (you)" : ""}</span><span class="pts">${r.rating === null ? "placing" : n0(r.rating)}</span></li>`;
+    return fx("standings", `${lab(isPlaced(d) ? "Standings" : "Top of the ladder")}<ol class="lad">${rows.map(li).join("")}</ol>`, "blk");
   },
   trend: (d) => {
-    if (!isPlaced(d)) return fx("trend", `${lab("Rating over 30 days")}<span>The chart starts after placement.</span>`, "kv");
+    if (!isPlaced(d)) return fx("trend", `${lab("Where the ratings sit")}${tierScale(d)}`, "blk");
     const pts = d.stats.rating.chart.filter((p) => p.rating !== null) as { rating: number }[];
     const vals = pts.map((p) => p.rating);
     const floors = d.ladder.tiers.filter((t) => t.from !== null);
     const lo = Math.min(...vals) - 40, hi = Math.max(...vals) + 40;
     const W = 300, H = 90, x = (i: number) => (i / Math.max(1, pts.length - 1)) * W, y = (v: number) => H - ((v - lo) / (hi - lo)) * H;
-    const lines = floors.filter((t) => t.from! > lo && t.from! < hi).map((t) => `<line x1="0" x2="${W}" y1="${y(t.from!).toFixed(1)}" y2="${y(t.from!).toFixed(1)}" stroke="${TIER_HEX[t.tier]}" stroke-dasharray="3 4" opacity=".7"/><text x="${W - 2}" y="${(y(t.from!) - 3).toFixed(1)}" text-anchor="end" fill="${TIER_HEX[t.tier]}">${esc(t.tier)}</text>`).join("");
+    const lines = floors.filter((t) => t.from! > lo && t.from! < hi).map((t) => `<line x1="0" x2="${W}" y1="${y(t.from!).toFixed(1)}" y2="${y(t.from!).toFixed(1)}" stroke="${TIER_HEX[t.tier]}" stroke-dasharray="3 4" opacity=".9" vector-effect="non-scaling-stroke"/>`).join("");
+    const names = floors.filter((t) => t.from! > lo && t.from! < hi).map((t) => `<span style="top:${((100 * y(t.from!)) / H).toFixed(1)}%;--tc:${TIER_HEX[t.tier]}">${esc(t.tier)}</span>`).join("");
     const path = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
-    return fx("trend", `${lab("Rating over 30 days")}<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="rating over 30 days with the tier floors">${lines}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>`, "blk");
-  },
-  topOfLadder: (d) => {
-    const top = d.ladder.standings.filter((s) => s.rank !== null).slice(0, 3);
-    return fx("topOfLadder", `${lab("Top of the ladder")}<ol class="lad">${top.map((s) => `<li class="${s.rank === d.ladder.you.rank ? "me" : ""}"><b>#${s.rank}</b> ${esc(s.ownerName)}<span class="tier sm" style="--tc:${TIER_HEX[s.tier] ?? "#999"}">${esc(s.tier)}</span></li>`).join("")}</ol>`, "blk");
+    return fx("trend", `${lab("Rating, 30 days")}<span class="chartbox"><svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="rating over 30 days, ${n0(vals[0] ?? 0)} to ${n0(vals[vals.length - 1] ?? 0)}, with the tier floors">${lines}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><span class="floors" aria-hidden="true">${names}</span></span>`, "blk");
   },
   factionWinRate: (d) => {
     const rows = d.stats.byFaction.filter((f) => f.matches > 0);
     const old = d.stats.factionNotRecorded.matches;
-    if (!rows.length) return fx("factionWinRate", `${lab("Win rate by deck")}<span>${hasMatches(d) ? "" : "Shows after your first matches."}</span>`, "kv");
-    return fx("factionWinRate", `${lab("Win rate by deck")}<ul class="bars">${rows.map((f) => `<li><span>${esc(f.faction)}</span><span class="bar"><i style="width:${Math.round(f.winRate * 100)}%;background:${FACTION_HEX[f.faction]}"></i></span><span>${Math.round(f.winRate * 100)}% of ${f.matches}</span></li>`).join("")}</ul>${old ? `<span class="sub">${old} older matches didn't record a deck.</span>` : ""}`, "blk");
+    if (!rows.length) return fx("factionWinRate", `${lab("By deck")}<span>${hasMatches(d) ? "No deck recorded yet" : "After the first matches"}</span>`, "kv");
+    // One line: each deck's win rate; its match count in the title (and the
+    // older matches that recorded no deck).
+    const tail = old ? `; ${old} older ${old === 1 ? "match" : "matches"} recorded no deck` : "";
+    // The two most-played decks fit the line at every unit; the rest is
+    // "+n more" with every deck in its title.
+    const shown = [...rows].sort((a, b) => b.matches - a.matches).slice(0, 2);
+    const more = rows.length - shown.length;
+    const all = rows.map((f) => `${f.faction} ${Math.round(f.winRate * 100)}% of ${f.matches}`).join(", ");
+    return fx("factionWinRate", `${lab("By deck")}<span class="wr">${shown.map((f) => `<span title="${esc(f.faction)}: ${Math.round(f.winRate * 100)}% of ${plural(f.matches, "match", "matches")}${tail}"><i style="background:${FACTION_HEX[f.faction]}"></i>${esc(f.faction)} <b>${Math.round(f.winRate * 100)}%</b></span>`).join("")}${more ? `<span class="more" title="${esc(all)}">+${more} more</span>` : ""}</span>`, "kv");
   },
 
   /* Watch live */

@@ -40,6 +40,8 @@
 // 2026-11-27): no tile on Home is the hero panel, in light and dark (the
 // hero-contrast check is replaced; agent-states-check.mjs measures the agent
 // tile's contrast on the glass from the pixels, in every auto-play state).
+// Render session 89 (the Ladder tile): no change to the checks; the Ladder
+// tile's states are measured by tile-states-check.mjs ladder.
 // Writes stills, fit.txt and check.txt to
 // progress/render/evidence/season1-home-grid-s86/ (or the folder given).
 //
@@ -51,7 +53,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s88'));
+const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s89'));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', 'home.html')).href;
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));

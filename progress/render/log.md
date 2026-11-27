@@ -6822,3 +6822,52 @@ changed: "no tile is the hero panel"); the render suite 1173 of 1173; typecheck 
 light glass, and a parser bug in my own first draft (`color-mix` computes to `color(srgb 0-1 ...)`, read as 0-255 it
 made every mixed colour look black, passing light and failing dark falsely). **Thin:** in render/quality-debt.md.
 **Blocked:** nothing. **Next:** group 2, the Ladder tile (Rating & form merged in): Ladder M is the worst fit left.
+
+## 2026-11-27 — Render session 89: the Ladder tile on the grid, Rating & form merged in (phase 2, the tiles in groups, group 2)
+
+**Lane:** render (owner 2026-11-22 point 7 keeps every scheduled session in the render lane; the newest merged PR,
+#198, is in this checkout; no open render PR). **Owner feedback read:** 2026-11-27, answers to render 88: calls 1-5
+kept as built (nothing to change); note 6 (make the play styles obviously selectable) is queued as the next session's
+first job, as the entry allows ("can ride along or come right after"), so this PR stays one tile.
+
+**Built (all in `render/season1/`, no Season 0 page changed):**
+- **The Ladder tile designed for its three boxes.** S: the tier badge beside the rating, the tier and the rank (for
+  a player in placement, "3 of 5 placement matches" in the rank's line). M: the same headline and the button on the
+  left; on the right one bar, this week's change and the form dots. L: the headline with Open Stats beside it; the
+  bar; this week and Settled / Settling (its "?" holds the ±); the form, the streak and the decks one line each; then
+  the standings beside the 30-day chart, which takes the height that's left.
+- **Two merges in the spec** (`homeSpec.ts`, `HOME_TILES.md`): placement + next tier became `climb`, one bar that
+  is placement until placed and the next tier after (the old M showed both, one of them always "not yet"); around
+  you + top of the ladder became `standings` (the top three, then a gap and you with the one above if you're
+  lower; unplaced, you "placing" at the foot; four ranked rows at most). M lost the list and Settled (L has them).
+- **A new player's L** shows the tiers as a ladder in place of an empty chart: Mythic to Bronze, each floor, a dot
+  per ranked agent, and "start" on Gold (every owner starts at 1,500, OWNER_API.md). The spec's new-player L asked
+  for "where the ratings sit".
+- **Win rate by deck on one line**: the two most-played decks, "+n more" with every deck and its match count in the
+  title (four decks wrapped to four lines and pushed the tile 39 px over).
+- **Contrast on the glass:** the tier words are mixed toward the ink (Platinum read 2.3:1 on light glass, Mythic
+  4.0:1 on dark); the form dots darkened until their letters read 4.5:1 (W 3.2:1, D 3.9:1, L 4.3:1 before), all
+  measured from the pixels.
+- **Phone S**: the badge gives its width to the text, so a new player's placement line takes one line (was 13-19 px
+  over at 390 px).
+- **The states sheet is shared**: `src/statesSheet.ts` draws any tile's cases at S, M and L on the grid's three
+  units; `src/agentStates.ts` uses it; `src/ladderStates.ts` adds seven ladder states (Nova as served, Wren as served,
+  3 of 5 placed, just placed at Gold #2 of 3, settled and up, Mythic #1, Bronze #5 of 7 with long names and a draw),
+  each a snapshot owner with only the rating, ladder and stats fields changed (the tier always follows the rating
+  and the floors; the standings re-ranked). `output/ladder-states.html`.
+- **The check takes the tile**: `ci/agent-states-check.mjs` became `ci/tile-states-check.mjs agent|ladder` (the old
+  name still runs it for the agent). New for every tile: a text box cut sideways fails unless it ends in an ellipsis
+  with the whole text in its title. For the Ladder: every size says the same rating and tier, one bar at M and L and
+  none at S, L's standings hold the owner's row, the form's dots on one line.
+
+**Ran it:** `progress/render/evidence/season1-ladder-tile-s89/check.txt` **59 PASS, 0 FAIL** (the first run on the
+first draft: 48 PASS, 11 FAIL: three overflows, two sideways cuts, six contrast misses, all fixed above); stills
+`ladder-states-1280-light.jpg` and `-dark.jpg`. `season1-home-grid-s89/check.txt` **146 PASS, 0 FAIL, 5 OPEN** (was 7
+OPEN); fit.txt: Ladder **16 of 16** (was 3 of 16: M 164-301 px over, L 100-238); the board **131 of 166** (was 118);
+fill.txt 29 of 148 OPEN, 42 spilling (was 36, 54); main's numbers in `before-s89/`. The agent sheet re-run on the
+shared code: 58 PASS. Mockup B's record check (it draws the same facts): 68 PASS. Tests: season1 93 of 93 (9 new in
+`test/ladderTile.test.ts`); the render suite 1182 of 1182; typecheck clean.
+
+**Worked:** writing the check before the CSS: the first run named every miss with its fact. **Thin:** in
+render/quality-debt.md. **Blocked:** nothing. **Next:** the play-style choices on the agent tile (owner 2026-11-27
+note 6), then group 3, Packs and Store (Store L is the worst fit left, 447-526 px over).

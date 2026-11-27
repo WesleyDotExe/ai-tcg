@@ -15,6 +15,13 @@ play-time line read a field the API never sends: fixed); `output/agent-states.ht
 `ci/agent-states-check.mjs` (58 PASS, contrast measured from the pixels). Grid check `season1-home-grid-s88/` 146
 PASS, 0 FAIL (main: 21 FAIL); fit.txt 118 of 166. Five small calls at the render checkpoint.
 
+**Render session 89 (the Ladder tile, phase 2's tiles in groups, group 2, 2026-11-27):** Ladder with Rating & form
+merged in, designed for its S / M / L boxes: 16 of 16 renders fit (was 3); one bar (`climb`: placement, then the next
+tier) and one standings list (`standings`) replace two pairs of facts; a new player's L draws the tiers as a ladder;
+the states sheet is shared (`src/statesSheet.ts`; `output/ladder-states.html`, seven states) and the check takes the
+tile (`ci/tile-states-check.mjs agent|ladder`, 59 PASS for Ladder, contrast from the pixels). Grid check
+`season1-home-grid-s89/` 146 PASS, 0 FAIL, 5 OPEN; fit.txt 131 of 166. Four small calls at the render checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -62,17 +69,20 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 88's five calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 89's four calls may be there).
 
-Next: render 88 did the agent tile. **Render 89: group 2, the Ladder tile (Rating & form merged in)** on the grid:
-Ladder M is the worst fit left after Store L (164-301 px over), and Ladder L 100-238. Design each size for its box,
-measured by `node render/season1/ci/home-grid-check.mjs` (fit.txt, fill.txt) the way render 88 did the agent tile: a
-states sheet if the tile has states the snapshot doesn't show (placement, unrated, a tier change), and text
-contrast measured from the pixels (`agent-states-check.mjs`'s `contrast()` can be lifted into a shared helper).
-Then Packs and Store, then Collection and Daily rewards, until fit.txt is all "fits" and fill.txt has no OPEN line.
-Every 5th render session is the hardening pass (render 87 was; render 92 next). Phase 1's step 5 (Watch live 9:16
-on the Season 1 arena) and step 6 (the music spec) are still open. A call only the owner can make goes in the notes
-as "waiting on owner" and the session moves on.
+Next: **render 90: the owner's 2026-11-27 note 6, the play-style choices on the agent tile** (queued by render 89):
+the section called "Play style" (personality as its subtitle) with one plain line (it changes how your agent plays,
+from its next match); the six drawn as choices (the current one marked: check, accent edge, "Current"; the others
+with hover, press and a pointer); a tap on any style opens My agent with that style ready to confirm; S the current
+style's name, M the current style with "Change", L all six. Note: S showing the style makes My agent's S four facts,
+and `homeSpec.test.ts` holds S to three; the owner's word wins, so change that rule for this tile and say so. Extend
+`agentStates.ts` with the hover / press states if the check needs them, and keep
+`ci/tile-states-check.mjs agent` at 4.5:1. Then group 3, Packs and Store (Store L is the worst fit left, 447-526 px
+over), then Collection and Daily rewards, until fit.txt is all "fits" and fill.txt has no OPEN line. Every 5th render
+session is the hardening pass (render 92 next). Phase 1's step 5 (Watch live 9:16 on the Season 1 arena) and step 6
+(the music spec) are still open. A call only the owner can make goes in the notes as "waiting on owner" and the
+session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to
