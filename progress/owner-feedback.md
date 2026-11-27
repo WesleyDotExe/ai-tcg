@@ -5196,3 +5196,22 @@ From the owner's review of render session 87 (PR #197, `render/season1/output/ho
 1. **Decision: the My agent tile becomes the same glass tile as every other tile** (light and dark themes, the same header, buttons and edges), as Watch live did in render 87. It is no longer a dark hero tile; no tile on Home is. Its text keeps the contrast render 87 set (nothing under 4.5:1).
 
 Next session: the tiles in groups, starting with the agent tile (My agent and Agent controls), which takes this.
+
+---
+
+## 2026-11-27 — Owner: answers to render session 88 (the agent tile on the grid), keep all 5; make the personalities obviously selectable
+
+**Render session 88** (PR #198, `progress/render/checkpoints.md`, `render/season1/output/home.html`, `render/season1/output/agent-states.html`, `progress/render/evidence/season1-agent-tile-s88/`).
+1. **Keep:** the personality one-liners in our words; the server's full summary on hover and on My agent.
+2. **Keep:** long names take a smaller size; past two lines at S and M they end in "...", the whole name at L and on hover.
+3. **Keep:** at L, Start / Stop sits beside the name.
+4. **Keep:** "Change" (personality) and "Pick one" / "Change" (deck) open My agent; the tile doesn't change them itself.
+5. **Keep:** status pills mixed toward the text colour (about 5:1 on the glass); the ring keeps the pure colour.
+6. **Owner's note: make it more obvious that the personalities are selectable and that they change how the agent plays.** Within call 4 (the choice is confirmed on My agent), the tile should:
+   - call the section **"Play style"** (personality as its subtitle), with one plain line saying what it does: it changes how your agent plays, from its next match;
+   - draw the six as **choices**, not a list: the current one marked (check, accent edge, "Current"), the others with a visible hover and press state and a pointer, so they read as tappable;
+   - make **tapping any style open My agent with that style ready to confirm** (one more tap there), so a tap never looks like it did nothing;
+   - at S, show the current style's name; at M, the current style with "Change"; at L, all six as choices.
+   The agent-states check and the contrast rule (4.5:1 or more) cover the new states.
+
+Next session: group 2, the Ladder tile with Rating & form merged in; the play-style change above can ride along or come right after.
