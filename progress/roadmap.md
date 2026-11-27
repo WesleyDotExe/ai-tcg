@@ -410,7 +410,9 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      `output/agent-states.html`, `season1-agent-tile-s88/` 58 PASS with contrast measured from the pixels; the board
      118 of 166 fit; render 89: the Ladder tile done (Rating & form merged in), 16 of 16 renders fit (was 3), every
      rating state on `output/ladder-states.html`, `season1-ladder-tile-s89/` 59 PASS; the board 131 of 166 fit;
-     next the play-style choices on the agent tile (owner 2026-11-27 note 6), then Packs and Store); [ ] (3) three
+     render 90: the play styles as choices on the agent tile (owner 2026-11-27 note 6): "Play style" at S, M and L,
+     the six as choices at L, a tap opens My agent ready to confirm; `season1-agent-tile-s90/` 104 PASS,
+     `season1-play-style-s90/` 21 PASS; the board 131 of 166 fit; next Packs and Store); [ ] (3) three
      pack-wrapper designs with placeholder art
    - [x] (render debt, hardening, render 87) The Season 1 Home's small faults: Watch live's surround is the
      dashboard's glass (owner 2026-11-25, point 11); Edit board's move and size buttons in a bar over the tile's

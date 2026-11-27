@@ -5199,7 +5199,7 @@ Next session: the tiles in groups, starting with the agent tile (My agent and Ag
 
 ---
 
-## 2026-11-27 — Owner: answers to render session 88 (the agent tile on the grid), keep all 5; make the personalities obviously selectable (calls 1-5 HANDLED 2026-11-27, render session 89: kept as built, nothing to change. Note 6 NOT yet done: queued as render 90's first job (the entry allows "right after"); render 89 did the Ladder tile, `progress/render/log.md`)
+## 2026-11-27 — Owner: answers to render session 88 (the agent tile on the grid), keep all 5; make the personalities obviously selectable (calls 1-5 HANDLED 2026-11-27, render session 89: kept as built, nothing to change. Note 6 HANDLED 2026-11-27, render session 90: "Play style" with personality as its subtitle and the plain line; S the current style, M the style with Change, L all six as choices (current: check, accent edge, "Current"; others: pointer, hover, press, focus ring); a tap opens My agent with that style ready to confirm ("Confirm Rusher" / "Keep Calculator"); `render/season1/output/home.html`; checks `progress/render/evidence/season1-agent-tile-s90/check.txt` 104 PASS (hover and press measured at 4.5:1 or more) and `season1-play-style-s90/check.txt` 21 PASS; S is four facts on this tile only, said in the spec and its test)
 
 **Render session 88** (PR #198, `progress/render/checkpoints.md`, `render/season1/output/home.html`, `render/season1/output/agent-states.html`, `progress/render/evidence/season1-agent-tile-s88/`).
 1. **Keep:** the personality one-liners in our words; the server's full summary on hover and on My agent.

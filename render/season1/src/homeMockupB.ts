@@ -241,6 +241,9 @@ ${MASONRY_CSS}
 .steps li.done { opacity: .55; } .steps li.now { box-shadow: inset 0 0 0 1.5px var(--c); }
 .bars li { display: grid; grid-template-columns: 62px 1fr auto; gap: 8px; align-items: center; font-size: 12.5px; }
 .styles li { font-size: 12px; color: var(--muted); } .styles li b { color: var(--ink); } .styles li.on b::after { content: " ✓"; color: var(--ok); }
+/* Render session 90: the play styles became links (choices) on the grid's
+   Home; the record page draws them as its plain list. */
+.styles .choice { display: block; color: inherit; text-decoration: none; } .styles .choice .tick, .styles .choice:not(.on) .cur { display: none; } .styles .choice .cur { margin-left: 6px; font-size: 10px; color: var(--ok); } .styles .choice .ct { display: block; } .subt { margin-left: 6px; font-size: 11px; color: var(--muted); }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; } .chip { padding: 2px 9px; border-radius: 999px; background: var(--soft); box-shadow: var(--soft-edge); font-size: 12px; }
 .why { display: inline; } .why summary { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--soft); font-size: 10.5px; cursor: pointer; list-style: none; }
 .why summary::-webkit-details-marker { display: none; } .why[open] > span { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }

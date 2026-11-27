@@ -152,7 +152,8 @@ export const GRID_CSS = `
 /* S: the picture and the name, the pill, the button. */
 .ugrid .tile[data-tile="agent"].s-S .headline [data-fact="agentName"] .big { font-size: 18px; }
 /* M: the name and the button on the left; on the right the pill with its
-   short reason, then one line each: today, the personality, the play time. */
+   short reason, then one line each: today, the play style (with Change),
+   the play time. */
 .ugrid .tile[data-tile="agent"].s-M { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
 .ugrid .tile[data-tile="agent"].s-M .headline [data-fact="agentName"] { flex-wrap: nowrap; gap: 8px; }
 .ugrid .tile[data-tile="agent"].s-M .headline [data-fact="agentName"] .big { font-size: 18px; }
@@ -162,28 +163,64 @@ export const GRID_CSS = `
 .ugrid .tile[data-tile="agent"].s-M [data-fact="agentStatus"] .why { font-size: 12px; }
 .ugrid .tile[data-tile="agent"].s-M .fx.kv { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: baseline; column-gap: 6px; font-size: 13px; line-height: 1.3; }
 /* L: the name with the button beside it, the pill and its reason, today
-   and the play time side by side, the deck, then every personality in one
-   line each (two columns of three). */
+   and the play time side by side, the deck, then the six play styles as
+   choices (two columns of three). */
 .ugrid .tile[data-tile="agent"].s-L { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hd hd" "nm ft" "bd bd"; column-gap: 12px; row-gap: 6px; }
 .ugrid .tile[data-tile="agent"].s-L > header { grid-area: hd; }
 .ugrid .tile[data-tile="agent"].s-L > .headline { grid-area: nm; }
 .ugrid .tile[data-tile="agent"].s-L > footer { grid-area: ft; align-self: center; padding: 0; }
-.ugrid .tile[data-tile="agent"].s-L > .body { grid-area: bd; gap: 6px 16px; font-size: 13.5px; line-height: 1.3; }
+.ugrid .tile[data-tile="agent"].s-L > .body { grid-area: bd; gap: 5px 16px; font-size: 13.5px; line-height: 1.3; }
 .ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: 10px; }
 .ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] .labrow { flex-direction: column; gap: 0; }
 .ugrid .tile[data-tile="agent"].s-L .headline [data-fact="agentName"] .big { font-size: 21px; }
 .ugrid .tile[data-tile="agent"].s-L .ava { width: 38px; height: 38px; }
 .ugrid .tile[data-tile="agent"].s-L [data-fact="agentStatus"] { grid-area: 1 / 1 / 2 / 3; }
-.ugrid .tile[data-tile="agent"].s-L [data-fact="todayRecord"] { grid-area: 2 / 1; }
-.ugrid .tile[data-tile="agent"].s-L [data-fact="playTime"] { grid-area: 2 / 2; }
-.ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] { grid-area: 3 / 1 / 4 / 3; }
-.ugrid .tile[data-tile="agent"].s-L [data-fact="personality"] { grid-area: 4 / 1 / 5 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="todayRecord"] { grid-area: 2 / 1 / 3 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="playTime"] { grid-area: 3 / 1 / 4 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] { grid-area: 4 / 1 / 5 / 3; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="personality"] { grid-area: 5 / 1 / 6 / 3; }
 .ugrid .tile[data-tile="agent"].s-L [data-fact="agentStatus"] { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
 .ugrid .tile[data-tile="agent"].s-L [data-fact="agentStatus"] .why { font-size: 12.5px; }
-.ugrid .tile[data-tile="agent"].s-L .styles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; margin: 0; padding: 0; list-style: none; }
-.ugrid .tile[data-tile="agent"].s-L .styles li { display: flex; flex-direction: column; min-width: 0; padding: 2px 8px; border-radius: 9px; background: var(--soft); box-shadow: var(--soft-edge); font-size: 12.5px; line-height: 1.25; }
-.ugrid .tile[data-tile="agent"].s-L .styles li > span { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ugrid .tile[data-tile="agent"].s-L .styles li.on { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: inset 0 0 0 1.5px var(--c); }
+/* Play style (render session 90, owner 2026-11-27 note 6): the six drawn as
+   choices, not a list. The current one: a check, an accent edge and
+   "Current". The others read as tappable: a pointer, a visible hover (lifts,
+   accent edge) and press (sinks, deeper tint); .hov and .prs draw the same
+   two states for the states sheet and its contrast check. Every choice is a
+   link to My agent with that style ready to confirm. */
+.tile[data-tile="agent"] [data-fact="personality"] .sn { font-weight: 750; }
+.tile[data-tile="agent"] [data-fact="personality"] .val { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.tile[data-tile="agent"] .subt { font-size: 11.5px; color: var(--muted); }
+.tile[data-tile="agent"] .plain { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
+.tile[data-tile="agent"] .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 6px; margin: 0; padding: 0; list-style: none; }
+.tile[data-tile="agent"] .choice { display: flex; flex-direction: column; min-width: 0; padding: 1px 8px 2px 7px; border-radius: 9px; background: var(--soft); box-shadow: var(--soft-edge), inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; font-size: 12.5px; line-height: 1.16; cursor: pointer; transition: background-color .12s, box-shadow .12s, transform .12s; -webkit-tap-highlight-color: transparent; }
+.tile[data-tile="agent"] .choice .cn { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.tile[data-tile="agent"] .choice .cn b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile[data-tile="agent"] .choice .ct { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile[data-tile="agent"] .choice .tick, .tile[data-tile="agent"] .choice .cur { display: none; }
+.tile[data-tile="agent"] .choice.on { background: color-mix(in srgb, var(--accent) 14%, var(--soft)); box-shadow: inset 3px 0 0 var(--accent), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent); cursor: default; }
+.tile[data-tile="agent"] .choice.on .tick { display: inline-grid; place-items: center; flex: none; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); color: #fff; }
+.tile[data-tile="agent"] .choice.on .cur { display: inline; margin-left: auto; flex: none; font: 750 9.5px ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 55%, var(--ink)); }
+.tile[data-tile="agent"] .choice:not(.on):is(:hover, .hov) { background: color-mix(in srgb, var(--accent) 9%, var(--soft)); box-shadow: 0 3px 10px rgba(30,30,90,.14), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent); transform: translateY(-1px); }
+.tile[data-tile="agent"] .choice:not(.on):is(:active, .prs) { background: color-mix(in srgb, var(--accent) 20%, var(--soft)); box-shadow: inset 0 1px 3px rgba(30,30,90,.22), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 65%, transparent); transform: translateY(0) scale(.98); }
+.tile[data-tile="agent"] .choice:is(.on, :hover, .hov, :active, .prs) .ct { color: color-mix(in srgb, var(--muted) 55%, var(--ink)); }
+.tile[data-tile="agent"] .choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tile[data-tile="agent"] .chg { cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .tile[data-tile="agent"] .choice { transition: none; } .tile[data-tile="agent"] .choice:not(.on):is(:hover, .hov, :active, .prs) { transform: none; } }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="personality"] { gap: 1px; }
+.ugrid .tile[data-tile="agent"].s-L .choices { margin-top: 2px; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="personality"] .labrow { gap: 6px; }
+/* L: today and the play time each one full-width line, the label beside
+   its value (render session 90), so the six choices have their room. */
+.ugrid .tile[data-tile="agent"].s-L :is([data-fact="todayRecord"], [data-fact="playTime"]) { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: baseline; column-gap: 8px; }
+.ugrid .tile[data-tile="agent"].s-L [data-fact="deck"] .labrow { width: 76px; }
+.ugrid .tile[data-tile="agent"].s-L .lab { white-space: nowrap; }
+/* M: the style's name and Change on one line. */
+.ugrid .tile[data-tile="agent"].s-M [data-fact="personality"] .val { flex-wrap: nowrap; min-width: 0; gap: 0 6px; }
+.ugrid .tile[data-tile="agent"].s-M [data-fact="personality"] .chg { font-size: 11.5px; }
+.ugrid .tile[data-tile="agent"].s-M [data-fact="personality"] .sn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* S: the current style on one line under the pill. */
+.ugrid .tile[data-tile="agent"].s-S [data-fact="personality"] { flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; font-size: 12.5px; }
+.ugrid .tile[data-tile="agent"].s-S [data-fact="personality"] .sn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Ladder (render session 89): the rating, the tier and the rank are one
    headline; the body is the next step up (one bar), this week, the form;
    at L also how settled, the streak and the decks, then the standings
@@ -325,6 +362,20 @@ export const GRID_CSS = `
 .ugrid .tile[data-tile="store"].s-M .si figcaption { display: none; }
 .ugrid .tile[data-tile="store"].s-M .si-p { font-size: 11px; right: 3px; bottom: 3px; }
 .ugrid .tile[data-tile="store"].s-M .si-buy { padding: 2px 6px; font-size: 12px; }
+/* My agent's Play style section (the prototype draws only this part of the
+   page): the six as choices, the picked one ready to confirm. */
+.ps { margin-bottom: 16px; } .ps h2 .subt { font: 600 13px system-ui, sans-serif; color: var(--muted); margin-left: 6px; }
+.ps .opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; list-style: none; margin: 10px 0; padding: 0; }
+.ps .opt { width: 100%; height: 100%; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; text-align: left; padding: 9px 12px; border: 0; border-radius: 12px; background: var(--soft); box-shadow: var(--soft-edge), inset 0 0 0 1px var(--line); font: 13px/1.35 system-ui, sans-serif; color: var(--ink); cursor: pointer; }
+.ps .opt b { font-size: 14px; } .ps .opt span { flex: 1 1 100%; color: var(--muted); }
+.ps .opt .cur { font: 750 10px ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 55%, var(--ink)); }
+.ps .opt:hover { box-shadow: 0 3px 10px rgba(30,30,90,.14), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent); }
+.ps .opt:active { transform: scale(.99); }
+.ps .opt[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--soft)); box-shadow: inset 3px 0 0 var(--accent), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent); }
+.ps .confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 9%, var(--soft)); }
+.ps .confirm p { flex: 1 1 100%; margin: 0; }
+.ps .saved { padding: 8px 12px; border-radius: 12px; font-weight: 650; background: color-mix(in srgb, var(--ok) 14%, var(--soft)); color: color-mix(in srgb, var(--ok) 40%, var(--ink)); }
+.ps > .btn { margin-top: 10px; }
 @media (max-width: ${GRID.phoneMax}px) {
   .ugrid > .tile { padding: 11px 12px; border-radius: 18px; gap: 4px; }
   .ugrid .tile header { gap: 6px; }
@@ -340,11 +391,17 @@ export const GRID_CSS = `
      the rating, the tier and the rank, so each takes one line. */
   .ugrid .tile[data-tile="ladder"].s-S .badge { display: none; }
   .ugrid .tile[data-tile="ladder"].s-S .hstack > [data-fact="rank"] { font-size: 12px; }
+  /* My agent S on a phone (render session 90): the pill on one line, so the
+     play style keeps its line above the button. */
+  .ugrid .tile[data-tile="agent"].s-S .pill { font-size: 11.5px; padding: 1px 8px; white-space: nowrap; }
+  .ugrid .tile[data-tile="agent"].s-S [data-fact="personality"] .lab { letter-spacing: .06em; }
 }
 `;
 
 export function homePage(data: HomeData): string {
-  const owners = ownersPayload(data, gridTileHtml);
+  // Each owner's play styles and the agent's own (the My agent page's
+  // Play style step reads them; the tiles are drawn on the server side).
+  const owners = ownersPayload(data, gridTileHtml, (d) => ({ styles: d.play.playStyles, style: d.play.connectedAgent?.playStyle ?? null, live: !!d.play.liveMatch, agent: d.play.connectedAgent ? { id: d.play.connectedAgent.agentId, name: d.play.connectedAgent.name } : null }));
   const pages = PLACES.map((p) => ({ ...p, from: [...p.from].map((id) => TILES.find((t) => t.id === id)!.name) }));
   const art = homeArt();
   const payload = payloadJson({ owners, boards: GRID_BOARDS, pages, takenAt: data.takenAt, theme: "light", tz: Object.values(data.owners)[0]!.daily.timeZone, grid: GRID });
@@ -370,6 +427,61 @@ ${art.defs}
 (() => {
   const S = window.SHELL, D = S.D, st = S.st;
   const main = document.getElementById('main');
+  // Play style (render session 90, owner 2026-11-27 note 6). A tap on a
+  // style on the My agent tile opens My agent with that style ready to
+  // confirm (one more tap there); the tile never changes it itself (call 4).
+  // st.style keeps what the owner confirmed in this prototype (the site
+  // sends PUT /api/agents/:agentId/play-style { style }); st.pick is the
+  // style waiting to be confirmed; st.saved the line shown after Confirm.
+  st.style = {}; st.pick = null; st.saved = null;
+  const ex = () => D.owners[st.owner].extra;
+  const styleNow = () => (st.style[st.owner] ?? ex().style);
+  const styleById = (id) => ex().styles.find((x) => x.id === id) || ex().styles[0];
+  const escH = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  // The tiles are drawn once per owner; after a Confirm, mark the new style
+  // on whichever face is showing (S and M say its name, L marks its choice).
+  function applyStyle(root) {
+    const id = styleNow();
+    if (!ex().agent || !id) return;
+    const p = styleById(id);
+    root.querySelectorAll('.tile[data-tile="agent"]').forEach((t) => {
+      t.querySelectorAll('[data-style-name]').forEach((b) => { b.textContent = p.name; b.title = p.summary; });
+      t.querySelectorAll('.choice').forEach((c) => {
+        const on = c.dataset.style === id;
+        c.classList.toggle('on', on);
+        if (on) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current');
+        const s = styleById(c.dataset.style).summary;
+        c.title = s + (on ? ' (its play style now)' : ' Tap to choose it on My agent.');
+      });
+    });
+  }
+  // My agent's Play style section: the six as choices, the picked one ready
+  // to confirm.
+  function stylePanel() {
+    const x = ex();
+    if (!x.agent) return '<section class="pg ps" id="playstyle" aria-labelledby="ps-h"><h2 id="ps-h">Play style <span class="subt">personality</span></h2><p class="sub">Connect an agent first; then choose how it plays.</p></section>';
+    const now = styleNow();
+    const pick = st.pick && st.pick !== now ? st.pick : null;
+    const sel = pick || now;
+    const opts = x.styles.map((p) => '<li><button type="button" class="opt' + (p.id === now ? ' now' : '') + '" data-pick="' + p.id + '" aria-pressed="' + (p.id === sel) + '"><b>' + escH(p.name) + '</b>' + (p.id === now ? '<i class="cur">Current</i>' : '') + '<span>' + escH(p.summary) + '</span></button></li>').join('');
+    const msg = st.saved ? '<p class="saved" role="status">' + escH(st.saved) + '</p>' : '';
+    const ask = pick
+      ? '<div class="confirm" role="group" aria-label="Confirm the play style"><p><b>Play as ' + escH(styleById(pick).name) + '?</b> ' + escH(x.agent.name) + ' plays this way from its next match' + (x.live ? '; the match on now finishes as ' + escH(styleById(now).name) : '') + '.</p><button type="button" class="btn pri" id="ps-ok">Confirm ' + escH(styleById(pick).name) + '</button><button type="button" class="btn" id="ps-keep">Keep ' + escH(styleById(now).name) + '</button></div>'
+      : (st.saved ? '' : '<p class="sub">' + escH(styleById(now).name) + ' is its play style now. Pick another to change it.</p>');
+    return '<section class="pg ps" id="playstyle" aria-labelledby="ps-h"><h2 id="ps-h">Play style <span class="subt">personality</span></h2><p class="sub">It changes how ' + escH(x.agent.name) + ' plays, from its next match.</p><ul class="opts">' + opts + '</ul>' + ask + msg + '<button type="button" class="btn" data-go="home">Back to Home</button></section>';
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-style], [data-pick], #ps-ok, #ps-keep');
+    if (!t) return;
+    // A style on the tile: remember it; the shell then opens My agent.
+    if (t.dataset.style !== undefined) { st.pick = t.dataset.style || null; st.saved = null; return; }
+    if (t.dataset.pick) { st.pick = t.dataset.pick; st.saved = null; }
+    else if (t.id === 'ps-ok') { st.style[st.owner] = st.pick; st.saved = 'Saved: ' + ex().agent.name + ' plays as ' + styleById(st.pick).name + ' from its next match.'; st.pick = null; }
+    else { st.pick = null; st.saved = null; }
+    draw();
+    const f = document.querySelector(t.id === 'ps-ok' ? '.ps .saved' : '.ps [aria-pressed="true"]');
+    if (f && f.focus) { if (f.tagName === 'P') f.tabIndex = -1; f.focus({ preventScroll: true }); }
+  });
   function right(p) {
     const o = D.owners[st.owner];
     const gear = '<a href="#/settings" data-go="settings" class="nav set" aria-label="Settings">${icon("gear", 18).replace(/'/g, "\\'")}<span>Settings</span></a>';
@@ -414,11 +526,12 @@ ${art.defs}
         '<section class="ugrid' + (st.editing ? ' editing' : '') + '" id="grid" aria-label="Your tiles">' + st.board.map((b) => o.tiles[b.tile][S.sizeOn(b)]).join('') + '</section>' +
         (S.phone() && st.editing ? '<p class="sub">Sizes apply on a wider screen; here every tile shows its small face.</p>' : '');
       document.querySelectorAll('.tile .edit').forEach((e) => (e.hidden = !st.editing));
+      applyStyle(main);
       layout();
       return;
     }
     const title = S.titleOf(p);
-    main.innerHTML = '<div class="top"><div><span class="kick">// ' + p + '</span><h1>' + title + '</h1></div></div>' + S.stub(title, D.pages.find((x) => x.id === p));
+    main.innerHTML = '<div class="top"><div><span class="kick">// ' + p + '</span><h1>' + title + '</h1></div></div>' + (p === 'agent' ? stylePanel() : '') + S.stub(title, D.pages.find((x) => x.id === p));
   }
   document.addEventListener('click', (e) => {
     const b = e.target.closest('.qb');

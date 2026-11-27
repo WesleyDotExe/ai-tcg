@@ -222,6 +222,9 @@ export function agentState(d: OwnerData): AgentState {
   return { label: "Stopped", tone: "off", why: "Press Start and it joins the ladder's next round.", short: "Press Start to play again.", action: "Start" };
 }
 
+/** The check on the current play style (drawn, so it reads in both themes). */
+const TICK = `<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>`;
+
 const agentStyle = (d: OwnerData) => d.play.playStyles.find((p) => p.id === d.play.connectedAgent?.playStyle) ?? d.play.playStyles[0]!;
 
 /** Each personality in a few words, for the L tile's one line each (the
@@ -267,13 +270,24 @@ export const RENDER: Record<Fact, Render> = {
     return fx("todayRecord", w + l === 0 ? `${lab("Today")}<span>No matches yet</span>` : `${lab("Today")}<span><b>${w}</b> won · <b>${l}</b> lost</span>`, "kv");
   },
   personality: (d, size) => {
+    // "Play style" (owner 2026-11-27, note 6), the personality as its
+    // subtitle. S: the current style's name; M: the current style with
+    // Change; L: all six drawn as choices, the current one marked. A tap on
+    // any style opens My agent with that style ready to confirm (call 4:
+    // the tile never changes it itself); data-style carries the pick.
+    const a = d.play.connectedAgent;
     const style = agentStyle(d);
-    if (size === "L") {
-      // Every personality explained in one line (the spec's L), the agent's
-      // own marked; "Change" opens My agent, where the dial is.
-      return fx("personality", `<span class="labrow">${lab("Personality")}<a class="chg" href="#/agent" data-go="agent">Change</a></span><ul class="styles">${d.play.playStyles.map((p) => `<li class="${p.id === style.id ? "on" : ""}" title="${esc(p.summary)}"${p.id === style.id ? ' aria-current="true"' : ""}><b>${esc(p.name)}</b><span>${esc(styleTag(p))}</span></li>`).join("")}</ul>`, "blk");
-    }
-    return fx("personality", `${lab("Personality")}<span title="${esc(style.summary)}"><b>${esc(style.name)}</b></span>`, "kv");
+    const named = (cls: string) => `<b class="${cls}" data-style-name title="${esc(style.summary)}">${esc(a ? style.name : "None yet")}</b>`;
+    if (size === "S") return fx("personality", `${lab("Play style")}${named("sn")}`, "kv");
+    if (size === "M") return fx("personality", `${lab("Play style")}<span class="val">${named("sn")}<a class="chg" href="#/agent" data-go="agent" data-style="" title="Choose how your agent plays, on My agent">Change</a></span>`, "kv");
+    const choice = (p: OwnerData["play"]["playStyles"][number]) => {
+      const on = !!a && p.id === style.id;
+      return `<li><a class="choice${on ? " on" : ""}" href="#/agent" data-go="agent" data-style="${esc(p.id)}" title="${esc(p.summary)}${on ? " (its play style now)" : " Tap to choose it on My agent."}"${on ? ' aria-current="true"' : ""}>` +
+        `<span class="cn"><i class="tick" aria-hidden="true">${TICK}</i><b>${esc(p.name)}</b><i class="cur">Current</i></span><span class="ct">${esc(styleTag(p))}</span></a></li>`;
+    };
+    return fx("personality", `<span class="labrow">${lab("Play style")}<span class="subt">personality</span></span>` +
+      `<span class="plain">${a ? "It changes how your agent plays, from its next match." : "Connect an agent, then choose how it plays."}</span>` +
+      `<ul class="choices styles" aria-label="Play styles">${d.play.playStyles.map(choice).join("")}</ul>`, "blk");
   },
   playTime: (d, size) => {
     const ap = d.play.autoPlay;

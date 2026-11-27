@@ -33,6 +33,7 @@ describe("My agent's state", () => {
       picked: "Playing now / Stop",
       "long-name": "Ready, not playing yet / Start",
       "no-agent": "No agent / Connect an agent",
+      choosing: "Playing now / Stop",
     });
   });
   it("a running allowance shows its minutes left (the old code read a field the API never serves and said No time limit)", () => {
@@ -72,11 +73,37 @@ describe("My agent's copy for each box", () => {
     expect(text(gridTileHtml("agent", "L", w))).toContain(st.why);
     for (const c of cases) expect(agentState(c.data).short.length).toBeLessThanOrEqual(45);
   });
-  it("L explains every personality in one line and marks the agent's own", () => {
+  it("L draws the six play styles as choices, explained in one line each, the agent's own marked current", () => {
     const html = gridTileHtml("agent", "L", byId.picked!);
-    for (const p of data.owners.nova!.play.playStyles) expect(html).toContain(`<b>${p.name}</b><span>${styleTag(p)}</span>`);
-    expect(html).toMatch(/<li class="on"[^>]*aria-current="true"><b>Rusher<\/b>/);
+    expect(html).toContain('<span class="lab">Play style</span><span class="subt">personality</span>');
+    expect(text(html)).toContain("It changes how your agent plays, from its next match.");
+    for (const p of data.owners.nova!.play.playStyles) {
+      expect(html).toContain(`<b>${p.name}</b><i class="cur">Current</i></span><span class="ct">${styleTag(p)}</span>`);
+      // Each a link to My agent carrying its style (the page confirms it).
+      expect(html).toMatch(new RegExp(`<a class="choice( on)?" href="#/agent" data-go="agent" data-style="${p.id}"`));
+    }
+    expect((html.match(/class="choice on"/g) ?? []).length).toBe(1);
+    expect(html).toMatch(/<a class="choice on"[^>]*data-style="rusher"[^>]*aria-current="true">/);
     for (const p of data.owners.nova!.play.playStyles) expect(styleTag(p).length).toBeLessThanOrEqual(30);
+  });
+  it("S names the current style; M names it with Change (owner 2026-11-27, note 6)", () => {
+    for (const c of cases.filter((x) => x.id !== "no-agent")) {
+      const name = c.data.play.playStyles.find((p) => p.id === c.data.play.connectedAgent!.playStyle)!.name;
+      expect(text(gridTileHtml("agent", "S", c.data))).toContain(`Play style ${name}`);
+      expect(text(gridTileHtml("agent", "M", c.data))).toContain(`Play style ${name} Change`);
+    }
+    expect(gridTileHtml("agent", "M", byId.playing!)).toMatch(/data-fact="personality".*<a class="chg" href="#\/agent" data-go="agent" data-style=""/);
+  });
+  it("with no agent, no style is marked current and the line says to connect one first", () => {
+    const html = gridTileHtml("agent", "L", byId["no-agent"]!);
+    expect(html).not.toContain('class="choice on"');
+    expect(text(html)).toContain("Connect an agent, then choose how it plays.");
+    expect(text(gridTileHtml("agent", "S", byId["no-agent"]!))).toContain("Play style None yet");
+  });
+  it("the sheet poses one choice under the pointer and one pressed", () => {
+    const sheet = agentStatesPage(data);
+    expect(sheet).toContain('class="choice hov" href="#/agent" data-go="agent" data-style="tempo"');
+    expect(sheet).toContain('class="choice prs" href="#/agent" data-go="agent" data-style="fortress"');
   });
   it("an unknown personality falls back to its summary's first clause", () => {
     expect(styleTag({ id: "new-one", summary: "Plays slow and careful, then strikes." })).toBe("Plays slow and careful");

@@ -15,7 +15,10 @@ import { bCss } from "./homeMockupB.js";
 import { GRID } from "./homeGrid.js";
 import { GRID_CSS, gridTileHtml } from "./homePage.js";
 
-export interface StateCase { id: string; name: string; data: OwnerData }
+/** `pose` marks interaction states the page can't hold still (a hover, a
+ * press): it edits the drawn tile, e.g. adding the .hov / .prs classes the
+ * CSS gives the same look as :hover / :active. */
+export interface StateCase { id: string; name: string; data: OwnerData; pose?: (tileHtml: string) => string }
 
 /** The unit (px) the grid gives at each screen the checks measure. */
 export const STATE_UNITS = [
@@ -42,7 +45,7 @@ export function statesSheet(o: { tile: string; title: string; session: number; c
       const place: Record<Size, string> = { S: "1 / 1 / 2 / 2", M: "1 / 2 / 2 / 4", L: "1 / 4 / 3 / 6" };
       return `<section class="case" data-case="${c.id}" data-unit="${unit}"><h3>${esc(c.name)} <small>${esc(o.note(c))}</small></h3>` +
         `<div class="ugrid" style="--cols:5;--unit:${unit}px;--g:${GRID.gap}px">` +
-        SIZES.map((s) => gridTileHtml(o.tile, s, c.data).replace(`style="--c:`, `style="grid-area:${place[s]};--c:`)).join("") +
+        SIZES.map((s) => (c.pose ?? ((h: string) => h))(gridTileHtml(o.tile, s, c.data)).replace(`style="--c:`, `style="grid-area:${place[s]};--c:`)).join("") +
         `</div></section>`;
     }).join("")).join("");
   return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

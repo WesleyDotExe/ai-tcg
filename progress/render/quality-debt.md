@@ -7,7 +7,20 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-89, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-90, fenced off in render/season1/; Season 1 scope)
+
+Session 90 (play styles as choices, owner note 6) fixed: nothing on the tile said the personalities were choices or
+what they did. New debt it leaves:
+- **The play style confirm lives only in the prototype page** (`homePage.ts` script): no server call, the choice
+  forgotten on reload, and the confirm doesn't re-draw the tile from data (it re-marks the drawn faces in the
+  browser). My agent's other sections are still the navigation's stub.
+- **L is near full at 191 px**: the six choices left 0-2 px in the worst states (a two-line reason). A seventh style,
+  or a longer one-liner, will spill; the check will say so.
+- **The style one-liners are ours** (`STYLE_TAG`); a style the server adds shows its summary's first clause.
+- **The hover and press are checked as poses (.hov / .prs) and one real hover**, not a real press (`:active`), and
+  not on a touch device (a tap shows no hover there; the press tint is brief).
+- **Mockup B's record page** draws the choices as its plain list now (it shares the facts); its stills in
+  `season1-home-mockups-s84/` are from session 84 and were not re-shot.
 
 Session 89 (the Ladder tile) fixed: Ladder didn't fit at M (0 of 6) or L (0 of 6) or a new player's phone S; the
 tier words (Platinum 2.3:1) and the form dots' letters (3.2:1) read under 4.5:1. Check:
@@ -18,7 +31,7 @@ Session 88 (the agent tile) fixed: My agent didn't fit at M (0 of 6) or L (1 of 
 the light glass. Checks: `season1-agent-tile-s88/check.txt` (58 PASS), `season1-home-grid-s88/before-s88/` (21 FAIL
 on main). Session 87 fixed Watch live's dark surround, Edit board's S headers, Store M's hidden cosmetic.
 
-- **35 of 166 tile renders don't fit their box** (`season1-home-grid-s89/fit.txt`; My agent and Ladder 16 of 16):
+- **35 of 166 tile renders don't fit their box** (`season1-home-grid-s90/fit.txt`; My agent and Ladder 16 of 16):
   Store L by 447-526 px, Collection M and L, Daily rewards S and M, Notifications M and L at some widths, Packs S for
   a new player, History S on a phone. Clipped by the tile. The next groups own this, Packs and Store first.
 - **29 of 148 desktop tile renders have an empty band over 40%, and 42 spill** (`fill.txt`); none My agent or Ladder.

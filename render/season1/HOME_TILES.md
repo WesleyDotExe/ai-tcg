@@ -58,9 +58,9 @@ are the named facts in `src/homeSpec.ts` (`FACTS`).
 
 | | Shows | A new player sees | Next |
 |---|---|---|---|
-| S | name and picture, what it's doing (playing / ready / stopped / out of time), Start/Stop | "Moth Lantern · Ready. [Start]" | Start / Stop |
-| M | + today's W–L, personality, play time and adding time | "Ready, not playing yet. Press Start and it joins the ladder's next round; it plays until you stop it or its time runs out." | Start / Stop, then give it time |
-| L | + the deck | as M, each personality explained in one line, and "Your agent builds its own deck from your cards" | Start / Stop, change personality, pick a deck |
+| S | name and picture, what it's doing (playing / ready / stopped / out of time), the play style's name, Start/Stop | "Moth Lantern · Ready · Play style: Calculator. [Start]" | Start / Stop |
+| M | + today's W–L, the play style with Change, play time and adding time | "Ready, not playing yet. Press Start and it joins the ladder's next round; it plays until you stop it or its time runs out." | Start / Stop, then give it time |
+| L | + the deck, and the six play styles as choices | as M, "Your agent builds its own deck from your cards", and the six play styles, each in one line, Calculator marked current: "It changes how your agent plays, from its next match." | Start / Stop, choose a play style, pick a deck |
 
 The rating moves out of this tile, to Ladder. The agent's name appears only here, and in Watch live when it's a
 player in the match. The sidebar's agent card is a navigation call for the mockups (see 5).
@@ -73,6 +73,17 @@ Start / Stop beside it, the pill and the full reason, today and the play time si
 the button come from one function (`agentState` in `src/homeFacts.ts`) on the owner API's auto-play answer: No agent,
 Playing now, Waiting for a round, Ready, Finishing match, Time's up, Done for today, Ready not playing yet, Stopped.
 Every state at every size: `output/agent-states.html`, checked by `ci/tile-states-check.mjs agent` (or `ci/agent-states-check.mjs`).
+
+**Play style (render session 90, owner 2026-11-27 note 6):** the section is "Play style", personality its subtitle,
+with one plain line: "It changes how your agent plays, from its next match." S names the current style (a fourth
+fact at S: the owner's word, the only tile over three); M names it with "Change"; L draws all six as choices, the
+current one with a check, an accent edge and "Current", the others with a pointer, a hover (lifts, accent edge) and a
+press (sinks, deeper tint) and a focus ring. A tap on any style opens My agent with that style ready to confirm
+("Confirm Rusher" / "Keep Calculator", one more tap); the current style opens it saying so, with nothing to
+confirm; M's Change opens it with the current style selected. The tile never changes the style itself (call 4 of
+render 88). On the site the confirm is `PUT /api/agents/:agentId/play-style { style }`; the prototype keeps it in the
+page. Checked by `ci/tile-states-check.mjs agent` (the hover and press poses, contrast) and `ci/play-style-check.mjs`
+(the flow, the keyboard, a phone).
 
 ### Ladder (Ladder + Rating & form)
 **Question:** How good is my agent, and is it getting better?

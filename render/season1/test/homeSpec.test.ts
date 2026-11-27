@@ -30,12 +30,15 @@ describe("the Season 1 Home tile spec", () => {
     for (const t of TILES) for (const s of SIZES) for (const f of t.sizes[s]) expect(homeOf(f)[0]!.id, `${t.id} ${s} shows ${f}`).toBe(t.id);
   });
 
-  it("grows with its size: S ⊆ M ⊆ L, and S keeps to the core (three facts at most)", () => {
+  // The one exception, by the owner's word (2026-11-27, note 6): My agent's
+  // S shows the current play style as a fourth fact.
+  const S_MAX: Record<string, number> = { agent: 4 };
+  it("grows with its size: S ⊆ M ⊆ L, and S keeps to the core (three facts at most; My agent four, by the owner's word)", () => {
     for (const t of TILES) {
       for (const f of t.sizes.S) expect(t.sizes.M, `${t.id}: ${f} at S but not M`).toContain(f);
       for (const f of t.sizes.M) expect(t.sizes.L, `${t.id}: ${f} at M but not L`).toContain(f);
       expect(t.sizes.S.length, t.id).toBeGreaterThan(0);
-      expect(t.sizes.S.length, t.id).toBeLessThanOrEqual(3);
+      expect(t.sizes.S.length, t.id).toBeLessThanOrEqual(S_MAX[t.id] ?? 3);
       expect(new Set(t.sizes.L).size, `${t.id} repeats a fact`).toBe(t.sizes.L.length);
     }
   });

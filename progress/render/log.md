@@ -6871,3 +6871,46 @@ shared code: 58 PASS. Mockup B's record check (it draws the same facts): 68 PASS
 **Worked:** writing the check before the CSS: the first run named every miss with its fact. **Thin:** in
 render/quality-debt.md. **Blocked:** nothing. **Next:** the play-style choices on the agent tile (owner 2026-11-27
 note 6), then group 3, Packs and Store (Store L is the worst fit left, 447-526 px over).
+
+## 2026-11-27 — Render session 90: the play styles made obviously selectable on My agent (owner 2026-11-27, note 6)
+
+**Lane:** render (owner 2026-11-22 point 7 keeps every scheduled session in the render lane; the newest merged PR,
+#199, is in this checkout; no open render PR). **Owner feedback read:** the 2026-11-27 entry's note 6, queued by
+render 89, is this session's work; no answers to render 89's four calls yet.
+
+**Built (all in `render/season1/`, no Season 0 page changed):**
+- **"Play style", personality as its subtitle**, with one plain line: "It changes how your agent plays, from its next
+  match." (the owner API: a change applies from the next match, OWNER_API.md). S names the current style (S is now
+  four facts on this tile: the owner's word; `homeSpec.test.ts` holds every other tile to three and says so); M names
+  it with "Change"; L draws all six as **choices**: the current one with a check, an accent edge and "Current"; the
+  others with a pointer, a hover (lifts, accent edge), a press (sinks, deeper tint) and a focus ring; reduced motion
+  drops the lift.
+- **A tap on any style opens My agent with that style ready to confirm.** The Home prototype now draws My agent's
+  Play style section (the rest of the page stays the navigation's stub): the six with their full summaries, the
+  picked one selected, "Confirm Rusher" / "Keep Calculator" and, when a match is on, that it finishes as the old
+  style. Confirm shows "Saved: Vector Halcyon plays as Rusher from its next match." and every face of the tile shows
+  the new style; Keep leaves it; tapping the current style says it is the style now (nothing to confirm); M's Change
+  opens the section with the current one selected. The prototype keeps the choice in the page; the site would send
+  `PUT /api/agents/:agentId/play-style`.
+- **L made room for the choices:** today and the play time each one full-width line with the label beside the value
+  (they were side by side, each wrapping to two or three lines); the choices a little tighter. Phone S: the pill on
+  one line so the style keeps its line above the button.
+- **The states sheet takes a pose** (`StateCase.pose` in `statesSheet.ts`): the new "choosing" state draws Tempo under
+  the pointer and Fortress pressed (`.hov` / `.prs`, the same CSS as `:hover` / `:active`), so their look and contrast
+  are measured like the rest. Mockup B's record page draws the choices as its plain list (two CSS lines).
+
+**Ran it:** `progress/render/evidence/season1-agent-tile-s90/check.txt` **104 PASS, 0 FAIL** (new rows: every size
+names the same style, the name never cut at S or M, L's six choices with one marked, links and pointers, hover and
+press differ from rest and from each other, a real pointer hover changes the look). The first runs failed honestly:
+18 FAIL (L 3-38 px over at 191 px in 12 states, M 6-7 px over, the pressed tag at 3.1:1 (a spill, read off the
+tile), the M style name cut to "Calculat..."), then 6, then 0. `season1-play-style-s90/check.txt` **21 PASS, 0 FAIL**
+(the flow above, the keyboard (Tab from the tile's "?" to a style, a 2 px focus ring, Enter opens it ready), per-owner,
+dark, the phone); stills `my-agent-confirm-light.jpg`, `-dark.jpg`, `home-all-M-after-confirm.jpg`.
+`season1-home-grid-s90/check.txt` **146 PASS, 0 FAIL, 5 OPEN**; fit.txt **131 of 166** (as s89; Wren's phone S was
+14 px over until the pill fix). Mockup B's record check 68 PASS (`season1-agent-tile-s90/mockup-b-record-check.txt`).
+The ladder sheet re-run on the shared code: 59 PASS. Tests: season1 96 of 96; the render suite 1185 of 1185;
+typecheck clean.
+
+**Worked:** the check's "past the tile" rows explained the contrast miss too (text off the tile read against nothing).
+**Thin:** in render/quality-debt.md. **Blocked:** nothing. **Next:** group 3, Packs and Store (Store L is the worst
+fit left, 447-526 px over); render 92 is the hardening pass.

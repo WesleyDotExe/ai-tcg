@@ -46,11 +46,15 @@ export function agentStateCases(data: HomeData): AgentStateCase[] {
     { id: "picked", name: "Plays a deck the owner picked, Rusher", data: from(nova, (d) => { d.play.deckChoice = "forced"; d.play.activeDeck = { name: "Redline Swarm, tuned", faction: "Swarm", cards: 40 }; d.play.connectedAgent = { ...d.play.connectedAgent!, playStyle: "rusher" }; }) },
     { id: "long-name", name: "A long agent name (24 characters)", data: from(wren, (d) => { d.play.connectedAgent = { ...d.play.connectedAgent!, name: "Quantum Lattice Overseer" }; }) },
     { id: "no-agent", name: "No agent connected", data: from(wren, (d) => { d.play.connectedAgent = null; }) },
+    // Render session 90 (owner 2026-11-27, note 6): the play styles as
+    // choices, one under the pointer and one pressed, so the check measures
+    // those two states' look and contrast as it does the rest.
+    { id: "choosing", name: "Choosing a play style: Tempo under the pointer, Fortress pressed", data: nova, pose: (h) => h.replace('class="choice" href="#/agent" data-go="agent" data-style="tempo"', 'class="choice hov" href="#/agent" data-go="agent" data-style="tempo"').replace('class="choice" href="#/agent" data-go="agent" data-style="fortress"', 'class="choice prs" href="#/agent" data-go="agent" data-style="fortress"') },
   ];
 }
 
 export { STATE_UNITS };
 
 export function agentStatesPage(data: HomeData): string {
-  return statesSheet({ tile: "agent", title: "My agent", session: 88, cases: agentStateCases(data), note: (c) => { const st = agentState(c.data); return `${st.label} · ${st.action}`; } });
+  return statesSheet({ tile: "agent", title: "My agent", session: 90, cases: agentStateCases(data), note: (c) => { const st = agentState(c.data); return `${st.label} · ${st.action}`; } });
 }
