@@ -7,7 +7,22 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-91, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-92, fenced off in render/season1/; Season 1 scope)
+
+Session 92 (the hardening pass; owner point 8) fixed: the Ladder chart's tier names on the line and its straight drop
+at the right edge; the chart ending 50 points from the tile's rating; Watch live's names (2.6:1), Match history's W / L
+(2.9:1) and the alerts' links (3.8:1) under the contrast bar, found by the new every-tile contrast table. New or
+remaining debt:
+- **A big day today is a short step at the right edge** (4-6 px of landing at this size); honest, but still near the
+  edge (call 2 at the s92 checkpoint).
+- **A volatile month shows at most four values**, and only where they fit clear: the "volatile" state shows three of
+  seven; the rest are in the plot's hover title (no touch way to read them on the tile).
+- **The chart's value labels are placed for the smallest plot** (120 x 110 px, measured) with a fixed 110 px box; a
+  narrower plot (a new grid width) would need the constant changed; the browser check would catch a collision.
+- **The chart's states are built** (`chartEndingIn`), not captured from a live server.
+- **Contrast on Daily rewards M and Notifications M is under 4.5:1** (contrast.txt, OPEN): text clipped past tiles
+  that don't fit, measured against what's under it; group 4 and the next owns them.
+- **Contrast is measured at 1440 only** on the Home (the sheets cover 1024 and 1280 for the done tiles).
 
 Session 91 (Packs and Store; owner point 9) fixed: Store L ran 447-526 px past its box and the tile led with
 cosmetics; the Packs fan spilled past the tile in every render; a new player's Packs S ran 25-110 px over and L was
@@ -47,7 +62,7 @@ Session 88 (the agent tile) fixed: My agent didn't fit at M (0 of 6) or L (1 of 
 the light glass. Checks: `season1-agent-tile-s88/check.txt` (58 PASS), `season1-home-grid-s88/before-s88/` (21 FAIL
 on main). Session 87 fixed Watch live's dark surround, Edit board's S headers, Store M's hidden cosmetic.
 
-- **26 of 166 tile renders don't fit their box** (`season1-home-grid-s91/fit.txt`; My agent, Ladder, Store and Packs
+- **26 of 166 tile renders don't fit their box** (`season1-home-grid-s92/fit.txt`; My agent, Ladder, Store and Packs
   all fit): Collection M and L, Daily rewards S and M, Notifications M and L at some widths, History S on a phone.
   Clipped by the tile. The next group owns most of this: Collection and Daily rewards.
 - **21 of 148 desktop tile renders have an empty band over 40%, and 21 spill** (`fill.txt`); none My agent, Ladder,
@@ -55,13 +70,11 @@ on main). Session 87 fixed Watch live's dark surround, Edit board's S headers, S
   The band measure looks across the whole width, so one short column in a two-column tile isn't flagged; the phone
   isn't in the fill table. Reported, not failed.
 - **The recommended board still doesn't fit at any width** (Collection L; Daily rewards S at 1280).
-- **Text contrast is measured from the pixels only on My agent and Ladder** (`tile-states-check.mjs`); the other
-  tiles' text isn't measured at all. The pill fix applies to every tile but was measured on My agent's. The measure takes
-  the mean of the glass behind each line, not its lightest pixel, and a pill's ring pixels are in its box.
+- **The contrast measure takes the mean of the glass behind each line**, not its lightest pixel, and a pill's ring
+  pixels are in its box (`ci/contrast.mjs`).
 - **Ladder's states are built, not captured** (`ladderStates.ts`): the chart's last week is a straight walk to the
   rating, so the sheet's charts are smoother than a real one; a draw-heavy or abandoned-match form, a rank tie, a
-  house owner on the ladder, and more than 4 tiers above you aren't on the sheet. The chart's floor labels can sit on
-  the line (Nova's "Diamond"). The ladder sheet doesn't draw a phone unit (the grid check covers phone S for Nova
+  house owner on the ladder, and more than 4 tiers above you aren't on the sheet. The ladder sheet doesn't draw a phone unit (the grid check covers phone S for Nova
   and Wren only). Settled's "?" opens over the tile but isn't checked open.
 - **Win rate by deck shows two decks at L** and "+n more" (the rest in a title only: no touch way to see them on the
   tile); call 3 at the s89 checkpoint.

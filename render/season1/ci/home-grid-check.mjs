@@ -47,7 +47,10 @@
 // tile's contrast on the glass from the pixels, in every auto-play state).
 // Render session 89 (the Ladder tile): no change to the checks; the Ladder
 // tile's states are measured by tile-states-check.mjs ladder.
-// Writes stills, fit.txt and check.txt to
+// Render session 92 (the hardening pass): the contrast table, every tile's
+// text on the glass measured from the pixels at every size (contrast.txt);
+// the tiles done in groups fail under 4.5:1, the rest are OPEN.
+// Writes stills, fit.txt, fill.txt, contrast.txt and check.txt to
 // progress/render/evidence/season1-home-grid-s86/ (or the folder given).
 //
 //   node render/season1/ci/home-grid-check.mjs [outDir]
@@ -55,10 +58,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { contrast, NOTEXT_CSS } from './contrast.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s91'));
+const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s92'));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', 'home.html')).href;
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));
@@ -351,6 +355,39 @@ try {
   await L1440.evaluate(() => document.querySelector('.tile[data-tile="watch"]').scrollIntoView());
   await shot(L1440, 'nova-watch-L', false);
   await L1440.context().close();
+
+  // The contrast table (render 92, a hardening pass): every tile's text on the
+  // glass, measured from the pixels (ci/contrast.mjs), at every size, for both
+  // owners, in light and dark, at 1440. The tiles the "tiles in groups"
+  // sessions have done (DONE) fail under 4.5:1; the rest are reported as OPEN
+  // lines (contrast.txt), as the fit table does.
+  say(`\n=== contrast on the glass, every tile, every size (1440x900) ===`);
+  // Watch live's surround was done in render 87 (its names fixed here, 92).
+  const DONE = new Set(['agent', 'ladder', 'store', 'packs', 'watch']);
+  const CT = {}; // tile -> size -> owner/theme -> { worst, who }
+  for (const owner of ['nova', 'wren']) for (const theme of ['light', 'dark']) for (const board of ['S', 'M', 'L']) {
+    // Tall enough that no tile needs the viewport resized for its shot (a resize re-lays the grid).
+    const cp = await open({ width: 1440, height: 3200 }, `?owner=${owner}&board=${board}&theme=${theme}`);
+    await cp.evaluate((css) => { const s = document.createElement('style'); s.textContent = css; document.head.appendChild(s); }, NOTEXT_CSS);
+    await cp.waitForTimeout(150);
+    // Watch live's arena is the neon night (its own HUD, not the glass); its
+    // names, health and buttons around the arena are measured.
+    const c = await contrast(cp, '#grid > .tile');
+    for (const t of c.perTile) ((CT[t.tile] ??= {})[t.size] ??= []).push({ k: `${owner}/${theme}`, worst: t.worst, who: t.who });
+    await cp.context().close();
+  }
+  const ctLines = ['The contrast table (render session 92): each tile\'s lowest text contrast on the glass, measured from the pixels', '(ci/contrast.mjs), at 1440, for Nova and Wren, in light and dark. 4.5:1 is the bar.', 'Tiles the "tiles in groups" sessions have done fail the check below it; the rest are OPEN (their group\'s work).\n'];
+  let ctOpen = 0;
+  for (const [tile, sizes] of Object.entries(CT)) for (const size of ['S', 'M', 'L']) {
+    if (!sizes[size]) continue;
+    const low = sizes[size].reduce((a, b) => (b.worst < a.worst ? b : a));
+    const ok = low.worst >= 4.5;
+    if (DONE.has(tile)) check(ok, `${tile} ${size}: every text line reads at 4.5:1 or more on the glass, both owners, light and dark (lowest ${low.worst.toFixed(1)}:1, ${low.k}, ${low.who})`);
+    else if (!ok) ctOpen++;
+    ctLines.push(`${(tile + ' ' + size).padEnd(14)} lowest ${low.worst.toFixed(1).padStart(4)}:1  ${ok ? '    ' : DONE.has(tile) ? 'FAIL' : 'OPEN'}  ${low.k}, ${low.who}`);
+  }
+  writeFileSync(join(OUT, 'contrast.txt'), ctLines.join('\n') + '\n');
+  if (ctOpen) { open_++; say(`OPEN ${ctOpen} tile sizes not yet in a group read under 4.5:1 somewhere (contrast.txt)`); }
 
   check(!errors.length, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   check(!external.length, `no outside requests${external.length ? ': ' + external.join(', ') : ''}`);

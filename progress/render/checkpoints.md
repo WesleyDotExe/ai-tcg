@@ -7,6 +7,30 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-28 — Render session 92: the hardening pass: the Ladder's rating chart (owner 2026-11-28 point 8) and text contrast on every tile — AWAITING FEEDBACK (three small calls)
+
+**Start here:** `render/season1/output/home.html` (the Ladder, L on the recommended board), or the stills
+`progress/render/evidence/season1-home-grid-s92/nova-recommended.jpg` and
+`season1-ladder-tile-s92/ladder-states-1280-light.jpg` (every rating state at S, M and L, two new chart states).
+
+**What it is:** your point 8. The tier names now sit in their own column left of the chart, so they can't sit on the
+line. The line is the rating day by day; a day that would draw as a near-straight drop is a step with its value
+beside it (Nova's "−68" today), placed clear of the line. A check measures it in the browser at every size (no slope
+over 75 degrees, every vertical a named step, labels clear of the line). Also: text contrast is now measured on every
+tile, which found and fixed Watch live's names, Match history's W / L and the notification links.
+
+**Calls for you (none blocks):**
+1. **The chart ends at the tile's rating.** The snapshot's chart ended at 1,724 while the tile said 1,774 (the demo
+   read them two matches apart); now the last day takes the tile's number, so the step reads −68, matching "This
+   week −68 points". On the live server they're the same number anyway. Keep?
+2. **A big day today is a short step at the right-hand end** (a day is 4-6 px wide on this tile), with its value above
+   it and a dot at the end. Honest to the days; the alternative is giving today a wider slot (which bends the time
+   axis). Keep?
+3. **At most four values on the chart** (today's first, then the biggest); in a very volatile month the rest are in
+   the chart's hover title only (the "volatile month" state shows three of seven). Keep, or fewer (two)?
+
+---
+
 ## 2026-11-28 — Render session 91: Packs and Store on the Season 1 Home grid; the Store's hero is the packs (owner 2026-11-28, point 9) — AWAITING FEEDBACK (four small calls)
 
 **Start here:** `render/season1/output/home.html` (Store is M on the recommended board; "All L" shows its shelf; tap a

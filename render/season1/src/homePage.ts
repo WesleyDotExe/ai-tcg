@@ -234,6 +234,10 @@ export const GRID_CSS = `
 .tile[data-tile="ladder"] .lab { white-space: nowrap; }
 .tile[data-tile="ladder"] [data-fact="climb"] .bar { margin-top: 3px; height: 6px; }
 .tile[data-tile="ladder"] [data-fact="climb"] .bar i { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 55%, var(--accent)), var(--c)); }
+/* Match history's W / L and Notifications' links, darkened toward the ink as the Ladder's form dots were (render 92,
+   contrast.txt: W 2.9:1, the links 3.8:1). */
+.ugrid .res.win { color: color-mix(in srgb, var(--ok) 50%, var(--ink)); } .ugrid .res.loss { color: color-mix(in srgb, var(--live) 50%, var(--ink)); }
+.ugrid .to { color: color-mix(in srgb, var(--accent) 62%, var(--ink)); }
 .tile[data-tile="ladder"] .up { color: color-mix(in srgb, var(--ok) 50%, var(--ink)); } .tile[data-tile="ladder"] .down { color: color-mix(in srgb, var(--warn) 50%, var(--ink)); }
 .tile[data-tile="ladder"] .dots { flex-wrap: nowrap; gap: 2px; }
 .tile[data-tile="ladder"] .dot { width: 16px; height: 16px; border-radius: 5px; font-size: 9px; }
@@ -276,9 +280,18 @@ export const GRID_CSS = `
 .tile[data-tile="ladder"] .wr { display: flex; flex-wrap: nowrap; gap: 0 9px; min-width: 0; overflow: hidden; }
 .tile[data-tile="ladder"] .wr > span { white-space: nowrap; } .tile[data-tile="ladder"] .wr .more { color: var(--muted); } .tile[data-tile="ladder"] .wr i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: .05em; }
 .tile[data-tile="ladder"] [data-fact="trend"] { display: flex; flex-direction: column; }
-.tile[data-tile="ladder"] .chartbox { position: relative; display: block; flex: 1 1 auto; min-height: 44px; max-height: 110px; }
-.tile[data-tile="ladder"] .chart { position: absolute; inset: 0; width: 100%; height: 100%; }
-.tile[data-tile="ladder"] .floors > span { position: absolute; left: 2px; transform: translateY(-110%); font-size: 9.5px; font-weight: 750; line-height: 1; color: color-mix(in srgb, var(--tc) 40%, var(--ink)); }
+.tile[data-tile="ladder"] .chartbox { position: relative; display: block; flex: none; height: 110px; }
+/* The rating chart (render 92, owner 2026-11-28 point 8): the tier names in a gutter of their own, left of the
+   plot, so they never sit on the line; a big day is a step with its value (ratingChart.ts places it). */
+.tile[data-tile="ladder"] .floors { position: absolute; left: 0; top: 0; bottom: 0; width: 50px; }
+.tile[data-tile="ladder"] .floors > span { position: absolute; right: 5px; transform: translateY(-50%); font-size: 9.5px; font-weight: 750; line-height: 1; white-space: nowrap; color: color-mix(in srgb, var(--tc) 40%, var(--ink)); }
+.tile[data-tile="ladder"] .plot { position: absolute; left: 50px; right: 0; top: 0; bottom: 0; }
+.tile[data-tile="ladder"] .chart { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tile[data-tile="ladder"] .enddot { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--accent); }
+.tile[data-tile="ladder"] .stepv { position: absolute; font-size: 10px; font-weight: 800; line-height: 14px; padding: 0 1px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tile[data-tile="ladder"] .stepv { --tx: 0; --ty: 0; transform: translate(var(--tx), var(--ty)); }
+.tile[data-tile="ladder"] .stepv[data-ax="r"] { --tx: -100%; } .tile[data-tile="ladder"] .stepv[data-ax="c"] { --tx: -50%; }
+.tile[data-tile="ladder"] .stepv[data-ay="b"] { --ty: -100%; } .tile[data-tile="ladder"] .stepv[data-ay="c"] { --ty: -50%; }
 .tile[data-tile="ladder"] .scale { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
 .tile[data-tile="ladder"] .scale li { display: grid; grid-template-columns: 6px 1fr auto 34px; align-items: center; gap: 5px; font-size: 11px; line-height: 1.3; }
 .tile[data-tile="ladder"] .scale li > i { height: 100%; min-height: 12px; border-radius: 3px; background: var(--tc); }
@@ -297,7 +310,9 @@ export const GRID_CSS = `
 /* Watch live's surround is the dashboard's glass (owner 2026-11-25, point
    11): the names and health bars read on it in both themes; the arena
    inside keeps its own neon night. */
-.tile[data-tile="watch"] .vs .side b { color: color-mix(in srgb, var(--fc) 72%, var(--ink)); }
+/* The names in faction colours, darkened toward the ink to read at 4.5:1 on the glass (render 92, measured from the
+   pixels in contrast.txt: Swarm's green read 2.6:1 at 72%). */
+.tile[data-tile="watch"] .vs .side b { color: color-mix(in srgb, var(--fc) 45%, var(--ink)); }
 .tile[data-tile="watch"] .vs .hp { background: color-mix(in srgb, var(--ink) 12%, transparent); }
 /* M: names and health bars only. */
 .tile[data-tile="watch"].s-M .vs .sub, .tile[data-tile="watch"].s-M .vsx small { display: none; }

@@ -419,6 +419,13 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      `season1-store-tile-s91/` 74 PASS, `season1-packs-tile-s91/` 52 PASS; the board 140 of 166 fit; next
      Collection and Daily rewards); [ ] (3) three
      pack-wrapper designs with placeholder art
+   - [x] (render debt, hardening, render 92) The Ladder's "Rating, 30 days" chart (owner 2026-11-28 point 8): the
+     tier names in a gutter of their own (never on the line), x by the day, a day that would draw near-vertical drawn
+     as a step with its value ("−68"), placed clear of the line, the plot's edges and the floors, the line ending at
+     the tile's rating (`render/season1/src/ratingChart.ts`, `test/ratingChart.test.ts` 7 tests; two new chart
+     states on the sheet); checked in the browser (`season1-ladder-tile-s92/` 115 PASS); the contrast measure shared
+     (`ci/contrast.mjs`) and run on every tile of the Home (`season1-home-grid-s92/contrast.txt`; Watch live's names
+     2.6 -> 5.0:1, Match history's W/L 2.9 -> 5.6:1, the alerts' links fixed; 165 PASS, 0 FAIL)
    - [x] (render debt, hardening, render 87) The Season 1 Home's small faults: Watch live's surround is the
      dashboard's glass (owner 2026-11-25, point 11); Edit board's move and size buttons in a bar over the tile's
      foot, so every header keeps its name; the dark My agent tile's text light (lowest contrast 5.3:1, was 1.7:1);
