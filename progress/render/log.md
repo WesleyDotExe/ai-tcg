@@ -6914,3 +6914,50 @@ typecheck clean.
 **Worked:** the check's "past the tile" rows explained the contrast miss too (text off the tile read against nothing).
 **Thin:** in render/quality-debt.md. **Blocked:** nothing. **Next:** group 3, Packs and Store (Store L is the worst
 fit left, 447-526 px over); render 92 is the hardening pass.
+
+## 2026-11-28 — Render session 91: Packs and Store on the Season 1 Home grid; the Store's hero is the packs
+
+Lane: render (the owner's 2026-11-22 point 7: every scheduled session is render-lane; the last merged PR, #200, was
+"Render:"; no render PR open). Started from origin/main at 437be28, which contains #200 (the newest merged PR).
+Phase 2, the tiles in groups, group 3, with the owner's 2026-11-28 point 9 (the Store tile's hero is the packs).
+
+- **Store (point 9):** the `cosmetics` fact is gone from the spec (`homeSpec.ts`); the tile is credits, what they buy
+  (packs only now: "Enough for 4 packs", "40 more credits for a pack", a 0 balance "Win matches to earn credits") and
+  `buyPacks`: M the featured pack (the first offer the API lists) as a hero card, art left, name, "1 pack · 5 cards",
+  price on the art, Buy at its foot; L a shelf of 1 pack and 10 of each offer (two offers at most, the rest named).
+  Five cards a pack comes from the live odds table (`CARDS_PER_PACK`), not typed. A pack the credits don't cover says
+  how many more credits instead of a Buy. Each Buy carries its purchase (`data-buy="S0:10"`) and opens Cards with it
+  ready to confirm (the prototype's ask: Buy for N / Cancel; the site would send `POST /api/packs/buy`). The shelf's
+  CSS replaces the cosmetics' (`homeArt`: no coin painter, no boast emblems on Home any more: the page is 31 KB
+  lighter). Store S's button: "Buy a pack".
+- **Packs:** the fan of sealed packs sits inside its own box (a 40 x 64 pack turned 11deg is 51.5 x 70.5; it ran past
+  the tile's padding at every size and width), a little smaller at S and M; S keeps to the count (the new-player
+  sentence moved to M and L); M lays the packs and count across the top with the guarantee and Open a pack below;
+  "in the next pack" when a Full Art or Mythic is due; a new player's L shows what one pack holds (`packContents()`:
+  the live table's five slots, the Mythic rate and the shine slot's special-finish share).
+- **States sheets:** `src/storeStates.ts` (8 states: as served for both owners, 60, 100, 2,350 credits, two and three
+  offers with made-up Season One packs (named as such), none on sale) and `src/packsStates.ts` (7 states: as served,
+  none, one, 128 waiting, both guarantees due, a new player who opened theirs); `output/store-states.html`,
+  `packs-states.html`. `ci/tile-states-check.mjs` takes `store` and `packs`: Store adds the same credits at every
+  size, no cosmetic, M one pack (the featured), L 1 and 10 of each offer and the "more" line, Buy only when the
+  credits cover it and never with "more credits", the price on the art the price, each Buy carrying its purchase;
+  Packs adds the same count at every size, S without the sentence, the fan inside the tile. The check now skips
+  screen-reader-only text (a 1 px `.vh` box) and art marked aria-hidden (the sealed pack's printed logo) when it
+  measures cut text and contrast; the agent and ladder sheets re-run unchanged (104 and 59 PASS).
+- **The grid check:** the retired "Store M holds two cosmetics" row is now "no cosmetic in the Store's markup, packs
+  drawn 0 / 1 / 2", plus a real click-through of a Buy (Cards opens with the ask; Confirm; Cancel; 10 packs on 449
+  credits says "551 more credits").
+
+**Ran it:** `season1-store-tile-s91/check.txt` **74 PASS, 0 FAIL** (first run 27 FAIL: the hidden " credits" text
+counted as cut, the pack's printed logo measured as text at 1.9:1, then a 3 px pile overflow in the four-pack shelf at
+191 px: the pile's scale didn't shrink its box; now `zoom`). `season1-packs-tile-s91/check.txt` **52 PASS, 0 FAIL**.
+`season1-home-grid-s91/check.txt` **150 PASS, 0 FAIL, 5 OPEN**; fit.txt **140 of 166** (was 131; Store and Packs 32
+of 32); fill.txt: Store and Packs no spill and no OPEN band (were 8 OPEN, 21 spills); before: `before-s91/`.
+`season1-agent-tile-s91/check.txt` 104 PASS, `season1-ladder-tile-s91/check.txt` 59 PASS,
+`season1-play-style-s91/check.txt` 21 PASS (the shared code and the check's change). Mockup B's record check 68 PASS
+(`season1-store-tile-s91/mockup-b-record-check.txt`; it shares the facts, so its Store shows packs too). Tests: season1
+105 of 105 (new `test/storePacksTiles.test.ts`, 10); the render suite 1194 of 1194; typecheck clean.
+
+**Worked:** the states sheet found the four-offer and the long-name cases the snapshot never reaches. **Thin:** in
+render/quality-debt.md. **Blocked:** nothing. **Next:** render 92, the hardening pass (with the owner's point 8, the
+Ladder chart); then group 4, Collection and Daily rewards.

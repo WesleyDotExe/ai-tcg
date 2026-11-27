@@ -1,0 +1,58 @@
+
+=== light ===
+PASS unit 191px, served: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, none: S, M and L fit their boxes, nothing spills
+PASS unit 191px, one: S, M and L fit their boxes, nothing spills
+PASS unit 191px, stack: S, M and L fit their boxes, nothing spills
+PASS unit 191px, due: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new-none: S, M and L fit their boxes, nothing spills
+PASS unit 218px, served: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, none: S, M and L fit their boxes, nothing spills
+PASS unit 218px, one: S, M and L fit their boxes, nothing spills
+PASS unit 218px, stack: S, M and L fit their boxes, nothing spills
+PASS unit 218px, due: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new-none: S, M and L fit their boxes, nothing spills
+PASS unit 231px, served: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, none: S, M and L fit their boxes, nothing spills
+PASS unit 231px, one: S, M and L fit their boxes, nothing spills
+PASS unit 231px, stack: S, M and L fit their boxes, nothing spills
+PASS unit 231px, due: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new-none: S, M and L fit their boxes, nothing spills
+PASS served: every size says the same count ("11")
+PASS served: S keeps to the count (no sentence)
+PASS served: the fanned packs stay inside the tile at every size
+PASS new: every size says the same count ("3")
+PASS new: S keeps to the count (no sentence)
+PASS new: the fanned packs stay inside the tile at every size
+PASS none: every size says the same count ("none")
+PASS none: S keeps to the count (no sentence)
+PASS none: the fanned packs stay inside the tile at every size
+PASS one: every size says the same count ("1")
+PASS one: S keeps to the count (no sentence)
+PASS one: the fanned packs stay inside the tile at every size
+PASS stack: every size says the same count ("128")
+PASS stack: S keeps to the count (no sentence)
+PASS stack: the fanned packs stay inside the tile at every size
+PASS due: every size says the same count ("11")
+PASS due: S keeps to the count (no sentence)
+PASS due: the fanned packs stay inside the tile at every size
+PASS new-none: every size says the same count ("none")
+PASS new-none: S keeps to the count (no sentence)
+PASS new-none: the fanned packs stay inside the tile at every size
+PASS light: no tile is the hero panel (63 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.3:1, guarantee "Guaranteed")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.4:1, guarantee "Guaranteed")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.4:1, guarantee "Guaranteed")
+
+=== dark ===
+PASS dark: no tile is the hero panel (63 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.8:1, lastPulls "2")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.8:1, lastPulls "2")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.8:1, lastPulls "2")
+PASS no page errors
+PASS no outside requests
+
+52 PASS, 0 FAIL

@@ -1,0 +1,110 @@
+
+=== light ===
+PASS unit 191px, playing: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, waiting: S, M and L fit their boxes, nothing spills
+PASS unit 191px, running: S, M and L fit their boxes, nothing spills
+PASS unit 191px, running-reset: S, M and L fit their boxes, nothing spills
+PASS unit 191px, finishing: S, M and L fit their boxes, nothing spills
+PASS unit 191px, timeup: S, M and L fit their boxes, nothing spills
+PASS unit 191px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, stopped: S, M and L fit their boxes, nothing spills
+PASS unit 191px, picked: S, M and L fit their boxes, nothing spills
+PASS unit 191px, long-name: S, M and L fit their boxes, nothing spills
+PASS unit 191px, no-agent: S, M and L fit their boxes, nothing spills
+PASS unit 191px, choosing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, playing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, waiting: S, M and L fit their boxes, nothing spills
+PASS unit 218px, running: S, M and L fit their boxes, nothing spills
+PASS unit 218px, running-reset: S, M and L fit their boxes, nothing spills
+PASS unit 218px, finishing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, timeup: S, M and L fit their boxes, nothing spills
+PASS unit 218px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, stopped: S, M and L fit their boxes, nothing spills
+PASS unit 218px, picked: S, M and L fit their boxes, nothing spills
+PASS unit 218px, long-name: S, M and L fit their boxes, nothing spills
+PASS unit 218px, no-agent: S, M and L fit their boxes, nothing spills
+PASS unit 218px, choosing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, playing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, waiting: S, M and L fit their boxes, nothing spills
+PASS unit 231px, running: S, M and L fit their boxes, nothing spills
+PASS unit 231px, running-reset: S, M and L fit their boxes, nothing spills
+PASS unit 231px, finishing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, timeup: S, M and L fit their boxes, nothing spills
+PASS unit 231px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, stopped: S, M and L fit their boxes, nothing spills
+PASS unit 231px, picked: S, M and L fit their boxes, nothing spills
+PASS unit 231px, long-name: S, M and L fit their boxes, nothing spills
+PASS unit 231px, no-agent: S, M and L fit their boxes, nothing spills
+PASS unit 231px, choosing: S, M and L fit their boxes, nothing spills
+PASS playing: every size says the same ("Playing now", button "Stop")
+PASS playing: the play style's name is never cut at S or M
+PASS playing: every size names the same play style ("Calculator")
+PASS playing: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS new: every size says the same ("Ready, not playing yet", button "Start")
+PASS new: the play style's name is never cut at S or M
+PASS new: every size names the same play style ("Calculator")
+PASS new: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS waiting: every size says the same ("Waiting for a round", button "Stop")
+PASS waiting: the play style's name is never cut at S or M
+PASS waiting: every size names the same play style ("Calculator")
+PASS waiting: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS running: every size says the same ("Playing now", button "Stop")
+PASS running: the play style's name is never cut at S or M
+PASS running: every size names the same play style ("Calculator")
+PASS running: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS running-reset: every size says the same ("Ready", button "Stop")
+PASS running-reset: the play style's name is never cut at S or M
+PASS running-reset: every size names the same play style ("Calculator")
+PASS running-reset: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS finishing: every size says the same ("Finishing match", button "Stop")
+PASS finishing: the play style's name is never cut at S or M
+PASS finishing: every size names the same play style ("Calculator")
+PASS finishing: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS timeup: every size says the same ("Time's up", button "Start")
+PASS timeup: the play style's name is never cut at S or M
+PASS timeup: every size names the same play style ("Calculator")
+PASS timeup: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS maxed: every size says the same ("Done for today", button "Start")
+PASS maxed: the play style's name is never cut at S or M
+PASS maxed: every size names the same play style ("Calculator")
+PASS maxed: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS stopped: every size says the same ("Stopped", button "Start")
+PASS stopped: the play style's name is never cut at S or M
+PASS stopped: every size names the same play style ("Calculator")
+PASS stopped: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS picked: every size says the same ("Playing now", button "Stop")
+PASS picked: the play style's name is never cut at S or M
+PASS picked: every size names the same play style ("Rusher")
+PASS picked: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS long-name: every size says the same ("Ready, not playing yet", button "Start")
+PASS long-name: the play style's name is never cut at S or M
+PASS long-name: every size names the same play style ("Calculator")
+PASS long-name: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS no-agent: every size says the same ("No agent", button "Connect an agent")
+PASS no-agent: the play style's name is never cut at S or M
+PASS no-agent: every size names the same play style ("None yet", L none marked)
+PASS no-agent: L draws the six play styles as choices, none marked (no agent), each a link to My agent with its style and a pointer
+PASS choosing: every size says the same ("Playing now", button "Stop")
+PASS choosing: the play style's name is never cut at S or M
+PASS choosing: every size names the same play style ("Calculator")
+PASS choosing: L draws the six play styles as choices, one marked current (check, accent edge, "Current"), each a link to My agent with its style and a pointer
+PASS choosing: a hovered and a pressed choice each look different from a resting one, and from each other (3 tiles)
+PASS light: no tile is the hero panel (117 tiles)
+PASS light: a real pointer over a resting play style changes its look
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, playTime "Play time")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, agentStatus "Connect an agent on My agent")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, playTime "Play time")
+
+=== dark ===
+PASS dark: no tile is the hero panel (117 tiles)
+PASS dark: a real pointer over a resting play style changes its look
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.0:1, agentStatus "Playing now")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.0:1, agentStatus "Ready")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.0:1, agentStatus "Ready")
+PASS no page errors
+PASS no outside requests
+
+104 PASS, 0 FAIL

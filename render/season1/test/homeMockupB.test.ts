@@ -28,16 +28,15 @@ describe("the owner's pack decision (2026-11-22, replaces render 82 call 2)", ()
     expect(nextAction(tileOf("packs"), "S", wren).label).toBe("Open a pack");
   });
 
-  it("makes the Store a shop window: credits and what they buy at S, pictures with prices at M and L", () => {
+  it("makes the Store's hero the packs (owner 2026-11-28, point 9): credits and packs they buy at S, packs with prices at M and L, no cosmetics", () => {
     expect(tileOf("store").sizes.S).toEqual(["credits", "affordable"]);
+    expect(tileOf("store").sizes.L).toEqual(["credits", "affordable", "buyPacks"]);
     const m = tileB("store", "M", nova), l = tileB("store", "L", nova);
     expect(m).toContain('class="spk"'); // Season 0's sealed pack, with its plate
-    expect(m.match(/<figure class="si"/g)).toHaveLength(4); // the featured pack and 3 cosmetics
-    expect(l.match(/<figure class="si"/g)).toHaveLength(2 + nova.store.cosmetics.length); // 1 pack, 10 packs, the whole shelf
-    expect(l).toContain('data-coin="coin-s0-neon-nickel"'); // a coin drawn by Season 0's coin painter
-    expect(l).toContain('href="#lg-boast-s0-boot-sequence"'); // a boast's emblem
-    expect(text(l)).toContain("No arenas, card backs or avatars on sale this season.");
-    expect(text(tileB("store", "S", nova))).toMatch(/Enough for 4 packs or 1 cosmetic/);
+    expect(m.match(/<figure class="pb /g)).toHaveLength(1); // the featured pack
+    expect(l.match(/<figure class="pb /g)).toHaveLength(2); // 1 pack and 10
+    for (const h of [m, l]) expect(h).not.toMatch(/data-fact="cosmetics"|data-coin=|#lg-/);
+    expect(text(tileB("store", "S", nova))).toMatch(/Enough for 4 packs ?\./);
     expect(text(tileB("store", "S", wren))).toContain("Win matches to earn credits");
   });
 

@@ -7,6 +7,30 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-28 — Render session 91: Packs and Store on the Season 1 Home grid; the Store's hero is the packs (owner 2026-11-28, point 9) — AWAITING FEEDBACK (four small calls)
+
+**Start here:** `render/season1/output/home.html` (Store is M on the recommended board; "All L" shows its shelf; tap a
+Buy), or the stills `progress/render/evidence/season1-store-tile-s91/store-states-1280-light.jpg` and
+`season1-packs-tile-s91/packs-states-1280-light.jpg` (every state at S, M and L).
+
+**What it is:** your point 9 as written. The Store tile shows packs only: S the credits and how many packs they buy,
+M the featured pack as the hero (art, price, Buy), L the packs on sale as a shelf (art, price, Buy each) and "See the
+whole Store". No cosmetic anywhere on the tile (checked in the markup). A Buy opens Cards (the Store) with that
+purchase ready to confirm ("Buy 1 Season Zero pack (5 cards) for 100 credits? You keep 349 credits"), so the tile
+never spends credits by itself. Packs: fits every size now (the fanned packs ran past the tile's edge in every render;
+a new player's S ran 25-110 px over); "in the next pack" when a guarantee is due. Both tiles fit 16 of 16 renders on the board (fit.txt).
+
+**Calls for you (none blocks):**
+1. **L sells 1 pack and 10** of each offer (the server takes 1 to 10 in one buy; 10 matches "Open 10"). With more
+   than two packs on sale, L shows two and says "+1 more pack in the Store". Keep, or another count (5)?
+2. **A pack the credits don't cover says "551 more credits"** where the Buy would be, instead of a greyed Buy. Keep?
+3. **Store S's button is "Buy a pack"** (it was "Buy") and opens the one-pack purchase. Keep?
+4. **A new player's Packs L shows what one pack holds** under "Your pulls appear here...": five card shapes (Common,
+   Common, Uncommon, Rare "1 in 8 a Mythic", Shine "46% a special finish"), from the live odds table, not typed in.
+   It filled a tile that was 43-46% empty. Keep?
+
+---
+
 ## 2026-11-27 — Render session 90: the play styles made obviously selectable (owner 2026-11-27, note 6) — AWAITING FEEDBACK (three small calls)
 
 **Start here:** `render/season1/output/home.html`: on My agent (L, top left) tap a play style; or the stills

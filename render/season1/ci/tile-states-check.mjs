@@ -15,7 +15,8 @@
 //   - the tile is the glass every tile is: not the hero panel;
 //   - text contrast on the glass, measured from the pixels: each text line's
 //     colour against the glass behind it (the tile shot with its text made
-//     transparent), 4.5:1 or more, in light and in dark.
+//     transparent), 4.5:1 or more, in light and in dark (artwork marked
+//     aria-hidden, such as the sealed pack's printed logo, is not text).
 // My agent adds (render session 90, owner 2026-11-27 note 6): every size names
 // the same current play style; L draws all six as choices, exactly one
 // marked current (check, accent edge, "Current" all visible), each a link
@@ -25,11 +26,20 @@
 // Ladder adds: the bar is one bar at M and L (placement or the next tier,
 // never both), the standings hold the owner's row, and the form's dots sit
 // on one line.
+// Store adds (render session 91, owner 2026-11-28 point 9: the packs are the
+// hero): every size says the same credits; no cosmetic on the tile (no
+// cosmetics fact, coin, emblem or canvas); M draws exactly the featured pack,
+// L 1 and 10 of each offer (two offers at most, a line naming the rest);
+// every pack has a Buy or how many more credits, never both, and a Buy only
+// when the credits cover its price (the price on the art the same as the
+// one it's bought at); each Buy carries its purchase (data-buy="S0:10").
+// Packs adds: every size says the same count; S keeps to the count (no
+// sentence); the fanned packs stay inside the tile.
 // Fails on any miss (this is the session's own bar, not a report).
 // Writes check.txt and the 191 px stills (light, dark) to
 // progress/render/evidence/season1-<tile>-tile-s<session>/ (or the folder given).
 //
-//   node render/season1/ci/tile-states-check.mjs agent|ladder [outDir]
+//   node render/season1/ci/tile-states-check.mjs agent|ladder|store|packs [outDir]
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -38,8 +48,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
 const TILE = process.argv[2] ?? 'agent';
-const SESSION = { agent: 90, ladder: 89 }[TILE];
-if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent or ladder)`);
+const SESSION = { agent: 90, ladder: 89, store: 91, packs: 91 }[TILE];
+if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent, ladder, store or packs)`);
 const OUT = resolve(process.argv[3] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', `season1-${TILE}-tile-s${SESSION}`));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', `${TILE}-states.html`)).href;
@@ -86,6 +96,8 @@ const measure = () => [...document.querySelectorAll('.case')].flatMap((sec) => [
   let cut = 0;
   for (const e of el.querySelectorAll(':scope > .headline *, :scope > .body *')) {
     if (e.closest('.q, details:not([open])') || !visible(e) || e.tagName === 'svg' || e.closest('svg')) continue;
+    // Screen-reader-only text (.vh: a 1 px box, clipped on purpose) is not cut.
+    if (e.getBoundingClientRect().width <= 1) continue;
     const over = e.scrollWidth - e.clientWidth;
     if (over > 1 && getComputedStyle(e).overflowX !== 'visible' && !(getComputedStyle(e).textOverflow === 'ellipsis' && e.title)) cut = Math.max(cut, over);
   }
@@ -119,6 +131,13 @@ const measure = () => [...document.querySelectorAll('.case')].flatMap((sec) => [
     dotRows,
     button: btn?.textContent.trim() ?? '',
     hero: el.classList.contains('hero'),
+    credits: txt('[data-fact="credits"] .big'),
+    cosmetic: !!el.querySelector('[data-fact="cosmetics"], .sh-emb, canvas, [data-coin]'),
+    offers: sec.dataset.offers ? JSON.parse(sec.dataset.offers) : null, wallet: Number(sec.dataset.credits ?? NaN),
+    pbs: [...el.querySelectorAll('.pb')].map((f) => ({ offer: f.dataset.offer, count: Number(f.dataset.count), price: Number(f.dataset.price), shown: Number((f.querySelector('.pb-p')?.textContent ?? '').replace(/[^\d]/g, '')), buy: f.querySelector('.pb-buy')?.dataset.buy ?? null, need: !!f.querySelector('.pb-need'), hero: f.classList.contains('hero') })),
+    moreLine: /more pack/.test(txt('[data-fact="buyPacks"] > .sub')),
+    count: txt('[data-fact="unopened"] .big'), why: !!el.querySelector('[data-fact="unopened"] .why'),
+    fanOut: (() => { const f = el.querySelector('.pk-fan'); if (!f) return 0; const q = f.getBoundingClientRect(); return Math.max(0, r.left + pad.l - q.left, q.right - (r.right - pad.r)); })(),
     bg: cs.backgroundImage + ' ' + cs.backgroundColor,
   };
 }));
@@ -133,10 +152,12 @@ async function contrast(page, selector) {
       const r = el.getBoundingClientRect();
       const out = [];
       for (const e of el.querySelectorAll(':scope > header h3, :scope > .headline *, :scope > .body *, :scope > footer .btn:not(.pri)')) {
-        if (e.closest('.q, .ava, .pill.pri, .btn.pri')) continue;
+        // Artwork hidden from assistive tech (the sealed pack's printed logo
+        // and set name, render session 91) is a picture, not text to read.
+        if (e.closest('.q, .ava, .pill.pri, .btn.pri, [aria-hidden="true"]')) continue;
         if (![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
         const q = e.getBoundingClientRect(); const s = getComputedStyle(e);
-        if (!q.width || s.visibility === 'hidden' || s.display === 'none') continue;
+        if (q.width <= 1 || s.visibility === 'hidden' || s.display === 'none') continue; // .vh: screen-reader-only
         out.push({ x: q.left - r.left, y: q.top - r.top, w: q.width, h: q.height, color: s.color, text: e.textContent.trim().slice(0, 28), fact: e.closest('[data-fact]')?.dataset.fact ?? 'header' });
       }
       return out;
@@ -198,6 +219,20 @@ try {
           check(L.every((t) => t.choices === 6 && t.onCount === (noAgent ? 0 : 1) && t.onMarked && t.offPlain && t.links && t.pointer), `${s}: L draws the six play styles as choices, ${noAgent ? 'none marked (no agent)' : 'one marked current (check, accent edge, "Current")'}, each a link to My agent with its style and a pointer`);
           const posed = row.filter((t) => t.poses);
           if (posed.length) check(posed.every((t) => t.poses.hov !== t.poses.rest && t.poses.prs !== t.poses.rest && t.poses.prs !== t.poses.hov), `${s}: a hovered and a pressed choice each look different from a resting one, and from each other (${posed.length} tiles)`);
+        } else if (TILE === 'store') {
+          const offers = row[0].offers, wallet = row[0].wallet;
+          check(new Set(row.map((t) => t.credits)).size === 1 && row[0].credits === wallet.toLocaleString('en-AU'), `${s}: every size says the same credits ("${row[0].credits}")`);
+          check(row.every((t) => !t.cosmetic), `${s}: no cosmetic on the tile at any size (the packs are the hero)`);
+          const M = row.filter((t) => t.size === 'M'), L = row.filter((t) => t.size === 'L'), S = row.filter((t) => t.size === 'S');
+          const shown = offers.slice(0, 2);
+          check(S.every((t) => t.pbs.length === 0) && M.every((t) => offers.length ? t.pbs.length === 1 && t.pbs[0].hero && t.pbs[0].offer === offers[0].setCode && t.pbs[0].count === 1 : t.pbs.length === 0), `${s}: S draws no pack; M exactly the featured pack${offers.length ? ` (${offers[0].name})` : ' (none on sale)'}`);
+          check(L.every((t) => t.pbs.length === shown.length * 2 && shown.every((o) => t.pbs.some((p) => p.offer === o.setCode && p.count === 1) && t.pbs.some((p) => p.offer === o.setCode && p.count === 10)) && t.moreLine === offers.length > 2), `${s}: L draws 1 and 10 of each of ${shown.length} offer(s)${offers.length > 2 ? ` and names the other ${offers.length - 2}` : ''}`);
+          const all = row.flatMap((t) => t.pbs);
+          check(all.every((p) => (p.buy !== null) !== p.need && (p.buy !== null) === (wallet >= p.price) && p.shown === p.price && (p.buy === null || p.buy === `${p.offer}:${p.count}`)), `${s}: each pack has Buy (carrying its purchase) only when ${wallet} credits cover it, else how many more; the price on the art is the price (${all.length} packs)`);
+        } else if (TILE === 'packs') {
+          check(new Set(row.map((t) => t.count)).size === 1, `${s}: every size says the same count ("${row[0].count || 'none'}")`);
+          check(row.filter((t) => t.size === 'S').every((t) => !t.why), `${s}: S keeps to the count (no sentence)`);
+          check(row.every((t) => t.fanOut <= 1), `${s}: the fanned packs stay inside the tile at every size`);
         } else {
           const agree = new Set(row.map((t) => t.rating)).size === 1 && new Set(row.map((t) => t.tier)).size === 1;
           check(agree, `${s}: every size says the same rating and tier ("${row[0].rating}", "${row[0].tier}")`);

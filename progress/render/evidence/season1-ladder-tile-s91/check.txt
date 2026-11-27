@@ -1,0 +1,65 @@
+
+=== light ===
+PASS unit 191px, placed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, placing: S, M and L fit their boxes, nothing spills
+PASS unit 191px, just-placed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, settled: S, M and L fit their boxes, nothing spills
+PASS unit 191px, top-tier: S, M and L fit their boxes, nothing spills
+PASS unit 191px, far-down: S, M and L fit their boxes, nothing spills
+PASS unit 218px, placed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, placing: S, M and L fit their boxes, nothing spills
+PASS unit 218px, just-placed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, settled: S, M and L fit their boxes, nothing spills
+PASS unit 218px, top-tier: S, M and L fit their boxes, nothing spills
+PASS unit 218px, far-down: S, M and L fit their boxes, nothing spills
+PASS unit 231px, placed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, placing: S, M and L fit their boxes, nothing spills
+PASS unit 231px, just-placed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, settled: S, M and L fit their boxes, nothing spills
+PASS unit 231px, top-tier: S, M and L fit their boxes, nothing spills
+PASS unit 231px, far-down: S, M and L fit their boxes, nothing spills
+PASS placed: every size says the same rating and tier ("1,774", "Platinum")
+PASS placed: one bar at M and L ("Next tier"), none at S
+PASS placed: L's standings hold the owner's own row
+PASS placed: the form's dots sit on one line at every size
+PASS new: every size says the same rating and tier ("Unrated", "In placement")
+PASS new: one bar at M and L ("Placement"), none at S
+PASS new: L's standings hold the owner's own row
+PASS new: the form's dots sit on one line at every size
+PASS placing: every size says the same rating and tier ("Unrated", "In placement")
+PASS placing: one bar at M and L ("Placement"), none at S
+PASS placing: L's standings hold the owner's own row
+PASS placing: the form's dots sit on one line at every size
+PASS just-placed: every size says the same rating and tier ("1,583", "Gold")
+PASS just-placed: one bar at M and L ("Next tier"), none at S
+PASS just-placed: L's standings hold the owner's own row
+PASS just-placed: the form's dots sit on one line at every size
+PASS settled: every size says the same rating and tier ("1,716", "Platinum")
+PASS settled: one bar at M and L ("Next tier"), none at S
+PASS settled: L's standings hold the owner's own row
+PASS settled: the form's dots sit on one line at every size
+PASS top-tier: every size says the same rating and tier ("2,012", "Mythic")
+PASS top-tier: one bar at M and L ("Next tier"), none at S
+PASS top-tier: L's standings hold the owner's own row
+PASS top-tier: the form's dots sit on one line at every size
+PASS far-down: every size says the same rating and tier ("1,291", "Bronze")
+PASS far-down: one bar at M and L ("Next tier"), none at S
+PASS far-down: L's standings hold the owner's own row
+PASS far-down: the form's dots sit on one line at every size
+PASS light: no tile is the hero panel (63 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.6:1, form "W")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.6:1, form "W")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.7:1, standings "Nova (you)")
+
+=== dark ===
+PASS dark: no tile is the hero panel (63 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.6:1, standings "Nova (you)")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.7:1, standings "Nova (you)")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, standings "Nova (you)")
+PASS no page errors
+PASS no outside requests
+
+59 PASS, 0 FAIL

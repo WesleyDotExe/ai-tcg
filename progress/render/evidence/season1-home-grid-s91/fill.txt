@@ -1,0 +1,154 @@
+The fill table (render session 87, after PR #196): per tile render, the largest empty band
+between the header and the tile's foot (% of the tile's height), and what spills where.
+Over 40% is listed as OPEN (the "tiles in groups" sessions' work, like fit.txt).
+
+agent S        nova@1440   band  17%     
+agent S        wren@1440   band  17%     
+agent M        nova@1440   band  14%     
+agent M        nova@1280   band   8%     
+agent M        nova@1024   band  16%     
+agent M        wren@1440   band  10%     
+agent M        wren@1280   band   4%     
+agent M        wren@1024   band  16%     
+agent L        nova@1440   band  23%     
+agent L        nova@1280   band  12%     
+agent L        nova@1024   band  28%     
+agent L        wren@1440   band  16%     
+agent L        wren@1280   band   3%     
+agent L        wren@1024   band  20%     
+watch S        nova@1440   band   6%     
+watch S        wren@1440   band   6%     
+watch M        nova@1440   band   2%     
+watch M        nova@1280   band   2%     
+watch M        nova@1024   band   2%     
+watch M        wren@1440   band   2%     
+watch M        wren@1280   band   2%     
+watch M        wren@1024   band   2%     
+watch L        nova@1440   band   7%     
+watch L        nova@1280   band   4%     
+watch L        nova@1024   band   8%     
+watch L        wren@1440   band   5%     
+watch L        wren@1280   band   2%     
+watch L        wren@1024   band   6%     
+ladder S       nova@1440   band  27%     
+ladder S       wren@1440   band  27%     
+ladder M       nova@1440   band  11%     
+ladder M       nova@1280   band   5%     
+ladder M       nova@1024   band  17%     
+ladder M       wren@1440   band  11%     
+ladder M       wren@1280   band   5%     
+ladder M       wren@1024   band  13%     
+ladder L       nova@1440   band  12%     
+ladder L       nova@1280   band   3%     
+ladder L       nova@1024   band  17%     
+ladder L       wren@1440   band  12%     
+ladder L       wren@1280   band   3%     
+ladder L       wren@1024   band  17%     
+store S        nova@1440   band  35%     
+store S        wren@1440   band  18%     
+store M        nova@1440   band   3%     
+store M        nova@1280   band   3%     
+store M        nova@1024   band   5%     
+store M        wren@1440   band   4%     
+store M        wren@1280   band   3%     
+store M        wren@1024   band   7%     
+store L        nova@1440   band  12%     
+store L        nova@1280   band   7%     
+store L        nova@1024   band  14%     
+store L        wren@1440   band  12%     
+store L        wren@1280   band   4%     
+store L        wren@1024   band  14%     
+daily S        nova@1440   band   4%     
+daily S        nova@1280   band   4%       spills: freePack into the button
+daily S        nova@1024   band   5%     
+daily S        wren@1440   band   4%     
+daily S        wren@1280   band   4%       spills: freePack into the button
+daily S        wren@1024   band   5%     
+daily M        nova@1440   band  29%       spills: winSchedule past the tile, dayReset past the tile
+daily M        nova@1280   band  57% OPEN  spills: earnedToday under the header, earnedToday into the button, winSchedule past the tile, dayReset past the tile
+daily M        nova@1024   band   3%       spills: dayReset past the tile
+daily M        wren@1440   band  29%       spills: winSchedule past the tile, dayReset past the tile
+daily M        wren@1280   band  57% OPEN  spills: earnedToday under the header, earnedToday into the button, winSchedule past the tile, dayReset past the tile
+daily M        wren@1024   band   3%       spills: dayReset past the tile
+daily L        nova@1440   band  30%     
+daily L        nova@1280   band  16%     
+daily L        nova@1024   band  34%     
+daily L        wren@1440   band  30%     
+daily L        wren@1280   band  16%     
+daily L        wren@1024   band  34%     
+collection S   nova@1440   band  26%     
+collection S   wren@1440   band  17%     
+collection M   nova@1440   band  58% OPEN  spills: bestCards past the tile
+collection M   nova@1280   band  80% OPEN  spills: completion under the header, completion into the button, bestCards past the tile
+collection M   nova@1024   band  49% OPEN  spills: bestCards past the tile
+collection M   wren@1440   band  58% OPEN  spills: completion under the header, completion into the button, bestCards past the tile
+collection M   wren@1280   band  80% OPEN  spills: completion under the header, completion into the button, bestCards past the tile
+collection M   wren@1024   band  49% OPEN  spills: bestCards past the tile
+collection L   nova@1440   band   2%     
+collection L   nova@1280   band  35%       spills: bestCards past the tile, binder past the tile
+collection L   nova@1024   band   2%     
+collection L   wren@1440   band  13%     
+collection L   wren@1280   band  19%       spills: bestCards past the tile, binder past the tile
+collection L   wren@1024   band  18%     
+packs S        nova@1440   band  30%     
+packs S        wren@1440   band  30%     
+packs M        nova@1440   band  21%     
+packs M        nova@1280   band  10%     
+packs M        nova@1024   band  30%     
+packs M        wren@1440   band  21%     
+packs M        wren@1280   band  10%     
+packs M        wren@1024   band  30%     
+packs L        nova@1440   band  18%     
+packs L        nova@1280   band   7%     
+packs L        nova@1024   band  22%     
+packs L        wren@1440   band  18%     
+packs L        wren@1280   band  16%     
+packs L        wren@1024   band  21%     
+history S      nova@1440   band  39%     
+history S      wren@1440   band  22%     
+history M      nova@1440   band  18%     
+history M      nova@1280   band   6%     
+history M      nova@1024   band  19%     
+history M      wren@1440   band   6%     
+history M      wren@1280   band   1%       spills: lastResult under the header
+history M      wren@1024   band  13%     
+history L      nova@1440   band  34%     
+history L      nova@1280   band  20%     
+history L      nova@1024   band  37%     
+history L      wren@1440   band  48% OPEN
+history L      wren@1280   band  36%     
+history L      wren@1024   band  51% OPEN
+notif S        nova@1440   band  42% OPEN
+notif S        nova@1280   band  34%     
+notif S        nova@1024   band  45% OPEN
+notif S        wren@1440   band  42% OPEN
+notif S        wren@1280   band  34%     
+notif S        wren@1024   band  45% OPEN
+notif M        nova@1440   band  20%       spills: alerts past the tile
+notif M        nova@1280   band  34%       spills: alerts past the tile
+notif M        nova@1024   band  19%       spills: alerts past the tile
+notif M        wren@1440   band  21%     
+notif M        wren@1280   band  17%     
+notif M        wren@1024   band  23%     
+notif L        nova@1440   band  11%     
+notif L        nova@1280   band  15%       spills: alertKinds past the tile
+notif L        nova@1024   band  11%     
+notif L        wren@1440   band  39%     
+notif L        wren@1280   band  25%     
+notif L        wren@1024   band  42% OPEN
+music S        nova@1440   band  32%     
+music S        wren@1440   band  32%     
+music M        nova@1440   band  16%     
+music M        nova@1280   band  11%     
+music M        nova@1024   band  18%     
+music M        wren@1440   band  16%     
+music M        wren@1280   band  11%     
+music M        wren@1024   band  18%     
+music L        nova@1440   band  53% OPEN
+music L        nova@1280   band  47% OPEN
+music L        nova@1024   band  59% OPEN
+music L        wren@1440   band  53% OPEN
+music L        wren@1280   band  47% OPEN
+music L        wren@1024   band  59% OPEN
+
+148 tile renders: 21 with an empty band over 40%, 21 with something spilling.

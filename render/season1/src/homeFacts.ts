@@ -17,10 +17,7 @@ import { CARD_REGISTRY } from "@ai-tcg/engine";
 import { FACTION_HEX, esc } from "../../src/site/siteModel.js";
 import { TIER_HEX } from "../../src/site/siteStanding.js";
 import { avatarSvg } from "../../src/avatar.js";
-import { FACE_SCRIPT, SEALED_PACK_CSS, boastGlyphSymbols, faceSymbols } from "../../src/site/siteFaces.js";
-import { COIN_SCRIPT } from "../../src/site/siteCoins.js";
-import { coinSwatchHtml } from "../../src/site/siteCoinSwatch.js";
-import { cosmeticKind } from "../../src/site/siteShop.js";
+import { FACE_SCRIPT, SEALED_PACK_CSS, faceSymbols } from "../../src/site/siteFaces.js";
 import { FACTS, TILES, type Fact, type Size, type TileSpec } from "./homeSpec.js";
 
 /* ------------------------------------------------------------------ data */
@@ -244,7 +241,7 @@ export const styleTag = (p: { id: string; summary: string }) => STYLE_TAG[p.id] 
 
 /** Per-page drawing options (a page whose box is tighter than the spec's
  * default asks for fewer items, so the markup holds only what is shown). */
-export type FactOpts = { featuredCosmetics?: number };
+export type FactOpts = Record<string, never>;
 type Render = (d: OwnerData, size: Size, opts?: FactOpts) => string;
 
 export const RENDER: Record<Fact, Render> = {
@@ -418,58 +415,48 @@ export const RENDER: Record<Fact, Render> = {
   },
 
   /* Packs */
-  unopened: (d) => {
+  unopened: (d, size) => {
     const n = d.packs.unopened.length;
-    return fx("unopened", n ? `${big(String(n))}<span>${n === 1 ? "pack" : "packs"} waiting${hasMatches(d) ? "" : ". Open them to add cards your agent can use."}</span>` : `<span>No packs waiting.</span>`, "row");
+    // S keeps to the count (render session 91: the sentence ran 25-110 px
+    // past a new player's S); M and L say why to open them.
+    const why = size !== "S" && !hasMatches(d) ? `<span class="sub why">Open them to add cards your agent can use.</span>` : "";
+    return fx("unopened", n ? `${big(n0(n))}<span>${n === 1 ? "pack" : "packs"} waiting</span>${why}` : `<span>No packs waiting.</span>`, "row wrap");
   },
   guarantee: (d) => {
     const { fullArtAfter, mythicAfter } = LIVE_PACK_ODDS.pity;
     const fa = Math.max(1, fullArtAfter - d.packs.pity.packsSinceFullArt), my = Math.max(1, mythicAfter - d.packs.pity.packsSinceMythic);
-    return fx("guarantee", `${lab("Guaranteed")}<span>a Full Art within <b>${plural(fa, "pack")}</b> · a Mythic within <b>${plural(my, "pack")}</b></span>`, "kv");
+    const within = (k: number) => (k === 1 ? "<b>in the next pack</b>" : `within <b>${plural(k, "pack")}</b>`);
+    return fx("guarantee", `${lab("Guaranteed")}<span>a Full Art ${within(fa)} · a Mythic ${within(my)}</span>`, "kv");
   },
   lastPulls: (d) => {
     const cards = d.collection.recentPulls.flatMap((p) => p.cards).slice(0, 10);
-    return fx("lastPulls", `${lab("Last pulls")}${cards.length ? `<span class="cards">${cards.map((c) => miniCard(c.cardId, c.name, c.rarity, c.finish)).join("")}</span>` : `<span>Your pulls appear here after your first pack.</span>`}`, "blk");
+    return fx("lastPulls", `${lab("Last pulls")}${cards.length ? `<span class="cards">${cards.map((c) => miniCard(c.cardId, c.name, c.rarity, c.finish)).join("")}</span>` : `<span class="sub">Your pulls appear here after your first pack. Each pack holds:</span>${packContents()}`}`, "blk");
   },
 
-  /* Store: a shop window (owner 2026-11-22): what's for sale as pictures
-   * with prices, and Buy. The art is Season 0's own: the sealed pack the
-   * opening tears (its plate), the coin painter, the boasts' emblems. */
+  /* Store (owner 2026-11-28, point 9): the hero is the extra packs, not
+   * the cosmetics (they stay in the Store page). The art is Season 0's own
+   * sealed pack, the one the opening tears (its plate). A Buy opens the
+   * Store with that purchase ready to confirm (POST /api/packs/buy
+   * { setCode, count }); the tile never spends credits itself. */
   credits: (d) => fx("credits", `<i class="coin" aria-hidden="true"></i>${big(n0(d.wallet.credits))}<span>credits</span>`, "row"),
   affordable: (d) => {
     const c = d.wallet.credits;
     if (c === 0) return fx("affordable", `<span class="sub">Win matches to earn credits: your agent earns them by winning.</span>`);
-    const o = d.packs.offer[0]!;
+    if (!d.packs.offer.length) return fx("affordable", `<span class="sub">Credits buy packs when a pack is on sale.</span>`);
+    const o = featuredOffer(d);
     const packs = Math.floor(c / o.priceCredits);
-    // How many cosmetics the credits buy together (cheapest first), not how
-    // many are each within reach: 449 buys one 300-credit cosmetic, not four.
-    let left = c, items = 0;
-    for (const p of forSale(d).filter((x) => !x.owned).map((x) => x.priceCredits).sort((a, b) => a - b)) if (p <= left) { left -= p; items++; }
-    if (!packs) return fx("affordable", `<span class="sub">${o.priceCredits - c} more credits for a pack.</span>`);
-    return fx("affordable", `<span class="sub">Enough for <b>${plural(packs, "pack")}</b>${items ? ` or <b>${plural(items, "cosmetic")}</b>` : ""}.</span>`);
+    const what = d.packs.offer.length > 1 ? `${o.name} ` : "";
+    if (!packs) return fx("affordable", `<span class="sub">${n0(o.priceCredits - c)} more credits for a ${esc(what)}pack.</span>`);
+    return fx("affordable", `<span class="sub">Enough for <b>${plural(packs, `${esc(what)}pack`)}</b>.</span>`);
   },
   buyPacks: (d, size) => {
-    const o = d.packs.offer[0]!;
-    const counts = size === "L" ? [1, d.packs.bulkOpenCount] : [1];
-    return fx("buyPacks", `${lab(size === "L" ? "Packs" : "Featured pack")}<div class="shelf">${counts.map((n) => shopItem({
-      art: n === 1 ? `<span class="pk">${sealedPack(o.setCode, size === "L" ? 54 : 60)}</span>` : `<span class="pk pile">${sealedPack(o.setCode, 46)}${sealedPack(o.setCode, 46)}${sealedPack(o.setCode, 46)}<b>×${n}</b></span>`,
-      name: n === 1 ? "1 pack" : `${n} packs`,
-      sub: `${o.name} · ${n * 5} cards`,
-      price: o.priceCredits * n,
-      can: d.wallet.credits >= o.priceCredits * n,
-      tone: "#8b5cff",
-    })).join("")}</div>`, "blk");
-  },
-  cosmetics: (d, size, opts) => {
-    const all = forSale(d);
-    if (size !== "L") {
-      const featured = [...all.filter((c) => !c.owned), ...all.filter((c) => c.owned)].slice(0, opts?.featuredCosmetics ?? 3);
-      return fx("cosmetics", `${lab("Featured cosmetics")}<div class="shelf">${featured.map((c) => cosmeticItem(c, d)).join("")}</div>`, "blk");
-    }
-    const kinds = [...new Set(all.map((c) => c.kind))];
-    const none = SHELF_KINDS.filter((k) => !kinds.includes(k)).map((k) => cosmeticKind(k).toLowerCase() + "s");
-    return fx("cosmetics", kinds.map((k) => `<div class="sgroup">${lab(cosmeticKind(k) + "s")}<div class="shelf">${all.filter((c) => c.kind === k).map((c) => cosmeticItem(c, d)).join("")}</div></div>`).join("") +
-      (none.length ? `<span class="sub">No ${esc(listWords(none))} on sale this season.</span>` : ""), "blk shelfL");
+    if (!d.packs.offer.length) return fx("buyPacks", `<span class="sub">No packs on sale right now.</span>`);
+    if (size !== "L") return fx("buyPacks", packBuy(featuredOffer(d), 1, d, "hero"), "blk");
+    const offers = d.packs.offer.slice(0, L_OFFERS);
+    const more = d.packs.offer.length - offers.length;
+    const items = offers.flatMap((o) => [packBuy(o, 1, d, "shelf"), packBuy(o, d.packs.bulkOpenCount, d, "shelf")]);
+    return fx("buyPacks", `${lab(d.packs.offer.length > 1 ? "Packs on sale" : "Packs")}<div class="pshelf n${items.length}">${items.join("")}</div>` +
+      (more ? `<span class="sub">+${plural(more, "more pack")} in the Store</span>` : ""), "blk");
   },
 
   /* Collection */
@@ -565,16 +552,30 @@ export function featured(d: OwnerData): LiveMatch | null {
   return d.live.matches.find((m) => m.matchId === d.live.mine) ?? d.live.matches[0] ?? null;
 }
 
-/* ------------------------------------------------- the shop window */
+/* ------------------------------------------------- the pack shelf */
 
-/** The cosmetic kinds a full shelf groups by (owner 2026-11-22: arenas,
- * card backs (deck sleeves), boasts, coins, avatars). Only what the server
- * sells is drawn; a kind with nothing on sale is named in one line. */
-export const SHELF_KINDS = ["arena", "cardBack", "boast", "coin", "avatar"] as const;
-const listWords = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} or ${xs[xs.length - 1]}`);
+/** What one pack holds, from the live odds table (render session 91: a new
+ * player's Packs L showed one line and 43-46% empty glass). Five slots: the
+ * rarity slots, then the shine slot (economy/src/config.ts). */
+export function packContents(): string {
+  const o = LIVE_PACK_ODDS;
+  const shine = Math.round(100 - Object.values(o.shineFinish as Record<string, number>).reduce((a, b) => a + b, 0));
+  const slots = [
+    ...Object.entries(o.slots).flatMap(([r, n]) => Array.from({ length: n }, () => ({ r, name: r, note: r === "Rare" ? `1 in ${Math.round(1 / o.mythicInRareSlot)} a Mythic` : "" }))),
+    { r: "shine", name: "Shine", note: `${100 - shine}% a special finish` },
+  ];
+  return `<ol class="pslots" aria-label="What one pack holds">${slots.map((x) => `<li class="ps-${x.r.toLowerCase()}"><b>${esc(x.name)}</b>${x.note ? `<small>${esc(x.note)}</small>` : ""}</li>`).join("")}</ol>`;
+}
 
-type ForSale = OwnerData["store"]["cosmetics"][number];
-const forSale = (d: OwnerData) => d.store.cosmetics as ForSale[];
+/** Cards in one pack: the live table's slots plus the shine slot
+ * (economy/src/config.ts: 2 Common, 1 Uncommon, 1 Rare, 1 shine = 5). */
+export const CARDS_PER_PACK = Object.values(LIVE_PACK_ODDS.slots).reduce((a, b) => a + b, 0) + 1;
+/** Store L draws at most this many offers (each as 1 pack and 10); more
+ * are named in one line and shown in the Store. Season 0 sells one. */
+export const L_OFFERS = 2;
+
+/** The featured pack: the first offer the server lists (Season 0: S0). */
+export const featuredOffer = (d: OwnerData) => d.packs.offer[0]!;
 
 let plateCache: Map<string, string> | null = null;
 /** The sealed pack's plate (the circuit field and the four faction marks),
@@ -590,58 +591,82 @@ function plateOf(setCode: string): string {
 }
 /** Season 0's sealed pack (the markup siteShop.sealedPackHtml draws, with
  * its plate), `px` wide. */
-export function sealedPack(setCode: string, px: number): string {
-  return `<div class="spk" style="--pw:${Math.round(px)}px" aria-hidden="true"><div class="wrap"><div class="pa">${plateOf(setCode)}</div><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="crimp b"></div></div></div>`;
+export function sealedPack(setCode: string, px: number, setName = "Season Zero"): string {
+  return `<div class="spk" style="--pw:${Math.round(px)}px" aria-hidden="true"><div class="wrap"><div class="pa">${plateOf(setCode)}</div><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">${esc(setName.toUpperCase())}</div><div class="crimp b"></div></div></div>`;
 }
 
-function shopItem(x: { art: string; name: string; sub: string; price: number; can: boolean; owned?: boolean; tone: string }): string {
-  return `<figure class="si" style="--c:${x.tone}"><span class="si-art">${x.art}${x.owned ? "" : `<span class="si-p"><i class="coin" aria-hidden="true"></i>${n0(x.price)}<span class="vh"> credits</span></span>`}</span>` +
-    `<figcaption><b>${esc(x.name)}</b><small>${esc(x.sub)}</small></figcaption>` +
-    (x.owned ? `<span class="pill ok si-own">Owned</span>` : `<button type="button" class="btn sm si-buy"${x.can ? "" : " disabled"}>Buy</button>`) + `</figure>`;
+type Offer = OwnerData["packs"]["offer"][number];
+
+/** One way to buy packs: `count` of an offer, its art, price and Buy. When
+ * the credits don't cover it, how many more it needs instead of a Buy (a
+ * greyed button says nothing about why). The Buy carries the purchase
+ * (`data-buy="S0:10"`): the Store opens with it ready to confirm. */
+export function packBuy(o: Offer, count: number, d: OwnerData, look: "hero" | "shelf"): string {
+  const price = o.priceCredits * count;
+  const need = price - d.wallet.credits;
+  const many = count > 1;
+  const name = many ? `${count} packs` : "1 pack";
+  const art = many
+    ? `<span class="pk pile">${sealedPack(o.setCode, 40, o.name).repeat(3)}<b>×${count}</b></span>`
+    : `<span class="pk">${sealedPack(o.setCode, look === "hero" ? 50 : 62, o.name)}</span>`;
+  const what = `${name} of ${o.name}, ${count * CARDS_PER_PACK} cards, ${n0(price)} credits`;
+  return `<figure class="pb ${look}" data-offer="${esc(o.setCode)}" data-count="${count}" data-price="${price}">` +
+    `<span class="pb-art">${art}<span class="pb-p"><i class="coin" aria-hidden="true"></i>${n0(price)}<span class="vh"> credits</span></span></span>` +
+    `<figcaption><b title="${esc(what)}">${esc(look === "hero" ? o.name : name)}</b><small title="${esc(what)}">${esc(look === "hero" ? `${name} · ${CARDS_PER_PACK} cards` : `${o.name} · ${count * CARDS_PER_PACK} cards`)}</small></figcaption>` +
+    (need > 0
+      ? `<span class="pb-need" title="${esc(what)}">${n0(need)} more credits</span>`
+      : `<button type="button" class="btn sm pb-buy" data-go="cards" data-buy="${esc(o.setCode)}:${count}" aria-label="Buy ${esc(what)}">Buy</button>`) +
+    `</figure>`;
 }
 
-function cosmeticItem(c: ForSale, d: OwnerData): string {
-  const tone = (c.faction && FACTION_HEX[c.faction]) || "#8f8cff";
-  const art = c.kind === "coin" && c.itemId ? coinSwatchHtml(c.itemId, { w: 84, h: 64 })
-    : `<span class="sh-emb" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="sh-hex" d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z"/>${c.kind === "boast" && c.itemId ? `<g class="sh-glyph" transform="translate(5.4 5.4) scale(.55)"><use href="#lg-${esc(c.itemId)}"/></g>` : ""}</svg></span>`;
-  return shopItem({ art, name: c.name, sub: cosmeticKind(c.kind), price: c.priceCredits, can: d.wallet.credits >= c.priceCredits, owned: c.owned, tone });
-}
-
-/** What a page needs once for the shop window's art: the pack's and the
- * boasts' symbols, the coin painter, and their CSS. */
+/** What a page needs once for the shelf's art: the pack's symbols and CSS. */
 export function homeArt(): { css: string; defs: string; script: string } {
   return {
-    defs: faceSymbols() + boastGlyphSymbols(),
-    script: COIN_SCRIPT,
+    defs: faceSymbols(),
+    script: "",
     css: `${SEALED_PACK_CSS}
 .coin { display: inline-block; flex: none; width: 1em; height: 1em; border-radius: 50%; vertical-align: -.12em; background: radial-gradient(circle at 35% 30%, #fff4c4, #ffcf5c 45%, #b9801c); box-shadow: inset 0 0 0 1.5px rgba(120,70,0,.45); }
 .big + span .coin { margin-right: 4px; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.shelf { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
-.si { --c: #8f8cff; margin: 0; display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 118px; padding: 6px; border-radius: 14px; background: color-mix(in srgb, var(--c) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 34%, transparent); }
-.si-art { position: relative; height: 92px; display: grid; place-items: center; border-radius: 10px; overflow: hidden;
-  background: radial-gradient(ellipse 80% 70% at 50% 60%, color-mix(in srgb, var(--c) 38%, transparent), transparent 70%), linear-gradient(180deg, #0b0f2a, #161a44); }
-.si-art::after { content: ""; position: absolute; inset: auto 0 0; height: 40%; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent) 0 1px, transparent 1px 12px), linear-gradient(transparent, color-mix(in srgb, var(--c) 18%, transparent)); mask: linear-gradient(transparent, #000); pointer-events: none; }
-.si-art .spk { box-shadow: 0 8px 18px rgba(0,0,0,.5), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); z-index: 1; }
-.si-art .sh-emb { width: 60px; height: 60px; z-index: 1; color: var(--c); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c) 70%, transparent)); }
-.si-art .sh-emb svg { width: 100%; height: 100%; overflow: visible; }
-.si-art .sh-hex { fill: color-mix(in srgb, var(--c) 18%, #0b0d2a); stroke: currentColor; stroke-width: 1.1; }
-.si-art .sh-glyph { color: #fff; } .si-art .sh-glyph use { color: color-mix(in srgb, var(--c) 40%, #fff); }
-.si-art .si-pv { z-index: 1; display: block; } .si-art canvas { display: block; }
-.pk.pile { position: relative; width: 84px; height: 80px; z-index: 1; } .pk.pile .spk { position: absolute; top: 3px; } .pk.pile .spk:nth-child(1) { left: 2px; transform: rotate(-12deg); } .pk.pile .spk:nth-child(2) { left: 36px; transform: rotate(12deg); } .pk.pile .spk:nth-child(3) { left: 19px; }
-.pk.pile b { position: absolute; right: -2px; bottom: 2px; z-index: 2; font-size: 12px; padding: 1px 6px; border-radius: 7px; background: #0b0f2a; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
-.si-p { position: absolute; right: 5px; bottom: 5px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 4px; border-radius: 999px; font-weight: 800; font-size: 12px; color: #fff; background: rgba(6,8,26,.8); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
-.si figcaption { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
-.si figcaption b { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .si figcaption small { font-size: 11px; color: var(--muted); }
-.si-buy { width: 100%; } .si-own { align-self: flex-start; font-size: 11px; }
-.shelfL { gap: 8px; } .sgroup { display: flex; flex-direction: column; gap: 4px; }
+/* A way to buy packs (render session 91): the pack on its night, the price
+   on the art, the name, and Buy (or how many more credits). */
+.pb { --c: #8b5cff; margin: 0; min-width: 0; display: grid; gap: 4px 10px; padding: 6px; border-radius: 14px; background: color-mix(in srgb, var(--c) 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); }
+.pb-art { position: relative; min-height: 0; display: grid; place-items: center; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(ellipse 80% 70% at 50% 60%, color-mix(in srgb, var(--c) 42%, transparent), transparent 70%), linear-gradient(180deg, #0b0f2a, #161a44); }
+.pb-art::after { content: ""; position: absolute; inset: auto 0 0; height: 40%; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent) 0 1px, transparent 1px 12px), linear-gradient(transparent, color-mix(in srgb, var(--c) 18%, transparent)); mask: linear-gradient(transparent, #000); pointer-events: none; }
+.pb-art .spk { z-index: 1; box-shadow: 0 8px 18px rgba(0,0,0,.5), 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); }
+.pk { position: relative; z-index: 1; display: grid; place-items: center; }
+.pk.pile { width: 82px; height: 70px; } .pshelf.n2 .pk.pile { zoom: 1.2; } .pk.pile .spk { position: absolute; top: 3px; } .pk.pile .spk:nth-child(1) { left: 2px; transform: rotate(-12deg); } .pk.pile .spk:nth-child(2) { left: 40px; transform: rotate(12deg); } .pk.pile .spk:nth-child(3) { left: 21px; }
+.pk.pile b { position: absolute; right: -4px; bottom: 0; z-index: 2; font-size: 12px; padding: 1px 6px; border-radius: 7px; background: #0b0f2a; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.pb-p { position: absolute; right: 5px; bottom: 5px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 4px; border-radius: 999px; font-weight: 800; font-size: 12px; color: #fff; background: rgba(6,8,26,.82); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+.pb figcaption { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.pb figcaption b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pb figcaption small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-buy { justify-self: stretch; padding: 4px 10px; font-size: 12.5px; }
+.pb-need { align-self: center; font-size: 12px; font-weight: 650; color: var(--muted); }
+/* What one pack holds (a new player's Packs L): five slots as card shapes. */
+.pslots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.pslots li { --r: #8a93b5; aspect-ratio: 5 / 7; display: flex; flex-direction: column; justify-content: flex-end; gap: 1px; padding: 5px 4px; border-radius: 8px; min-width: 0; color: #fff; font-size: 11px; line-height: 1.15;
+  background: radial-gradient(ellipse 90% 60% at 50% 30%, color-mix(in srgb, var(--r) 55%, transparent), transparent 75%), linear-gradient(180deg, #151a40, #0b0f2a); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--r) 80%, transparent); }
+.pslots li b { font-size: 10.5px; letter-spacing: -.01em; overflow-wrap: anywhere; } .pslots li small { font-size: 9.5px; color: #dfe3ff; }
+.pslots .ps-uncommon { --r: #3fb6a8; } .pslots .ps-rare { --r: #e2b33c; } .pslots .ps-shine { --r: #c86bff; background: linear-gradient(135deg, rgba(255,255,255,.18), transparent 40%, rgba(255,255,255,.12) 60%, transparent), radial-gradient(ellipse 90% 60% at 50% 30%, color-mix(in srgb, var(--r) 60%, transparent), transparent 75%), linear-gradient(180deg, #151a40, #0b0f2a); }
+/* M: the featured pack, art on the left, the words and Buy on the right. */
+.pb.hero { grid-template-columns: 84px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); align-items: start; }
+.pb.hero .pb-art { grid-row: 1 / -1; align-self: stretch; min-height: 96px; }
+.pb.hero .pb-buy, .pb.hero .pb-need { grid-column: 2; grid-row: 3; align-self: end; }
+.pb.hero .pb-buy { justify-self: start; padding: 5px 16px; }
+/* L: the shelf, one card per way to buy, side by side. */
+.pshelf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; align-self: stretch; width: 100%; }
+.pshelf.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.pb.shelf { grid-template-rows: minmax(0, 1fr) auto auto; }
+.pb.shelf .pb-need { text-align: center; padding: 4px 0; }
+.pshelf.n4 .pk.pile { zoom: .78; } .pshelf.n4 .pb.shelf { padding: 4px; } .pshelf.n4 .pb-p { font-size: 11px; right: 3px; bottom: 3px; }
 `,
   };
 }
 
 /* ---------------------------------------------- a tile's next action */
 
-export interface Action { label: string; to: string; primary: boolean; disabled?: boolean }
+export interface Action { label: string; to: string; primary: boolean; disabled?: boolean; /** a purchase the Store opens ready to confirm ("S0:1") */ buy?: string }
 
 /** The one next action a tile asks for at a size (the spec's `next`, made
  * concrete for this owner's state). */
@@ -659,8 +684,8 @@ export function nextAction(t: TileSpec, size: Size, d: OwnerData): Action {
     case "packs":
       return d.packs.unopened.length ? { label: "Open a pack", to: "cards", primary: true } : { label: "Buy packs in Store", to: "cards", primary: false };
     case "store":
-      if (size !== "S") return { label: "See the whole Store", to: "cards", primary: false };
-      return d.wallet.credits >= d.packs.offer[0]!.priceCredits ? { label: "Buy", to: "cards", primary: false } : { label: "How to earn credits", to: "cards", primary: false };
+      if (size !== "S" || !d.packs.offer.length) return { label: "See the whole Store", to: "cards", primary: false };
+      return d.packs.offer.length && d.wallet.credits >= featuredOffer(d).priceCredits ? { label: "Buy a pack", to: "cards", primary: false, buy: `${featuredOffer(d).setCode}:1` } : { label: "How to earn credits", to: "cards", primary: false };
     case "collection":
       if (!d.collection.recentPulls.length && d.packs.unopened.length && size !== "L") return { label: "Open packs", to: "cards", primary: true };
       return { label: size === "L" ? "Open the binder" : "Open Collection", to: "cards", primary: false };
