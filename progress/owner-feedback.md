@@ -5265,3 +5265,11 @@ Next sessions: as planned (Packs and Store, then render 92 the hardening pass); 
 
 1. **Decision:** every pack in the row is the same booster with the same odds. The pick is there so the owner gets to interact with the opening (the owner: "it gives people the illusion of being able to choose one, just a way for them to interact"); which pack is picked changes nothing in what it holds.
 2. **Not decided:** whether the screen says so in a small line ("every pack has the same odds"). Build it with the line until the owner decides.
+
+---
+
+## 2026-11-28 — Owner: each pack in the pick row has its own seed; no "same odds" line (settles point 2 of the entry above)
+
+1. **Decision:** each pack in the row has **its own random seed**, so the pack picked is the roll the owner gets; every pack has the same odds (S0-odds-3 now, each season's table later).
+2. **Decision:** the screen does **not** say "every pack has the same odds" (the owner: "we don't need to tell the player"). The pack odds themselves stay published where they are today (the Store and help), as before.
+3. **How (from the chat, so the pick can't be gamed):** the server makes and keeps the seeds; a seed can't be guessed from anything the owner can see; and no pack's contents (or its seed) reach the browser until that pack is picked and opened. The packs not picked are never revealed. A check in the opening's tests: before the pick, the page holds nothing that tells one pack from another.
