@@ -5215,3 +5215,30 @@ Next session: the tiles in groups, starting with the agent tile (My agent and Ag
    The agent-states check and the contrast rule (4.5:1 or more) cover the new states.
 
 Next session: group 2, the Ladder tile with Rating & form merged in; the play-style change above can ride along or come right after.
+
+---
+
+## 2026-11-28 — Owner: answers to render sessions 89 (the Ladder tile) and 90 (the play styles), keep all 7; the Ladder chart fix; the Store tile's hero is packs
+
+**Render session 89** (PR #199, `progress/render/checkpoints.md`, `render/season1/output/ladder-states.html`, `progress/render/evidence/season1-ladder-tile-s89/`).
+1. **Keep:** the two merges (placement and next tier as one bar; "around you" and "top of the ladder" as one standings list, four rows at most).
+2. **Keep:** M drops the standings and Settled / Settling (they're at L and on Stats).
+3. **Keep:** win rate by deck shows the two most-played decks and "+2 more" (all four on hover and on Stats).
+4. **Keep:** the darker form dots (W / L at 4.5:1).
+
+**Render session 90** (PR #200, `progress/render/checkpoints.md`, `progress/render/evidence/season1-play-style-s90/`, `season1-agent-tile-s90/`).
+5. **Keep:** My agent's S shows four facts (name, status, play style, button); every other tile keeps three.
+6. **Keep:** the current style has no hover look; a tap still opens My agent saying it's the style now.
+7. **Keep:** My agent's Play style section (the six with full summaries, "Confirm X" / "Keep Y", the "match on now finishes as Y" line).
+
+**The Ladder chart (for render 92, the hardening pass)**
+8. **Fix:** the Ladder's "Rating, 30 days" chart in the recommended board's still (`season1-home-grid-s90/nova-recommended.jpg`): the "Diamond" tier label sits on the line, and the line drops straight down at the right-hand end. Labels never on the line; the line reads as the rating over the days, with no vertical drop unless the data has one (if it does, show it as a step with its value). Add a check for it.
+
+**The Store tile (replaces the tile part of 2026-11-22 "the visual Store tile", point 3, and render 86 call 4)**
+9. **Decision: the Store tile's hero is the extra packs, not the cosmetics.** The tile shows packs for sale only; the cosmetics (arenas, card backs, boasts, coins, avatars) stay in the Store and show when the owner opens it ("See the whole Store"), including this month's collection as one row (Season 1 ideas, 2026-11-22). The tile:
+   - **S:** credits and how many packs they buy.
+   - **M:** the featured pack as the hero (its art, price, "Buy"), and what the credits buy.
+   - **L:** the packs on sale as the hero shelf (art, price, "Buy" each), and "See the whole Store".
+   Claim stays in Daily rewards and open in Packs (2026-11-22, point 1).
+
+Next session: group 3, Packs and Store (taking point 9); render 92 the hardening pass (taking point 8).
