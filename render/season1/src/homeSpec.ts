@@ -33,7 +33,7 @@ export const FACTS = {
   agentStatus: "what your agent is doing now (playing / ready / stopped / out of time)",
   startStop: "Start / Stop",
   todayRecord: "today's wins and losses",
-  personality: "its personality (play style)",
+  personality: "its play style (personality): how it plays, from its next match",
   playTime: "how long it may still play, and adding time",
   deck: "the deck it plays",
   // The ladder tile (Ladder + Rating & form).
@@ -118,19 +118,19 @@ export const TILES: TileSpec[] = [
     replaces: ["agent", "live"],
     question: "Is my agent playing right now, and how do I steer it?",
     sizes: {
-      S: ["agentName", "agentStatus", "startStop"],
+      S: ["agentName", "agentStatus", "startStop", "personality"],
       M: ["agentName", "agentStatus", "startStop", "todayRecord", "personality", "playTime"],
       L: ["agentName", "agentStatus", "startStop", "todayRecord", "personality", "playTime", "deck"],
     },
     newPlayer: {
-      S: "Moth Lantern · Ready. [Start]",
+      S: "Moth Lantern · Ready · Play style: Calculator. [Start]",
       M: "Ready, not playing yet. Press Start and it joins the ladder's next round; it plays until you stop it or its time runs out.",
-      L: "As M, with the personality dial explained in one line each and the deck: \"Your agent builds its own deck from your cards\".",
+      L: "As M, with the deck (\"Your agent builds its own deck from your cards\") and the six play styles as choices, each in one line, the current one marked: \"It changes how your agent plays, from its next match.\"",
     },
-    next: { S: "Start / Stop", M: "Start / Stop (then: give it time)", L: "Start / Stop, change personality, pick a deck" },
+    next: { S: "Start / Stop", M: "Start / Stop (then: give it time), change the play style", L: "Start / Stop, choose a play style, pick a deck" },
     opens: "match",
     status: "decided",
-    note: "Owner phase 2: \"the agent tile (My agent + Agent controls)\". Rating moves to Ladder; the agent's name is shown here only.",
+    note: "Owner phase 2: \"the agent tile (My agent + Agent controls)\". Rating moves to Ladder; the agent's name is shown here only. S shows four facts, one over the three-fact rule: the owner asked for the current play style at S (2026-11-27, note 6).",
   },
   {
     id: "ladder",

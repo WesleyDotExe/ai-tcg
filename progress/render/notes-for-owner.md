@@ -1610,3 +1610,10 @@ My agent is now glass like the rest and fits its box at S, M and L in every auto
 the top of `progress/render/checkpoints.md` (session 88): the personality one-liners are our words; long names end
 in "..." at S and M; Start / Stop sits beside the name at L; "Change" and "Pick one" open My agent; status pills on
 every tile a little darker for contrast. Waiting on owner; the next session moves on to the Ladder tile.
+
+## 2026-11-27 — Render session 90: the play styles, obviously selectable (three small calls, none blocking)
+
+Your note 6 is built: on My agent, "Play style" (personality underneath) with the plain line, the six drawn as
+choices at L, and a tap opens My agent with that style ready to confirm. Try it in
+`render/season1/output/home.html`. Three small calls at the top of `progress/render/checkpoints.md` (session 90).
+Still waiting on you from earlier: render 89's four Ladder calls; the music spec; the pack art design.

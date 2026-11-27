@@ -16,6 +16,12 @@
 //   - text contrast on the glass, measured from the pixels: each text line's
 //     colour against the glass behind it (the tile shot with its text made
 //     transparent), 4.5:1 or more, in light and in dark.
+// My agent adds (render session 90, owner 2026-11-27 note 6): every size names
+// the same current play style; L draws all six as choices, exactly one
+// marked current (check, accent edge, "Current" all visible), each a link
+// to My agent carrying its style, with a pointer; a hovered and a pressed
+// choice each look different from a resting one (the .hov / .prs poses, and a
+// real pointer hover), and their text meets the same 4.5:1.
 // Ladder adds: the bar is one bar at M and L (placement or the next tier,
 // never both), the standings hold the owner's row, and the form's dots sit
 // on one line.
@@ -32,7 +38,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
 const TILE = process.argv[2] ?? 'agent';
-const SESSION = { agent: 88, ladder: 89 }[TILE];
+const SESSION = { agent: 90, ladder: 89 }[TILE];
 if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent or ladder)`);
 const OUT = resolve(process.argv[3] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', `season1-${TILE}-tile-s${SESSION}`));
 mkdirSync(OUT, { recursive: true });
@@ -86,7 +92,21 @@ const measure = () => [...document.querySelectorAll('.case')].flatMap((sec) => [
   const txt = (sel) => el.querySelector(sel)?.textContent.trim() ?? '';
   const dots = [...el.querySelectorAll('[data-fact="form"] .dot')];
   const dotRows = new Set(dots.map((x) => Math.round(x.getBoundingClientRect().top))).size;
+  const choices = [...el.querySelectorAll('[data-fact="personality"] .choice')];
+  const on = choices.filter((c) => c.classList.contains('on'));
+  const seen = (e) => !!e && visible(e);
+  const look = (c) => { const s = getComputedStyle(c); return s.backgroundColor + ' | ' + s.boxShadow + ' | ' + s.transform; };
+  const rest = choices.find((c) => !c.classList.contains('on') && !c.classList.contains('hov') && !c.classList.contains('prs'));
+  const hov = choices.find((c) => c.classList.contains('hov')), prs = choices.find((c) => c.classList.contains('prs'));
   return {
+    styleCut: (() => { const n = el.querySelector('[data-fact="personality"] [data-style-name]'); return n ? n.scrollWidth - n.clientWidth : 0; })(),
+    style: el.querySelector('[data-fact="personality"] [data-style-name]')?.textContent.trim() ?? on[0]?.querySelector('b')?.textContent.trim() ?? '',
+    choices: choices.length, onCount: on.length,
+    onMarked: on.every((c) => seen(c.querySelector('.tick')) && seen(c.querySelector('.cur')) && c.querySelector('.cur').textContent.trim() === 'Current' && c.getAttribute('aria-current') === 'true' && getComputedStyle(c).boxShadow.includes('inset')),
+    offPlain: choices.filter((c) => !c.classList.contains('on')).every((c) => !seen(c.querySelector('.tick')) && !seen(c.querySelector('.cur'))),
+    links: choices.every((c) => c.dataset.go === 'agent' && c.dataset.style && c.tagName === 'A'),
+    pointer: choices.filter((c) => !c.classList.contains('on')).every((c) => getComputedStyle(c).cursor === 'pointer'),
+    poses: hov && prs && rest ? { rest: look(rest), hov: look(hov), prs: look(prs) } : null,
     state: sec.dataset.case, unit: Number(sec.dataset.unit), size: el.dataset.size,
     overflow: Math.round(Math.max(0, el.scrollHeight - el.clientHeight, b ? b.scrollHeight - b.clientHeight : 0, past)),
     sideways: Math.max(0, el.scrollWidth - el.clientWidth, name ? name.scrollWidth - name.clientWidth : 0, cut),
@@ -170,6 +190,14 @@ try {
         if (TILE === 'agent') {
           const agree = new Set(row.map((t) => t.pill)).size === 1 && new Set(row.map((t) => t.button)).size === 1;
           check(agree, `${s}: every size says the same ("${row[0].pill}", button "${row[0].button}")`);
+          const noAgent = s === 'no-agent';
+          const named = row.filter((t) => !(noAgent && t.size === 'L'));
+          check(row.every((t) => t.styleCut <= 1), `${s}: the play style's name is never cut at S or M${row.some((t) => t.styleCut > 1) ? ': ' + row.filter((t) => t.styleCut > 1).map((t) => `${t.size} at ${t.unit}px, ${t.styleCut}px`).join(', ') : ''}`);
+          check(new Set(named.map((t) => t.style)).size === 1 && !!named[0].style, `${s}: every size names the same play style ("${named[0].style}"${noAgent ? ', L none marked' : ''})`);
+          const L = row.filter((t) => t.size === 'L');
+          check(L.every((t) => t.choices === 6 && t.onCount === (noAgent ? 0 : 1) && t.onMarked && t.offPlain && t.links && t.pointer), `${s}: L draws the six play styles as choices, ${noAgent ? 'none marked (no agent)' : 'one marked current (check, accent edge, "Current")'}, each a link to My agent with its style and a pointer`);
+          const posed = row.filter((t) => t.poses);
+          if (posed.length) check(posed.every((t) => t.poses.hov !== t.poses.rest && t.poses.prs !== t.poses.rest && t.poses.prs !== t.poses.hov), `${s}: a hovered and a pressed choice each look different from a resting one, and from each other (${posed.length} tiles)`);
         } else {
           const agree = new Set(row.map((t) => t.rating)).size === 1 && new Set(row.map((t) => t.tier)).size === 1;
           check(agree, `${s}: every size says the same rating and tier ("${row[0].rating}", "${row[0].tier}")`);
@@ -182,6 +210,15 @@ try {
       }
     }
     check(all.every((t) => !t.hero), `${theme}: no tile is the hero panel (${all.length} tiles)`);
+    if (TILE === 'agent') {
+      // A real pointer on a resting choice (not the .hov pose): it changes.
+      const sel = '.case[data-case="playing"][data-unit="191"] .tile.s-L .choice:not(.on)';
+      const before = await page.$eval(sel, (c) => getComputedStyle(c).backgroundColor + getComputedStyle(c).boxShadow);
+      await page.hover(sel); await page.waitForTimeout(200);
+      const after = await page.$eval(sel, (c) => getComputedStyle(c).backgroundColor + getComputedStyle(c).boxShadow);
+      await page.mouse.move(0, 0); await page.waitForTimeout(200);
+      check(before !== after, `${theme}: a real pointer over a resting play style changes its look`);
+    }
     for (const u of units) {
       const c = await contrast(page, `.case[data-unit="${u}"] .tile`);
       check(c.worst >= 4.5, `${theme}, unit ${u}px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest ${c.worst.toFixed(1)}:1, ${c.who})`);

@@ -7,6 +7,28 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-27 — Render session 90: the play styles made obviously selectable (owner 2026-11-27, note 6) — AWAITING FEEDBACK (three small calls)
+
+**Start here:** `render/season1/output/home.html`: on My agent (L, top left) tap a play style; or the stills
+`progress/render/evidence/season1-play-style-s90/my-agent-confirm-light.jpg` and
+`season1-agent-tile-s90/agent-states-1280-light.jpg` (the "choosing" row shows hover and press).
+
+**What it is:** your note 6, as written: "Play style" with personality as its subtitle and the plain line; S the
+current style, M the style with Change, L all six as choices (current: check, accent edge, "Current"; the others:
+pointer, hover, press); a tap opens My agent with that style ready, one more tap confirms. Measured: fits at every
+size and state, 4.5:1 or more in light and dark, including the hover and press states.
+
+**Calls for you (none blocks):**
+1. **S shows four facts** on My agent (name, status, play style, button): your word over the three-fact rule; every
+   other tile still keeps three. Keep?
+2. **The current style isn't "pressable"-looking** (no hover, an ordinary cursor), but a tap still opens My agent
+   saying it's the style now. Keep, or give it the same hover as the rest?
+3. **My agent's Play style section** shows the six with their full summaries and "Confirm X" / "Keep Y"; when a match
+   is on it adds "the match on now finishes as Y". The rest of My agent is still the navigation stub. Keep this as
+   the section's design?
+
+---
+
 ## 2026-11-27 — Render session 89: the Ladder tile on the grid, Rating & form merged in (phase 2, the tiles in groups, group 2) — AWAITING FEEDBACK (four small calls)
 
 **Start here:** `render/season1/output/home.html` (Ladder, beside Watch live), and

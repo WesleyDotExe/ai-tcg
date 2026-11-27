@@ -22,6 +22,14 @@ the states sheet is shared (`src/statesSheet.ts`; `output/ladder-states.html`, s
 tile (`ci/tile-states-check.mjs agent|ladder`, 59 PASS for Ladder, contrast from the pixels). Grid check
 `season1-home-grid-s89/` 146 PASS, 0 FAIL, 5 OPEN; fit.txt 131 of 166. Four small calls at the render checkpoint.
 
+**Render session 90 (the play styles, owner 2026-11-27 note 6, 2026-11-27):** on My agent, "Play style" with
+personality as its subtitle and one plain line (it changes how your agent plays, from its next match); S the current
+style (four facts on this tile only, by the owner's word), M the style with Change, L all six as choices (current:
+check, accent edge, "Current"; others: pointer, hover, press, focus ring); a tap opens My agent with that style ready
+to confirm, drawn in the Home prototype (`render/season1/src/homePage.ts`). Checks: `ci/tile-states-check.mjs agent`
+104 PASS (`season1-agent-tile-s90/`), the new `ci/play-style-check.mjs` 21 PASS (`season1-play-style-s90/`); grid check
+`season1-home-grid-s90/` 146 PASS, 0 FAIL, 5 OPEN; fit.txt 131 of 166. Three small calls at the render checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -69,20 +77,14 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 89's four calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 89's four calls and render 90's three may be there).
 
-Next: **render 90: the owner's 2026-11-27 note 6, the play-style choices on the agent tile** (queued by render 89):
-the section called "Play style" (personality as its subtitle) with one plain line (it changes how your agent plays,
-from its next match); the six drawn as choices (the current one marked: check, accent edge, "Current"; the others
-with hover, press and a pointer); a tap on any style opens My agent with that style ready to confirm; S the current
-style's name, M the current style with "Change", L all six. Note: S showing the style makes My agent's S four facts,
-and `homeSpec.test.ts` holds S to three; the owner's word wins, so change that rule for this tile and say so. Extend
-`agentStates.ts` with the hover / press states if the check needs them, and keep
-`ci/tile-states-check.mjs agent` at 4.5:1. Then group 3, Packs and Store (Store L is the worst fit left, 447-526 px
-over), then Collection and Daily rewards, until fit.txt is all "fits" and fill.txt has no OPEN line. Every 5th render
-session is the hardening pass (render 92 next). Phase 1's step 5 (Watch live 9:16 on the Season 1 arena) and step 6
-(the music spec) are still open. A call only the owner can make goes in the notes as "waiting on owner" and the
-session moves on.
+Next: **render 91: group 3, Packs and Store** (Store L is the worst fit left, 447-526 px over; then Packs S for a new
+player), then Collection and Daily rewards, until fit.txt is all "fits" and fill.txt has no OPEN line. Write the
+tile's states sheet first (`statesSheet.ts`, as `agentStates.ts` / `ladderStates.ts`) and add it to
+`ci/tile-states-check.mjs`, then fit it. **Render 92 is the hardening pass** (every 5th render session). Phase 1's
+step 5 (Watch live 9:16 on the Season 1 arena) and step 6 (the music spec) are still open. A call only the owner can
+make goes in the notes as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to
