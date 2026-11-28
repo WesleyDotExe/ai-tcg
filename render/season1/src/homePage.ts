@@ -46,7 +46,8 @@ const HERO = new Set<string>();
 // How many leading facts make a tile's headline (the rest is the body).
 // Ladder's headline is the rating, the tier and the rank together (render
 // session 89): the three S shows, and the left half of M.
-const HEAD_FACTS: Record<string, number> = { ladder: 3 };
+// Daily rewards (render session 93): the next win's pay sits under the day's total.
+const HEAD_FACTS: Record<string, number> = { ladder: 3, daily: 2 };
 
 /** The recommended first board on the grid. Chosen so it packs with no hole
  * at 6 columns (1280-1440 px) and at 4 (900-1180 px), with the agent and
@@ -382,6 +383,104 @@ export const GRID_CSS = `
 .ugrid .tile[data-tile="store"].s-L [data-fact="buyPacks"] { align-self: stretch; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
 .ugrid .tile[data-tile="store"].s-L .pshelf { flex: 1 1 auto; }
 .ugrid .tile[data-tile="store"].s-L .pb.shelf .pb-art { min-height: 0; }
+/* Collection and Daily rewards (render session 93, phase 2 group 4). The
+   headline is the number and its label ("49 of 124 cards", "65 of 90
+   credits from wins today"); the ring beside it is the share, so the bar
+   shows at L only. */
+.tile:is([data-tile="collection"], [data-tile="daily"]) :is([data-fact="completion"], [data-fact="earnedToday"]) { column-gap: 6px; row-gap: 1px; align-items: baseline; }
+.tile:is([data-tile="collection"], [data-tile="daily"]) .of { font-size: 12.5px; line-height: 1.25; color: var(--muted); }
+.ugrid .tile:is([data-tile="collection"], [data-tile="daily"]):is(.s-S, .s-M) :is([data-fact="completion"], [data-fact="earnedToday"]) .bar { display: none; }
+.ugrid .tile:is([data-tile="collection"], [data-tile="daily"]):is(.s-S, .s-M) .of { flex: 1 1 100%; }
+.ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .headline .big { font-size: 26px; }
+.ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .ring { width: 44px; height: 44px; } .ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .ring > span { width: 33px; height: 33px; }
+.ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-M .headline .big { font-size: 28px; }
+.ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-M .headline { gap: 10px; }
+/* Collection. The rare finds as two short lines; the best cards sized to
+   the unit at M (three) and to the width at L (five in a row). */
+.tile[data-tile="collection"] .chs { display: flex; flex-wrap: wrap; gap: 0 10px; font-size: 12.5px; line-height: 1.3; }
+.tile[data-tile="collection"] .ch { white-space: nowrap; }
+.tile[data-tile="collection"] .cards { display: flex; gap: 5px; }
+.ugrid .tile[data-tile="collection"].s-M { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "hd hd" "hl bc" "ch bc" "ft bc"; }
+.ugrid .tile[data-tile="collection"].s-M > header { grid-area: hd; }
+.ugrid .tile[data-tile="collection"].s-M > .headline { grid-area: hl; grid-row: auto; grid-column: auto; align-self: start; }
+.ugrid .tile[data-tile="collection"].s-M > .body { display: contents; }
+.ugrid .tile[data-tile="collection"].s-M [data-fact="chase"] { grid-area: ch; align-self: start; }
+.ugrid .tile[data-tile="collection"].s-M .chs { flex-direction: column; }
+.ugrid .tile[data-tile="collection"].s-M [data-fact="bestCards"] { grid-area: bc; align-self: center; gap: 4px; }
+.ugrid .tile[data-tile="collection"].s-M .mcard.mc-m { width: calc(var(--unit, 200px) * .29); }
+.ugrid .tile[data-tile="collection"].s-M .mc-m .mcn { font-size: 8.5px; } .ugrid .tile[data-tile="collection"].s-M .mc-m .mcs { font-size: 8px; }
+.ugrid .tile[data-tile="collection"].s-M > footer { grid-area: ft; grid-row: auto; grid-column: auto; justify-content: flex-start; align-self: end; }
+.ugrid .tile[data-tile="collection"].s-M > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+.ugrid .tile[data-tile="collection"].s-L { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hd hd" "nm ft" "bd bd"; column-gap: 12px; row-gap: 6px; }
+.ugrid .tile[data-tile="collection"].s-L > header { grid-area: hd; }
+.ugrid .tile[data-tile="collection"].s-L > .headline { grid-area: nm; }
+.ugrid .tile[data-tile="collection"].s-L > footer { grid-area: ft; align-self: center; padding: 0; }
+.ugrid .tile[data-tile="collection"].s-L > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+.ugrid .tile[data-tile="collection"].s-L > .body { grid-area: bd; gap: 7px 14px; }
+.ugrid .tile[data-tile="collection"].s-L [data-fact="chase"] { grid-column: 1 / -1; flex-direction: row; align-items: baseline; gap: 8px; }
+.ugrid .tile[data-tile="collection"].s-L [data-fact="binder"] { grid-column: 1 / -1; gap: 3px; }
+.ugrid .tile[data-tile="collection"].s-L .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; width: 100%; }
+.ugrid .tile[data-tile="collection"].s-L .mcard.mc-m { width: 100%; }
+.ugrid .tile[data-tile="collection"] .lab { white-space: nowrap; }
+.ugrid .tile[data-tile="collection"].s-L .bars { gap: 2px; }
+.ugrid .tile[data-tile="collection"].s-L .bars li { grid-template-columns: 58px 1fr auto; font-size: 12px; line-height: 1.3; }
+/* Daily rewards. Today's pay as one row of steps; a paid step keeps its
+   words at full contrast, muted with a tick (it was faded to 55%). */
+.tile[data-tile="daily"] .steps { flex-wrap: nowrap; gap: 4px; }
+.tile[data-tile="daily"] .steps li { flex: 1 1 0; min-width: 0; padding: 3px 6px; font-size: 11.5px; line-height: 1.2; white-space: nowrap; }
+.tile[data-tile="daily"] .steps li.done { opacity: 1; color: var(--muted); }
+.tile[data-tile="daily"] .steps li.done b::after { content: " ✓"; }
+.tile[data-tile="daily"] [data-fact="freePack"] { column-gap: 6px; row-gap: 1px; }
+.tile[data-tile="daily"] [data-fact="freePack"] .sub, .tile[data-tile="daily"] [data-fact="winSchedule"] .why { font-size: 12px; line-height: 1.3; }
+.tile[data-tile="daily"] [data-fact="dayReset"] { flex-direction: row; align-items: baseline; gap: 6px; font-size: 12.5px; }
+.ugrid .tile[data-tile="daily"].s-S .body { gap: 3px 8px; font-size: 12.5px; line-height: 1.25; }
+.tile[data-tile="daily"] .hstack { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tile[data-tile="daily"] .hstack [data-fact="nextWinPays"] { font-size: 13px; line-height: 1.25; }
+.ugrid .tile[data-tile="daily"].s-S .hstack [data-fact="nextWinPays"] { font-size: 12px; }
+.ugrid .tile[data-tile="daily"].s-S .headline { align-items: flex-start; }
+.ugrid .tile[data-tile="daily"].s-M { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+.ugrid .tile[data-tile="daily"].s-M .ring { width: 46px; height: 46px; } .ugrid .tile[data-tile="daily"].s-M .ring > span { width: 35px; height: 35px; }
+.ugrid .tile[data-tile="daily"].s-M > .headline { align-self: start; }
+.ugrid .tile[data-tile="daily"].s-M > .body { gap: 5px; justify-content: space-between; }
+.ugrid .tile[data-tile="daily"].s-M [data-fact="winSchedule"] { gap: 3px; }
+.ugrid .tile[data-tile="daily"].s-M [data-fact="winSchedule"] .why { display: none; }
+.ugrid .tile[data-tile="daily"].s-M > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+.ugrid .tile[data-tile="daily"].s-L [data-fact="freePack"] { grid-area: 1 / 1; align-self: start; }
+.ugrid .tile[data-tile="daily"].s-L [data-fact="dayReset"] { grid-area: 1 / 2; align-self: start; justify-self: end; }
+.ugrid .tile[data-tile="daily"].s-L [data-fact="winSchedule"] { grid-area: 2 / 1 / 3 / 3; }
+.ugrid .tile[data-tile="daily"].s-L [data-fact="paidToday"] { grid-area: 3 / 1 / 4 / 3; }
+.ugrid .tile[data-tile="daily"].s-L .steps li { padding: 3px 8px; font-size: 12px; }
+.ugrid .tile[data-tile="daily"].s-L .steps li b { font-size: 14px; }
+.ugrid .tile[data-tile="daily"].s-L [data-fact="paidToday"] > .sub { font-size: 12.5px; line-height: 1.35; }
+.tile[data-tile="daily"] .paid { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 3px 4px; }
+.tile[data-tile="daily"] .paid li { display: inline-flex; align-items: baseline; gap: 4px; padding: 1px 7px; border-radius: 8px; background: var(--soft); box-shadow: var(--soft-edge); font-size: 11.5px; line-height: 1.3; white-space: nowrap; }
+.tile[data-tile="daily"] .paid li b { color: color-mix(in srgb, var(--ok) 45%, var(--ink)); }
+.tile[data-tile="daily"] .paid li span { color: var(--muted); }
+.ugrid .tile[data-tile="daily"].s-L [data-fact="paidToday"] { grid-column: 1 / -1; }
+.tile[data-tile="daily"] .pill.ok { color: color-mix(in srgb, var(--ok) 32%, var(--ink)); }
+.ugrid .tile[data-tile="daily"].s-L { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hd hd" "nm ft" "bd bd"; column-gap: 12px; row-gap: 6px; }
+.ugrid .tile[data-tile="daily"].s-L > header { grid-area: hd; }
+.ugrid .tile[data-tile="daily"].s-L > .headline { grid-area: nm; }
+.ugrid .tile[data-tile="daily"].s-L > footer { grid-area: ft; align-self: start; padding: 0; }
+.ugrid .tile[data-tile="daily"].s-L > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+.ugrid .tile[data-tile="daily"].s-L > .body { grid-area: bd; gap: 7px 14px; }
+/* A phone's S (render session 93): the unit is narrower; the ring shrinks
+   so "First win pays 30" keeps to one line. */
+@media (max-width: ${GRID.phoneMax}px) {
+  .ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .ring { width: 38px; height: 38px; }
+  .ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .ring > span { width: 29px; height: 29px; }
+  .ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .headline { gap: 7px; }
+  .ugrid .tile[data-tile="daily"].s-S .hstack [data-fact="nextWinPays"] { font-size: 11.5px; }
+}
+/* The small cards on the glass (render session 93, measured from the
+   pixels): a light finish (Prototype, Gold) left the white name at 4:1, so
+   a dark scrim sits under the name and the cost badge is darker; a long
+   name breaks inside the card instead of running past it. */
+.ugrid .mcard::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 78%; background: linear-gradient(rgba(5,8,22,0), rgba(5,8,22,.86) 38%); }
+.ugrid .mcard .mcn, .ugrid .mcard .mcs { position: relative; z-index: 2; overflow-wrap: break-word; hyphens: auto; }
+.ugrid .mcard .mcs { opacity: 1; color: #d9def0; }
+.ugrid .mcard .mcc, .ugrid .mcard .mcf { z-index: 2; background: rgba(0,0,0,.74); }
+.ugrid .tile[data-tile="collection"].s-L .mc-m .mcn { font-size: 9.5px; }
 /* My agent's Play style section (the prototype draws only this part of the
    page): the six as choices, the picked one ready to confirm. */
 .ps { margin-bottom: 16px; } .ps h2 .subt { font: 600 13px system-ui, sans-serif; color: var(--muted); margin-left: 6px; }

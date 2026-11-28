@@ -71,7 +71,7 @@ export interface OwnerData {
     recentPulls: { cards: { cardId: string; name: string; rarity: string; finish: string }[] }[];
   };
   store: { cosmetics: { itemId: string; name: string; kind: string; faction: string | null; priceCredits: number; owned: boolean; description?: string }[] };
-  daily: { timeZone: string; schedule: { fromWin: number; toWin: number | null; credits: number }[]; wins: unknown[]; losses: number; creditsFromWins: number; nextWinPays: number; nextLossPays: number; maxPaidLosses: number };
+  daily: { timeZone: string; schedule: { fromWin: number; toWin: number | null; credits: number }[]; wins: unknown[]; losses: number; creditsFromWins: number; creditsFromLosses?: number; rewardedWins?: { nth: number; endedAt: string; credits: number }[]; nextWinPays: number; nextLossPays: number; maxPaidLosses: number };
   matches: { matches: { result: string; credits: number; rating: { change: number } | null; opponent: { ownerName: string; agentName: string }; agentName: string; hasReplay: boolean; hasLog: boolean }[]; total: number };
   notifications: { notifications: Alert[]; unread: number; unreadByKind: Record<string, number> };
   live: { matches: LiveMatch[]; mine: string | null };
@@ -455,44 +455,83 @@ export const RENDER: Record<Fact, Render> = {
   },
 
   /* Collection */
-  completion: (d) => {
+  // Render session 93: the held count is the headline number and "of 124
+  // cards" its label (as Daily rewards' "65 of 90 credits"), so it never
+  // wraps mid-number at S; the ring beside it is the share (the bar shows
+  // at L only).
+  completion: (d, size) => {
     const b = d.collection.sets[0]!.base;
     const pct = Math.round((100 * b.held) / b.total);
-    return fx("completion", `${big(`${b.held} of ${b.total}`)}<span>${hasMatches(d) || d.collection.recentPulls.length ? `cards · ${pct}%` : "cards: your starter deck"}</span><span class="bar"><i style="width:${pct}%"></i></span>`, "row wrap");
+    const starter = !(hasMatches(d) || d.collection.recentPulls.length);
+    // The share is the ring at S and M (the ring's label says it); L adds it in words beside the bar.
+    // A new player's M: "Your starter's best" over the cards says it.
+    const what = starter && size !== "M" ? `<span class="of">your starter deck</span>` : "";
+    return fx("completion", `${big(n0(b.held))}<span class="of" aria-label="of ${n0(b.total)} cards, ${pct}%">of ${n0(b.total)} cards${size === "L" ? ` · ${pct}%` : ""}</span>${what}<span class="bar" aria-hidden="true"><i style="width:${pct}%"></i></span>`, "row wrap");
   },
-  chase: (d) => {
+  chase: (d, size) => {
     const s = d.collection.sets[0]!;
-    return fx("chase", `${lab("Rare finds")}<span>Secrets <b>${s.secrets.held} of ${s.secrets.total}</b> · Prototypes <b>${s.prototypes.runsHeld} of ${s.prototypes.runs}</b></span>`, "kv");
+    // A new player's M (render session 93): nothing opened yet holds no
+    // secret or prototype; one line says where they come from (the spec's
+    // M for a new player is the starter and its best three).
+    if (size === "M" && !(hasMatches(d) || d.collection.recentPulls.length) && !s.secrets.held && !s.prototypes.runsHeld) return fx("chase", `<span class="sub">Secrets and Prototypes come in packs.</span>`, "kv");
+    const one = (k: string, h: number, t: number) => `<span class="ch${h === t ? " all" : ""}">${k} <b>${h} of ${t}</b></span>`;
+    return fx("chase", `${size === "L" ? lab("Rare finds") : ""}<span class="chs">${one("Secrets", s.secrets.held, s.secrets.total)}${one("Prototypes", s.prototypes.runsHeld, s.prototypes.runs)}</span>`, "kv");
   },
   bestCards: (d, size) => {
     const best = [...d.collection.cards]
       .map((c) => ({ c, f: c.copies.reduce((m, x) => ((FINISH_RANK[x.finish] ?? 0) > (FINISH_RANK[m] ?? 0) ? x.finish : m), "standard") }))
       .sort((a, b) => (RARITY_RANK[b.c.rarity] ?? 0) - (RARITY_RANK[a.c.rarity] ?? 0) || (FINISH_RANK[b.f] ?? 0) - (FINISH_RANK[a.f] ?? 0) || a.c.name.localeCompare(b.c.name))
       .slice(0, size === "L" ? 5 : 3);
-    return fx("bestCards", `${lab(hasMatches(d) || d.collection.recentPulls.length ? "Best cards" : "Your starter's best")}<span class="cards">${best.map(({ c, f }) => miniCard(c.cardId, c.name, c.rarity, f, "m")).join("")}</span>`, "blk");
+    return fx("bestCards", `${lab(hasMatches(d) || d.collection.recentPulls.length ? "Best cards" : "Your starter's best")}<span class="cards n${best.length}">${best.map(({ c, f }) => miniCard(c.cardId, c.name, c.rarity, f, "m")).join("")}</span>`, "blk");
   },
   binder: (d) => {
     const by = new Map<string, number>();
     for (const c of d.collection.cards) by.set(c.faction, (by.get(c.faction) ?? 0) + 1);
     const max = Math.max(...by.values());
-    return fx("binder", `${lab("Binder by faction")}<ul class="bars">${[...by].sort((a, b) => b[1] - a[1]).map(([f, n]) => `<li><span>${esc(f)}</span><span class="bar"><i style="width:${(100 * n) / max}%;background:${FACTION_HEX[f] ?? "#999"}"></i></span><span>${plural(n, "card")}</span></li>`).join("")}</ul>`, "blk");
+    return fx("binder", `${lab("Cards by faction")}<ul class="bars">${[...by].sort((a, b) => b[1] - a[1]).map(([f, n]) => `<li><span>${esc(f)}</span><span class="bar"><i style="width:${(100 * n) / max}%;background:${FACTION_HEX[f] ?? "#999"}"></i></span><span>${plural(n, "card")}</span></li>`).join("")}</ul>`, "blk");
   },
 
   /* Daily rewards */
-  earnedToday: (d) => fx("earnedToday", `${big(String(d.daily.creditsFromWins))}<span>of ${dayMost(d)} credits from wins today</span><span class="bar"><i style="width:${(100 * d.daily.creditsFromWins) / dayMost(d)}%"></i></span>`, "row wrap"),
-  nextWinPays: (d) => fx("nextWinPays", `<span>${d.daily.nextWinPays ? `${d.daily.wins.length ? "Next" : "First"} win pays <b>${d.daily.nextWinPays}</b>` : "Wins pay nothing more today"}</span>`),
+  // Render session 93: S says "of 90 today" (the ring is the share); M and
+  // L the whole "of 90 credits from wins today"; the bar at L only.
+  earnedToday: (d, size) => fx("earnedToday", `${big(String(d.daily.creditsFromWins))}<span class="of">of ${dayMost(d)} ${size === "S" ? "today" : size === "M" ? "credits today" : "credits from wins today"}</span><span class="bar" aria-hidden="true"><i style="width:${(100 * d.daily.creditsFromWins) / dayMost(d)}%"></i></span>`, "row wrap"),
+  nextWinPays: (d, size) => fx("nextWinPays", `<span>${d.daily.nextWinPays ? `${d.daily.wins.length ? "Next" : "First"} win pays <b>${d.daily.nextWinPays}</b>` : size === "S" ? "All earned today" : "All win pay earned"}</span>`),
   winSchedule: (d) => {
     const won = d.daily.wins.length;
     const steps = d.daily.schedule.filter((r) => r.toWin !== null).map((r) => {
       const label = r.fromWin === r.toWin ? `Win ${r.fromWin}` : `Wins ${r.fromWin}–${r.toWin}`;
       const state = won >= r.toWin! ? "done" : won >= r.fromWin - 1 ? "now" : "";
-      return `<li class="${state}"><span>${label}</span><b>${r.credits} each</b></li>`;
+      return `<li class="${state}"${state === "done" ? ` title="${label}: paid"` : ""}><span>${label}</span><b>${r.toWin === r.fromWin ? r.credits : `${r.credits} each`}</b></li>`;
     });
-    return fx("winSchedule", `${lab("Today's pay")}<ol class="steps">${steps.join("")}</ol><span class="sub">Wins pay credits, the first win most. A loss pays ${d.daily.nextLossPays} (up to ${d.daily.maxPaidLosses} a day).</span>`, "blk");
+    // The loss line (render session 93): it said "A loss pays 0 (up to 10 a
+    // day)" once the paid losses were used up; and what losses paid today
+    // is part of today's earnings (`creditsFromLosses`, OWNER_API.md).
+    const lost = d.daily.losses >= d.daily.maxPaidLosses
+      ? `Losses pay nothing more today (${d.daily.maxPaidLosses} paid).`
+      : `A loss pays ${d.daily.nextLossPays} (up to ${d.daily.maxPaidLosses} a day).`;
+    const fromLosses = d.daily.creditsFromLosses ? ` ${d.daily.creditsFromLosses} from losses today.` : "";
+    return fx("winSchedule", `${lab("Today's pay")}<ol class="steps">${steps.join("")}</ol><span class="sub why">Wins pay credits, the first win most. ${lost}${fromLosses}</span>`, "blk");
   },
-  freePack: (d) => {
+  // S keeps to a few words (the button says Claim); M and L say why two
+  // waiting matters: nothing more comes in until one is claimed (OWNER_API.md).
+  freePack: (d, size) => {
     const w = d.dailyPack.waiting;
-    return fx("freePack", w ? `<span class="pill ok">${w > 1 ? `${w} free daily packs ready` : "Free daily pack ready"}</span>` : `<span class="sub">Free pack claimed. The next one comes at midnight ${esc(resetPlace(d.dailyPack.timeZone))}.</span>`, "row");
+    if (size === "S") return fx("freePack", w ? `<span class="pill ok sm">${w > 1 ? `${w} free packs ready` : "Free pack ready"}</span>` : `<span class="sub">Free pack claimed</span>`, "row");
+    return fx("freePack", w
+      ? `<span class="pill ok sm">${w > 1 ? `${w} free packs ready` : "Free pack ready"}</span>${w >= d.dailyPack.cap ? `<span class="sub">Claim one so the next can come.</span>` : ""}`
+      : `<span class="sub">Free pack claimed. The next comes at the reset.</span>`, "row wrap");
+  },
+  // L (render session 93): the wins that paid, as OWNER_API.md says the
+  // widget lists them (`rewardedWins`), each with its pay and the time it
+  // ended on the day's clock; then the losses and what they paid.
+  paidToday: (d) => {
+    const won = d.daily.rewardedWins ?? [];
+    const at = new Intl.DateTimeFormat("en-AU", { timeZone: d.daily.timeZone, hour: "numeric", minute: "2-digit" });
+    const unpaid = d.daily.wins.length - won.length;
+    const items = won.map((w) => `<li title="Win ${w.nth}, ended ${esc(at.format(new Date(w.endedAt)))}"><b>+${w.credits}</b><span>${esc(at.format(new Date(w.endedAt)))}</span></li>`);
+    if (unpaid > 0) items.push(`<li class="more"><span>+${plural(unpaid, "win")} more, unpaid</span></li>`);
+    if (d.daily.losses) items.push(`<li class="loss"><b>+${d.daily.creditsFromLosses ?? 0}</b><span>${plural(d.daily.losses, "loss", "losses")}</span></li>`);
+    return fx("paidToday", `${lab("Today's results")}${items.length ? `<ul class="paid">${items.join("")}</ul>` : `<span class="sub">No match has finished today yet. ${hasMatches(d) ? "Each win today pays by the steps above." : "Switch your agent on in My agent: it plays ladder matches, and each win pays by the steps above, up to " + dayMost(d) + " credits a day."}</span>`}`, "blk");
   },
   dayReset: (d) => fx("dayReset", `${lab("Resets")}<span>at midnight ${esc(resetPlace(d.daily.timeZone))}</span>`, "kv"),
 

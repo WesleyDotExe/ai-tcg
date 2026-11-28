@@ -49,8 +49,8 @@ import { contrast, NOTEXT_CSS } from './contrast.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
 const TILE = process.argv[2] ?? 'agent';
-const SESSION = { agent: 90, ladder: 92, store: 91, packs: 91 }[TILE];
-if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent, ladder, store or packs)`);
+const SESSION = { agent: 90, ladder: 92, store: 91, packs: 91, collection: 93, daily: 93 }[TILE];
+if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent, ladder, store, packs, collection or daily)`);
 const OUT = resolve(process.argv[3] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', `season1-${TILE}-tile-s${SESSION}`));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', `${TILE}-states.html`)).href;
@@ -136,6 +136,16 @@ const measure = () => [...document.querySelectorAll('.case')].flatMap((sec) => [
     cosmetic: !!el.querySelector('[data-fact="cosmetics"], .sh-emb, canvas, [data-coin]'),
     offers: sec.dataset.offers ? JSON.parse(sec.dataset.offers) : null, wallet: Number(sec.dataset.credits ?? NaN),
     pbs: [...el.querySelectorAll('.pb')].map((f) => ({ offer: f.dataset.offer, count: Number(f.dataset.count), price: Number(f.dataset.price), shown: Number((f.querySelector('.pb-p')?.textContent ?? '').replace(/[^\d]/g, '')), buy: f.querySelector('.pb-buy')?.dataset.buy ?? null, need: !!f.querySelector('.pb-need'), hero: f.classList.contains('hero') })),
+    expect: sec.dataset.expect ? JSON.parse(sec.dataset.expect) : null,
+    held: txt('[data-fact="completion"] .big'), ring: !!el.querySelector('.headline .ring'),
+    best: [...el.querySelectorAll('[data-fact="bestCards"] .mcard')].map((c) => Math.round(c.getBoundingClientRect().top)),
+    bestIn: [...el.querySelectorAll('[data-fact="bestCards"] .mcard')].every((c) => { const q = c.getBoundingClientRect(); return q.left >= r.left + pad.l - 1 && q.right <= r.right - pad.r + 1 && q.bottom <= r.bottom - pad.b + 1; }),
+    binderRows: el.querySelectorAll('[data-fact="binder"] li').length,
+    earned: txt('[data-fact="earnedToday"] .big'), nextPays: txt('[data-fact="nextWinPays"] b'),
+    freePill: txt('[data-fact="freePack"] .pill'), claimed: /claimed/.test(txt('[data-fact="freePack"]')),
+    nowSteps: [...el.querySelectorAll('[data-fact="winSchedule"] .steps li')].map((li, i) => li.classList.contains('now') ? i : -1).filter((i) => i >= 0),
+    stepsOneRow: new Set([...el.querySelectorAll('[data-fact="winSchedule"] .steps li')].map((li) => Math.round(li.getBoundingClientRect().top))).size <= 1,
+    results: el.querySelectorAll('[data-fact="paidToday"] .paid li').length, noResults: !!el.querySelector('[data-fact="paidToday"] > .sub'),
     moreLine: /more pack/.test(txt('[data-fact="buyPacks"] > .sub')),
     count: txt('[data-fact="unopened"] .big'), why: !!el.querySelector('[data-fact="unopened"] .why'),
     fanOut: (() => { const f = el.querySelector('.pk-fan'); if (!f) return 0; const q = f.getBoundingClientRect(); return Math.max(0, r.left + pad.l - q.left, q.right - (r.right - pad.r)); })(),
@@ -222,6 +232,21 @@ try {
           check(new Set(row.map((t) => t.count)).size === 1, `${s}: every size says the same count ("${row[0].count || 'none'}")`);
           check(row.filter((t) => t.size === 'S').every((t) => !t.why), `${s}: S keeps to the count (no sentence)`);
           check(row.every((t) => t.fanOut <= 1), `${s}: the fanned packs stay inside the tile at every size`);
+        } else if (TILE === 'collection') {
+          // Render session 93: one count everywhere; the best cards by size, in one row, inside the tile.
+          const e = row[0].expect;
+          check(row.every((t) => t.held === e.held.toLocaleString('en-AU') && t.ring), `${s}: every size says the same count held ("${e.held}"), beside the ring`);
+          const by = { S: 0, M: e.m, L: e.l };
+          check(row.every((t) => t.best.length === by[t.size] && new Set(t.best).size <= 1 && t.bestIn), `${s}: S draws no card, M ${e.m}, L ${e.l}, each size in one row and inside the tile`);
+          check(row.filter((t) => t.size === 'L').every((t) => t.binderRows === e.factions), `${s}: L's cards-by-faction has one row per faction held (${e.factions})`);
+        } else if (TILE === 'daily') {
+          const e = row[0].expect;
+          check(row.every((t) => t.earned === String(e.earned)), `${s}: every size says the same credits from wins ("${e.earned}")`);
+          check(row.every((t) => (e.nextPays ? t.nextPays === String(e.nextPays) : t.nextPays === '')), `${s}: every size says what the next win pays (${e.nextPays || 'nothing more'})`);
+          check(row.every((t) => (e.waiting ? t.button === 'Claim free pack' && t.freePill.startsWith(e.waiting > 1 ? String(e.waiting) : 'Free') && !t.claimed : t.button !== 'Claim free pack' && !t.freePill && t.claimed)), `${s}: Claim free pack only when one waits (${e.waiting} waiting), with its count; else "claimed"`);
+          const ml = row.filter((t) => t.size !== 'S');
+          check(ml.every((t) => t.stepsOneRow && (e.nowStep < 0 ? t.nowSteps.length === 0 : t.nowSteps.length === 1 && t.nowSteps[0] === e.nowStep)), `${s}: today's pay is one row of steps at M and L, the next win's step marked (${e.nowStep < 0 ? 'none: every paid win in' : 'step ' + (e.nowStep + 1)})`);
+          check(row.filter((t) => t.size === 'L').every((t) => (e.results ? t.results === e.results : t.noResults)), `${s}: L lists today's results (${e.results || 'none yet'})`);
         } else {
           const agree = new Set(row.map((t) => t.rating)).size === 1 && new Set(row.map((t) => t.tier)).size === 1;
           check(agree, `${s}: every size says the same rating and tier ("${row[0].rating}", "${row[0].tier}")`);

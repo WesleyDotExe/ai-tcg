@@ -1,0 +1,36 @@
+The fit table (render sessions 86-87): does each tile's content fit its fixed box?
+Each cell: owner@screen width: "fits", or how many px of content run past the box.
+The "tiles in groups" sessions drive this to all "fits".
+
+agent S         4 of  4 fit   
+agent M         6 of  6 fit   
+agent L         6 of  6 fit   
+watch S         2 of  2 fit   
+watch M         8 of  8 fit   
+watch L         6 of  6 fit   
+ladder S        4 of  4 fit   
+ladder M        6 of  6 fit   
+ladder L        6 of  6 fit   
+store S         4 of  4 fit   
+store M         6 of  6 fit   
+store L         6 of  6 fit   
+daily S         8 of  8 fit   
+daily M         6 of  6 fit   
+daily L         6 of  6 fit   
+collection S    4 of  4 fit   
+collection M    6 of  6 fit   
+collection L    6 of  6 fit   
+packs S         4 of  4 fit   
+packs M         6 of  6 fit   
+packs L         6 of  6 fit   
+history S       3 of  4 fit   wren@390: 32px
+history M       6 of  6 fit   
+history L       6 of  6 fit   
+notif S         8 of  8 fit   
+notif M         3 of  6 fit   nova@1440: 56px · nova@1280: 83px · nova@1024: 23px
+notif L         4 of  6 fit   nova@1440: 8px · nova@1280: 86px
+music S         2 of  2 fit   
+music M         6 of  6 fit   
+music L         6 of  6 fit   
+
+160 of 166 tile renders fit.

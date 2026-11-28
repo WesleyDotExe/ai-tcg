@@ -150,6 +150,13 @@ purchase ready to confirm (`POST /api/packs/buy { setCode, count }`, 1 to 10, al
 
 Showcase folds in as the M / L "best cards". The last pulls move to Packs, where they come from.
 
+**Render session 93 (built for the boxes):** the held count is the headline number and "of 124 cards" its label;
+the ring beside it is the share, so the bar and "· 40%" show at L only. S: the count (a new player's "your starter
+deck" under it). M: the count, Secrets and Prototypes as two short lines, and the best three cards sized to the unit;
+a new player's M says "Secrets and Prototypes come in packs." (none can be held before a pack) and its cards are
+"Your starter's best". L: the count with its button beside it, the rare finds on one line, the best five in one row,
+then the cards by faction. States sheet `output/collection-states.html` (six states).
+
 ### Daily rewards
 **Question:** How much has my agent earned today, and how much is left?
 
@@ -157,7 +164,16 @@ Showcase folds in as the M / L "best cards". The last pulls move to Packs, where
 |---|---|---|---|
 | S | earned today of the day's most, what the next win pays, the free daily pack | "0 of 90 today · first win pays 30 · Free daily pack ready" | Claim free pack (when one waits), else Open Stats |
 | M | + the win-by-win pay, when the day resets | "Wins pay credits, the first win most. Up to 90 a day; resets at midnight Sydney." | Claim free pack, else Open Stats |
-| L | the same (L no longer needs to be tall) | as M | Claim free pack, else Open Stats |
+| L | the same, + today's results | as M; no results yet says how a day's wins start (switch the agent on) | Claim free pack, else Open Stats |
+
+**Render session 93 (built for the boxes):** the day's credits from wins is the headline number ("of 90 today" at
+S, "of 90 credits today" at M, the whole line at L) with the next win's pay under it; the ring is the share, the bar
+shows at L only. The free pack: "Free pack ready", "2 free packs ready" (at M and L with "Claim one so the next can
+come.": nothing comes in while two wait), or "Free pack claimed". Today's pay is one row of steps (a paid step muted
+with a tick; the next win's step outlined; none once every paid win is in). The loss line says when losses stop
+paying, never "a loss pays 0", and what losses paid today (`creditsFromLosses`). L adds today's results: each paid
+win's pay and the time it ended on the day's clock (`rewardedWins`, as OWNER_API.md says the widget lists them),
+the unpaid wins as one line, the losses as one. States sheet `output/daily-states.html` (six states).
 
 **Owner 2026-11-22 (replaces render 82 call 2):** the free daily pack is claimed here ("Claim free pack"); a claimed
 pack lands in Packs.

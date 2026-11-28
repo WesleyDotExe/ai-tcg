@@ -1,0 +1,64 @@
+
+=== light ===
+PASS unit 191px, served: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, claimed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, two-packs: S, M and L fit their boxes, nothing spills
+PASS unit 191px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 191px, losses: S, M and L fit their boxes, nothing spills
+PASS unit 218px, served: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, claimed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, two-packs: S, M and L fit their boxes, nothing spills
+PASS unit 218px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 218px, losses: S, M and L fit their boxes, nothing spills
+PASS unit 231px, served: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, claimed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, two-packs: S, M and L fit their boxes, nothing spills
+PASS unit 231px, maxed: S, M and L fit their boxes, nothing spills
+PASS unit 231px, losses: S, M and L fit their boxes, nothing spills
+PASS served: every size says the same credits from wins ("65")
+PASS served: every size says what the next win pays (5)
+PASS served: Claim free pack only when one waits (1 waiting), with its count; else "claimed"
+PASS served: today's pay is one row of steps at M and L, the next win's step marked (step 3)
+PASS served: L lists today's results (6)
+PASS new: every size says the same credits from wins ("0")
+PASS new: every size says what the next win pays (30)
+PASS new: Claim free pack only when one waits (1 waiting), with its count; else "claimed"
+PASS new: today's pay is one row of steps at M and L, the next win's step marked (step 1)
+PASS new: L lists today's results (none yet)
+PASS claimed: every size says the same credits from wins ("30")
+PASS claimed: every size says what the next win pays (10)
+PASS claimed: Claim free pack only when one waits (0 waiting), with its count; else "claimed"
+PASS claimed: today's pay is one row of steps at M and L, the next win's step marked (step 2)
+PASS claimed: L lists today's results (1)
+PASS two-packs: every size says the same credits from wins ("40")
+PASS two-packs: every size says what the next win pays (10)
+PASS two-packs: Claim free pack only when one waits (2 waiting), with its count; else "claimed"
+PASS two-packs: today's pay is one row of steps at M and L, the next win's step marked (step 2)
+PASS two-packs: L lists today's results (3)
+PASS maxed: every size says the same credits from wins ("90")
+PASS maxed: every size says what the next win pays (nothing more)
+PASS maxed: Claim free pack only when one waits (0 waiting), with its count; else "claimed"
+PASS maxed: today's pay is one row of steps at M and L, the next win's step marked (none: every paid win in)
+PASS maxed: L lists today's results (12)
+PASS losses: every size says the same credits from wins ("0")
+PASS losses: every size says what the next win pays (30)
+PASS losses: Claim free pack only when one waits (0 waiting), with its count; else "claimed"
+PASS losses: today's pay is one row of steps at M and L, the next win's step marked (step 1)
+PASS losses: L lists today's results (1)
+PASS light: no tile is the hero panel (54 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, earnedToday "of 90 today")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, winSchedule "Today's pay")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, dayReset "Resets")
+
+=== dark ===
+PASS dark: no tile is the hero panel (54 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, freePack "2 free packs ready")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, freePack "Free pack ready")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 4.8:1, freePack "Free pack ready")
+PASS no page errors
+PASS no outside requests
+
+58 PASS, 0 FAIL

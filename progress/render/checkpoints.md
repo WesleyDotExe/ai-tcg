@@ -7,6 +7,35 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-28 — Render session 93: Collection and Daily rewards on the Season 1 Home grid (phase 2, group 4's first half) — AWAITING FEEDBACK (five small calls)
+
+**Start here:** `render/season1/output/home.html` (Daily rewards S and Collection M on the recommended board; "All
+M" and "All L" show the rest), or the stills `progress/render/evidence/season1-collection-tile-s93/collection-states-1280-light.jpg`
+and `season1-daily-tile-s93/daily-states-1280-light.jpg` (every state at S, M and L).
+
+**What it is:** the two tiles built for their boxes. Before, Collection M ran 130-170 px past its box and Daily
+rewards M 26-129 px (its "Resets" line clipped to 1.2:1); now all 36 of their renders on the Home fit, and twelve
+states on two sheets fit at every grid width. Collection: the count held is the big number ("49 of 124 cards"), the
+best cards drawn to the unit (three at M, five in a row at L), Secrets and Prototypes, the cards by faction at L.
+Daily rewards: today's credits from wins with what the next win pays under it, the free pack, today's pay as one
+row of steps (the next win's step outlined), and at L today's results, each paid win with its pay and time.
+
+**Calls for you (none blocks):**
+1. **The ring is the share at S and M; "· 40%" in words at L only.** The percentage beside the number made "49 of
+   124" wrap at S. Keep?
+2. **A new player's Collection M says "Secrets and Prototypes come in packs."** instead of "Secrets 0 of 19 ·
+   Prototypes 0 of 15" (none can be held before a pack opens; L still shows the counts). Keep?
+3. **Daily rewards L gains "Today's results"**: each win that paid ("+30 12:15 pm"), the unpaid wins as one line, the
+   losses and what they paid ("+4 2 losses"); the API's own `rewardedWins`, which OWNER_API.md says is what the widget
+   lists. A new player's L says how a day starts (switch the agent on in My agent). Keep?
+4. **Daily rewards M drops the sentence "Wins pay credits, the first win most. A loss pays 2…"** (it's at L and behind
+   the "?"); M keeps the steps, the free pack and the reset. Also fixed: once ten losses are in, it said "A loss pays 0
+   (up to 10 a day)"; now "Losses pay nothing more today (10 paid)". Keep?
+5. **The small cards have a dark band under the name** (every tile, Packs' last pulls too): a light finish (Prototype,
+   Gold) left the white name at 4:1. Keep, or prefer a different treatment once the real art lands?
+
+---
+
 ## 2026-11-28 — Render session 92: the hardening pass: the Ladder's rating chart (owner 2026-11-28 point 8) and text contrast on every tile — AWAITING FEEDBACK (three small calls)
 
 **Start here:** `render/season1/output/home.html` (the Ladder, L on the recommended board), or the stills

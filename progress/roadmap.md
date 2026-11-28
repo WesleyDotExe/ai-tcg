@@ -416,8 +416,12 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      packs (owner 2026-11-28 point 9: no cosmetics on the tile; M the featured pack, L 1 and 10 of each offer; a Buy
      opens the Store ready to confirm), 16 of 16 renders fit each (Store L was 0 of 6; Packs 13 of 16, its fan
      spilling past the tile everywhere), every state on `output/store-states.html` and `packs-states.html`,
-     `season1-store-tile-s91/` 74 PASS, `season1-packs-tile-s91/` 52 PASS; the board 140 of 166 fit; next
-     Collection and Daily rewards); [ ] (3) three
+     `season1-store-tile-s91/` 74 PASS, `season1-packs-tile-s91/` 52 PASS; the board 140 of 166 fit; render 93:
+     Collection and Daily rewards done (group 4's first half), 18 of 18 renders fit each (Collection M was 0 of 6,
+     Daily rewards M 0 of 6), every state on `output/collection-states.html` and `daily-states.html`,
+     `season1-collection-tile-s93/` 46 PASS, `season1-daily-tile-s93/` 58 PASS; Daily rewards L lists today's paid
+     wins (`rewardedWins`); the board 160 of 166 fit, `season1-home-grid-s93/` 171 PASS, 0 FAIL; next
+     Notifications and Match history); [ ] (3) three
      pack-wrapper designs with placeholder art
    - [x] (render debt, hardening, render 92) The Ladder's "Rating, 30 days" chart (owner 2026-11-28 point 8): the
      tier names in a gutter of their own (never on the line), x by the day, a day that would draw near-vertical drawn

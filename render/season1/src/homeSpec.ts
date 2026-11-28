@@ -72,6 +72,7 @@ export const FACTS = {
   winSchedule: "the day's win-by-win pay",
   dayReset: "when the day resets",
   freePack: "the free daily pack: Claim it, or when the next one comes",
+  paidToday: "today's paid results: each paid win (its pay, when it ended) and the losses",
   // Match history.
   lastResult: "the last match's result",
   recentMatches: "recent matches with credits and rating change",
@@ -239,7 +240,7 @@ export const TILES: TileSpec[] = [
     sizes: {
       S: ["earnedToday", "nextWinPays", "freePack"],
       M: ["earnedToday", "nextWinPays", "freePack", "winSchedule", "dayReset"],
-      L: ["earnedToday", "nextWinPays", "freePack", "winSchedule", "dayReset"],
+      L: ["earnedToday", "nextWinPays", "freePack", "winSchedule", "paidToday", "dayReset"],
     },
     newPlayer: {
       S: "0 of 90 today · first win pays 30 · free pack ready [Claim free pack]",
