@@ -1,0 +1,4 @@
+Flash check (WCAG 2.3.1), render/season1/output/pack-wrappers.html, 1024x768, 30 fps, tapping 900 ms after the page is ready
+PASS idle=10000 (the page at rest): worst 0 flashes/s (0 changes), red 0/s, 0 counted flashes, screen jump 0.056->0.06, 10.0 s, 0 taps, ended at its time
+PASS sweep=8000 (the pointer swept across and back every 600 ms): worst 0 flashes/s (0 changes), red 0/s, 0 counted flashes, screen jump 0.059->0.057, 8.0 s, 0 taps, ended at its time
+0 of 2 fail

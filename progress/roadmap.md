@@ -425,8 +425,13 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      abandon was drawn "Drew"), big-pull alerts read from `bigPull.cards` (they read fields the API never sends),
      every state on `output/notif-states.html` and `history-states.html`, `season1-notif-tile-s94/` 58 PASS,
      `season1-history-tile-s94/` 59 PASS; the board **166 of 166 fit**, `season1-home-grid-s94/` 177 PASS, 0 FAIL,
-     contrast.txt no OPEN line, fill.txt's only OPEN bands Music L (waiting on owner)); [ ] (3) three
-     pack-wrapper designs with placeholder art
+     contrast.txt no OPEN line, fill.txt's only OPEN bands Music L (waiting on owner)); [~] (3) three
+     pack-wrapper designs with placeholder art (render 95: built, waiting on the owner's pick: A Crest, B Window, C
+     Full bleed as sealed foil objects with their light (pointer, tilt, a slow sweep; still under reduced motion), set
+     names laid out (the wordmark, "Set name", "Season 1 · S1-01", the symbol), and the pick row (seven packs, drag /
+     wheel / keys with a fling and a snap, a tap picks and the pack lifts; nothing in the page tells packs apart);
+     `render/season1/PACKS.md`, `output/pack-wrappers.html`, `output/pack-pick.html`; `season1-pack-wrappers-s95/`
+     check.txt and the flash sampler)
    - [x] (render debt, hardening, render 92) The Ladder's "Rating, 30 days" chart (owner 2026-11-28 point 8): the
      tier names in a gutter of their own (never on the line), x by the day, a day that would draw near-vertical drawn
      as a step with its value ("−68"), placed clear of the line, the plot's edges and the floors, the line ending at

@@ -5662,3 +5662,12 @@ the way: a cancelled or abandoned match was drawn as "Drew"; big-pull alerts rea
 Ran it: states sheets 58 and 59 PASS, the grid check 177 PASS, 0 FAIL; every other tile's sheet re-run unchanged;
 render suite 1222 of 1222. Details in `progress/render/log.md`; five small calls in `progress/render/checkpoints.md`.
 Blocked: nothing. Next: render 95, three pack-wrapper designs with placeholder art.
+
+**2026-11-28 — render session 95 (render lane): three Season 1 pack-wrapper designs and the pick row.** Built the
+sealed Season 1 booster as a foil object in three designs with placeholder art (A Crest, B Window, C Full bleed:
+the AI·TCG wordmark, "Set name", "Season 1 · S1-01", the set symbol; crimped seals, pillow, highlight, sheen,
+reflection, glow; the light follows the pointer or tilt, else a slow sweep, still under reduced motion) and the pick
+row (seven identical packs, drag / wheel / keys with a fling and snap, a tap picks and the pack lifts; nothing in the
+page tells packs apart). Ran it: the browser check 70 PASS, 0 FAIL; the flash sampler 0 changes in every run; render
+suite 1241 of 1241. Details in `progress/render/log.md`; the design pick and five calls in
+`progress/render/checkpoints.md`. Blocked: nothing. Next: render 96, the opening rework's grip and tear.

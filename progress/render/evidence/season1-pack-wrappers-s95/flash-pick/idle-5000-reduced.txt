@@ -1,0 +1,9 @@
+idle=5000 (the page at rest), reduced motion, tapping 900 ms after the page is ready: PASS
+  150 frames at 30 fps (5.0 s, 150 drawn), 0 taps, ended at its time
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 0 flashes (0 changes) from 0.00 s (flashed area 0% of a field); worst red: 0 (0 changes) from 0.00 s
+  biggest whole-screen jump (within 250 ms): mean luminance 0.033 -> 0.033 at 0.00 s
+  single flashes big enough to count (over 25% of a field): none
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:0/0%  0.27:0/0%  0.53:0/0%  0.80:0/0%  1.07:0/0%  1.33:0/0%  1.60:0/0%  1.87:0/0%
+    2.13:0/0%  2.40:0/0%  2.67:0/0%  2.93:0/0%  3.20:0/0%  3.47:0/0%  3.73:0/0%  4.00:0/0%

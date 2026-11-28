@@ -1,0 +1,11 @@
+sweep=8000 (the pointer swept across and back every 600 ms), tapping 900 ms after the page is ready: PASS
+  240 frames at 30 fps (8.0 s, 240 drawn), 0 taps, ended at its time
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 0 flashes (0 changes) from 0.70 s (flashed area 13% of a field); worst red: 0 (0 changes) from 0.00 s
+  biggest whole-screen jump (within 250 ms): mean luminance 0.059 -> 0.057 at 0.00 s
+  single flashes big enough to count (over 25% of a field): none
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:0/10%  0.27:0/11%  0.53:0/12%  0.80:0/12%  1.07:0/10%  1.33:0/10%  1.60:0/11%  1.87:0/12%
+    2.13:0/12%  2.40:0/11%  2.67:0/12%  2.93:0/11%  3.20:0/12%  3.47:0/11%  3.73:0/10%  4.00:0/10%
+    4.27:0/11%  4.53:0/12%  4.80:0/11%  5.07:0/10%  5.33:0/10%  5.60:0/10%  5.87:0/11%  6.13:0/10%
+    6.40:0/11%  6.67:0/11%  6.93:0/12%

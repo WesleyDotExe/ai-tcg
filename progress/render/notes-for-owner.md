@@ -1617,3 +1617,8 @@ Your note 6 is built: on My agent, "Play style" (personality underneath) with th
 choices at L, and a tap opens My agent with that style ready to confirm. Try it in
 `render/season1/output/home.html`. Three small calls at the top of `progress/render/checkpoints.md` (session 90).
 Still waiting on you from earlier: render 89's four Ladder calls; the music spec; the pack art design.
+
+**Waiting on owner (render 95, 2026-11-28): pick a Season 1 pack-wrapper design.** Open
+`render/season1/output/pack-wrappers.html` (A Crest, B Window, C Full bleed, placeholder art) and
+`output/pack-pick.html`. C is recommended. Five small calls with it in `progress/render/checkpoints.md`. Nothing waits
+on it: the opening rework builds on C until you pick.

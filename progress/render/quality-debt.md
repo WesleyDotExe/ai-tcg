@@ -7,6 +7,29 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## Season 1 packs: the wrapper designs and the pick row (session 95, fenced off in render/season1/)
+
+- **The placeholder art is simple:** each mascot is a handful of shapes on a circuit field, and the set symbol is
+  Season 0's hex with a ring. They hold the space for January's art; they are not the art. Next to the reference's
+  illustrated packs, the designs read as layouts more than as finished packs.
+- **The light is soft by rule:** capped so it makes no counted change (owner call 3 at the checkpoint). On a still
+  the shine is easy to miss; it reads in motion.
+- **The tilt is untested on a real phone:** headless Chromium has no motion sensors. The code follows
+  `deviceorientation`, and on iOS it asks first, behind a button; neither path has run on a device.
+- **The reflection uses `-webkit-box-reflect`:** Chromium and Safari draw it; Firefox draws no reflection (the glow
+  still shows).
+- **The pick sends only a slot, and nothing answers it:** the seeds (made and kept by the server, the unpicked packs
+  never rolled) are written down in `PACKS.md`; no server code exists. After the pick the page says the grip and the
+  tear come next (phase 3).
+- **The flash sampler drives the pages at rest and with a pointer swept across them**, not a drag of the row: the
+  row's own motion is checked for its poses, not measured for flashes.
+- **No sound or haptics** in the pick (the storyboard has the foil crinkle on the grip, phase 3).
+- **The Home's Store and Packs tiles still draw Season 0's sealed pack:** the new wrapper replaces it once the owner
+  picks a design.
+- **The text-contrast measure is new** (glyph cores against the pixels around them, for chrome and haloed text the
+  computed colour can't give): its control proves it fails a dim grey line, but it has not been compared with a
+  human read.
+
 ## The Season 1 Home on the grid (sessions 86-94, fenced off in render/season1/; Season 1 scope)
 
 Session 94 (Notifications and Match history) fixed: Notifications M up to 83 px and L up to 86 px past their boxes,

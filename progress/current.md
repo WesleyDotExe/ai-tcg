@@ -70,6 +70,14 @@ player's L says what each kind tells. States sheets `output/notif-states.html` (
 checked by `ci/tile-states-check.mjs notif|history` (58 and 59 PASS); grid check `season1-home-grid-s94/` 177 PASS, 0
 FAIL, 1 OPEN. Five small calls at the render checkpoint.
 
+**Render session 95 (three Season 1 pack-wrapper designs and the pick row, phase 2 step 3, 2026-11-28):** the sealed
+booster as a foil object in three designs with placeholder art (A Crest, B Window, C Full bleed; the AI·TCG wordmark,
+"Set name", "Season 1 · S1-01", the set symbol), its light following the pointer or tilt, else a slow sweep, still
+under reduced motion; and the pick row (seven identical packs, drag / wheel / keys with a fling and snap, a tap picks
+and the pack lifts, only the slot is sent). `render/season1/PACKS.md`, `output/pack-wrappers.html`,
+`output/pack-pick.html`; `season1-pack-wrappers-s95/check.txt` 70 PASS, 0 FAIL; the flash sampler 0 changes in every
+run. The owner picks a design (C recommended) at the render checkpoint, with five small calls.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -117,18 +125,16 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 94's five calls may be there).
+as step 0 says. Read owner-feedback.md (the design pick and answers to render 95's five calls may be there).
 
-Next: **render 95: phase 2 step 3, three pack-wrapper designs with placeholder art**, carrying the owner's
-2026-11-28 entries: the pack as a sealed foil object (crimped seals, a pillow curve, edge light), its light and shine
-(a specular highlight that slides as it turns, a holographic sheen following the pointer or tilt, else a slow sweep;
-a soft reflection and glow), the pick row (several packs, the centre one large, swipe / drag / arrows with inertia
-and snap, a tap picks; each pack its own server-held seed, nothing that tells one from another in the page before the
-pick, no "same odds" line), and set names (the AI·TCG wordmark, "Set name" as the placeholder title, "Season X" and
-the set code small, the set symbol). Keep every effect inside `render/season1/FLASH.md`'s rules (no flash, reduced
-motion still) and check it with `src/flashScan.ts`. Phase 1's step 5 (Watch live 9:16 on the Season 1 arena) and step
-6 (the music spec) are still open. Render 97 is the next hardening pass. A call only the owner can make goes in the
-notes as "waiting on owner" and the session moves on.
+Next: **render 96: phase 3, the pack-opening rework, its first beats after the pick** (`render/season1/FLASH.md`'s
+storyboard: the grip (hold the pack: it trembles harder the longer it's held) and the tear that follows the finger),
+built on the design the owner picks at render 95's checkpoint (C, Full bleed, until they do: the design is one
+parameter of `packHtml`), in `output/pack-pick.html`'s flow after the pick. Keep every light inside FLASH.md's budget
+and run `flash/sample.ts` on the built page (with `sweep=` and a drive of the tear). The seeds stay server-side
+(`PACKS.md`): the page gets a pack's cards only after its pick. Phase 1's step 5 (Watch live 9:16 on the Season 1
+arena) and step 6 (the music spec) are still open. Render 97 is the next hardening pass. A call only the owner can
+make goes in the notes as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

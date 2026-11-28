@@ -21,8 +21,10 @@
 // --page defaults to Season 0's pack opening (render/output/pack-opening.html,
 // read only; nothing about it changes). A run is `pack=N` (the Nth showcase
 // pack, opened by ?pack=N and driven to its summary), `bulk=N` (the Nth
-// ten-pack open, driven to its summary) or `idle=MS` (the page as it loads,
-// for MS ms, untouched). The driving taps as soon as the page takes a tap,
+// ten-pack open, driven to its summary), `idle=MS` (the page as it loads,
+// for MS ms, untouched) or `sweep=MS` (render session 95: the pointer swept
+// across the page and back every 600 ms, for MS ms: the fastest a hand moves
+// a light that follows the pointer). The driving taps as soon as the page takes a tap,
 // which is the fastest an owner can go: the worst case for flashes per
 // second. --reduce runs with prefers-reduced-motion: reduce.
 //
@@ -98,7 +100,7 @@ async function sampleRun(browser: any, run: string): Promise<RunResult> {
   await p.goto(url, { waitUntil: "load" });
   const label = await p.evaluate(({ kind, n }: { kind: string; n: number }) => {
     const d = JSON.parse(document.getElementById("pack-data")?.textContent || "{}");
-    const l = kind === "pack" ? d.packs?.[n - 1]?.label : kind === "bulk" ? d.bulks?.[n - 1]?.label : "the page at rest";
+    const l = kind === "pack" ? d.packs?.[n - 1]?.label : kind === "bulk" ? d.bulks?.[n - 1]?.label : kind === "sweep" ? "the pointer swept across and back every 600 ms" : "the page at rest";
     return l || "";
   }, { kind, n }).catch(() => "");
   const tracker = new FlashTracker();
@@ -129,7 +131,15 @@ async function sampleRun(browser: any, run: string): Promise<RunResult> {
       tracker.lumChanges.push(new Int32Array(0)); tracker.redChanges.push(new Int32Array(0)); tracker.meanLum.push(tracker.meanLum[last]!);
     }
     frame++;
-    if (kind === "idle") { if (clockMs >= n) { ended = "its time"; break; } continue; }
+    // Synthetic pointer events: a real mouse move waits on a drawn frame,
+    // which under begin-frame control never comes until asked (it stalls).
+    if (kind === "sweep") await p.evaluate(({ x, y }: { x: number; y: number }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any, last = w.__sweepLast ?? { x, y };
+      w.__sweepLast = { x, y };
+      document.elementFromPoint(x, y)?.dispatchEvent(new PointerEvent("pointermove", { clientX: x, clientY: y, movementX: x - last.x || 1, movementY: y - last.y, pointerType: "mouse", bubbles: true }));
+    }, { x: Math.round(VIEW.width / 2 + (VIEW.width * 0.45) * Math.sin((2 * Math.PI * clockMs) / 600)), y: Math.round(VIEW.height * 0.55 + 120 * Math.sin((2 * Math.PI * clockMs) / 1300)) });
+    if (kind === "idle" || kind === "sweep") { if (clockMs >= n) { ended = "its time"; break; } continue; }
     if (frame % 3 !== 0) continue;
     // The owner's taps (the s62 check's drive), `pace` ms after the page will take one.
     const s = await p.evaluate(() => {

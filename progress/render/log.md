@@ -7095,3 +7095,36 @@ PASS. Tests: season1 133 of 133; the render suite 1222 of 1222; typecheck clean.
 **Thin:** in render/quality-debt.md. **Blocked:** nothing. **Next:** render 95, phase 2 step 3: three pack-wrapper
 designs with placeholder art (the owner's 2026-11-28 entries: the foil pack, its light and shine, the pick row, set
 names on packs); render 97 the next hardening pass.
+
+## 2026-11-28 — Render session 95: three Season 1 pack-wrapper designs and the pick row (phase 2 step 3)
+
+**Lane:** render. The last merged PR (#204) is "Render:", which would make this a game session, but the owner's
+2026-11-22 entry (point 7) keeps every scheduled session in the render lane; no render PR was open; the branch starts
+from origin/main at 3dd3986, which holds #204. The owner's answers to render 94 (keep all 5) needed nothing built.
+
+**Built** (all in `render/season1/`; write-up `PACKS.md`):
+- `src/packWrapper.ts`: the set's identity (`S1_FIRST`, name null, so the title is "Set name"; `S1-01`); three
+  designs as data (A Crest, B Window, C Full bleed) in pack units, print inside a safe area; placeholder mascots per
+  faction (shapes on a circuit field, marked); the pack's markup and CSS: serrated crimp seals, a pillow (sides and
+  crimps darkened, a static lobe of light), foil grain, a specular highlight and a gloss streak (whites capped at 0.12
+  so the light makes no counted change), a holographic sheen, edge light, a reflection and a glow; `lightAt` (pointer,
+  tilt, a 7 s sweep, still under reduced motion), shared with the page as `LIGHT_JS`.
+- `src/packPick.ts`: the pick row's poses (`slotPose`), fling and snap (`restingSlot`), spring (`ease`), shared as
+  `PICK_JS`. `src/packWrapperPage.ts`: `output/pack-wrappers.html` (each design large, in four covers, at the Store's
+  sizes) and `output/pack-pick.html` (seven clones of one template; drag, wheel, keys, buttons; a tap centres or
+  picks; the pick lifts the pack and sends only its slot). `mockup/buildPacks.ts` builds both.
+- `ci/pack-wrapper-check.mjs`: layout, print, text size, text contrast from the pixels (glyph cores, three light
+  positions, with a control that a dim line fails), the light's three modes, and the row's every interaction.
+  `flash/sample.ts` gained `sweep=MS` (synthetic pointer moves: a real mouse move stalls under begin-frame control,
+  found on the first try).
+
+**Ran it:** `season1-pack-wrappers-s95/check.txt` **70 PASS, 0 FAIL** (on the way: the sweep never started because a
+resting pointer's synthetic move read as the owner's pointer, fixed by ignoring moves with no movement; the gloss
+streak took the Crest season line to 4.3:1, fixed with a darker halo; the first contrast measure counted the halo as
+text and was replaced). Flash sampler: every run 0 changes, 0 counted flashes (`flash-pick/`, `flash-wrappers/`).
+Tests: `test/packWrapper.test.ts` 19; season1 152 of 152; the render suite 1241 of 1241; typecheck clean.
+
+**Worked:** sharing the light and the row's maths with the page as source strings: the tests run the page's own
+functions. **Thin:** in render/quality-debt.md. **Blocked:** nothing (the design pick is the owner's, at the
+checkpoint; work continues). **Next:** render 96, phase 3's opening rework on the picked design (or C until picked):
+the grip and the tear after the pick, per the storyboard; render 97 the hardening pass.
