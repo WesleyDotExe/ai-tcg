@@ -176,18 +176,22 @@ export const LIGHT = {
   /** A phone held in the hand rests at about this lean. */
   restBeta: 40,
   /**
-   * The specular highlight's strongest white (alpha over the foil). FLASH.md
-   * counts a change at 0.1 in relative luminance; over the dark foil this
-   * peak lifts a block by under 0.07 at the highlight's centre, so the light
-   * sliding across the pack makes no change the flash check counts, at any
-   * speed (the sampler measures the built page: FLASH.md).
+   * The specular highlight's strongest white (alpha over the foil). Render 95
+   * held it at 0.12 so the light made no change at all; the owner's
+   * 2026-11-28 call 3 lets it be brighter "within the opening's budget of at
+   * most one counted flash a second, and still never a flash in the WCAG
+   * sense". Raised in render 96 to 0.26 (the streak 0.22, the sheen 0.30): the
+   * sampler's sweep (the pointer across and back every 600 ms, the fastest a
+   * hand moves it) measures at most 2 changes a second over a field and no
+   * counted flash, on both pages (progress/render/evidence/
+   * season1-pack-tear-s96/flash/); the season line's halo and colour were
+   * strengthened so its contrast holds under it (5.2:1 at the lowest).
    */
-  specAlpha: 0.12,
-  /** The narrow gloss streak that rides with the highlight (the same limit:
-   * where the two overlap they stay under 0.1 over the foil). */
-  streakAlpha: 0.12,
+  specAlpha: 0.26,
+  /** The narrow gloss streak that rides with the highlight. */
+  streakAlpha: 0.22,
   /** The sheen's strongest tint. */
-  holoAlpha: 0.2,
+  holoAlpha: 0.3,
 } as const;
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -295,7 +299,7 @@ export function packCss(): string {
 .pw .rg-symbol { color: #f2f5ff; filter: drop-shadow(0 0 2cqw color-mix(in srgb, var(--fc) 80%, transparent)); } .pw .rg-symbol svg { width: 100%; height: 100%; }
 .pw .wm { font-weight: 900; letter-spacing: .06em; white-space: nowrap; background: linear-gradient(180deg, #ffffff 0%, #dfe9ff 42%, #8fa6d8 52%, #f4f0ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .3cqw .5cqw rgba(0,0,0,.8)) drop-shadow(0 0 1.6cqw rgba(0,0,0,.6)); }
 .pw .wm i { font-style: normal; color: var(--fc); -webkit-text-fill-color: color-mix(in srgb, var(--fc) 60%, #fff); }
-.pw .sl { font: 700 1em/1 ui-monospace, Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: #dfe5fb; white-space: nowrap; text-shadow: 0 0 .8cqw #000, 0 0 2.4cqw rgba(0,0,0,.85); }
+.pw .sl { font: 700 1em/1 ui-monospace, Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: #f6f8ff; white-space: nowrap; text-shadow: 0 0 .6cqw #000, 0 0 1.4cqw rgba(0,0,0,.95), 0 0 3cqw rgba(0,0,0,.9); }
 .pw .sl i { font-style: normal; color: color-mix(in srgb, var(--fc) 50%, #fff); }
 .pw .ti { font-weight: 900; letter-spacing: .01em; color: #fff; white-space: nowrap; text-shadow: 0 .5cqw 1.4cqw rgba(0,0,0,.75), 0 0 3cqw color-mix(in srgb, var(--fc) 55%, transparent); }
 .pw .scrim::before { content: ""; position: absolute; inset: -18% -6%; z-index: -1; border-radius: 1.5cqw; background: rgba(6,8,22,.72); box-shadow: 0 0 4cqw 2cqw rgba(6,8,22,.45); }

@@ -1,0 +1,77 @@
+Season 1 pack wrappers and the pick row (render sessions 95-96): 70 PASS, 0 FAIL
+
+PASS wrappers, 1440: 24 packs drawn (3 large, 12 covers, 9 at the Store's sizes): 24
+PASS wrappers, 1440: all print inside the safe area, clear of the crimps
+PASS wrappers, 1440: every text inside its own region
+PASS wrappers, 1440: no two pieces of print overlap
+PASS wrappers, 1440: every pack: the wordmark AI·TCG, the title "Set name", the symbol; "Season 1 · S1-01" from 150 px
+PASS wrappers, 1440: print at 6.5 px or more where it is shown (the title at every size)
+     smallest pack 62 px: title 7.8 px, wordmark 4.5 px (a picture at this size; the Store tile names it in text)
+PASS wrappers: text contrast from the pixels on the three large packs at three light positions, 4.5:1 (3:1 large): all meet it
+     crest: wordmark lowest 6.0:1 (18 px), season lowest 5.2:1 (11 px), title lowest 6.4:1 (31 px, large)
+     window: wordmark lowest 6.9:1 (16 px), season lowest 7.2:1 (11 px), title lowest 7.5:1 (30 px, large)
+     bleed: wordmark lowest 9.7:1 (16 px), season lowest 12.3:1 (11 px), title lowest 15.8:1 (31 px, large)
+PASS wrappers: the contrast measure isn't blind: the season line drawn dim grey (#5a6380, no halo) reads 1.0-2.7:1, a fail
+PASS wrappers, 1440: no page error
+PASS wrappers, phone 390: 24 packs drawn (3 large, 12 covers, 9 at the Store's sizes): 24
+PASS wrappers, phone 390: all print inside the safe area, clear of the crimps
+PASS wrappers, phone 390: every text inside its own region
+PASS wrappers, phone 390: no two pieces of print overlap
+PASS wrappers, phone 390: every pack: the wordmark AI·TCG, the title "Set name", the symbol; "Season 1 · S1-01" from 150 px
+PASS wrappers, phone 390: print at 6.5 px or more where it is shown (the title at every size)
+     smallest pack 62 px: title 7.8 px, wordmark 4.5 px (a picture at this size; the Store tile names it in text)
+PASS wrappers, phone: no sideways scroll (page 390 px wide)
+PASS wrappers, phone: no page error
+PASS light, left alone: a slow sweep (the highlight moved 24.8% of the face in 1 s; "Light: slow sweep")
+PASS light, a pointer over a pack: the pack turns toward it (turn 5.3° with the pointer right, -5.3° left) and the highlight moves against the turn; "Light: following the pointer"
+PASS light, reduced motion: still (two shots 1.5 s apart are the same pixels; "Light: still (reduced motion)", highlight at 68.9%)
+PASS pick row (crest): seven packs: 7
+PASS pick row (crest): the centre pack largest and in front (270 px), its neighbours smaller and dimmer (183 px at 0.58, 183 px at 0.58), more behind (170 px at 0.42, 170 px at 0.42)
+PASS pick row (crest): only the centre pack's light is live
+PASS pick row (crest): before the pick nothing tells one pack from another (every slot the same markup, no other attributes, no seed / card / odds in the page)
+PASS pick row (crest): ArrowRight moves one pack and settles on it (4)
+PASS pick row (crest): ArrowLeft twice: pack 2
+PASS pick row (crest): a wheel step moves one pack (3)
+PASS pick row (crest): a tap on a side pack brings it to the centre without picking it (1)
+PASS pick row (crest): a fast drag left of 270 px carries on past where the finger left it and snaps to a whole pack (released at 2.35, rests at 3)
+PASS pick row (crest): a slow drag right of 200 px (about one pack, then held) moves back one pack and no further (3 -> 2)
+PASS pick row (crest): a tap on the centre pack picks it: one pick event carrying only its slot ([{"slot":2}])
+PASS pick row (crest): the picked pack lifts out (top 277 -> 238 px, 270 -> 292 px wide), the rest fade (opacity 0.00); "Your pack. Hold it, then drag across the top to tear it open."
+PASS pick row (crest): no "Back to the row" and no "Pick this pack" (owner 2026-11-28, points 6-7: a pick is final)
+PASS pick row (crest): Enter picks the centre pack too
+PASS pick row (crest): no page error
+PASS pick row (window): seven packs: 7
+PASS pick row (window): the centre pack largest and in front (270 px), its neighbours smaller and dimmer (183 px at 0.58, 183 px at 0.58), more behind (170 px at 0.42, 170 px at 0.42)
+PASS pick row (window): only the centre pack's light is live
+PASS pick row (window): before the pick nothing tells one pack from another (every slot the same markup, no other attributes, no seed / card / odds in the page)
+PASS pick row (window): ArrowRight moves one pack and settles on it (4)
+PASS pick row (window): ArrowLeft twice: pack 2
+PASS pick row (window): a wheel step moves one pack (3)
+PASS pick row (window): a tap on a side pack brings it to the centre without picking it (1)
+PASS pick row (window): a fast drag left of 270 px carries on past where the finger left it and snaps to a whole pack (released at 2.35, rests at 3)
+PASS pick row (window): a slow drag right of 200 px (about one pack, then held) moves back one pack and no further (3 -> 2)
+PASS pick row (window): a tap on the centre pack picks it: one pick event carrying only its slot ([{"slot":2}])
+PASS pick row (window): the picked pack lifts out (top 277 -> 238 px, 270 -> 292 px wide), the rest fade (opacity 0.00); "Your pack. Hold it, then drag across the top to tear it open."
+PASS pick row (window): no "Back to the row" and no "Pick this pack" (owner 2026-11-28, points 6-7: a pick is final)
+PASS pick row (window): Enter picks the centre pack too
+PASS pick row (window): no page error
+PASS pick row (bleed): seven packs: 7
+PASS pick row (bleed): the centre pack largest and in front (270 px), its neighbours smaller and dimmer (183 px at 0.58, 183 px at 0.58), more behind (170 px at 0.42, 170 px at 0.42)
+PASS pick row (bleed): only the centre pack's light is live
+PASS pick row (bleed): before the pick nothing tells one pack from another (every slot the same markup, no other attributes, no seed / card / odds in the page)
+PASS pick row (bleed): ArrowRight moves one pack and settles on it (4)
+PASS pick row (bleed): ArrowLeft twice: pack 2
+PASS pick row (bleed): a wheel step moves one pack (3)
+PASS pick row (bleed): a tap on a side pack brings it to the centre without picking it (1)
+PASS pick row (bleed): a fast drag left of 270 px carries on past where the finger left it and snaps to a whole pack (released at 2.35, rests at 3)
+PASS pick row (bleed): a slow drag right of 200 px (about one pack, then held) moves back one pack and no further (3 -> 2)
+PASS pick row (bleed): a tap on the centre pack picks it: one pick event carrying only its slot ([{"slot":2}])
+PASS pick row (bleed): the picked pack lifts out (top 277 -> 238 px, 270 -> 292 px wide), the rest fade (opacity 0.00); "Your pack. Hold it, then drag across the top to tear it open."
+PASS pick row (bleed): no "Back to the row" and no "Pick this pack" (owner 2026-11-28, points 6-7: a pick is final)
+PASS pick row (bleed): Enter picks the centre pack too
+PASS pick row (bleed): no page error
+PASS pick row, phone 390: no sideways scroll (390 px), the centre pack wholly on screen (95-295 x 470-791)
+PASS pick row, phone: a tap on the right-hand neighbour brings it to the centre (4)
+PASS pick row, phone: no page error
+PASS pick row, reduced motion: a key moves the row at once, no easing (pos 4 one frame later)
+PASS pick row, reduced motion: the pick is instant (transition 0s)

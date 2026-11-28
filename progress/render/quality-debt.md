@@ -7,23 +7,40 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## Season 1 packs: the grip and the tear (session 96, fenced off in render/season1/)
+
+- **Tuned in a headless browser, not on a real phone:** the zone (owner point 9) and the drags were tried as scripted
+  mouse drags at 1280 px and real touch events at 390 px in Chromium, and looked at in stills; nobody has torn a pack
+  with a real hand, mouse or thumb, yet (the owner's "tune by hand" is still open). iOS Safari's own gesture handling (an edge swipe, a scroll that starts in
+  the margin) is untested.
+- **The stand-in server:** the tell comes from `?best=`; the page never receives cards. The real answer (the
+  server rolls the picked slot's seed and returns the best finish, then the cards) is written in `PACKS.md`, not
+  built.
+- **The open ends at the stack:** the reveal (plain cards, the build, the hit, the summary) is part two. The card
+  backs are a CSS placeholder, not Season 0's back.
+- **No haptics** (the storyboard's "feel" column): `navigator.vibrate` on the grip and the rip is not tried.
+- **The tear's sound is new and not mixed with Season 0's sound system** (`src/soundFx.ts`): a small WebAudio
+  player of its own in the page (filtered noise and tones), with its own Sound switch that nothing remembers.
+- **The flash drive is one gesture:** a press, a hold and a 0.4 s drag at a fixed spot. A frantic scrubbing
+  thumb, or a tap tear, is not sampled (the tap's light is the same tear on a timer).
+- **The leak and the swell are clipped by the stage** (`overflow: hidden`) when the pack sits near its top, as on a
+  short desktop window: the light is cut off flat at the stage's edge.
+- **The brighter shine now makes changes** (up to 2 a second under a pointer swept every 600 ms, 0 counted
+  flashes): within the owner's budget, but no longer zero; the unit test allows 2 and no counted flash.
+
 ## Season 1 packs: the wrapper designs and the pick row (session 95, fenced off in render/season1/)
 
 - **The placeholder art is simple:** each mascot is a handful of shapes on a circuit field, and the set symbol is
   Season 0's hex with a ring. They hold the space for January's art; they are not the art. Next to the reference's
   illustrated packs, the designs read as layouts more than as finished packs.
-- **The light is soft by rule:** capped so it makes no counted change (owner call 3 at the checkpoint). On a still
-  the shine is easy to miss; it reads in motion.
 - **The tilt is untested on a real phone:** headless Chromium has no motion sensors. The code follows
   `deviceorientation`, and on iOS it asks first, behind a button; neither path has run on a device.
 - **The reflection uses `-webkit-box-reflect`:** Chromium and Safari draw it; Firefox draws no reflection (the glow
   still shows).
-- **The pick sends only a slot, and nothing answers it:** the seeds (made and kept by the server, the unpicked packs
-  never rolled) are written down in `PACKS.md`; no server code exists. After the pick the page says the grip and the
-  tear come next (phase 3).
+- **The pick sends only a slot, and only a stand-in answers it** (render 96: `?best=`): the seeds (made and kept by
+  the server, the unpicked packs never rolled) are written down in `PACKS.md`; no server code exists.
 - **The flash sampler drives the pages at rest and with a pointer swept across them**, not a drag of the row: the
   row's own motion is checked for its poses, not measured for flashes.
-- **No sound or haptics** in the pick (the storyboard has the foil crinkle on the grip, phase 3).
 - **The Home's Store and Packs tiles still draw Season 0's sealed pack:** the new wrapper replaces it once the owner
   picks a design.
 - **The text-contrast measure is new** (glyph cores against the pixels around them, for chrome and haloed text the

@@ -78,6 +78,17 @@ and the pack lifts, only the slot is sent). `render/season1/PACKS.md`, `output/p
 `output/pack-pick.html`; `season1-pack-wrappers-s95/check.txt` 70 PASS, 0 FAIL; the flash sampler 0 changes in every
 run. The owner picks a design (C recommended) at the render checkpoint, with five small calls.
 
+**Render session 96 (the pack opening's grip and tear on Crest, phase 3's opening rework part one, 2026-11-28):** the
+owner's 2026-11-28 points 6-9 and call 3. The pick row has no buttons (keys still work) and a pick is final; the picked
+pack waits with a cue along its top; held, it trembles harder the longer it's held, leans to the finger and crinkles,
+and for a hit the seam under the crimp glows in the tell's colour; a drag that starts in the grab zone (the top quarter
+plus a margin, 48 px or more on a phone) and moves a third of the width, any direction, tears it along the finger
+(scraps, light leaking, a rip whose sound follows the speed); a tap or Enter tears it in 600 ms; the strip flies off,
+one swell, and five cards rise out backs up (`render/season1/src/packTear.ts`, `output/pack-pick.html?best=gold`). The
+shine is brighter (0.26). Checks: `season1-pack-tear-s96/check.txt` 54 PASS (nine drags each on desktop and on a phone
+with real touch events), every flash run 0 counted flashes; `season1-pack-wrappers-s96/` 70 PASS. Five small calls at
+the render checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -125,16 +136,19 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (the design pick and answers to render 95's five calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 96's five calls may be there).
 
-Next: **render 96: phase 3, the pack-opening rework, its first beats after the pick** (`render/season1/FLASH.md`'s
-storyboard: the grip (hold the pack: it trembles harder the longer it's held) and the tear that follows the finger),
-built on the design the owner picks at render 95's checkpoint (C, Full bleed, until they do: the design is one
-parameter of `packHtml`), in `output/pack-pick.html`'s flow after the pick. Keep every light inside FLASH.md's budget
-and run `flash/sample.ts` on the built page (with `sweep=` and a drive of the tear). The seeds stay server-side
-(`PACKS.md`): the page gets a pack's cards only after its pick. Phase 1's step 5 (Watch live 9:16 on the Season 1
-arena) and step 6 (the music spec) are still open. Render 97 is the next hardening pass. A call only the owner can
-make goes in the notes as "waiting on owner" and the session moves on.
+Next: **render 97, the render hardening pass** (every 5th session; 92 was the last): no new features. Work down
+`progress/render/quality-debt.md`, the Season 1 packs first: re-run `ci/pack-tear-check.mjs`,
+`ci/pack-wrapper-check.mjs` and the flash sampler's tear runs; the leak and swell clipped flat by the stage's
+`overflow: hidden` when the pack sits near its top; the tear's sound remembered (a stored preference like Season 0's)
+or folded into Season 0's sound system's seam; a frantic scrub and a tap tear sampled for flashes; and the Home grid
+check re-run on today's pages. Then **render 98: the opening rework, part two, the reveal** (FLASH.md's storyboard
+beats 5-8: plain cards with an edge-on flip, the build, one bloom per hit, the summary, and Zero-Day's takeover with
+no saturated red; within one counted flash a second; Reduce flashing honoured), from the stack render 96 leaves on
+screen, with a stand-in server that sends the picked slot's cards only after the tear. Phase 1's step 5 (Watch live
+9:16 on the Season 1 arena) and step 6 (the music spec) are still open. A call only the owner can make goes in the
+notes as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

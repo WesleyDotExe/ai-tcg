@@ -1,0 +1,3 @@
+Flash check (WCAG 2.3.1), render/season1/output/pack-pick.html, 1024x768, 30 fps, reduced motion, tapping 900 ms after the page is ready
+PASS tear=6000@gold (picked, gripped and torn open): worst 0.5 flashes/s (1 changes), red 0/s, 0 counted flashes, screen jump 0.036->0.017, 6.0 s, 0 taps, ended at its time (the pack: opened)
+0 of 1 fail

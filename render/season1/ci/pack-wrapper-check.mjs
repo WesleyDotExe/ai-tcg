@@ -31,7 +31,7 @@
 //     fling and snap) each move the row and settle on a whole pack;
 //   - a tap on the centre pack (and Enter) picks it: one pick event with only
 //     its slot number, the pack lifts (higher and larger), the rest fade;
-//     "Back to the row" returns;
+//     nothing offers to go back (render 96: a pick is final);
 //   - with reduced motion a key moves the row at once (no easing).
 // Fails on any miss. Writes check.txt and stills to
 // progress/render/evidence/season1-pack-wrappers-s95/ (or the folder given).
@@ -44,7 +44,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const out = resolve(process.argv[2] ?? join(season1, '../../progress/render/evidence/season1-pack-wrappers-s95'));
+const out = resolve(process.argv[2] ?? join(season1, '../../progress/render/evidence/season1-pack-wrappers-s96'));
 mkdirSync(out, { recursive: true });
 const { loadChromium } = await import(pathToFileURL(resolve(season1, '../ci/pw.mjs')).href);
 const chromium = await loadChromium();
@@ -293,12 +293,14 @@ for (const design of ['crest', 'window', 'bleed']) {
   ok(s.picked === s2.pos && s.events.length === 1 && JSON.stringify(Object.keys(s.events[0])) === '["slot"]' && s.events[0].slot === s2.pos, `${P}: a tap on the centre pack picks it: one pick event carrying only its slot (${JSON.stringify(s.events)})`);
   ok(after.top < before.top && after.w > before.w && after.others < 0.05, `${P}: the picked pack lifts out (top ${Math.round(before.top)} -> ${Math.round(after.top)} px, ${Math.round(before.w)} -> ${Math.round(after.w)} px wide), the rest fade (opacity ${after.others.toFixed(2)}); "${after.note}"`);
   await page.screenshot({ path: join(out, `pick-${design}-picked.jpg`), type: 'jpeg', quality: 85 });
-  await page.click('#again'); await page.waitForTimeout(300);
-  s = await state(page);
-  ok(s.picked === null && (await page.evaluate(() => !document.getElementById('pick').classList.contains('picked'))), `${P}: "Back to the row" returns to the row`);
-  await page.focus('#pick'); await page.keyboard.press('Enter'); await page.waitForTimeout(100);
-  s = await state(page);
-  ok(s.picked !== null && s.events.length === 2, `${P}: Enter picks the centre pack too`);
+  ok(!(await page.$('#again')) && !(await page.$('#choose')), `${P}: no "Back to the row" and no "Pick this pack" (owner 2026-11-28, points 6-7: a pick is final)`);
+  {
+    const g2 = await open('pack-pick.html', `?design=${design}`, { viewport: { width: 1280, height: 900 } });
+    await settle(g2.page); await g2.page.focus('#pick'); await g2.page.keyboard.press('Enter'); await g2.page.waitForTimeout(100);
+    const s3 = await state(g2.page);
+    ok(s3.picked === 3 && s3.events.length === 1, `${P}: Enter picks the centre pack too`);
+    await g2.ctx.close();
+  }
   ok(!errors.length, `${P}: no page error${errors.length ? `: ${errors.join(' | ')}` : ''}`);
   await ctx.close();
 }
@@ -327,7 +329,7 @@ for (const design of ['crest', 'window', 'bleed']) {
 }
 
 await browser.close();
-lines.unshift(`Season 1 pack wrappers and the pick row (render session 95): ${pass} PASS, ${fail} FAIL`, '');
+lines.unshift(`Season 1 pack wrappers and the pick row (render sessions 95-96): ${pass} PASS, ${fail} FAIL`, '');
 writeFileSync(join(out, 'check.txt'), lines.join('\n') + '\n');
 console.log(lines.join('\n'));
 process.exitCode = fail ? 1 : 0;
