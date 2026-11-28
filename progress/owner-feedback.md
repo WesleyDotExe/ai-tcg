@@ -5312,3 +5312,16 @@ Next session: group 4 (Daily rewards, Notifications, Match history, Collection).
 6. **Owner: packs aren't called "Season 1, 2, 3"; each set gets a name.** "Season X" sits small on the pack, and the set's own name is the title, as on the reference the owner showed (a small set line and code, the set name large). The wrapper designs lay out: the AI·TCG wordmark, the set name as the title, "Season X" and the set code small, the set symbol. Until a set has a name, the placeholder reads "Set name" (never a made-up name presented as real). The naming scheme is in `progress/season-1-ideas.md` ("Set names", 2026-11-28).
 
 Next session: render 94, Notifications and Match history.
+
+---
+
+## 2026-11-28 — Owner: answers to render session 94 (Notifications and Match history), keep all 5
+
+**Render session 94** (PR #204, `progress/render/checkpoints.md`, `progress/render/evidence/season1-notif-tile-s94/`, `season1-history-tile-s94/`, `season1-home-grid-s94/`).
+1. **Keep:** Match history's list is the matches before the headline one (M three, L six), so the last match never shows twice.
+2. **Keep:** every result in words with a letter chip: Won (W), Lost (L), Drew (D), Cancelled (C), "Your agent left" / "Opponent left" (A).
+3. **Keep:** each alert is two lines, the time first, linking to the tile that owns it (a word at L, an arrow at M; the full line in its tooltip).
+4. **Keep:** a new player's L explains what a match pays (Match history) and what each kind of alert tells (Notifications).
+5. **Keep:** Notifications S names the newest new alert; nothing when all are read.
+
+Next session: render 95, three pack-wrapper designs with placeholder art (with 2026-11-28 point 6, set names).
