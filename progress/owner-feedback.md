@@ -5299,7 +5299,7 @@ Next session: group 4 (Daily rewards, Notifications, Match history, Collection).
 
 ---
 
-## 2026-11-28 — Owner: answers to render session 93 (Collection and Daily rewards), keep all 5; packs carry a set name, "Season X" small
+## 2026-11-28 — Owner: answers to render session 93 (Collection and Daily rewards), keep all 5; packs carry a set name, "Season X" small (1-5 HANDLED 2026-11-28, render session 94: kept as built, nothing to change; 5 noted for the January art pass. 6 noted for the pack-wrapper designs, phase 2 step 3, the next render session after this one: "Set name" as the placeholder title, "Season X" and the set code small, the AI·TCG wordmark, the set symbol)
 
 **Render session 93** (PR #203, `progress/render/checkpoints.md`, `render/season1/output/collection-states.html`, `render/season1/output/daily-states.html`, `progress/render/evidence/season1-collection-tile-s93/`, `season1-daily-tile-s93/`).
 1. **Keep:** Collection's ring is the share at S and M; "· 40%" in words at L only.

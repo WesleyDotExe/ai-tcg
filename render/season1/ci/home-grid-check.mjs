@@ -62,7 +62,7 @@ import { contrast, NOTEXT_CSS } from './contrast.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
-const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s93'));
+const OUT = resolve(process.argv[2] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', 'season1-home-grid-s94'));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', 'home.html')).href;
 const data = JSON.parse(readFileSync(join(season1, 'mockup', 'data', 'home-data.json'), 'utf8'));
@@ -363,7 +363,7 @@ try {
   // lines (contrast.txt), as the fit table does.
   say(`\n=== contrast on the glass, every tile, every size (1440x900) ===`);
   // Watch live's surround was done in render 87 (its names fixed here, 92).
-  const DONE = new Set(['agent', 'ladder', 'store', 'packs', 'watch', 'collection', 'daily']);
+  const DONE = new Set(['agent', 'ladder', 'store', 'packs', 'watch', 'collection', 'daily', 'history', 'notif']);
   const CT = {}; // tile -> size -> owner/theme -> { worst, who }
   for (const owner of ['nova', 'wren']) for (const theme of ['light', 'dark']) for (const board of ['S', 'M', 'L']) {
     // Tall enough that no tile needs the viewport resized for its shot (a resize re-lays the grid).

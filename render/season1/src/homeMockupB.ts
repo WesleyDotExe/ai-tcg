@@ -29,7 +29,7 @@ import { ICONS, esc, icon } from "../../src/site/siteModel.js";
 import { BACKGROUNDS } from "../../src/site/siteLook.js";
 import { TIER_HEX } from "../../src/site/siteStanding.js";
 import { TILES, type Size } from "./homeSpec.js";
-import { dayMost, homeArt, isPlaced, nextAction, sealedPack, tileFacts, type HomeData, type OwnerData } from "./homeFacts.js";
+import { dayMost, homeArt, isPlaced, nextAction, resultOf, sealedPack, tileFacts, type HomeData, type OwnerData } from "./homeFacts.js";
 import { MASONRY_CSS, MOCK_STRIP_CSS, OPEN_LABEL, PLACES, SHELL_SCRIPT, boardsWith, editControls, mockStrip, opensOf, ownersPayload, payloadJson, type Board } from "./homeShell.js";
 
 /** Each tile's colour (its icon chip, its ring, its glow), Season 0's. */
@@ -85,7 +85,8 @@ export function heroArt(tileId: string, d: OwnerData): string {
       return `<span class="art bellart${d.notifications.unread ? " on" : ""}" aria-hidden="true">${svg(ICONS.bell, 26)}</span>`;
     case "history": {
       const m = d.matches.matches[0];
-      return `<span class="art res-art ${m ? m.result : "none"}" aria-hidden="true">${m ? (m.result === "win" ? "W" : m.result === "loss" ? "L" : "D") : "–"}</span>`;
+      const r = m ? resultOf(m.result) : null;
+      return `<span class="art res-art ${r ? r.tone : "empty"}" aria-hidden="true">${r ? r.short : "–"}</span>`;
     }
   }
   return "";
@@ -260,7 +261,7 @@ ${MASONRY_CSS}
 .badge { width: 52px; height: 52px; color: var(--c); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent)); } .badge svg { width: 100%; height: 100%; }
 .badge path { fill: color-mix(in srgb, var(--c) 24%, transparent); stroke: currentColor; stroke-width: 1.4; } .badge path.in { fill: color-mix(in srgb, var(--c) 55%, transparent); stroke-width: 1; }
 .bellart { width: 50px; height: 50px; border-radius: 16px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); } .bellart.on { box-shadow: 0 0 16px color-mix(in srgb, var(--c) 45%, transparent); }
-.res-art { width: 48px; height: 48px; border-radius: 14px; font: 900 22px system-ui; color: #fff; background: #9aa0b8; } .res-art.win { background: linear-gradient(135deg, #2fae66, #1c8a73); } .res-art.loss { background: linear-gradient(135deg, #ff5d73, #c13d7a); } .res-art.none { background: var(--soft); color: var(--muted); }
+.res-art { width: 48px; height: 48px; border-radius: 14px; font: 900 22px system-ui; color: #fff; background: #9aa0b8; } .res-art.win { background: linear-gradient(135deg, #2fae66, #1c8a73); } .res-art.loss { background: linear-gradient(135deg, #ff5d73, #c13d7a); } .res-art.empty { background: var(--soft); color: var(--muted); }
 /* Cards and the arena (shared fact markup). */
 .cards { display: flex; gap: 6px; flex-wrap: wrap; }
 .mcard { --fc: #999; position: relative; display: inline-flex; flex-direction: column; justify-content: flex-end; flex: none; width: 46px; aspect-ratio: 5 / 7; border-radius: 6px; overflow: hidden; color: #fff; font-style: normal;

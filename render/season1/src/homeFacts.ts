@@ -71,19 +71,20 @@ export interface OwnerData {
     recentPulls: { cards: { cardId: string; name: string; rarity: string; finish: string }[] }[];
   };
   store: { cosmetics: { itemId: string; name: string; kind: string; faction: string | null; priceCredits: number; owned: boolean; description?: string }[] };
-  daily: { timeZone: string; schedule: { fromWin: number; toWin: number | null; credits: number }[]; wins: unknown[]; losses: number; creditsFromWins: number; creditsFromLosses?: number; rewardedWins?: { nth: number; endedAt: string; credits: number }[]; nextWinPays: number; nextLossPays: number; maxPaidLosses: number };
-  matches: { matches: { result: string; credits: number; rating: { change: number } | null; opponent: { ownerName: string; agentName: string }; agentName: string; hasReplay: boolean; hasLog: boolean }[]; total: number };
+  daily: { timeZone: string; startedAt: string; resetsAt: string; schedule: { fromWin: number; toWin: number | null; credits: number }[]; wins: unknown[]; losses: number; creditsFromWins: number; creditsFromLosses?: number; rewardedWins?: { nth: number; endedAt: string; credits: number }[]; nextWinPays: number; nextLossPays: number; maxPaidLosses: number };
+  matches: { matches: { matchId?: string; endedAt: string; turns?: number | null; result: string; credits: number; rating: { change: number } | null; opponent: { ownerName: string; agentName: string }; agentName: string; hasReplay: boolean; hasLog: boolean }[]; total: number };
   notifications: { notifications: Alert[]; unread: number; unreadByKind: Record<string, number> };
   live: { matches: LiveMatch[]; mine: string | null };
 }
 
 export interface Alert {
   kind: string;
+  createdAt: string;
   readAt: string | null;
-  dailyPack?: { waiting: number };
-  matchResult?: { result: string; agentName: string; opponent: { ownerName: string; agentName: string }; credits: number; turns: number | null };
-  bigPull?: { cardName?: string; name?: string };
-  autoPlayStopped?: { reason?: string };
+  dailyPack?: { waiting: number; cap?: number };
+  matchResult?: { result: string; agentName: string; opponent: { ownerName: string; agentName: string }; credits: number; rating?: { change: number } | null; turns: number | null };
+  bigPull?: { jackpot?: boolean; cards?: { cardId: string; name: string; rarity: string; finish: string; isNew?: boolean; prototype?: unknown }[] };
+  autoPlayStopped?: { reason?: string; allowanceMinutes?: number | null };
 }
 
 export interface LiveSide { name: string; health: number; maxHealth: number; energy: number; maxEnergy: number; hand: number; deck: number; board: { name: string; cardId: string; attack: number; health: number; maxHealth: number; pending: boolean }[]; directives: { name: string }[] }
@@ -535,32 +536,76 @@ export const RENDER: Record<Fact, Render> = {
   },
   dayReset: (d) => fx("dayReset", `${lab("Resets")}<span>at midnight ${esc(resetPlace(d.daily.timeZone))}</span>`, "kv"),
 
-  /* Match history */
+  /* Match history (render session 94, phase 2 group 4's second half). The
+     headline is the last match: its result in words, the opponent, what it
+     paid and the rating change. The list under it is the matches before it
+     (it never repeats the headline), one row each with a column for every
+     number, and a header naming them. */
   lastResult: (d) => {
     const m = d.matches.matches[0];
-    return fx("lastResult", m ? `<span class="res ${m.result}">${m.result === "win" ? "Won" : m.result === "loss" ? "Lost" : "Drew"}</span><span>vs ${esc(m.opponent.agentName)} <span class="sub">(${esc(m.opponent.ownerName)})</span></span>` : `<span>No matches yet${hasMatches(d) ? "" : ". Press Start on My agent; results and replays show here."}</span>`, "row");
+    if (!m) return fx("lastResult", `<span class="hl"><b class="rw">No matches yet</b><span class="sub ln np">Your agent's results land here.</span></span>`, "row");
+    const r = resultOf(m.result);
+    return fx("lastResult", `<span class="hl"><b class="rw res ${r.tone}">${r.word}</b> <span class="vs" title="vs ${esc(m.opponent.agentName)} (${esc(m.opponent.ownerName)})">vs ${esc(m.opponent.agentName)}</span><span class="sub ln">${payWords(m.credits, m.result)}${m.rating ? ` · rating ${signed(m.rating.change)}` : " · not rated"} · ${esc(when(m.endedAt, d))}</span></span>`, "row");
   },
-  recentMatches: (d) => {
-    const rows = d.matches.matches.slice(0, 3);
-    if (!rows.length) return fx("recentMatches", `<span class="sub">Your agent's last three matches will list here, with what each paid.</span>`);
-    return fx("recentMatches", `<ul class="list mh">${rows.map((m) => `<li><span class="res ${m.result}">${m.result === "win" ? "W" : m.result === "loss" ? "L" : "D"}</span><span>vs ${esc(m.opponent.agentName)}</span><span class="sub">+${m.credits} credits${m.rating ? ` · rating ${signed(m.rating.change)}` : ""}</span></li>`).join("")}</ul>`);
+  recentMatches: (d, size) => {
+    const rows = d.matches.matches.slice(1, size === "L" ? 7 : 4);
+    if (!d.matches.matches.length) {
+      return fx("recentMatches", `<span class="sub">Press Start on My agent: every match it plays lists here with what it paid, its rating change and its replay.</span>${size === "L" ? matchPays(d) : ""}`, "blk");
+    }
+    if (!rows.length) return fx("recentMatches", `${lab("Before that")}<span class="sub">The first match: the ones after it list here.</span>`, "blk");
+    const agents = new Set(d.matches.matches.map((m) => m.agentName)).size > 1;
+    const li = rows.map((m) => {
+      const r = resultOf(m.result);
+      const t = `${r.word} vs ${m.opponent.agentName} (${m.opponent.ownerName})${agents ? `, played by ${m.agentName}` : ""}: ${payWords(m.credits, m.result)}${m.rating ? `, rating ${signed(m.rating.change)}` : ", not rated"}, ended ${when(m.endedAt, d)}${m.turns ? `, ${m.turns} turns` : ""}`;
+      const rp = size === "L" ? (m.hasReplay ? `<a class="rp" data-go="agent" href="#/agent" aria-label="Replay: ${esc(t)}">Replay</a>` : `<span class="rp nr" title="No replay kept for this match">–</span>`) : "";
+      return `<li title="${esc(t)}"><span class="chip res ${r.tone}" aria-label="${r.word}"><b>${r.short}</b></span><span class="who" title="${esc(t)}">${agents ? `${esc(m.agentName)} ` : ""}vs ${esc(m.opponent.agentName)}</span><span class="cr">${m.credits ? `+${m.credits}` : "0"}</span><span class="rt ${m.rating ? (m.rating.change >= 0.5 ? "up" : m.rating.change <= -0.5 ? "down" : "") : ""}">${m.rating ? signed(m.rating.change) : "–"}</span><span class="tm">${esc(when(m.endedAt, d))}</span>${rp}</li>`;
+    }).join("");
+    const head = `<li class="hd" aria-hidden="true"><span class="chip"></span><span class="who">Before that</span><span class="cr">Paid</span><span class="rt">Rating</span><span class="tm">Ended</span>${size === "L" ? `<span class="rp"></span>` : ""}</li>`;
+    return fx("recentMatches", `<ul class="list mh">${head}${li}</ul>`, "blk");
   },
   replays: (d) => {
-    const rows = d.matches.matches.slice(0, 3);
+    const rows = d.matches.matches.slice(0, 7);
+    if (!rows.length) return fx("replays", `${lab("Replays")}<span>Every match keeps a replay and a log.</span>`, "kv");
     const kept = rows.filter((m) => m.hasReplay).length;
-    return fx("replays", rows.length ? `${lab("Replays")}<span>${kept ? `${plural(kept, "replay")} of the last ${rows.length}` : "These matches were played before replays were kept."} · ${plural(d.matches.total, "match", "matches")} in all</span>` : `${lab("Replays")}<span>Every match keeps a replay and a log.</span>`, "kv");
+    const tally = (k: string) => rows.filter((m) => resultOf(m.result).tone === k).length;
+    const rec = [`${tally("win")} W`, `${tally("loss")} L`, ...(tally("draw") ? [`${tally("draw")} D`] : []), ...(tally("void") ? [`${tally("void")} paid nothing`] : [])].join(" · ");
+    return fx("replays", `${lab(`Last ${rows.length}`)}<span>${rec}</span>${lab("Replays")}<span>${kept ? `${kept} of these ${rows.length} kept` : "None kept: these were played before replays were."} · ${plural(d.matches.total, "match", "matches")} in all</span>`, "kv two");
   },
 
-  /* Notifications */
-  unread: (d) => fx("unread", d.notifications.unread ? `${big(String(d.notifications.unread))}<span>new</span>` : `<span>All caught up</span>`, "row"),
+  /* Notifications (render session 94). The headline is how many are new.
+     Each alert is one link to the tile that owns its subject, in two short
+     lines: what happened, then the detail and when; the newest first. */
+  unread: (d) => fx("unread", d.notifications.unread ? `${big(String(d.notifications.unread))}<span class="of">new</span>` : d.notifications.notifications.length ? `<span class="hl"><b class="rw">All caught up</b><span class="sub ln">Nothing new since you last looked.</span></span>` : `<span class="hl"><b class="rw">No alerts yet</b><span class="sub ln">Results, big pulls and your free pack show here.</span></span>`, "row"),
   alerts: (d, size) => {
-    const one = d.play.agents.length === 1;
-    const list = d.notifications.notifications.slice(0, size === "L" ? 6 : 3);
-    return fx("alerts", `<ul class="list al">${list.map((a) => `<li class="${a.readAt ? "" : "new"}"><span>${alertText(a, one)}</span></li>`).join("")}</ul>`, "blk");
+    const all = d.notifications.notifications;
+    // S: only the newest new one, in a few words (nothing when none is new:
+    // the headline says so).
+    if (size === "S") {
+      const a = all[0];
+      if (!a || !d.notifications.unread) return fx("alerts", "");
+      const s = alertSummary(a, d);
+      return fx("alerts", `${lab("Latest")}<span class="ln1" title="${esc(s.title + " · " + s.meta)}">${esc(s.title)}</span>`, "kv");
+    }
+    if (!all.length) return fx("alerts", `<span class="sub">Results, big pulls, your free pack and your agent stopping show here.</span>`, "blk");
+    const list = all.slice(0, size === "L" ? 5 : 3);
+    const more = d.notifications.unread - list.filter((a) => !a.readAt).length;
+    const li = list.map((a) => {
+      const s = alertSummary(a, d);
+      return `<li class="${a.readAt ? "" : "new"}"><a class="alink" href="#/home" data-to="${s.to}" title="${esc(`${s.title} · ${s.meta} · opens ${TO_NAME[s.to] ?? s.to}`)}"><i class="ak k-${esc(a.kind)}" aria-hidden="true"></i><span class="at"><b title="${esc(s.title)}">${esc(s.title)}</b><span class="sub" title="${esc(s.meta)}">${esc(s.meta)}</span></span><span class="go">${size === "L" ? `${esc(TO_NAME[s.to] ?? "")} ` : ""}→</span></a></li>`;
+    }).join("");
+    // A new player's M (one or two alerts so far): what else lands here (L says it in full).
+    const hint = size === "M" && all.length < 3 ? `<span class="sub hint">Results, big pulls and your agent stopping land here too.</span>` : "";
+    return fx("alerts", `<ul class="list al">${li}</ul>${hint}${more > 0 ? `<a class="to more" href="#/alerts" data-go="alerts">${more} more new in Alerts</a>` : ""}`, "blk");
   },
   alertKinds: (d) => {
     const names: Record<string, string> = { matchResult: "Results", bigPull: "Big pulls", dailyPack: "Free pack", autoPlayStopped: "Agent stopped" };
-    return fx("alertKinds", `${lab("By kind")}<span class="chips">${Object.entries(d.notifications.unreadByKind).map(([k, v]) => `<span class="chip">${esc(names[k] ?? k)} <b>${v}</b></span>`).join("")}</span>`, "kv");
+    const k = Object.entries(d.notifications.unreadByKind).filter(([, v]) => v > 0);
+    const chips = `${lab("New by kind")}<span class="chips">${k.length ? k.map(([kind, v]) => `<a class="chip kf" href="#/alerts" data-go="alerts" data-kind="${esc(kind)}" title="Show only ${esc(names[kind] ?? kind)}">${esc(names[kind] ?? kind)} <b>${v}</b></a>`).join("") : `<span class="sub">None new</span>`}</span>`;
+    // A new player (fewer than three alerts so far): what each kind tells.
+    const what = d.notifications.notifications.length < 3
+      ? `${lab("What tells you here")}<ul class="kinds">${Object.entries(KIND_WHAT).map(([kind, w]) => `<li><i class="ak k-${kind}" aria-hidden="true"></i><span><b>${esc(names[kind]!)}</b> ${esc(w)}</span></li>`).join("")}</ul><span class="sub">Switch any but the agent stopping off in Settings.</span>`
+      : "";
+    return fx("alertKinds", d.notifications.notifications.length ? `<div class="kv">${chips}</div>${what}` : what, "blk");
   },
 
   /* Music: waiting on the owner's spec (plan item 24). */
@@ -569,17 +614,80 @@ export const RENDER: Record<Fact, Render> = {
   musicMaker: () => fx("musicMaker", `${lab("Make your own")}<span class="sub">The drum machine and loop creator, per the spec once approved.</span>`, "kv"),
 };
 
-/** The alert, linked to the tile that owns its subject. */
-export function alertText(a: Alert, oneAgent: boolean): string {
-  if (a.kind === "dailyPack") return `Your free daily pack is waiting <a class="to" data-to="daily">Daily rewards</a>`;
-  if (a.kind === "matchResult" && a.matchResult) {
-    const m = a.matchResult;
-    const who = oneAgent ? "" : `${esc(m.agentName)}: `;
-    return `${who}${m.result === "win" ? "Won" : m.result === "loss" ? "Lost" : "Drew"} vs ${esc(m.opponent.agentName)}, +${m.credits} credits <a class="to" data-to="history">Match history</a>`;
+/** A match result as the tile says it (render session 94). Every result
+ * the API sends (OWNER_API.md, "Match history"), not only win / loss / draw:
+ * a cancel is not rated and pays nothing; an abandon is rated (a loss for
+ * the side that left) and pays nothing to either side (ECONOMY.md). */
+export function resultOf(result: string): { short: string; word: string; tone: "win" | "loss" | "draw" | "void" } {
+  switch (result) {
+    case "win": return { short: "W", word: "Won", tone: "win" };
+    case "loss": return { short: "L", word: "Lost", tone: "loss" };
+    case "draw": return { short: "D", word: "Drew", tone: "draw" };
+    case "cancelled": return { short: "C", word: "Cancelled", tone: "void" };
+    case "abandonedByYou": return { short: "A", word: "Your agent left", tone: "loss" };
+    case "abandonedByOpponent": return { short: "A", word: "Opponent left", tone: "void" };
   }
-  if (a.kind === "bigPull") return `A big pull: ${esc(a.bigPull?.cardName ?? a.bigPull?.name ?? "a rare card")} <a class="to" data-to="collection">Collection</a>`;
-  if (a.kind === "autoPlayStopped") return `Your agent stopped playing <a class="to" data-to="agent">My agent</a>`;
-  return esc(a.kind);
+  return { short: "?", word: result, tone: "void" };
+}
+
+/** What a match paid, in words: a cancel or abandon pays nothing. */
+const payWords = (credits: number, result: string) => (credits ? `+${credits} credits` : /^(cancelled|abandoned)/.test(result) ? "paid nothing" : "+0 credits");
+
+/** When, on the day's own clock: the time today, "Yesterday", else the date. */
+export function when(iso: string, d: OwnerData): string {
+  const t = Date.parse(iso), start = Date.parse(d.daily.startedAt), end = Date.parse(d.daily.resetsAt);
+  const tz = d.daily.timeZone;
+  if (t >= start && t < end) return new Intl.DateTimeFormat("en-AU", { timeZone: tz, hour: "numeric", minute: "2-digit" }).format(new Date(t));
+  if (t >= start - 86400000 && t < start) return "Yesterday";
+  return new Intl.DateTimeFormat("en-AU", { timeZone: tz, day: "numeric", month: "short" }).format(new Date(t));
+}
+
+/** A new player's L: what a match pays, the economy rule in the owner's own numbers. */
+function matchPays(d: OwnerData): string {
+  const first = d.daily.schedule[0]?.credits ?? 0;
+  return `${lab("What a match pays")}<ul class="pays"><li><span class="chip res win"><b>W</b></span><span>A win pays most: the first today ${first} credits, then less (Daily rewards). Your rating goes up.</span></li><li><span class="chip res loss"><b>L</b></span><span>A loss pays a little${d.daily.nextLossPays ? `: ${d.daily.nextLossPays} credits` : ""}, up to ${d.daily.maxPaidLosses} losses a day. Your rating goes down.</span></li><li><span class="chip res void"><b>C</b></span><span>A cancelled match pays nothing and isn't rated.</span></li><li><span class="chip res loss"><b>A</b></span><span>An abandoned match pays nothing to either side; the side that left takes a rating loss.</span></li></ul>`;
+}
+
+/** Where each alert's link goes, by name. */
+const TO_NAME: Record<string, string> = { daily: "Daily rewards", history: "Match history", collection: "Collection", agent: "My agent" };
+
+/** What each kind tells (a new player's Notifications L). */
+const KIND_WHAT: Record<string, string> = {
+  matchResult: "each match your agent finishes",
+  bigPull: "a Gold, Prototype, secret or Jackpot pull",
+  dailyPack: "your free pack, once a day",
+  autoPlayStopped: "when the server stops your agent",
+};
+
+/** One alert in two short lines and the tile it opens (render session 94).
+ * Read from the API's own fields (OWNER_API.md, "Notifications"): a big
+ * pull names its cards (`bigPull.cards`), a stop its reason. */
+export function alertSummary(a: Alert, d: OwnerData): { title: string; meta: string; to: string } {
+  const at = when(a.createdAt, d);
+  const one = d.play.agents.length <= 1;
+  if (a.kind === "dailyPack") {
+    const w = a.dailyPack?.waiting ?? 1;
+    return { title: w > 1 ? `${w} free packs waiting` : "Your free pack is waiting", meta: `${at} · claim it in Daily rewards`, to: "daily" };
+  }
+  if (a.kind === "matchResult" && a.matchResult) {
+    const m = a.matchResult, r = resultOf(m.result);
+    const bits = [at, payWords(m.credits, m.result), ...(m.rating ? [`rating ${signed(m.rating.change)}`] : []), ...(one ? [] : [m.agentName])];
+    return { title: `${r.word} vs ${m.opponent.agentName}`, meta: bits.join(" · "), to: "history" };
+  }
+  if (a.kind === "bigPull" && a.bigPull) {
+    const cards = a.bigPull.cards ?? [];
+    const c = cards[0];
+    const fin = (f: string) => ({ fullArt: "Full Art", altArt: "Alt Art", standard: "" } as Record<string, string>)[f] ?? f.charAt(0).toUpperCase() + f.slice(1);
+    const title = a.bigPull.jackpot ? "A Jackpot pack" : c ? `Big pull: ${c.name}` : "A big pull";
+    const what = c ? [...new Set([fin(c.finish), c.prototype ? "Prototype" : "", c.rarity].filter(Boolean))].join(" ") : "";
+    return { title, meta: [at, what, cards.length > 1 ? `+${cards.length - 1} more` : ""].filter(Boolean).join(" · "), to: "collection" };
+  }
+  if (a.kind === "autoPlayStopped") {
+    const s = a.autoPlayStopped;
+    const why = s?.reason === "timeUp" ? `Its ${s.allowanceMinutes ?? ""} minutes of play are up`.replace("  ", " ") : s?.reason === "dailyRewardsMaxed" ? "Every paid win today is in" : "The server switched it off";
+    return { title: "Your agent stopped playing", meta: `${at} · ${why}`, to: "agent" };
+  }
+  return { title: a.kind, meta: at, to: "home" };
 }
 
 export function featured(d: OwnerData): LiveMatch | null {
@@ -730,7 +838,7 @@ export function nextAction(t: TileSpec, size: Size, d: OwnerData): Action {
       if (!d.matches.total) return { label: "Start your agent", to: "agent", primary: true };
       return { label: size === "S" ? "Open the last match" : "All matches", to: "agent", primary: false };
     case "notif":
-      return d.notifications.unread ? { label: size === "S" ? "Open the latest" : "Mark all read", to: "home", primary: false } : { label: "Settings", to: "settings", primary: false };
+      return d.notifications.unread ? { label: size === "S" ? "Open the latest" : "Mark all read", to: size === "S" ? "alerts" : "home", primary: false } : { label: "Settings", to: "settings", primary: false };
     case "music":
       return { label: "Waiting on owner", to: "home", primary: false, disabled: true };
   }

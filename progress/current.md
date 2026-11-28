@@ -59,6 +59,17 @@ today's results (each paid win's pay and time, from `rewardedWins`); the "A loss
 checked by `ci/tile-states-check.mjs collection|daily` (46 and 58 PASS); grid check `season1-home-grid-s93/` 171
 PASS, 0 FAIL, 2 OPEN; fit.txt 160 of 166. Five small calls at the render checkpoint.
 
+**Render session 94 (Notifications and Match history, phase 2's tiles in groups, group 4's second half, 2026-11-28):**
+both tiles designed for their S / M / L boxes, which closes the tiles in groups: **every tile on the Home fits its box,
+166 of 166 renders** (was 160), contrast.txt has no OPEN line, fill.txt's only OPEN bands are Music L (waiting on
+owner). Match history: the last match in words (every API result: a cancel or abandon had been drawn "Drew"), what it
+paid, the rating change, when; the matches before it with a column per number; Replay links and a tally at L; a new
+player's L says what a match pays. Notifications: the new count, S the newest, M three and L five alerts as links in
+two lines, read from the API's own fields (big pulls had read fields it never sends); the kind chips at L; a new
+player's L says what each kind tells. States sheets `output/notif-states.html` (6) and `history-states.html` (7),
+checked by `ci/tile-states-check.mjs notif|history` (58 and 59 PASS); grid check `season1-home-grid-s94/` 177 PASS, 0
+FAIL, 1 OPEN. Five small calls at the render checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -106,18 +117,18 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 93's five calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 94's five calls may be there).
 
-Next: **render 94: group 4's second half, Notifications and Match history** (the last 6 of 166 renders that don't
-fit: Notifications M and L, Match history S on a phone; Notifications M's 2.9:1 line in contrast.txt; their OPEN
-bands in fill.txt), until fit.txt is all "fits", fill.txt has no OPEN line and contrast.txt has no OPEN line; add each
-tile to the grid check's `DONE` set as it lands (`render/season1/ci/home-grid-check.mjs`; its evidence folder is
-`season1-home-grid-s93` now: bump it). Then phase 2 step 3, three pack-wrapper designs with placeholder
-art, which now carries the owner's 2026-11-28 Pocket-quality entries (the foil pack, its light and shine, the pick
-row; each pack its own server-held seed, no "same odds" line). Write each tile's states sheet first (`statesSheet.ts`,
-as `storeStates.ts` / `packsStates.ts`) and add it to `ci/tile-states-check.mjs`, then fit it. Phase 1's step 5
-(Watch live 9:16 on the Season 1 arena) and step 6 (the music spec) are still open. Render 97 is the next hardening
-pass. A call only the owner can make goes in the notes as "waiting on owner" and the session moves on.
+Next: **render 95: phase 2 step 3, three pack-wrapper designs with placeholder art**, carrying the owner's
+2026-11-28 entries: the pack as a sealed foil object (crimped seals, a pillow curve, edge light), its light and shine
+(a specular highlight that slides as it turns, a holographic sheen following the pointer or tilt, else a slow sweep;
+a soft reflection and glow), the pick row (several packs, the centre one large, swipe / drag / arrows with inertia
+and snap, a tap picks; each pack its own server-held seed, nothing that tells one from another in the page before the
+pick, no "same odds" line), and set names (the AI·TCG wordmark, "Set name" as the placeholder title, "Season X" and
+the set code small, the set symbol). Keep every effect inside `render/season1/FLASH.md`'s rules (no flash, reduced
+motion still) and check it with `src/flashScan.ts`. Phase 1's step 5 (Watch live 9:16 on the Season 1 arena) and step
+6 (the music spec) are still open. Render 97 is the next hardening pass. A call only the owner can make goes in the
+notes as "waiting on owner" and the session moves on.
 
 Game lane (when it resumes; owner 2026-11-22 points 5 and 6): `season:setup` asks for "at least 12 characters" but
 the check and the Mac mini guide say 10, so make them match; and add the rehearsal-to-launch switch to

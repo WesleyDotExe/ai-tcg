@@ -189,6 +189,16 @@ pack lands in Packs.
 
 M shows 3, not 6, so the tile no longer overflows by 423 px.
 
+**Render session 94 (built for the boxes):** the headline is the last match in words, never a code: "Won", "Lost",
+"Drew", and the results Season 0's mockups drew as "Drew" by mistake, "Cancelled", "Your agent left" and "Opponent
+left" (every `result` OWNER_API.md sends); then the opponent, what it paid ("paid nothing" for a cancel or an
+abandon), the rating change ("not rated" for a cancel) and when it ended on the day's clock. The list under it is the
+matches *before* that one (it never repeats the headline): M three, L six, one row each with a column per number
+under a header (Paid, Rating, Ended at L), the agent named only when two agents share the history; L gives each row
+with a kept replay its Replay link, then the tally of the last seven and how many replays were kept. A new player's
+M says what each row will hold; L adds what a match pays: a win most, a loss a little, a cancel or abandon nothing,
+and what each does to the rating. States sheet `output/history-states.html` (seven states).
+
 ### Notifications
 **Question:** What happened while I was away?
 
@@ -200,6 +210,15 @@ M shows 3, not 6, so the tile no longer overflows by 423 px.
 
 Each alert links to the tile or page that owns its subject: a result goes to Match history, the free pack to Daily rewards. It drops
 the agent's name when the owner has only one agent.
+
+**Render session 94 (built for the boxes):** the headline is how many are new ("24 new"), or "All caught up", or,
+with none ever, "No alerts yet". S names the newest new one ("Latest: Your free pack is waiting"). Each alert is one
+link in two lines, kept to one line each: what happened, then when and the detail (what it paid and the rating
+change; a big pull's card, finish and rarity from `bigPull.cards`; a stop's reason, "Its 45 minutes of play are up");
+a dot in its kind's colour, filled while it is new. M lists the newest three, L five with where each goes ("Match
+history →"); a line counts the new ones not shown ("21 more new in Alerts"). L's new-by-kind chips open Alerts on that
+kind. A new player's L says what each kind tells and that all but the agent stopping can be switched off in Settings.
+States sheet `output/notif-states.html` (six states).
 
 ### Music (waiting on owner)
 **Question:** What's playing, and can I make my own?

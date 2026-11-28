@@ -7,13 +7,28 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-93, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-94, fenced off in render/season1/; Season 1 scope)
+
+Session 94 (Notifications and Match history) fixed: Notifications M up to 83 px and L up to 86 px past their boxes,
+Match history S on a phone (32 px), Notifications M's 2.9:1 line, both tiles' empty bands for a new player; a cancelled
+or abandoned match drawn as "Drew"; big-pull alerts reading `bigPull.cardName` / `name`, which the API never sends
+(it sends `bigPull.cards`). Every tile now fits (fit.txt 166 of 166). New or remaining debt:
+- **The kind chips on Notifications L open Alerts**, but the prototype draws no Alerts page, filtered or not; the
+  filter is a promise in the link (`data-kind`) only.
+- **"Mark all read" does nothing in the prototype** (the site sends `POST /api/notifications/read`); the tile never
+  redraws as read.
+- **Times are on the day's own clock from the API's `startedAt` / `resetsAt`**: an alert from before yesterday shows
+  its date only ("17 Oct"); a page left open across midnight keeps saying "1:22 pm" for yesterday's match until it
+  redraws.
+- **Nova's snapshot alerts aren't in time order** (the demo wrote some ids out of order): the tile keeps the API's
+  order (newest id first), as the site must, so "1:27 pm" can sit above "11:56 am" and then "1:22 pm" further down.
+- **The history and notification sheets' extra states are built** (made-up results and pulls of real cards at
+  made-up times), not captured from a live server.
+- **Music L is the one OPEN band left in fill.txt** (47-59% empty): waiting on the owner's music spec.
 
 Session 93 (Collection and Daily rewards) fixed: Collection M 130-170 px and L up to 195 px past their boxes, Daily
 rewards M 26-129 px (its reset line clipped to 1.2:1), "A loss pays 0" once ten losses are in, the faded (55%) paid
 steps, a new player's empty Daily L. New or remaining debt:
-- **Notifications and Match history still don't fit** (fit.txt: 6 of 166 renders; contrast.txt's Notifications M at
-  2.9:1; fill.txt's OPEN bands on both): group 4's second half, render 94.
 - **"Today's results" times are the API's `endedAt` in nth order**: when the server's clock stepped back (OWNER_API.md)
   the times read out of order, as Nova's snapshot does (12:15 pm, 1:22 pm, 11:40 am); honest to the data, odd to read.
 - **The sheets' extra states are built** (made-up holdings of real cards; made-up wins at made-up times), not captured

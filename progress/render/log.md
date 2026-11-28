@@ -7053,3 +7053,45 @@ typecheck clean.
 **Worked:** the `expect` field: the sheet now says what each state should show, not only what it looks like. **Thin:**
 in render/quality-debt.md. **Blocked:** nothing. **Next:** render 94, group 4's second half: Notifications and Match
 history (fit.txt's last 6 renders, contrast.txt's Notifications M line, fill.txt's OPEN bands).
+
+## 2026-11-28 — Render session 94: Notifications and Match history on the Season 1 Home grid (phase 2, group 4's second half)
+
+**Lane:** render. The last merged PR (#203) is "Render:", which would make this a game session, but the owner's
+2026-11-22 entry (point 7) keeps every scheduled session in the render lane; no render PR was open; the checkout was
+started from origin/main at 22e6395, which holds #203. The owner's answers to render 93 (keep all 5) needed nothing
+built; point 6 (set names on packs) waits for the pack-wrapper designs (marked in owner-feedback.md).
+
+**Built:**
+- **Match history**: the headline is the last match in words (`resultOf`: every `result` OWNER_API.md sends, so a
+  cancel is "Cancelled", an abandon "Your agent left" / "Opponent left"; the tiles had drawn both as "Drew"), the
+  opponent, what it paid ("paid nothing" for a cancel or abandon), the rating change ("not rated") and when (`when`:
+  the time on the day's clock, "Yesterday", else the date). The list is the matches before it (M three, L six), a
+  letter chip and a column per number under a header; the agent named only when two agents share the history; at L
+  a Replay link on each row with a kept replay, then the tally of the last seven and the replays kept. A new
+  player's L says what a match pays and what it does to the rating (the economy rule, in the owner's own numbers).
+- **Notifications**: the headline is the new count ("24 new"), "All caught up", or "No alerts yet". S names the
+  newest new alert. Each alert (`alertSummary`) is one link to the tile that owns it, in two lines, each kept to
+  one: what happened, then when and the detail; read from the API's own fields (a big pull's `bigPull.cards`, a
+  Jackpot pack, a stop's reason and minutes; the old text read `bigPull.cardName`, which the API never sends). A dot
+  in the kind's colour, filled while new. M the newest three, L five (with where each goes), a line counting the new
+  ones not shown; L's new-by-kind chips link to Alerts on that kind; a new player's L says what each kind tells.
+- **The checks**: `src/notifStates.ts` and `src/historyStates.ts` (six and seven states, `data-expect`), built by
+  `mockup/buildHome.ts`; `ci/tile-states-check.mjs notif|history` (the new count at every size; S names the newest
+  and lists none; M 3 and L 5 newest first, each a link in two one-line lines; the "more new" count. The last result
+  at every size; the rows before it in order, S none, M 3, L 6, under a header; Replay links at L only, one per kept
+  replay). The grid check's `DONE` set takes both tiles; its folder is `season1-home-grid-s94`. Unit tests
+  `test/historyNotifTiles.test.ts` (12).
+
+**Ran it:** `season1-notif-tile-s94/check.txt` **58 PASS, 0 FAIL** (first run 16 FAIL: rows' hover margin spilling
+past the tile, ellipsised lines without their whole text as a title, "All caught up" wrapping into the button at M);
+`season1-history-tile-s94/check.txt` **59 PASS, 0 FAIL** (first run 19 FAIL: M's left column into its button, the
+letter chips at 2.2:1: the page's global `.none` class faded the "Cancelled" chip, so the tone is now `void`).
+`season1-home-grid-s94/check.txt` **177 PASS, 0 FAIL, 1 OPEN** (Music L's band, waiting on owner); fit.txt **166 of
+166**; contrast.txt no OPEN line (Notifications 5.9:1 lowest, Match history 5.6:1). Re-run unchanged (shared CSS):
+agent 104, Ladder 115, Store 74, Packs 52, Collection 46, Daily 58, play style 21 PASS; mockup B's record check 68
+PASS. Tests: season1 133 of 133; the render suite 1222 of 1222; typecheck clean.
+
+**Worked:** writing the sheet's "every kind" state from OWNER_API.md's table is what found the big-pull field bug.
+**Thin:** in render/quality-debt.md. **Blocked:** nothing. **Next:** render 95, phase 2 step 3: three pack-wrapper
+designs with placeholder art (the owner's 2026-11-28 entries: the foil pack, its light and shine, the pick row, set
+names on packs); render 97 the next hardening pass.
