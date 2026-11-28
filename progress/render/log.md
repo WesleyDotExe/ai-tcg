@@ -7006,3 +7006,50 @@ change to them). Tests: the render suite 1201 of 1201 (season1 112); typecheck c
 **Worked:** the volatile state caught the cap that left a big day as a steep slope. **Thin:** the right-hand step is
 honest but short (a day is 4-6 px at this size); in a volatile month some big days have their value only in the
 title. **Blocked:** nothing. **Next:** render 93, group 4: Collection and Daily rewards.
+
+## 2026-11-28 — Render session 93: Collection and Daily rewards on the Season 1 Home grid (phase 2, group 4's first half)
+
+**Lane:** render. The last merged PR (#202) is "Render:", which would make this a game session, but the owner's
+2026-11-22 entry (point 7) keeps every scheduled session in the render lane; no render PR was open; the checkout holds
+#202. The owner's answers to render 92 (keep all 3) needed nothing built (marked handled).
+
+**Built:**
+- **States sheets first** (`render/season1/src/collectionStates.ts`, `src/dailyStates.ts` -> `output/collection-states.html`,
+  `output/daily-states.html`, built by `mockup/buildHome.ts`): six states each, the snapshot owners' real answers with
+  only the documented fields changed. Collection: as served (Nova, Wren), the first pack just opened, every faction with
+  Mythics and special finishes, the longest card names, the whole set. Daily rewards: as served, the free pack claimed,
+  two packs waiting (the cap), every paid win in (12 wins, 90 of 90), a day of ten losses. The extra cards are real
+  registry cards. Each case carries what the API says the tile must show (`expect`, a new `StateCase` field written as
+  `data-expect`), so the browser check holds the drawing to the data.
+- **Collection** (`homeFacts.ts` `completion`, `chase`, `bestCards`; CSS in `homePage.ts`): the held count is the
+  headline number and "of 124 cards" its label; the ring is the share (the bar and "· 40%" at L only). M: the count,
+  Secrets and Prototypes as two short lines (a new player's "Secrets and Prototypes come in packs."), the best three
+  cards sized to the unit. L: the count with its button beside it, rare finds on one line, the best five in one row,
+  the cards by faction (was "Binder by faction").
+- **Daily rewards**: the day's credits and the next win's pay are one headline (`HEAD_FACTS.daily = 2`), "of 90 today" at
+  S; M has the free pack, the steps in one row and the reset on the right; the free pack says "2 free packs ready" and,
+  at M and L, "Claim one so the next can come." (nothing comes in while two wait); a paid step is muted with a tick
+  instead of faded to 55%; the loss line no longer says "A loss pays 0" once ten are in, and adds what losses paid
+  today (`creditsFromLosses`). L adds a new fact, `paidToday` ("Today's results"): each paid win's pay and the time it
+  ended on the Sydney clock (`rewardedWins`), the unpaid wins as one line, the losses as one; a new player's says how a
+  day starts. A phone's S shrinks the ring so "First win pays 30" keeps to one line.
+- **Small cards on the glass**: a dark band under the name and darker cost and finish chips (the light Prototype art
+  left the white name at 4.0:1); long names break inside the card.
+- **The checks**: `ci/tile-states-check.mjs collection|daily` (one count at every size beside the ring; S no card, M
+  three, L five, one row, inside the tile; a faction row per faction held. One credits number and one next-win pay at
+  every size; Claim only when a pack waits, with its count; the next win's step marked, none once maxed; L's results
+  count). The grid check's `DONE` set takes both tiles (their contrast now fails rather than OPEN). Unit tests
+  `test/collectionDailyTiles.test.ts` (9).
+
+**Ran it:** `season1-collection-tile-s93/check.txt` **46 PASS, 0 FAIL** (first run 31 FAIL: M 130-170 px over, L's
+fifth card wrapping, the binder clipped to 1.2:1); `season1-daily-tile-s93/check.txt` **58 PASS, 0 FAIL** (first run 34
+FAIL; on the way the M right column's rows were tied to the left's, then a 3 px L overflow in the maxed state).
+`season1-home-grid-s93/check.txt` **171 PASS, 0 FAIL, 2 OPEN**; fit.txt **160 of 166** (was 140; Collection and Daily
+rewards 36 of 36); fill.txt: no OPEN band on either (Daily L for a new player was 40-44% empty); contrast.txt: Collection
+6.0:1 lowest, Daily 5.6:1. Re-run unchanged (shared CSS): agent 104, Ladder 115, Store 74, Packs 52, play style 21 PASS;
+mockup B's record check 68 PASS (once its page was rebuilt). Tests: season1 121 of 121; the render suite passes;
+typecheck clean.
+
+**Worked:** the `expect` field: the sheet now says what each state should show, not only what it looks like. **Thin:**
+in render/quality-debt.md. **Blocked:** nothing. **Next:** render 94, group 4's second half: Notifications and Match
+history (fit.txt's last 6 renders, contrast.txt's Notifications M line, fill.txt's OPEN bands).

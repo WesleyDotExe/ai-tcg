@@ -15,10 +15,12 @@ import { bCss } from "./homeMockupB.js";
 import { GRID } from "./homeGrid.js";
 import { GRID_CSS, gridTileHtml } from "./homePage.js";
 
-/** `pose` marks interaction states the page can't hold still (a hover, a
+/** `expect` (render session 93) carries what the API's answer says the
+ * tile must show, for the browser check to hold the drawn tile to.
+ * `pose` marks interaction states the page can't hold still (a hover, a
  * press): it edits the drawn tile, e.g. adding the .hov / .prs classes the
  * CSS gives the same look as :hover / :active. */
-export interface StateCase { id: string; name: string; data: OwnerData; pose?: (tileHtml: string) => string }
+export interface StateCase { id: string; name: string; data: OwnerData; pose?: (tileHtml: string) => string; expect?: Record<string, unknown> }
 
 /** The unit (px) the grid gives at each screen the checks measure. */
 export const STATE_UNITS = [
@@ -43,7 +45,7 @@ export function statesSheet(o: { tile: string; title: string; session: number; c
     o.cases.map((c) => {
       // S at column 1, M at 2-3, L at 4-5 (rows 1-2): the grid's own shapes.
       const place: Record<Size, string> = { S: "1 / 1 / 2 / 2", M: "1 / 2 / 2 / 4", L: "1 / 4 / 3 / 6" };
-      return `<section class="case" data-case="${c.id}" data-unit="${unit}" data-credits="${c.data.wallet.credits}" data-offers="${esc(JSON.stringify(c.data.packs.offer))}"><h3>${esc(c.name)} <small>${esc(o.note(c))}</small></h3>` +
+      return `<section class="case" data-case="${c.id}" data-unit="${unit}" data-credits="${c.data.wallet.credits}" data-offers="${esc(JSON.stringify(c.data.packs.offer))}"${c.expect ? ` data-expect="${esc(JSON.stringify(c.expect))}"` : ""}><h3>${esc(c.name)} <small>${esc(o.note(c))}</small></h3>` +
         `<div class="ugrid" style="--cols:5;--unit:${unit}px;--g:${GRID.gap}px">` +
         SIZES.map((s) => (c.pose ?? ((h: string) => h))(gridTileHtml(o.tile, s, c.data)).replace(`style="--c:`, `style="grid-area:${place[s]};--c:`)).join("") +
         `</div></section>`;

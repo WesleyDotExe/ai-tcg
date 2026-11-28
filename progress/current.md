@@ -49,6 +49,16 @@ every tile of the Home (`season1-home-grid-s92/contrast.txt`): Watch live's name
 alerts' links fixed; grid check 165 PASS, 0 FAIL, 6 OPEN; fit.txt 140 of 166. Three small calls at the render
 checkpoint.
 
+**Render session 93 (Collection and Daily rewards, phase 2's tiles in groups, group 4's first half, 2026-11-28):**
+both tiles designed for their S / M / L boxes: 36 of 36 renders fit (Collection M was 0 of 6, Daily rewards M 0 of
+6). Collection: the count held as the big number beside the ring, rare finds, the best cards sized to the unit (three
+at M, five in a row at L), cards by faction. Daily rewards: today's credits and the next win's pay as one headline,
+the free pack (two waiting: "Claim one so the next can come."), today's pay as one row of steps, and at L a new fact,
+today's results (each paid win's pay and time, from `rewardedWins`); the "A loss pays 0" line fixed. States sheets
+`output/collection-states.html` and `daily-states.html` (six each, with what each state must show as `data-expect`),
+checked by `ci/tile-states-check.mjs collection|daily` (46 and 58 PASS); grid check `season1-home-grid-s93/` 171
+PASS, 0 FAIL, 2 OPEN; fit.txt 160 of 166. Five small calls at the render checkpoint.
+
 **Before that — build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
 1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec and, owner 2026-11-13, ends at 00:00 27 Dec Sydney, by the server).
@@ -96,12 +106,13 @@ stays off until the owner decides Season 1's server, domain and sign-in). Step 0
 session at a time.
 
 At the start: check for an open render PR; if one is open, fix it if it has failed checks or conflicts, else wait
-as step 0 says. Read owner-feedback.md (answers to render 92's three calls may be there).
+as step 0 says. Read owner-feedback.md (answers to render 93's five calls may be there).
 
-Next: **render 93: group 4, Collection and Daily rewards** (Collection M and L, Daily rewards S and M are most of the
-26 renders that don't fit; Daily rewards M's clipped text is also an OPEN line in contrast.txt), then Notifications
-and History, until fit.txt is all "fits", fill.txt has no OPEN line and contrast.txt has no OPEN line; add each tile
-to the grid check's `DONE` set as its group lands. Then phase 2 step 3, three pack-wrapper designs with placeholder
+Next: **render 94: group 4's second half, Notifications and Match history** (the last 6 of 166 renders that don't
+fit: Notifications M and L, Match history S on a phone; Notifications M's 2.9:1 line in contrast.txt; their OPEN
+bands in fill.txt), until fit.txt is all "fits", fill.txt has no OPEN line and contrast.txt has no OPEN line; add each
+tile to the grid check's `DONE` set as it lands (`render/season1/ci/home-grid-check.mjs`; its evidence folder is
+`season1-home-grid-s93` now: bump it). Then phase 2 step 3, three pack-wrapper designs with placeholder
 art, which now carries the owner's 2026-11-28 Pocket-quality entries (the foil pack, its light and shine, the pick
 row; each pack its own server-held seed, no "same odds" line). Write each tile's states sheet first (`statesSheet.ts`,
 as `storeStates.ts` / `packsStates.ts`) and add it to `ci/tile-states-check.mjs`, then fit it. Phase 1's step 5

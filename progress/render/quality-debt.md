@@ -7,7 +7,23 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The Season 1 Home on the grid (sessions 86-92, fenced off in render/season1/; Season 1 scope)
+## The Season 1 Home on the grid (sessions 86-93, fenced off in render/season1/; Season 1 scope)
+
+Session 93 (Collection and Daily rewards) fixed: Collection M 130-170 px and L up to 195 px past their boxes, Daily
+rewards M 26-129 px (its reset line clipped to 1.2:1), "A loss pays 0" once ten losses are in, the faded (55%) paid
+steps, a new player's empty Daily L. New or remaining debt:
+- **Notifications and Match history still don't fit** (fit.txt: 6 of 166 renders; contrast.txt's Notifications M at
+  2.9:1; fill.txt's OPEN bands on both): group 4's second half, render 94.
+- **"Today's results" times are the API's `endedAt` in nth order**: when the server's clock stepped back (OWNER_API.md)
+  the times read out of order, as Nova's snapshot does (12:15 pm, 1:22 pm, 11:40 am); honest to the data, odd to read.
+- **The sheets' extra states are built** (made-up holdings of real cards; made-up wins at made-up times), not captured
+  from a live server; the "complete" collection state counts 119 kinds held (the registry's first 124 ids hold
+  some non-set cards) beside 124 of 124.
+- **Card names break mid-word at M** ("Bloodswar-m"): 55 px cards at 191 px; hyphenation where the browser has it,
+  a hard break where it hasn't.
+- **The best-cards order is rarity, then finish, then name**: a Prototype Common could sit behind a plain Rare; the
+  owner never ruled on it.
+- **Collection L for a one-faction player** keeps a short binder (one bar) and some empty glass (under 40%).
 
 Session 92 (the hardening pass; owner point 8) fixed: the Ladder chart's tier names on the line and its straight drop
 at the right edge; the chart ending 50 points from the tile's rating; Watch live's names (2.6:1), Match history's W / L
@@ -20,8 +36,6 @@ remaining debt:
 - **The chart's value labels are placed for the smallest plot** (120 x 110 px, measured) with a fixed 110 px box; a
   narrower plot (a new grid width) would need the constant changed; the browser check would catch a collision.
 - **The chart's states are built** (`chartEndingIn`), not captured from a live server.
-- **Contrast on Daily rewards M and Notifications M is under 4.5:1** (contrast.txt, OPEN): text clipped past tiles
-  that don't fit, measured against what's under it; group 4 and the next owns them.
 - **Contrast is measured at 1440 only** on the Home (the sheets cover 1024 and 1280 for the done tiles).
 
 Session 91 (Packs and Store; owner point 9) fixed: Store L ran 447-526 px past its box and the tile led with

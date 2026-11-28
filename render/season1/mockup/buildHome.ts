@@ -11,6 +11,8 @@ import { agentStatesPage } from "../src/agentStates.js";
 import { ladderStatesPage } from "../src/ladderStates.js";
 import { storeStatesPage } from "../src/storeStates.js";
 import { packsStatesPage } from "../src/packsStates.js";
+import { collectionStatesPage } from "../src/collectionStates.js";
+import { dailyStatesPage } from "../src/dailyStates.js";
 import type { HomeData } from "../src/homeFacts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -44,3 +46,10 @@ const packs = join(here, "..", "output", "packs-states.html");
 const psheet = packsStatesPage(data);
 writeFileSync(packs, psheet);
 console.log(`[home] wrote ${packs} (${(psheet.length / 1024).toFixed(0)} KB)`);
+
+// The Collection and Daily rewards tiles in every state (render session 93).
+for (const [name, page] of [["collection", collectionStatesPage(data)], ["daily", dailyStatesPage(data)]] as const) {
+  const f = join(here, "..", "output", `${name}-states.html`);
+  writeFileSync(f, page);
+  console.log(`[home] wrote ${f} (${(page.length / 1024).toFixed(0)} KB)`);
+}

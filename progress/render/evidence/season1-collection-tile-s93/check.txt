@@ -1,0 +1,52 @@
+
+=== light ===
+PASS unit 191px, served: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, first-pack: S, M and L fit their boxes, nothing spills
+PASS unit 191px, five-factions: S, M and L fit their boxes, nothing spills
+PASS unit 191px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 191px, complete: S, M and L fit their boxes, nothing spills
+PASS unit 218px, served: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, first-pack: S, M and L fit their boxes, nothing spills
+PASS unit 218px, five-factions: S, M and L fit their boxes, nothing spills
+PASS unit 218px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 218px, complete: S, M and L fit their boxes, nothing spills
+PASS unit 231px, served: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, first-pack: S, M and L fit their boxes, nothing spills
+PASS unit 231px, five-factions: S, M and L fit their boxes, nothing spills
+PASS unit 231px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 231px, complete: S, M and L fit their boxes, nothing spills
+PASS served: every size says the same count held ("49"), beside the ring
+PASS served: S draws no card, M 3, L 5, each size in one row and inside the tile
+PASS served: L's cards-by-faction has one row per faction held (5)
+PASS new: every size says the same count held ("20"), beside the ring
+PASS new: S draws no card, M 3, L 5, each size in one row and inside the tile
+PASS new: L's cards-by-faction has one row per faction held (1)
+PASS first-pack: every size says the same count held ("25"), beside the ring
+PASS first-pack: S draws no card, M 3, L 5, each size in one row and inside the tile
+PASS first-pack: L's cards-by-faction has one row per faction held (4)
+PASS five-factions: every size says the same count held ("97"), beside the ring
+PASS five-factions: S draws no card, M 3, L 5, each size in one row and inside the tile
+PASS five-factions: L's cards-by-faction has one row per faction held (5)
+PASS long-names: every size says the same count held ("5"), beside the ring
+PASS long-names: S draws no card, M 3, L 5, each size in one row and inside the tile
+PASS long-names: L's cards-by-faction has one row per faction held (4)
+PASS complete: every size says the same count held ("124"), beside the ring
+PASS complete: S draws no card, M 3, L 5, each size in one row and inside the tile
+PASS complete: L's cards-by-faction has one row per faction held (5)
+PASS light: no tile is the hero panel (54 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, bestCards "Best cards")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.6:1, bestCards "3")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.6:1, bestCards "3")
+
+=== dark ===
+PASS dark: no tile is the hero panel (54 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.8:1, bestCards "3")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.6:1, bestCards "3")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.6:1, bestCards "3")
+PASS no page errors
+PASS no outside requests
+
+46 PASS, 0 FAIL
