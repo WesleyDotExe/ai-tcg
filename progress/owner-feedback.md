@@ -5335,3 +5335,29 @@ Next session: render 95, three pack-wrapper designs with placeholder art (with 2
 2. **Not decided:** render 95's five calls (one cover per row; seven packs; how bright the shine may be; small packs drop the season line; `S1-01` on the packs).
 
 Next session: render 96, the opening's grip and tear after the pick (phase 3), on Crest.
+
+---
+
+## 2026-11-28 — Owner: answers to render session 95's five calls; the pick row loses its buttons; the tear starts the opening and is easier to hit
+
+Settles point 2 ("not decided") of the entry above.
+
+**Render session 95's calls**
+1. **Keep:** one cover per row (every pack in a row looks the same; a later row per cover).
+2. **Keep:** seven packs in the row.
+3. **Decision (call 3): the shine may be brighter**, within the opening's budget of at most one counted flash a second (2026-11-25 point 1), and still never a flash in the WCAG sense. Brighter, Pocket-quality shine is the point; judge it by eye on the built page and keep the flash check's numbers in the evidence.
+4. **Keep:** packs drawn under 150 px drop the season line (the tile names the pack in text).
+5. **Keep:** `S1-01` on the packs until the owner decides the naming scheme.
+
+**The pick row and the start of the opening (the owner, in chat)**
+6. **Remove the arrows and "Pick this pack"** from under the row. The row is moved by drag, swipe and the wheel; a tap on a side pack brings it to the centre; a tap on the centre pack picks it. The keyboard keeps working with nothing drawn for it (arrow keys move, Enter picks, focus visible), so the row still works for people who can't drag or tap.
+7. **Remove "Back to row"** once a pack is picked: a pick is final (every pack has the same odds).
+8. **Tearing the top of the picked pack starts the opening animations** (the reveal after the tear, `render/season1/FLASH.md` storyboard).
+9. **The tear is easier to hit: make the tear's activation and drag hitbox larger; the tear location is too precise.** Starting values for the session to tune by hand on a desktop and a phone:
+   - the grab zone is the whole top band of the pack (about its top quarter, the crimp included) plus a margin above and to each side, and at least 48 px tall on a phone;
+   - a drag that starts anywhere in it and moves about a third of the pack's width, either way, tears; it needn't follow a line, and a slanted drag counts;
+   - a tap or click in the zone still tears (the 600 ms tear, as the storyboard has it);
+   - a cue shows where to tear (a glow or notch along the top) until the first tear.
+   A check covers it: drags that start off-centre and at a slant, on desktop and phone sizes, all tear.
+
+Next session: render 96, the opening's grip and tear after the pick (phase 3), on Crest, with 6–9.
