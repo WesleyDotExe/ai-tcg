@@ -5325,3 +5325,13 @@ Next session: render 94, Notifications and Match history.
 5. **Keep:** Notifications S names the newest new alert; nothing when all are read.
 
 Next session: render 95, three pack-wrapper designs with placeholder art (with 2026-11-28 point 6, set names).
+
+---
+
+## 2026-11-28 — Owner: the Season 1 pack design is A · Crest (render session 95's check-in)
+
+**Render session 95** (PR #205, `render/season1/PACKS.md`, `render/season1/output/pack-wrappers.html`, `render/season1/output/pack-pick.html`, `progress/render/evidence/season1-pack-wrappers-s95/`).
+1. **Decision: the pack design is A · Crest** (the classic booster: the wordmark, the season line and the set name stacked at the top, the mascot standing in the foil, the symbol low right), for the pick row and everywhere a pack is drawn. The opening rework (phase 3) builds on Crest.
+2. **Not decided:** render 95's five calls (one cover per row; seven packs; how bright the shine may be; small packs drop the season line; `S1-01` on the packs).
+
+Next session: render 96, the opening's grip and tear after the pick (phase 3), on Crest.
