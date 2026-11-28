@@ -5285,3 +5285,14 @@ Next sessions: as planned (Packs and Store, then render 92 the hardening pass); 
 4. **Keep:** a new player's Packs L shows what one pack holds (five card shapes from the live odds table).
 
 Next session: render 92, the hardening pass (with the 2026-11-28 point 8, the Ladder chart).
+
+---
+
+## 2026-11-28 — Owner: answers to render session 92 (the hardening pass: the Ladder's rating chart, contrast on every tile), keep all 3
+
+**Render session 92** (PR #202, `progress/render/checkpoints.md`, `render/season1/output/ladder-states.html`, `progress/render/evidence/season1-ladder-tile-s92/`, `season1-home-grid-s92/`).
+1. **Keep:** the chart ends at the rating the tile shows (one number for both).
+2. **Keep:** a big day today is a short step at the right-hand end with its value beside it; the time axis stays even.
+3. **Keep:** at most four values on the chart (today's first, then the biggest); the rest in the chart's hover title.
+
+Next session: group 4 (Daily rewards, Notifications, Match history, Collection).
