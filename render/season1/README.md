@@ -103,3 +103,17 @@ saturated red flashing, an automatic check, a reduced-flash setting). Written up
     npx tsx render/season1/flash/sample.ts --pace 0            # tapping as fast as the page allows
     npx tsx render/season1/flash/sample.ts --reduce            # with prefers-reduced-motion
     npx tsx render/season1/flash/buildStoryboard.ts            # the storyboard page, with the audit's results
+
+## Season 1 packs: the wrapper designs and the pick row (render session 95)
+
+The owner's plan, phase 2 step 3, with the owner's 2026-11-28 pack entries. Written up in `PACKS.md`.
+
+- `src/packWrapper.ts`: the set's identity ("Set name" until named), the three designs' layouts (data, in pack
+  units), the placeholder mascots, the pack's markup and CSS (seals, pillow, foil, highlight, streak, sheen, edges,
+  reflection, glow) and the light (`lightAt`: pointer, tilt, sweep, still).
+- `src/packPick.ts`: the pick row's poses and motion (fling, snap, spring), shared with the page as `PICK_JS`.
+- `src/packWrapperPage.ts`, `mockup/buildPacks.ts` -> `output/pack-wrappers.html`, `output/pack-pick.html`.
+- `test/packWrapper.test.ts`; `ci/pack-wrapper-check.mjs` (headless Chromium); `flash/sample.ts --runs sweep=MS`.
+
+    npx tsx season1/mockup/buildPacks.ts                 # (in render/)
+    node render/season1/ci/pack-wrapper-check.mjs         # -> progress/render/evidence/season1-pack-wrappers-s95/

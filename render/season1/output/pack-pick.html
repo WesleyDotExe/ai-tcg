@@ -1,0 +1,209 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Season 1 packs: pick a pack</title><style>
+:root { color-scheme: dark; --ink: #eef1ff; --muted: #a9b2d6; --line: rgba(255,255,255,.12); }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+html { background: #05071a; }
+body { min-height: 100vh; color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(rgba(120,140,255,.07) 1px, transparent 1px) 0 0 / 100% 28px, radial-gradient(ellipse 80% 45% at 50% 30%, #1b2366, transparent 70%), linear-gradient(180deg, #05071a, #0b1030 60%, #05071a); }
+main { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 6px; } h2 { font-size: 19px; margin: 34px 0 6px; } p { margin: 4px 0 10px; color: var(--muted); max-width: 72ch; }
+.kick { font: 700 11px ui-monospace, Menlo, monospace; letter-spacing: .22em; text-transform: uppercase; color: #8fa6ff; }
+a { color: #a9bbff; }
+.designs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 26px; margin-top: 18px; }
+.design { border: 1px solid var(--line); border-radius: 18px; padding: 22px 18px 18px; background: rgba(10,14,40,.55); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.design h3 { margin: 0; font-size: 17px; align-self: flex-start; } .design p { margin: 0; font-size: 13.5px; align-self: stretch; }
+.stage { display: grid; place-items: center; padding: 8px 0 44px; width: 100%; }
+.covers { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; padding-bottom: 26px; }
+.sizes { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; justify-content: center; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, #eef1fb, #dfe5f6); width: 100%; }
+.sizes figure { margin: 0; display: grid; justify-items: center; gap: 6px; } .sizes figcaption { font-size: 11.5px; color: #3e4868; }
+.drive { font: 600 12px ui-monospace, Menlo, monospace; color: #9fb0e8; }
+button { font: 600 13px system-ui, sans-serif; color: var(--ink); background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+button:focus-visible, .slot:focus-visible { outline: 2px solid #8fa6ff; outline-offset: 4px; }
+
+.pw { position: relative; width: var(--pw); aspect-ratio: 100 / 160; flex: none; perspective: calc(var(--pw) * 5); container-type: inline-size; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #f2f5ff; }
+.pw .glow { position: absolute; inset: 8% -6%; border-radius: 40%; background: radial-gradient(closest-side, color-mix(in srgb, var(--fc) 55%, transparent), transparent); filter: blur(calc(var(--pw) * .08)); opacity: .5; transform: translateX(calc((var(--lx) - 50%) * -.08)); }
+.pw .obj { position: absolute; inset: 0; transform: rotateY(var(--ty)) rotateX(var(--tx)); transform-style: preserve-3d; transition: transform .25s ease-out;
+  -webkit-box-reflect: below calc(var(--pw) * .04) linear-gradient(transparent 78%, rgba(255,255,255,.16)); }
+.pw .face { position: absolute; inset: 0; clip-path: polygon(0.00% 0.00%, 2.27% 1.10%, 4.55% 0.00%, 6.82% 1.10%, 9.09% 0.00%, 11.36% 1.10%, 13.64% 0.00%, 15.91% 1.10%, 18.18% 0.00%, 20.45% 1.10%, 22.73% 0.00%, 25.00% 1.10%, 27.27% 0.00%, 29.55% 1.10%, 31.82% 0.00%, 34.09% 1.10%, 36.36% 0.00%, 38.64% 1.10%, 40.91% 0.00%, 43.18% 1.10%, 45.45% 0.00%, 47.73% 1.10%, 50.00% 0.00%, 52.27% 1.10%, 54.55% 0.00%, 56.82% 1.10%, 59.09% 0.00%, 61.36% 1.10%, 63.64% 0.00%, 65.91% 1.10%, 68.18% 0.00%, 70.45% 1.10%, 72.73% 0.00%, 75.00% 1.10%, 77.27% 0.00%, 79.55% 1.10%, 81.82% 0.00%, 84.09% 1.10%, 86.36% 0.00%, 88.64% 1.10%, 90.91% 0.00%, 93.18% 1.10%, 95.45% 0.00%, 97.73% 1.10%, 100.00% 0.00%, 100.00% 100.00%, 97.73% 98.90%, 95.45% 100.00%, 93.18% 98.90%, 90.91% 100.00%, 88.64% 98.90%, 86.36% 100.00%, 84.09% 98.90%, 81.82% 100.00%, 79.55% 98.90%, 77.27% 100.00%, 75.00% 98.90%, 72.73% 100.00%, 70.45% 98.90%, 68.18% 100.00%, 65.91% 98.90%, 63.64% 100.00%, 61.36% 98.90%, 59.09% 100.00%, 56.82% 98.90%, 54.55% 100.00%, 52.27% 98.90%, 50.00% 100.00%, 47.73% 98.90%, 45.45% 100.00%, 43.18% 98.90%, 40.91% 100.00%, 38.64% 98.90%, 36.36% 100.00%, 34.09% 98.90%, 31.82% 100.00%, 29.55% 98.90%, 27.27% 100.00%, 25.00% 98.90%, 22.73% 100.00%, 20.45% 98.90%, 18.18% 100.00%, 15.91% 98.90%, 13.64% 100.00%, 11.36% 98.90%, 9.09% 100.00%, 6.82% 98.90%, 4.55% 100.00%, 2.27% 98.90%, 0.00% 100.00%); overflow: hidden; border-radius: 2px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--fc) 34%, #0a0f24), #0a0d1e 46%, color-mix(in srgb, var(--fc) 22%, #070915)); }
+.pw .foil { position: absolute; inset: 0; background:
+  repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px),
+  radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--fc) 30%, transparent), transparent 60%); }
+.pw .rg { position: absolute; display: flex; align-items: center; z-index: 3; line-height: 1; }
+.pw .rg-art { z-index: 1; display: block; }
+.pw .rg-art .mascot { width: 100%; height: 100%; display: block; }
+.pw .rg-symbol { color: #f2f5ff; filter: drop-shadow(0 0 2cqw color-mix(in srgb, var(--fc) 80%, transparent)); } .pw .rg-symbol svg { width: 100%; height: 100%; }
+.pw .wm { font-weight: 900; letter-spacing: .06em; white-space: nowrap; background: linear-gradient(180deg, #ffffff 0%, #dfe9ff 42%, #8fa6d8 52%, #f4f0ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .3cqw .5cqw rgba(0,0,0,.8)) drop-shadow(0 0 1.6cqw rgba(0,0,0,.6)); }
+.pw .wm i { font-style: normal; color: var(--fc); -webkit-text-fill-color: color-mix(in srgb, var(--fc) 60%, #fff); }
+.pw .sl { font: 700 1em/1 ui-monospace, Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: #dfe5fb; white-space: nowrap; text-shadow: 0 0 .8cqw #000, 0 0 2.4cqw rgba(0,0,0,.85); }
+.pw .sl i { font-style: normal; color: color-mix(in srgb, var(--fc) 50%, #fff); }
+.pw .ti { font-weight: 900; letter-spacing: .01em; color: #fff; white-space: nowrap; text-shadow: 0 .5cqw 1.4cqw rgba(0,0,0,.75), 0 0 3cqw color-mix(in srgb, var(--fc) 55%, transparent); }
+.pw .scrim::before { content: ""; position: absolute; inset: -18% -6%; z-index: -1; border-radius: 1.5cqw; background: rgba(6,8,22,.72); box-shadow: 0 0 4cqw 2cqw rgba(6,8,22,.45); }
+.pw .rg-wordmark.scrim::before { background: rgba(10,14,34,.6); box-shadow: inset 0 0 0 .3cqw rgba(255,255,255,.18); }
+.pw .win { position: absolute; inset: 0; clip-path: polygon(8% 0, 92% 0, 100% 6%, 100% 94%, 92% 100%, 8% 100%, 0 94%, 0 6%); background: linear-gradient(180deg, #050816, color-mix(in srgb, var(--fc) 18%, #050816)); }
+.pw .win::after { content: ""; position: absolute; inset: 0; clip-path: inherit; box-shadow: inset 0 0 0 .5cqw color-mix(in srgb, var(--fc) 75%, #fff), inset 0 0 5cqw color-mix(in srgb, var(--fc) 35%, transparent); }
+.pw .holo { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.2; mix-blend-mode: screen;
+  background: repeating-linear-gradient(115deg, #ff7ad9 0%, #7affea 6%, #8f8bff 12%, #ffe37a 18%, #ff7ad9 24%); background-size: 260% 260%; background-position: var(--holo) 50%;
+  -webkit-mask: linear-gradient(115deg, transparent 10%, #000 45%, #000 55%, transparent 90%); mask: linear-gradient(115deg, transparent 10%, #000 45%, #000 55%, transparent 90%); }
+.pw .spec { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(38% 26% at var(--lx) var(--ly), rgba(255,255,255,0.12), rgba(255,255,255,0.040) 45%, transparent 75%); }
+.pw .streak { position: absolute; inset: -20% -60%; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.06) 47.5%, rgba(255,255,255,0.12) 49%, rgba(255,255,255,0.06) 50.5%, transparent 54%); transform: translateX(calc((var(--lx) - 50%) * 1.1)); }
+.pw .pillow { position: absolute; inset: 0; z-index: 4; pointer-events: none; background:
+  radial-gradient(55% 32% at 34% 30%, rgba(255,255,255,.07), transparent 70%),
+  linear-gradient(180deg, rgba(0,0,0,.38), transparent 9%, transparent 91%, rgba(0,0,0,.38)),
+  radial-gradient(140% 70% at 50% 50%, transparent 55%, rgba(0,0,0,.42) 100%),
+  linear-gradient(90deg, rgba(0,0,0,.3), transparent 12%, transparent 88%, rgba(0,0,0,.3)); }
+.pw .crimp { position: absolute; left: 0; right: 0; height: 5.625%; z-index: 5; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.34) 0 1.1cqw, rgba(0,0,0,.28) 1.1cqw 2.2cqw), linear-gradient(180deg, #c9d2ea, #6d7898 50%, #b8c3e0); background-blend-mode: overlay; }
+.pw .crimp.t { top: 0; box-shadow: 0 .4cqw .8cqw rgba(0,0,0,.45); } .pw .crimp.b { bottom: 0; box-shadow: 0 -.4cqw .8cqw rgba(0,0,0,.45); }
+.pw .edge { position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  box-shadow: inset .6cqw 0 0 rgba(255,255,255,calc(.08 + (100 - var(--lx-n, 50)) * .002)), inset -.6cqw 0 0 rgba(255,255,255,calc(.08 + var(--lx-n, 50) * .002)), inset 0 0 1.5cqw rgba(255,255,255,.08);
+  background: linear-gradient(calc(90deg + var(--ty) * 3), rgba(255,255,255,.12), transparent 8%, transparent 92%, rgba(255,255,255,.12)); }
+.pw.small .sl { display: none; }
+@media (prefers-reduced-motion: reduce) { .pw .obj { transition: none; } }
+
+.pick { position: relative; height: min(620px, 78vh); margin-top: 12px; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; outline: none; }
+.pick .row { position: absolute; left: 50%; top: 46%; width: 0; height: 0; perspective: 1400px; }
+.slot { position: absolute; left: -135px; top: -216px; transform-origin: 50% 50%; cursor: pointer; will-change: transform, filter; }
+.slot .pw { transition: none; }
+.pick.picked .slot:not(.chosen) { opacity: 0 !important; transition: opacity .45s ease-out; }
+.slot.chosen { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.pickbar { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.picked-note { text-align: center; min-height: 1.5em; color: var(--ink); }
+.designs-nav { display: flex; gap: 8px; flex-wrap: wrap; } .designs-nav a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); text-decoration: none; } .designs-nav a[aria-current] { background: rgba(143,166,255,.22); }
+@media (prefers-reduced-motion: reduce) { .pick.picked .slot:not(.chosen), .slot.chosen { transition: none; } }
+</style></head><body><main>
+  <div class="kick">Season 1 · the opening's first beat · render session 95</div>
+  <h1>Pick a pack</h1>
+  <p>Drag, swipe, scroll or use the arrow keys to move along the row; it carries on a little and settles on a pack. Tap a side pack to bring it to the middle; tap the middle one (or press Enter) to pick it. The grip and the tear come next (phase 3).</p>
+  <nav class="designs-nav" aria-label="Wrapper design"><a href="?design=crest" data-design-link="crest">A · Crest</a><a href="?design=window" data-design-link="window">B · Window</a><a href="?design=bleed" data-design-link="bleed">C · Full bleed</a> <a href="pack-wrappers.html">All three designs</a></nav>
+  <div class="pick" id="pick" tabindex="0" role="listbox" aria-label="Packs to pick from"><div class="row" id="row"></div></div>
+  <div class="pickbar"><button type="button" id="prev" aria-label="Previous pack">←</button><button type="button" id="choose">Pick this pack</button><button type="button" id="next" aria-label="Next pack">→</button><button type="button" id="again" hidden>Back to the row</button></div>
+  <p class="picked-note" id="note" aria-live="polite"></p>
+  <p class="drive" id="drive"></p><button type="button" id="tilt" hidden>Use the phone's tilt</button>
+</main><template id="tpl-crest"><div class="pw d-crest" style="--pw:270px;--fc:#2fb6ff;--ty:-6.3deg;--tx:3.15deg;--lx:68.9%;--ly:52.5%;--holo:27.5%" data-design="crest" data-mascot="Cortex" role="img" aria-label="Set name, Season 1, S1-01: a sealed pack"><div class="glow" aria-hidden="true"></div><div class="obj"><div class="face"><div class="foil"></div><div class="rg rg-wordmark" data-region="wordmark" style="left:22.000%;top:8.125%;width:56.000%;height:5.000%;font-size:7.2cqw;text-align:center;justify-content:center;"><span class="wm">AI<i>·</i>TCG</span></div><div class="rg rg-season" data-region="season" style="left:20.000%;top:14.375%;width:60.000%;height:3.125%;font-size:4.4cqw;text-align:center;justify-content:center;"><span class="sl">Season 1<i aria-hidden="true"> · </i>S1-01</span></div><div class="rg rg-title" data-region="title" style="left:8.000%;top:18.125%;width:84.000%;height:8.750%;font-size:12.5cqw;text-align:center;justify-content:center;"><span class="ti placeholder">Set name</span></div><div class="rg rg-art" data-region="art" style="left:8.000%;top:28.750%;width:84.000%;height:53.750%;"><svg class="mascot" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><defs><radialGradient id="mg-Cortex"><stop offset="0" stop-color="#2fb6ff" stop-opacity=".55"/><stop offset=".6" stop-color="#2fb6ff" stop-opacity=".12"/><stop offset="1" stop-color="#2fb6ff" stop-opacity="0"/></radialGradient></defs><g opacity=".5" stroke="#2fb6ff" stroke-width=".5" fill="none"><path d="M6 0v18l7 7v40"/><circle cx="13" cy="65" r="1.4" fill="#2fb6ff"/><path d="M20 0v27l7 7v28"/><circle cx="27" cy="53" r="1.4" fill="#2fb6ff"/><path d="M34 0v36l7 7v40"/><circle cx="41" cy="65" r="1.4" fill="#2fb6ff"/><path d="M48 0v18l7 7v28"/><circle cx="55" cy="53" r="1.4" fill="#2fb6ff"/><path d="M62 0v27l7 7v40"/><circle cx="69" cy="65" r="1.4" fill="#2fb6ff"/><path d="M76 0v36l7 7v28"/><circle cx="83" cy="53" r="1.4" fill="#2fb6ff"/><path d="M90 0v18l7 7v40"/><circle cx="97" cy="65" r="1.4" fill="#2fb6ff"/></g><circle cx="50" cy="50" r="34" fill="url(#mg-Cortex)"/><g><path d="M30 92c0-16 9-26 20-26s20 10 20 26z" fill="#0c1a33" stroke="#2fb6ff" stroke-width="1.4"/><rect x="31" y="26" width="38" height="36" rx="11" fill="#0c1a33" stroke="#2fb6ff" stroke-width="1.6"/><rect x="36" y="38" width="28" height="9" rx="4.5" fill="#2fb6ff" opacity=".9"/><path d="M50 26V15m0 0l-6-5m6 5l6-5" stroke="#2fb6ff" stroke-width="1.4" fill="none"/><circle cx="44" cy="10" r="2" fill="#2fb6ff"/><circle cx="56" cy="10" r="2" fill="#2fb6ff"/><path d="M38 56h24" stroke="#2fb6ff" stroke-width="1" opacity=".6"/></g><text x="50" y="98" text-anchor="middle" font-size="3.4" fill="#2fb6ff" opacity=".75" font-family="ui-monospace,monospace" letter-spacing=".4">PLACEHOLDER ART</text></svg></div><div class="rg rg-symbol" data-region="symbol" style="left:78.000%;top:83.750%;width:12.000%;height:7.500%;"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 14 4.5v7L8 15 2 11.5v-7z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.2 11.3 6.1v3.8L8 11.8 4.7 9.9V6.1z" fill="none" stroke="currentColor" stroke-width=".9" opacity=".8"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg></div><div class="holo"></div><div class="spec"></div><div class="streak"></div><div class="pillow"></div><div class="crimp t"></div><div class="crimp b"></div><div class="edge"></div></div></div></div></template><template id="tpl-window"><div class="pw d-window" style="--pw:270px;--fc:#2fb6ff;--ty:-6.3deg;--tx:3.15deg;--lx:68.9%;--ly:52.5%;--holo:27.5%" data-design="window" data-mascot="Cortex" role="img" aria-label="Set name, Season 1, S1-01: a sealed pack"><div class="glow" aria-hidden="true"></div><div class="obj"><div class="face"><div class="foil"></div><div class="rg rg-wordmark" data-region="wordmark" style="left:9.000%;top:8.125%;width:40.000%;height:4.375%;font-size:6.2cqw;text-align:left;justify-content:flex-start;"><span class="wm">AI<i>·</i>TCG</span></div><div class="rg rg-symbol" data-region="symbol" style="left:81.000%;top:7.813%;width:10.000%;height:6.250%;"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 14 4.5v7L8 15 2 11.5v-7z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.2 11.3 6.1v3.8L8 11.8 4.7 9.9V6.1z" fill="none" stroke="currentColor" stroke-width=".9" opacity=".8"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg></div><div class="rg rg-art" data-region="art" style="left:8.000%;top:15.000%;width:84.000%;height:56.250%;"><div class="win"><svg class="mascot" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><defs><radialGradient id="mg-Cortex"><stop offset="0" stop-color="#2fb6ff" stop-opacity=".55"/><stop offset=".6" stop-color="#2fb6ff" stop-opacity=".12"/><stop offset="1" stop-color="#2fb6ff" stop-opacity="0"/></radialGradient></defs><g opacity=".5" stroke="#2fb6ff" stroke-width=".5" fill="none"><path d="M6 0v18l7 7v40"/><circle cx="13" cy="65" r="1.4" fill="#2fb6ff"/><path d="M20 0v27l7 7v28"/><circle cx="27" cy="53" r="1.4" fill="#2fb6ff"/><path d="M34 0v36l7 7v40"/><circle cx="41" cy="65" r="1.4" fill="#2fb6ff"/><path d="M48 0v18l7 7v28"/><circle cx="55" cy="53" r="1.4" fill="#2fb6ff"/><path d="M62 0v27l7 7v40"/><circle cx="69" cy="65" r="1.4" fill="#2fb6ff"/><path d="M76 0v36l7 7v28"/><circle cx="83" cy="53" r="1.4" fill="#2fb6ff"/><path d="M90 0v18l7 7v40"/><circle cx="97" cy="65" r="1.4" fill="#2fb6ff"/></g><circle cx="50" cy="50" r="34" fill="url(#mg-Cortex)"/><g><path d="M30 92c0-16 9-26 20-26s20 10 20 26z" fill="#0c1a33" stroke="#2fb6ff" stroke-width="1.4"/><rect x="31" y="26" width="38" height="36" rx="11" fill="#0c1a33" stroke="#2fb6ff" stroke-width="1.6"/><rect x="36" y="38" width="28" height="9" rx="4.5" fill="#2fb6ff" opacity=".9"/><path d="M50 26V15m0 0l-6-5m6 5l6-5" stroke="#2fb6ff" stroke-width="1.4" fill="none"/><circle cx="44" cy="10" r="2" fill="#2fb6ff"/><circle cx="56" cy="10" r="2" fill="#2fb6ff"/><path d="M38 56h24" stroke="#2fb6ff" stroke-width="1" opacity=".6"/></g><text x="50" y="98" text-anchor="middle" font-size="3.4" fill="#2fb6ff" opacity=".75" font-family="ui-monospace,monospace" letter-spacing=".4">PLACEHOLDER ART</text></svg></div></div><div class="rg rg-season" data-region="season" style="left:9.000%;top:73.750%;width:82.000%;height:3.125%;font-size:4.4cqw;text-align:left;justify-content:flex-start;"><span class="sl">Season 1<i aria-hidden="true"> · </i>S1-01</span></div><div class="rg rg-title" data-region="title" style="left:9.000%;top:77.500%;width:82.000%;height:8.750%;font-size:12cqw;text-align:left;justify-content:flex-start;"><span class="ti placeholder">Set name</span></div><div class="holo"></div><div class="spec"></div><div class="streak"></div><div class="pillow"></div><div class="crimp t"></div><div class="crimp b"></div><div class="edge"></div></div></div></div></template><template id="tpl-bleed"><div class="pw d-bleed" style="--pw:270px;--fc:#2fb6ff;--ty:-6.3deg;--tx:3.15deg;--lx:68.9%;--ly:52.5%;--holo:27.5%" data-design="bleed" data-mascot="Cortex" role="img" aria-label="Set name, Season 1, S1-01: a sealed pack"><div class="glow" aria-hidden="true"></div><div class="obj"><div class="face"><div class="foil"></div><div class="rg rg-art" data-region="art" style="left:0.000%;top:5.625%;width:100.000%;height:88.750%;"><svg class="mascot" viewBox="8 -6 84 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="mg-Cortex"><stop offset="0" stop-color="#2fb6ff" stop-opacity=".55"/><stop offset=".6" stop-color="#2fb6ff" stop-opacity=".12"/><stop offset="1" stop-color="#2fb6ff" stop-opacity="0"/></radialGradient></defs><g opacity=".5" stroke="#2fb6ff" stroke-width=".5" fill="none"><path d="M6 0v18l7 7v40"/><circle cx="13" cy="65" r="1.4" fill="#2fb6ff"/><path d="M20 0v27l7 7v28"/><circle cx="27" cy="53" r="1.4" fill="#2fb6ff"/><path d="M34 0v36l7 7v40"/><circle cx="41" cy="65" r="1.4" fill="#2fb6ff"/><path d="M48 0v18l7 7v28"/><circle cx="55" cy="53" r="1.4" fill="#2fb6ff"/><path d="M62 0v27l7 7v40"/><circle cx="69" cy="65" r="1.4" fill="#2fb6ff"/><path d="M76 0v36l7 7v28"/><circle cx="83" cy="53" r="1.4" fill="#2fb6ff"/><path d="M90 0v18l7 7v40"/><circle cx="97" cy="65" r="1.4" fill="#2fb6ff"/></g><circle cx="50" cy="50" r="34" fill="url(#mg-Cortex)"/><g><path d="M30 92c0-16 9-26 20-26s20 10 20 26z" fill="#0c1a33" stroke="#2fb6ff" stroke-width="1.4"/><rect x="31" y="26" width="38" height="36" rx="11" fill="#0c1a33" stroke="#2fb6ff" stroke-width="1.6"/><rect x="36" y="38" width="28" height="9" rx="4.5" fill="#2fb6ff" opacity=".9"/><path d="M50 26V15m0 0l-6-5m6 5l6-5" stroke="#2fb6ff" stroke-width="1.4" fill="none"/><circle cx="44" cy="10" r="2" fill="#2fb6ff"/><circle cx="56" cy="10" r="2" fill="#2fb6ff"/><path d="M38 56h24" stroke="#2fb6ff" stroke-width="1" opacity=".6"/></g><text x="50" y="98" text-anchor="middle" font-size="3.4" fill="#2fb6ff" opacity=".75" font-family="ui-monospace,monospace" letter-spacing=".4">PLACEHOLDER ART</text></svg></div><div class="rg rg-wordmark scrim" data-region="wordmark" style="left:26.000%;top:8.125%;width:48.000%;height:4.375%;font-size:6.4cqw;text-align:center;justify-content:center;"><span class="wm">AI<i>·</i>TCG</span></div><div class="rg rg-title scrim" data-region="title" style="left:8.000%;top:66.250%;width:84.000%;height:8.750%;font-size:12.5cqw;text-align:center;justify-content:center;"><span class="ti placeholder">Set name</span></div><div class="rg rg-season scrim" data-region="season" style="left:20.000%;top:75.625%;width:60.000%;height:3.125%;font-size:4.4cqw;text-align:center;justify-content:center;"><span class="sl">Season 1<i aria-hidden="true"> · </i>S1-01</span></div><div class="rg rg-symbol" data-region="symbol" style="left:44.000%;top:81.875%;width:12.000%;height:7.500%;"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 14 4.5v7L8 15 2 11.5v-7z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.2 11.3 6.1v3.8L8 11.8 4.7 9.9V6.1z" fill="none" stroke="currentColor" stroke-width=".9" opacity=".8"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg></div><div class="holo"></div><div class="spec"></div><div class="streak"></div><div class="pillow"></div><div class="crimp t"></div><div class="crimp b"></div><div class="edge"></div></div></div></div></template><script>
+const LIGHT={"maxTurnY":14,"maxTurnX":9,"sweepMs":7000,"tiltRange":25,"restBeta":40,"specAlpha":0.12,"streakAlpha":0.12,"holoAlpha":0.2};const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));const lightAt=function lightAt(input){let px=0,py=0;if(input.mode==="pointer"){px=clamp(input.px,-1,1);py=clamp(input.py,-1,1)}else if(input.mode==="tilt"){px=clamp(input.gamma/LIGHT.tiltRange,-1,1);py=clamp((input.beta-LIGHT.restBeta)/LIGHT.tiltRange,-1,1)}else if(input.mode==="sweep"){const a=2*Math.PI*input.t/LIGHT.sweepMs;px=Math.sin(a);py=.35*Math.sin(2*a)}else{px=-.45;py=-.35}return{turnY:+(px*LIGHT.maxTurnY).toFixed(2),turnX:+(-py*LIGHT.maxTurnX).toFixed(2),lx:+(50-px*42).toFixed(2),ly:+(42-py*30).toFixed(2),holo:+(50+px*50).toFixed(2)}};
+const Q = new URLSearchParams(location.search);
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FORCED = Q.get('light');
+const driver = { mode: REDUCED ? 'still' : (FORCED || 'sweep'), pointer: null, tilt: null, lastPointer: -1e9 };
+function applyLight(el, pose) {
+  el.style.setProperty('--ty', pose.turnY + 'deg'); el.style.setProperty('--tx', pose.turnX + 'deg');
+  el.style.setProperty('--lx', pose.lx + '%'); el.style.setProperty('--ly', pose.ly + '%'); el.style.setProperty('--lx-n', pose.lx);
+  el.style.setProperty('--holo', pose.holo + '%');
+}
+function liveInput(el, now) {
+  if (driver.mode === 'still') return { mode: 'still' };
+  if (FORCED === 'sweep') return { mode: 'sweep', t: now };
+  if (driver.pointer && now - driver.lastPointer < 2500) {
+    const r = el.getBoundingClientRect();
+    return { mode: 'pointer', px: (driver.pointer.x - (r.left + r.width / 2)) / (r.width * 1.2), py: (driver.pointer.y - (r.top + r.height / 2)) / (r.height * 1.2) };
+  }
+  if (driver.tilt) return { mode: 'tilt', beta: driver.tilt.beta, gamma: driver.tilt.gamma };
+  return { mode: 'sweep', t: now };
+}
+function lightLoop() {
+  const now = performance.now();
+  let shown = 'still';
+  for (const el of document.querySelectorAll('.pw[data-live]')) { const inp = liveInput(el, now); shown = inp.mode; applyLight(el, lightAt(inp)); }
+  const tag = document.getElementById('drive'); if (tag) tag.textContent = 'Light: ' + ({ still: REDUCED ? 'still (reduced motion)' : 'still', pointer: 'following the pointer', tilt: 'following the tilt', sweep: 'slow sweep' })[shown];
+  if (driver.mode !== 'still') requestAnimationFrame(lightLoop);
+}
+if (driver.mode !== 'still' && FORCED !== 'sweep') {
+  addEventListener('pointermove', (e) => { if ((e.pointerType === 'mouse' || e.pointerType === 'pen') && (e.movementX || e.movementY)) { driver.pointer = { x: e.clientX, y: e.clientY }; driver.lastPointer = performance.now(); } }, { passive: true });
+  const onTilt = (e) => { if (e.beta != null && e.gamma != null) driver.tilt = { beta: e.beta, gamma: e.gamma }; };
+  const DOE = window.DeviceOrientationEvent;
+  if (DOE && typeof DOE.requestPermission === 'function' && matchMedia('(pointer: coarse)').matches) {
+    const b = document.getElementById('tilt'); if (b) { b.hidden = false; b.onclick = () => DOE.requestPermission().then((s) => { if (s === 'granted') addEventListener('deviceorientation', onTilt); b.hidden = true; }).catch(() => { b.hidden = true; }); }
+  } else if (DOE) addEventListener('deviceorientation', onTilt);
+}
+requestAnimationFrame(lightLoop);
+
+const ROW_COUNT=7,FLING_MS=220,SPRING=0.00016;const slotPose=function slotPose(rel){const a=Math.abs(rel),s=Math.sign(rel);const near=Math.min(a,1),far=Math.max(0,a-1);const x=s*(near*.74+far*.46);const rotY=-s*(near*40+Math.min(far,2)*7);const scale=1-near*.24-Math.min(far,2)*.09;const light=1-near*.42-Math.min(far,2)*.16;const opacity=a<=2.6?1:Math.max(0,1-(a-2.6)/.6);return{x:+x.toFixed(4),rotY:+rotY.toFixed(3),scale:+scale.toFixed(4),z:Math.round(100-a*10),light:+light.toFixed(4),opacity:+opacity.toFixed(4)}};const restingSlot=function restingSlot(pos,velocity,count=ROW_COUNT){const carried=pos+Math.max(-3,Math.min(3,velocity*FLING_MS));return Math.max(0,Math.min(count-1,Math.round(carried)))};const ease=function ease(pos,vel,target,dtMs){const k=SPRING,c=2*Math.sqrt(k);let p=pos,v=vel;for(let t=0;t<dtMs;t+=4){const h=Math.min(4,dtMs-t);const a=-k*(p-target)-c*v;v+=a*h;p+=v*h}if(Math.abs(p-target)<.001&&Math.abs(v)<1e-4)return{pos:target,vel:0};return{pos:p,vel:v}};const dragSlots=(dx,packPx)=>-dx/(packPx*.74);
+const START = 3;
+const design = ['crest','window','bleed'].includes(Q.get('design')) ? Q.get('design') : 'crest';
+document.querySelector('[data-design-link="' + design + '"]').setAttribute('aria-current', 'page');
+const row = document.getElementById('row'), pick = document.getElementById('pick'), note = document.getElementById('note');
+const tpl = document.getElementById('tpl-' + design).content.firstElementChild;
+const slots = [];
+for (let k = 0; k < ROW_COUNT; k++) {
+  const s = document.createElement('div');
+  s.className = 'slot'; s.dataset.slot = String(k); s.setAttribute('role', 'option'); s.setAttribute('aria-label', 'Pack ' + (k + 1) + ' of ' + ROW_COUNT);
+  s.appendChild(tpl.cloneNode(true));
+  row.appendChild(s); slots.push(s);
+}
+const PX = 270;
+// The centre pack's drawn width: the row's own size on a desktop, larger share of a phone's width.
+const unitPx = () => Math.min(PX, pick.clientWidth * (pick.clientWidth < 600 ? 0.56 : 0.42));
+const S = window.__row = { pos: START, vel: 0, target: START, dragging: false, picked: null, events: [] };
+function layout() {
+  const unit = unitPx();
+  for (let k = 0; k < slots.length; k++) {
+    const s = slots[k], p = slotPose(k - S.pos), pw = s.firstElementChild;
+    if (S.picked === k) continue;
+    s.style.transform = 'translateX(' + (p.x * unit).toFixed(1) + 'px) scale(' + (p.scale * unit / PX).toFixed(4) + ') rotateY(' + p.rotY + 'deg)';
+    s.style.zIndex = String(p.z); s.style.opacity = String(p.opacity); s.style.filter = p.light < 1 ? 'brightness(' + p.light + ')' : 'none';
+    if (Math.round(S.pos) === k) { pw.setAttribute('data-live', ''); s.setAttribute('aria-selected', 'true'); } else { pw.removeAttribute('data-live'); s.removeAttribute('aria-selected'); applyLight(pw, lightAt({ mode: 'still' })); }
+  }
+}
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(64, now - last); last = now;
+  if (!S.dragging && S.picked === null && (S.pos !== S.target || S.vel !== 0)) {
+    if (REDUCED) { S.pos = S.target; S.vel = 0; } else { const r = ease(S.pos, S.vel, S.target, dt); S.pos = r.pos; S.vel = r.vel; }
+  }
+  layout();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+function goTo(k) { if (S.picked !== null) return; S.target = Math.max(0, Math.min(ROW_COUNT - 1, k)); }
+function choose() {
+  if (S.picked !== null) return;
+  const k = Math.round(S.target); S.pos = S.target = k; S.vel = 0; layout();
+  S.picked = k; S.events.push({ slot: k });
+  pick.classList.add('picked');
+  const s = slots[k]; s.classList.add('chosen');
+  const u = unitPx() / PX; s.style.transform = 'translateY(-5%) scale(' + (1.08 * u).toFixed(4) + ')'; s.style.filter = 'none';
+  note.textContent = 'You picked pack ' + (k + 1) + ' of ' + ROW_COUNT + '. Next: hold it to grip, then tear it open (phase 3).';
+  document.getElementById('choose').hidden = true; document.getElementById('again').hidden = false;
+  // On the site: the page sends only the slot; the server opens that slot's own roll, kept on the server, and sends back its cards.
+  dispatchEvent(new CustomEvent('packpick', { detail: { slot: k } }));
+}
+document.getElementById('again').onclick = () => { const k = S.picked; S.picked = null; pick.classList.remove('picked'); slots[k].classList.remove('chosen'); note.textContent = ''; document.getElementById('choose').hidden = false; document.getElementById('again').hidden = true; layout(); };
+document.getElementById('choose').onclick = choose;
+document.getElementById('prev').onclick = () => goTo(Math.round(S.target) - 1);
+document.getElementById('next').onclick = () => goTo(Math.round(S.target) + 1);
+pick.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') { goTo(Math.round(S.target) - 1); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { goTo(Math.round(S.target) + 1); e.preventDefault(); }
+  else if (e.key === 'Enter' || e.key === ' ') { choose(); e.preventDefault(); }
+});
+let drag = null;
+pick.addEventListener('pointerdown', (e) => { if (S.picked !== null) return; drag = { x0: e.clientX, pos0: S.pos, moved: 0, samples: [{ t: e.timeStamp, x: e.clientX }], slot: e.target.closest('.slot') }; pick.setPointerCapture(e.pointerId); });
+pick.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x0; drag.moved = Math.max(drag.moved, Math.abs(dx));
+  if (drag.moved > 6) { S.dragging = true; S.pos = Math.max(-0.4, Math.min(ROW_COUNT - 0.6, drag.pos0 + dragSlots(dx, unitPx()))); }
+  drag.samples.push({ t: e.timeStamp, x: e.clientX }); if (drag.samples.length > 6) drag.samples.shift();
+});
+pick.addEventListener('pointerup', (e) => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!S.dragging) { // a tap
+    const k = d.slot ? Number(d.slot.dataset.slot) : null;
+    if (k !== null) { if (k === Math.round(S.pos) && Math.abs(S.pos - k) < 0.05) choose(); else goTo(k); }
+    return;
+  }
+  S.dragging = false;
+  const a = d.samples[0], b = d.samples[d.samples.length - 1];
+  const v = b.t > a.t ? dragSlots(b.x - a.x, unitPx()) / (b.t - a.t) : 0;
+  S.vel = REDUCED ? 0 : v; S.target = restingSlot(S.pos, v);
+});
+let wheelAcc = 0, wheelAt = 0;
+pick.addEventListener('wheel', (e) => {
+  if (S.picked !== null) return;
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  if (e.timeStamp - wheelAt > 250) wheelAcc = 0; wheelAt = e.timeStamp; wheelAcc += d;
+  if (Math.abs(wheelAcc) >= 60) { goTo(Math.round(S.target) + Math.sign(wheelAcc)); wheelAcc = 0; }
+  e.preventDefault();
+}, { passive: false });
+</script></body></html>

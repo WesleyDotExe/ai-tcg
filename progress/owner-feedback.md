@@ -5245,7 +5245,7 @@ Next session: group 3, Packs and Store (taking point 9); render 92 the hardening
 
 ---
 
-## 2026-11-28 — Owner: Season 1 booster packs and their opening at the quality of Pokémon TCG Pocket (the pack, its light and shine, and picking a pack from several)
+## 2026-11-28 — Owner: Season 1 booster packs and their opening at the quality of Pokémon TCG Pocket (the pack, its light and shine, and picking a pack from several) (points 1-4 HANDLED for the pack and the pick 2026-11-28, render session 95: three wrapper designs as sealed foil objects (crimped serrated seals, a pillow curve, edge light, a specular highlight and gloss streak sliding against the turn, a holographic sheen, a reflection and a glow; the light follows the pointer, the tilt where the browser gives it, else a slow 7 s sweep; still under reduced motion), and the pick row (seven packs, the centre large, neighbours turned back and dimmer, more behind; drag, swipe, wheel, arrows with a fling and a snap; a tap on a side pack centres it, a tap on the centre picks it and it lifts out); `render/season1/PACKS.md`, `output/pack-wrappers.html`, `output/pack-pick.html`; checks `progress/render/evidence/season1-pack-wrappers-s95/` (the browser check and the flash sampler: the light makes no counted change). The grip and the tear after the pick are phase 3, the opening rework. Point 5 settled by the two entries below)
 
 From the owner in chat, with a Pokémon TCG Pocket screenshot as the reference (not committed: it is Pokémon's art). Applies to the Season 1 pack work: the pack-wrapper designs (phase 2) and the pack-opening rework (phase 3, `render/season1/FLASH.md` storyboard).
 1. **Owner: the packs and the opening should be more like Pokémon TCG Pocket. Not the art on the pack** (our art follows the January art plan: original, our mascots, the cyberpunk virtual-world look), **but the quality of the packs, with lighting and shiny effects, and the style of the opening, with multiple packs you can scroll through to pick one.**
@@ -5261,14 +5261,14 @@ Next sessions: as planned (Packs and Store, then render 92 the hardening pass); 
 
 ---
 
-## 2026-11-28 — Owner: the packs in the pick row (settles point 5 of the entry above)
+## 2026-11-28 — Owner: the packs in the pick row (settles point 5 of the entry above) (HANDLED 2026-11-28, render session 95: one booster, one cover, in every slot of the row; point 2 settled by the entry below: no line)
 
 1. **Decision:** every pack in the row is the same booster with the same odds. The pick is there so the owner gets to interact with the opening (the owner: "it gives people the illusion of being able to choose one, just a way for them to interact"); which pack is picked changes nothing in what it holds.
 2. **Not decided:** whether the screen says so in a small line ("every pack has the same odds"). Build it with the line until the owner decides.
 
 ---
 
-## 2026-11-28 — Owner: each pack in the pick row has its own seed; no "same odds" line (settles point 2 of the entry above)
+## 2026-11-28 — Owner: each pack in the pick row has its own seed; no "same odds" line (settles point 2 of the entry above) (HANDLED on the page 2026-11-28, render session 95: no "same odds" line; every slot is a clone of one template, the page holds no seed, card or odds, and the pick sends only the slot number; the browser check fails if any slot's markup differs or the page holds a seed, card or odds line. The server side (seeds made and kept by the server, from a secret, the unpicked packs never rolled or sent) is written down in `render/season1/PACKS.md` for the opening rework and the Season 1 server; no server code yet)
 
 1. **Decision:** each pack in the row has **its own random seed**, so the pack picked is the roll the owner gets; every pack has the same odds (S0-odds-3 now, each season's table later).
 2. **Decision:** the screen does **not** say "every pack has the same odds" (the owner: "we don't need to tell the player"). This is only about that line; it changes nothing about where the pack odds themselves are shown.
@@ -5299,7 +5299,7 @@ Next session: group 4 (Daily rewards, Notifications, Match history, Collection).
 
 ---
 
-## 2026-11-28 — Owner: answers to render session 93 (Collection and Daily rewards), keep all 5; packs carry a set name, "Season X" small (1-5 HANDLED 2026-11-28, render session 94: kept as built, nothing to change; 5 noted for the January art pass. 6 noted for the pack-wrapper designs, phase 2 step 3, the next render session after this one: "Set name" as the placeholder title, "Season X" and the set code small, the AI·TCG wordmark, the set symbol)
+## 2026-11-28 — Owner: answers to render session 93 (Collection and Daily rewards), keep all 5; packs carry a set name, "Season X" small (1-5 HANDLED 2026-11-28, render session 94: kept as built, nothing to change; 5 noted for the January art pass. 6 noted for the pack-wrapper designs, phase 2 step 3, the next render session after this one: "Set name" as the placeholder title, "Season X" and the set code small, the AI·TCG wordmark, the set symbol. 6 HANDLED 2026-11-28, render session 95: all three designs lay out the AI·TCG wordmark, "Set name" as the title (never a made-up name: `S1_FIRST.name` is null), "Season 1 · S1-01" small and the set symbol, inside the safe area, checked on 24 packs at desktop and phone sizes)
 
 **Render session 93** (PR #203, `progress/render/checkpoints.md`, `render/season1/output/collection-states.html`, `render/season1/output/daily-states.html`, `progress/render/evidence/season1-collection-tile-s93/`, `season1-daily-tile-s93/`).
 1. **Keep:** Collection's ring is the share at S and M; "· 40%" in words at L only.
@@ -5315,7 +5315,7 @@ Next session: render 94, Notifications and Match history.
 
 ---
 
-## 2026-11-28 — Owner: answers to render session 94 (Notifications and Match history), keep all 5
+## 2026-11-28 — Owner: answers to render session 94 (Notifications and Match history), keep all 5 (HANDLED 2026-11-28, render session 95: all five kept as built, nothing to change; render 95 built the three pack-wrapper designs as planned)
 
 **Render session 94** (PR #204, `progress/render/checkpoints.md`, `progress/render/evidence/season1-notif-tile-s94/`, `season1-history-tile-s94/`, `season1-home-grid-s94/`).
 1. **Keep:** Match history's list is the matches before the headline one (M three, L six), so the last match never shows twice.

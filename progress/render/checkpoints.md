@@ -7,6 +7,53 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-28 — Render session 95: three Season 1 pack-wrapper designs and the pick row (phase 2 step 3) — AWAITING FEEDBACK (OWNER CHECK-IN: pick a design; five small calls)
+
+**Start here:** `render/season1/output/pack-wrappers.html` (move the pointer over the packs), then
+`output/pack-pick.html?design=crest` (drag, scroll or use the arrows; tap the middle pack). Or the stills in
+`progress/render/evidence/season1-pack-wrappers-s95/` (`wrapper-crest-large.png`, `-window-`, `-bleed-`,
+`wrappers-1440.jpg`, `pick-crest-row.jpg`, `pick-*-picked.jpg`, `pick-phone.jpg`). Write-up: `render/season1/PACKS.md`.
+
+**What it is:** the sealed Season 1 booster as an object, in three designs with placeholder art, and the opening's
+first beat, picking a pack from a row (your 2026-11-28 entries). Each pack has crimped, serrated seals, a pillow curve,
+edge light, a highlight and a gloss streak that slide as it turns, a holographic sheen, a reflection and a glow. The
+light follows the pointer, the phone's tilt where the browser gives it, or else a slow sweep; it holds still with
+reduced motion. Every design lays out the AI·TCG wordmark, "Set name" as the title, "Season 1 · S1-01" small and the
+set symbol; the faction mascot is the hero (placeholder shapes, one per faction, marked as placeholder art).
+
+**Your pick (the check-in):**
+- **A · Crest:** the classic booster: wordmark, season line and name stacked at the top, the mascot standing in the
+  foil, the symbol low right.
+- **B · Window:** the mascot in a cut-corner HUD window; the wordmark and symbol ride the top; the name in its own band
+  below.
+- **C · Full bleed:** the mascot fills the pack edge to edge; the name and season on a dark scrim in the lower third.
+  **Recommended:** it is closest to the reference's feel (the art is the pack), and it gives January's mascot art the
+  most room. The cost: the title needs its scrim, so the art has a dark band across it.
+
+Until you pick, the opening rework (phase 3) can be built on any of them: the design is one parameter.
+
+**Calls for you (none blocks):**
+1. **One cover in the row.** Every pack in the pick row shows the same mascot. Four covers in one row (one per
+   faction) would look richer, but they would tell packs apart by their look, and you asked that nothing does. Keep
+   one cover per row (a later row per cover, as the chat proposed)?
+2. **Seven packs in the row**, the centre one and three each side (the third fades out). Keep seven?
+3. **The light is soft by rule:** the highlight's and streak's whites are capped so the light makes no change the
+   flash check counts, at any speed (0 changes measured). It could be brighter and still pass WCAG (the highlight
+   covers under a quarter of the field of view), but then it would count as flashes in the design's own budget. Keep
+   it at zero, or allow a brighter shine within one counted flash a second?
+4. **Small packs drop the season line** under 150 px (the Store tile's sizes), where it would draw at 4-6 px; the
+   wordmark is then part of the picture and the tile names the pack in text. Keep?
+5. **The set code reads `S1-01`** (your naming-scheme proposal, not yet decided). Keep it on the packs until you
+   decide?
+
+**Evidence:** `season1-pack-wrappers-s95/check.txt` **70 PASS, 0 FAIL**; the flash sampler on the built pages
+(`flash-pick/`, `flash-wrappers/`): **0 changes, 0 counted flashes** in every run (each page at rest for 10 s, the pointer swept across and back every 600 ms for 8 s, and the pick row with reduced motion). Unit tests `test/packWrapper.test.ts` (19).
+
+**Thin:** in `progress/render/quality-debt.md` (placeholder mascots and symbol are simple shapes; tilt untested on a
+real phone; the reflection is Chromium and Safari only; no sound; no server for the seeds yet).
+
+---
+
 ## 2026-11-28 — Render session 94: Notifications and Match history on the Season 1 Home grid (phase 2, group 4's second half) — AWAITING FEEDBACK (five small calls)
 
 **Start here:** `render/season1/output/home.html` (Notifications S on the recommended board; "All M" and "All L" show
