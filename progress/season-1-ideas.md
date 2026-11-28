@@ -411,3 +411,22 @@ are already made), the CRT overlay, the code-made sound effects.
 8. The cosmetics for sale as the first monthly collection (one theme: mat, back, coin, boast, avatar), the website
    art, the empty states, the badges.
 9. Audio alongside: music, drum samples, broadcast beds, the voice library.
+
+### 2026-11-28 (owner): set names — packs aren't "Season 1, 2, 3"
+
+**[owner]** Packs can't just be called "Season 1, 2, 3". Each pack shows **"Season X" small, with the set's own name
+as the title**, like the reference pack the owner showed (its small set line and code, its set name large).
+
+Proposal for the scheme (not decided; the owner names the sets):
+- **Every set has a name** (the title on its packs, its Store shelf and its cosmetics collection), a **code** and a
+  **symbol**. "Season X" says when it's from; the name says what it is.
+- **Code:** season and set in order, e.g. `S1-01`, `S1-02`, so the cards' set number line reads like "056/220 · S1-01".
+  Season 0's booster keeps `S0`.
+- **One set a month** (DESIGN.md: monthly sets), and the month's cosmetic theme follows its set (owner 2026-11-22), so
+  the set name names the month: packs, cards and cosmetics launch under one name and one theme.
+- **Naming rules:** one to three words, easy to say, in the cyberpunk virtual-world vocabulary (networks, code,
+  signals, hacks, the grid), never a card's name already in use (e.g. Zero-Day), never another game's, film's or
+  product's name, and checked before use.
+- **Pack type** can sit as a small line above the name if there's ever more than one kind (e.g. a booster and a
+  themed pack); one kind needs no line.
+- Not decided: the set names themselves, and whether a season has a name too.

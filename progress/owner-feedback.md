@@ -5296,3 +5296,19 @@ Next session: render 92, the hardening pass (with the 2026-11-28 point 8, the La
 3. **Keep:** at most four values on the chart (today's first, then the biggest); the rest in the chart's hover title.
 
 Next session: group 4 (Daily rewards, Notifications, Match history, Collection).
+
+---
+
+## 2026-11-28 — Owner: answers to render session 93 (Collection and Daily rewards), keep all 5; packs carry a set name, "Season X" small
+
+**Render session 93** (PR #203, `progress/render/checkpoints.md`, `render/season1/output/collection-states.html`, `render/season1/output/daily-states.html`, `progress/render/evidence/season1-collection-tile-s93/`, `season1-daily-tile-s93/`).
+1. **Keep:** Collection's ring is the share at S and M; "· 40%" in words at L only.
+2. **Keep:** a new player's Collection M says "Secrets and Prototypes come in packs."
+3. **Keep:** Daily rewards L gains "Today's results" (the API's `rewardedWins`; unpaid wins as one line; the losses and what they paid).
+4. **Keep:** Daily rewards M drops the pay sentence (it's at L and behind the "?"); the ten-losses wording fix.
+5. **Keep for now:** the dark band under a small card's name. **Look at it again with the real art in January** (the January art plan).
+
+**Set names on packs (for the pack-wrapper designs, phase 2)**
+6. **Owner: packs aren't called "Season 1, 2, 3"; each set gets a name.** "Season X" sits small on the pack, and the set's own name is the title, as on the reference the owner showed (a small set line and code, the set name large). The wrapper designs lay out: the AI·TCG wordmark, the set name as the title, "Season X" and the set code small, the set symbol. Until a set has a name, the placeholder reads "Set name" (never a made-up name presented as real). The naming scheme is in `progress/season-1-ideas.md` ("Set names", 2026-11-28).
+
+Next session: render 94, Notifications and Match history.
