@@ -78,7 +78,7 @@ describe("the light", () => {
     const f = new Function(`${LIGHT_JS}; return lightAt;`)() as typeof lightAt;
     for (const i of [{ mode: "still" }, { mode: "pointer", px: 0.3, py: -0.8 }, { mode: "tilt", beta: 10, gamma: -30 }, { mode: "sweep", t: 2345 }] as LightInput[]) expect(f(i)).toEqual(lightAt(i));
   });
-  it("never makes a change the flash check counts: the highlight crossing the dark foil, at the fastest a pointer moves it", () => {
+  it("never makes a flash the check counts: the highlight crossing the dark foil, at the fastest a pointer moves it (render 96: brighter, owner call 3; at most one counted flash a second, none here)", () => {
     // The highlight drawn as the page draws it: alpha `specAlpha` at its
     // centre over the foil's darkest-to-lightest (sRGB 12-70), crossing a
     // 1024 x 768 screen's pack (300 x 480) once every 200 ms.
@@ -97,7 +97,8 @@ describe("the light", () => {
     }
     const r = analyse(t, fps, W, H);
     expect(r.pass).toBe(true);
-    expect(r.worst.changes).toBe(0);
+    expect(r.bigFlashes.length).toBe(0);
+    expect(r.worst.changes).toBeLessThanOrEqual(2);
   });
 });
 

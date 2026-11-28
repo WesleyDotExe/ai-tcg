@@ -1,0 +1,57 @@
+Season 1 pack opening, the grip and the tear (render session 96): 54 PASS, 0 FAIL
+
+PASS row: no arrows, no "Pick this pack" and no "Back to the row" on the page (buttons shown: [])
+PASS row, keyboard: ArrowRight moves one pack with nothing drawn for it (4)
+PASS row, keyboard: ArrowLeft moves back (3)
+PASS row, keyboard: the row takes focus (pick; :focus-visible true, outline none 3px)
+PASS row, keyboard: Enter picks the centre pack; the pick event carries only its slot ([{"slot":3}]); the pack is held, waiting for the tear
+PASS row: a pick is final: keys, the wheel and a tap beside the pack don't move the row or undo the pick, and nothing offers to go back (pos 3, picked 3)
+PASS cue: before the tear a cue runs along the pack's top (opacity 1, 29 px below the top of a 467 px pack, 92% of its width)
+     the line under the pack: "Your pack. Hold it, then drag across the top to tear it open."
+PASS keyboard: Enter on the picked pack tears it and the opening runs to the stack (opened, [{"torn":"key"},{"open":true},{"opened":true}])
+PASS row and keyboard: no page error
+PASS desktop: the grab zone is the top 25% of the pack (117 px of 467) plus 41 px above and 41 px each side: 373 x 157 px
+PASS desktop: a drag left of centre in the crimp, straight right (105 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a drag right of centre under the crimp, straight left (105 px) tears the pack open (opened; the cut ran right to left; the cue gone: true)
+PASS desktop: a drag the centre, slanted down-right (30°) (105 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a drag near the left edge, slanted up-right (45°) (107 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a drag in the margin above the pack, right (105 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a drag in the margin left of the pack, right (106 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a drag in the margin right of the pack, slanted left (105 px) tears the pack open (opened; the cut ran right to left; the cue gone: true)
+PASS desktop: a drag at the band's lower edge (24%), crooked, right (111 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a drag straight down from the top (105 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS desktop: a tap low on the pack (60% down) doesn't tear (held); the cue nudges instead
+PASS desktop: a drag that starts 45% down the pack, outside the zone, doesn't tear (cut 0)
+PASS desktop: a short drag (18% of the width) cuts part-way and stops there (cut 41% across, not open)
+PASS desktop: the next drag carries on from the part-torn cut (another 20% of the width) and opens it (opened)
+PASS desktop: no page error
+PASS desktop: a click on the crimp tears by itself (torn about 642 ms after the tap: the 600 ms tear; opened)
+PASS desktop: a click in the margin above the pack tears by itself (torn about 681 ms after the tap: the 600 ms tear; opened)
+PASS phone: the grab zone is the top 25% of the pack (87 px of 346) plus 30 px above and 30 px each side: 277 x 117 px (48 px or more)
+PASS phone: a drag left of centre in the crimp, straight right (78 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a drag right of centre under the crimp, straight left (78 px) tears the pack open (opened; the cut ran right to left; the cue gone: true)
+PASS phone: a drag the centre, slanted down-right (30°) (78 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a drag near the left edge, slanted up-right (45°) (80 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a drag in the margin above the pack, right (78 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a drag in the margin left of the pack, right (79 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a drag in the margin right of the pack, slanted left (78 px) tears the pack open (opened; the cut ran right to left; the cue gone: true)
+PASS phone: a drag at the band's lower edge (24%), crooked, right (82 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a drag straight down from the top (78 px) tears the pack open (opened; the cut ran left to right; the cue gone: true)
+PASS phone: a tap low on the pack (60% down) doesn't tear (held); the cue nudges instead
+PASS phone: a drag that starts 45% down the pack, outside the zone, doesn't tear (cut 0)
+PASS phone: a short drag (18% of the width) cuts part-way and stops there (cut 41% across, not open)
+PASS phone: the next drag carries on from the part-torn cut (another 20% of the width) and opens it (opened)
+PASS phone: no page error
+PASS phone: a tap on the crimp tears by itself (torn about 731 ms after the tap: the 600 ms tear; opened)
+PASS phone: a tap in the margin above the pack tears by itself (torn about 725 ms after the tap: the 600 ms tear; opened)
+PASS grip: held, the pack trembles harder the longer it is held (the first 250 ms up to 0.68 px, after 1.2 s up to 2.92 px)
+PASS grip: it leans toward the finger (a finger right of centre: 0.76°)
+PASS the tell: for a hit (a Gold) the top seam glows in the tell's colour (#ffcf6a, opacity 0.85)
+PASS grip: letting go low on the pack doesn't tear it (held)
+PASS the tell: a plain pack: the seam's glow is 0 (none: only a hit glows)
+PASS the tell: a Gold with Reduce flashing on: the seam's glow is 0.22 (under the reduced-flash ceiling)
+PASS tear: midway the cut follows the finger (47% across) with scraps thrown off its head (6)
+PASS open: the strip above the torn edge comes away as its own piece and flies off ({"clip":"polygon(-30% -40%, 1","live":false})
+PASS open: five cards rise out as a stack, backs up, and settle on screen (stack top 328 px, the stage's top 208 px)
+PASS open: no page error
+PASS reduced motion: no tremble and no lean (0px, 0deg), no scraps (0), and the drag still tears it open (opened)

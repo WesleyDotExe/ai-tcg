@@ -79,7 +79,7 @@ export const STORYBOARD: readonly Beat[] = [
     reducedLights: [{ at: 300, peak: 0.07, area: 0.04, riseMs: 600, holdMs: 0, fallMs: 900, colour: "tell" }],
   },
   {
-    id: "tear", name: "3. The tear", trigger: "the owner drags along the top crimp (a tap plays it by itself in 700 ms)", ms: 900,
+    id: "tear", name: "3. The tear", trigger: "the owner drags across the top of the pack, any way, a third of its width (a tap or Enter plays it by itself in 600 ms; owner 2026-11-28 point 9)", ms: 900,
     see: "The foil rips along the finger's path: a jagged edge, curling scraps thrown off the head of the tear, the inside showing through the cut. The seam's glow becomes light leaking through the cut, one steady rise as the cut lengthens.",
     hear: "A tearing sound whose pitch and grain follow the finger's speed; the held tone swells.",
     move: "The strip peels; scraps fly; the pack sways with the pull.",

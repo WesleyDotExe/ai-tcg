@@ -24,7 +24,10 @@
 // ten-pack open, driven to its summary), `idle=MS` (the page as it loads,
 // for MS ms, untouched) or `sweep=MS` (render session 95: the pointer swept
 // across the page and back every 600 ms, for MS ms: the fastest a hand moves
-// a light that follows the pointer). The driving taps as soon as the page takes a tap,
+// a light that follows the pointer) or `tear=MS[@best[:reduced]]` (render session 96, the
+// pick page: Enter picks at 0.6 s, the pack is gripped at 1.5 s for 0.9 s, then
+// dragged across its top in 0.4 s; then left until MS; `@gold` is the best card's
+// finish the stand-in server answers with, `:reduced` turns Reduce flashing on). The driving taps as soon as the page takes a tap,
 // which is the fastest an owner can go: the worst case for flashes per
 // second. --reduce runs with prefers-reduced-motion: reduce.
 //
@@ -83,10 +86,27 @@ const plain = stills ? await chromium.launch() : null;
 
 interface RunResult { run: string; report: FlashReport; ended: string; taps: number; drawn: number; label: string; errors: string[]; secs: { capture: number; measure: number } }
 
+// A run's file name: no '@' or ':' (tear=6000@gold:reduced -> tear-6000-gold-lessflash).
+const runFile = (run: string) => run.replace("=", "-").replace("#", "-r").replace("@", "-").replace(":reduced", "-lessflash");
+
+// The tear drive's page side (see `tear=` above), as plain JavaScript.
+const TEAR_DRIVE = `function (a) {
+  var w = window, S = w.__row, O = w.__open;
+  if (a.phase === "pick" && S && S.picked === null) document.getElementById("pick").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  var pw = document.querySelector(".slot.chosen .pw"); if (!pw || !O) return;
+  var r = pw.getBoundingClientRect(), x0 = r.left + r.width * 0.15, y = r.top + r.height * 0.07;
+  function fire(type, x) { (document.elementFromPoint(x, y) || document).dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, pointerType: "mouse", bubbles: true })); }
+  if (a.phase === "down" && !w.__tearDown) { w.__tearDown = true; fire("pointerdown", x0); }
+  if (a.phase === "drag") fire("pointermove", x0 + r.width * 0.5 * Math.min(1, a.k));
+  if (a.phase === "up" && !w.__tearUp) { w.__tearUp = true; fire("pointerup", x0 + r.width * 0.5); }
+}`;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function sampleRun(browser: any, run: string): Promise<RunResult> {
-  const [kind, nStr] = run.split("#")[0]!.split("=") as [string, string];
+  const [kind, nArg] = run.split("#")[0]!.split("=") as [string, string];
+  const [nStr, tearOpt = ""] = nArg.split("@") as [string, string?];
   const n = Number(nStr);
+  const [best = "plain", tearFlash = ""] = tearOpt.split(":");
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 1, reducedMotion: reduce ? "reduce" : "no-preference" });
   const p = await ctx.newPage();
   const errors: string[] = [];
@@ -96,11 +116,11 @@ async function sampleRun(browser: any, run: string): Promise<RunResult> {
   // gives the same frames every time.
   await p.addInitScript(() => { let a = 0x85f1a5; Math.random = () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; });
   const cdp = await ctx.newCDPSession(p);
-  const url = pathToFileURL(page).href + (kind === "pack" ? `?pack=${n}` : kind === "bulk" ? `?bulk=${n}` : "");
+  const url = pathToFileURL(page).href + (kind === "pack" ? `?pack=${n}` : kind === "bulk" ? `?bulk=${n}` : kind === "tear" ? `?best=${best}${tearFlash === "reduced" ? "&flash=reduced" : ""}` : "");
   await p.goto(url, { waitUntil: "load" });
   const label = await p.evaluate(({ kind, n }: { kind: string; n: number }) => {
     const d = JSON.parse(document.getElementById("pack-data")?.textContent || "{}");
-    const l = kind === "pack" ? d.packs?.[n - 1]?.label : kind === "bulk" ? d.bulks?.[n - 1]?.label : kind === "sweep" ? "the pointer swept across and back every 600 ms" : "the page at rest";
+    const l = kind === "pack" ? d.packs?.[n - 1]?.label : kind === "bulk" ? d.bulks?.[n - 1]?.label : kind === "sweep" ? "the pointer swept across and back every 600 ms" : kind === "tear" ? "picked, gripped and torn open" : "the page at rest";
     return l || "";
   }, { kind, n }).catch(() => "");
   const tracker = new FlashTracker();
@@ -139,6 +159,15 @@ async function sampleRun(browser: any, run: string): Promise<RunResult> {
       w.__sweepLast = { x, y };
       document.elementFromPoint(x, y)?.dispatchEvent(new PointerEvent("pointermove", { clientX: x, clientY: y, movementX: x - last.x || 1, movementY: y - last.y, pointerType: "mouse", bubbles: true }));
     }, { x: Math.round(VIEW.width / 2 + (VIEW.width * 0.45) * Math.sin((2 * Math.PI * clockMs) / 600)), y: Math.round(VIEW.height * 0.55 + 120 * Math.sin((2 * Math.PI * clockMs) / 1300)) });
+    if (kind === "tear") {
+      // Synthetic events, as for the sweep: Enter picks, then a press on the pack's top, a hold, a drag across.
+      const t = clockMs, G = { pick: 600, down: 1500, hold: 900, drag: 400 };
+      const phase = t < G.pick ? "" : t < G.down ? "pick" : t < G.down + G.hold ? "down" : t <= G.down + G.hold + G.drag + step ? "drag" : "up";
+      // (a string, not a function: tsx would wrap the helper below in a __name() the page doesn't have)
+      await p.evaluate(`(${TEAR_DRIVE})(${JSON.stringify({ phase, k: (t - G.down - G.hold) / G.drag })})`);
+      if (phase === "up" && clockMs >= n) { ended = `its time (the pack: ${await p.evaluate("window.__open && window.__open.phase")})`; break; }
+      continue;
+    }
     if (kind === "idle" || kind === "sweep") { if (clockMs >= n) { ended = "its time"; break; } continue; }
     if (frame % 3 !== 0) continue;
     // The owner's taps (the s62 check's drive), `pace` ms after the page will take one.
@@ -178,7 +207,7 @@ async function sampleRun(browser: any, run: string): Promise<RunResult> {
       const near = [...kept.keys()].filter((x) => x >= f).sort((a, b) => a - b)[0] ?? [...kept.keys()].pop();
       if (near === undefined) continue;
       await sp.setContent(`<style>body{margin:0}</style><img src="data:image/png;base64,${kept.get(near)!.toString("base64")}">`);
-      await sp.screenshot({ path: `${out}/${run.replace("=", "-").replace("#", "-r")}${suffix}-flash${k + 1}.jpg`, type: "jpeg", quality: 80 });
+      await sp.screenshot({ path: `${out}/${runFile(run)}${suffix}-flash${k + 1}.jpg`, type: "jpeg", quality: 80 });
     }
     await sp.context().close();
   }
@@ -214,7 +243,7 @@ await Promise.all(Array.from({ length: Math.min(jobs, runs.length) }, async () =
     results[k] = r;
     const text = describe(r);
     console.log(text + `\n  (sampled in ${((Date.now() - t0) / 1000).toFixed(0)} s: drawing ${r.secs.capture} s, measuring ${r.secs.measure} s)\n`);
-    writeFileSync(`${out}/${run.replace("=", "-").replace("#", "-r")}${suffix}.txt`, text + "\n");
+    writeFileSync(`${out}/${runFile(run)}${suffix}.txt`, text + "\n");
   }
   await browser.close();
 }));

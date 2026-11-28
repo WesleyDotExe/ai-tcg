@@ -5328,7 +5328,7 @@ Next session: render 95, three pack-wrapper designs with placeholder art (with 2
 
 ---
 
-## 2026-11-28 — Owner: the Season 1 pack design is A · Crest (render session 95's check-in)
+## 2026-11-28 — Owner: the Season 1 pack design is A · Crest (render session 95's check-in) (HANDLED 2026-11-28, render session 96: the opening's grip and tear are built on Crest, the pick page's default; B and C stay on the wrapper sheet as the record of the pick; point 2 settled by the entry below)
 
 **Render session 95** (PR #205, `render/season1/PACKS.md`, `render/season1/output/pack-wrappers.html`, `render/season1/output/pack-pick.html`, `progress/render/evidence/season1-pack-wrappers-s95/`).
 1. **Decision: the pack design is A · Crest** (the classic booster: the wordmark, the season line and the set name stacked at the top, the mascot standing in the foil, the symbol low right), for the pick row and everywhere a pack is drawn. The opening rework (phase 3) builds on Crest.
@@ -5338,7 +5338,7 @@ Next session: render 96, the opening's grip and tear after the pick (phase 3), o
 
 ---
 
-## 2026-11-28 — Owner: answers to render session 95's five calls; the pick row loses its buttons; the tear starts the opening and is easier to hit
+## 2026-11-28 — Owner: answers to render session 95's five calls; the pick row loses its buttons; the tear starts the opening and is easier to hit (HANDLED 2026-11-28, render session 96: 1, 2, 4, 5 kept as built, nothing to change. 3: the shine brighter, the highlight 0.12 -> 0.26, the streak 0.12 -> 0.22, the sheen 0.2 -> 0.3, judged by eye on the built page; the sampler's pointer sweep now makes up to 2 changes a second and 0 counted flashes on both pages, every tear run 0 counted flashes; the Crest season line's halo and colour strengthened to hold 5.2:1 under it. 6: the arrows and "Pick this pack" removed; drag, swipe, the wheel and taps move and pick; the keys work with nothing drawn (arrows, Enter, the focus ring). 7: "Back to the row" removed; a pick is final. 8: tearing the top of the picked pack starts the opening: the strip flies off, one swell of light, the stack of five rises out backs up (the reveal is part two). 9: the grab zone is the top quarter plus a 14% margin above and to each side (16 px at least), 48 px or more tall on a phone (measured 373 x 157 px on a desktop, 277 x 117 px on a phone); any drag of a third of the width tears, slanted, crooked or straight down; a tap or click in the zone tears in 600 ms (and Enter); a cue along the top until the first tear; the page listens past the stage and a swipe near the pack can't scroll the page; checked by `render/season1/ci/pack-tear-check.mjs`, nine drags each on a desktop and a phone (real touch events) all tear, `progress/render/evidence/season1-pack-tear-s96/check.txt` 54 PASS; tried as scripted drags on both sizes in headless Chromium and looked at in stills; not yet torn by a real hand or on a real phone)
 
 Settles point 2 ("not decided") of the entry above.
 

@@ -116,4 +116,18 @@ The owner's plan, phase 2 step 3, with the owner's 2026-11-28 pack entries. Writ
 - `test/packWrapper.test.ts`; `ci/pack-wrapper-check.mjs` (headless Chromium); `flash/sample.ts --runs sweep=MS`.
 
     npx tsx season1/mockup/buildPacks.ts                 # (in render/)
-    node render/season1/ci/pack-wrapper-check.mjs         # -> progress/render/evidence/season1-pack-wrappers-s95/
+    node render/season1/ci/pack-wrapper-check.mjs         # -> progress/render/evidence/season1-pack-wrappers-s96/
+
+## Season 1 packs: the grip and the tear (render session 96)
+
+The owner's plan, phase 3, the opening rework's first part, on Crest, with the owner's 2026-11-28 points 6-9.
+Written up in `PACKS.md`, "The grip and the tear".
+
+- `src/packTear.ts`: the grab zone, the gesture (any direction), the tremble, the torn edge and its two clips, the
+  honest tell's light per finish; shared with the page as `TEAR_JS`.
+- `src/packWrapperPage.ts` (`TEAR_CLIENT`) -> `output/pack-pick.html?best=plain|gold|zeroDay|...`: the grip, the tear,
+  the open, the sound, Reduce flashing.
+- `test/packTear.test.ts`; `ci/pack-tear-check.mjs` (headless Chromium, a mouse and real touch events);
+  `flash/sample.ts --runs tear=MS[@best[:reduced]]`.
+
+    node render/season1/ci/pack-tear-check.mjs            # -> progress/render/evidence/season1-pack-tear-s96/

@@ -1,0 +1,7 @@
+Flash check (WCAG 2.3.1), render/season1/output/pack-pick.html, 1024x768, 30 fps, tapping 900 ms after the page is ready
+PASS tear=6000@plain (picked, gripped and torn open): worst 2 flashes/s (4 changes), red 0/s, 0 counted flashes, screen jump 0.033->0.016, 6.0 s, 0 taps, ended at its time (the pack: opened)
+PASS tear=6000@gold (picked, gripped and torn open): worst 2 flashes/s (4 changes), red 0/s, 0 counted flashes, screen jump 0.035->0.016, 6.0 s, 0 taps, ended at its time (the pack: opened)
+PASS tear=6000@zeroDay (picked, gripped and torn open): worst 2 flashes/s (4 changes), red 0/s, 0 counted flashes, screen jump 0.037->0.016, 6.0 s, 0 taps, ended at its time (the pack: opened)
+PASS tear=6000@gold:reduced (picked, gripped and torn open): worst 2 flashes/s (4 changes), red 0/s, 0 counted flashes, screen jump 0.034->0.016, 6.0 s, 0 taps, ended at its time (the pack: opened)
+PASS sweep=6000 (the pointer swept across and back every 600 ms): worst 1 flashes/s (2 changes), red 0/s, 0 counted flashes, screen jump 0.04->0.037, 6.0 s, 0 taps, ended at its time
+0 of 5 fail

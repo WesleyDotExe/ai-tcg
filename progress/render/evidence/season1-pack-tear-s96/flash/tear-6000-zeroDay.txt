@@ -1,0 +1,10 @@
+tear=6000@zeroDay (picked, gripped and torn open), tapping 900 ms after the page is ready: PASS
+  180 frames at 30 fps (6.0 s, 180 drawn), 0 taps, ended at its time (the pack: opened)
+  field of view: 43 x 32 blocks (8 px); a flash counts over 344 blocks (25%)
+  worst second: 2 flashes (4 changes) from 1.93 s (flashed area 55% of a field); worst red: 0 (0 changes) from 0.00 s
+  biggest whole-screen jump (within 250 ms): mean luminance 0.037 -> 0.016 at 2.73 s
+  single flashes big enough to count (over 25% of a field): none
+  timeline (each quarter second: changes in the second from there / flashed area; 7 changes = more than 3 flashes):
+    0.00:2/30%  0.27:2/32%  0.53:2/36%  0.80:2/40%  1.07:3/44%  1.33:3/46%  1.60:4/45%  1.87:4/53%
+    2.13:3/52%  2.40:2/43%  2.67:2/31%  2.93:0/0%  3.20:0/0%  3.47:0/0%  3.73:0/0%  4.00:0/0%
+    4.27:0/0%  4.53:0/0%  4.80:0/0%

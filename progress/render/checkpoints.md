@@ -7,6 +7,49 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-28 — Render session 96: the pack opening's grip and tear on Crest (phase 3, the opening rework, part one) — AWAITING FEEDBACK (five small calls)
+
+**Start here:** `render/season1/output/pack-pick.html?best=gold` (tap the middle pack, hold it, then drag across its
+top), then `?best=plain` (no tell) and `?best=zeroDay`. Or the stills in `progress/render/evidence/season1-pack-tear-s96/`:
+`desktop-picked-cue.jpg` (the cue), `grip-gold.jpg` (held: the seam glowing gold), `tear-midway-gold.jpg`,
+`open-strip-flies-gold.jpg`, `opened-stack-gold.jpg`, `phone-part-torn.jpg`, `phone-opened.jpg`. Write-up:
+`render/season1/PACKS.md`, "The grip and the tear".
+
+**What it is:** your 2026-11-28 points 6-9 and call 3, on Crest. The row has no buttons and a pick is final. The
+picked pack waits for the tear with a cue along its top. Hold it and it trembles harder the longer you hold, leans to
+your finger and the foil crinkles; for a hit the seam under the top crimp glows in the tell's colour. Drag across the
+top (anywhere in the top quarter or just outside it, any direction, a third of the pack's width) and it rips along
+your finger, scraps curling off, light leaking through the cut, the rip's sound following your speed; tap the top and
+it tears by itself in 600 ms. Then the strip flies off, one swell of light (high only for a hit), and five cards rise
+out of the pack backs up as the wrapper drops away. The reveal is part two. The shine is brighter (call 3).
+
+**Calls for you (none blocks):**
+1. **A hold that ends in the top band tears.** Letting go without moving, anywhere in the grab zone, plays the 600 ms
+   tear, whether it was a quick tap or a long grip; letting go lower on the pack just ends the grip. So "hold, feel
+   it build, let go at the top" opens it. Keep, or should only a quick tap tear?
+2. **A part-torn pack stays part-torn**: let go halfway and the cut stays; the next drag carries on from there
+   (nothing heals). Keep?
+3. **The card backs** in the stack are new placeholders (the AI·TCG wordmark on navy with a fine line pattern and a
+   silver border), drawn in CSS. Keep until the art pass, or reuse Season 0's card back?
+4. **The strip flies off the way the tear ran** (a left-to-right tear throws it right), with a thump and a shimmer,
+   heavier for a hit; a plain pack's open has a low blue swell only. Keep?
+5. **Sound is on by default** (as Season 0's: a "Sound" switch under the stage, beside "Reduce flashing"). Keep?
+
+**Evidence:** `season1-pack-tear-s96/check.txt` **54 PASS, 0 FAIL** (nine drags each on a desktop and on a phone with
+real touch events, all tear: off-centre either way, slanted 30° and 45°, from the margin above, left and right,
+crooked, straight down; a tap low, a drag from 45% down and a short drag don't; the short drag's cut carried on; a
+tap on the crimp and above the pack tear; the tremble 0.6 px at first, 2.8 px after 1.2 s; the tell gold for a Gold,
+none for a plain pack, 0.22 with Reduce flashing; reduced motion). The flash sampler's new tear drive: plain, Gold,
+Zero-Day, Gold with Reduce flashing, Gold with reduced motion: **0 counted flashes**, no red (`flash/summary*.txt`);
+the brighter shine swept by the pointer: 0 counted flashes on both pages. `season1-pack-wrappers-s96/check.txt` 70
+PASS (the row without its buttons; the Crest season line at 5.2:1 under the brighter light). Unit tests: season1 168,
+the render suite 1257 (`test/packTear.test.ts` 16 of them).
+
+**Thin:** in `progress/render/quality-debt.md` (tried with scripted drags in a headless browser, never by a real hand or on a real phone: worth a tear by you on both; the stand-in server;
+no haptics; the card backs and the reveal are part two).
+
+---
+
 ## 2026-11-28 — Render session 95: three Season 1 pack-wrapper designs and the pick row (phase 2 step 3) — AWAITING FEEDBACK (OWNER CHECK-IN: pick a design; five small calls)
 
 **Start here:** `render/season1/output/pack-wrappers.html` (move the pointer over the packs), then

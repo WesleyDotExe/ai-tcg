@@ -7128,3 +7128,45 @@ Tests: `test/packWrapper.test.ts` 19; season1 152 of 152; the render suite 1241 
 functions. **Thin:** in render/quality-debt.md. **Blocked:** nothing (the design pick is the owner's, at the
 checkpoint; work continues). **Next:** render 96, phase 3's opening rework on the picked design (or C until picked):
 the grip and the tear after the pick, per the storyboard; render 97 the hardening pass.
+
+---
+
+## 2026-11-28 — Render session 96: the pack opening's grip and tear on Crest (phase 3, the opening rework, part one)
+
+**Lane:** render. The last merged PR (#205) is a render PR, which by TASKS.md's alternation would make this a game
+session, but the owner's 2026-11-22 point 7 runs the scheduled sessions on the render lane only until the owner
+decides Season 1's server, domain and sign-in; the newest owner entry names this session ("render 96, the opening's
+grip and tear after the pick (phase 3), on Crest, with 6-9"). No open render PR. Started from origin/main at e2858d6,
+which contains #205.
+
+**Built** (all in `render/season1/`; no Season 0 page changed):
+- `src/packTear.ts` (pure, shared with the page as `TEAR_JS`): the grab zone (`tearZone`: the top quarter plus a
+  14% margin, 16 px at least, 48 px tall or more on touch), the gesture (`tearProgress`: the distance moved in any
+  direction over a third of the width; the cut's direction), `cutLength`, the tremble (`trembleAmp`, `trembleAt`),
+  the torn edge (`tornEdge`, a seeded zigzag under the crimp) and its two clip paths (`tornClips`), the honest tell's
+  light per finish on Season 0's rungs and colours (`tearLight`, with Reduce flashing levels).
+- `src/packWrapperPage.ts`: the row's buttons and "Back to the row" removed (owner points 6-7; keys still work);
+  `TEAR_CLIENT`: a stand-in for the server's answer to the pick (`?best=`), the cue, the grip (tremble, lean, crinkle,
+  the seam's tell), the tear (the cut drawn as an SVG polyline over the pack, scraps by the Web Animations API, the
+  rip's sound by WebAudio), the open (the pack cloned and clipped along the torn edge into body and strip; the strip
+  flies, the swell, the stack of five rises from behind the face and the body drops away), Sound and Reduce flashing
+  switches; the gesture listens on the whole document and the page can't scroll under a tear until it is open.
+- `src/packWrapper.ts`: the shine brighter (owner call 3): 0.26 / 0.22 / 0.30, the Crest season line's halo and
+  colour strengthened for it.
+- `ci/pack-tear-check.mjs` (new), `ci/pack-wrapper-check.mjs` (no Back to the row; evidence to `-s96/`),
+  `flash/sample.ts` (`tear=MS[@best[:reduced]]`: Enter picks, a press, a hold, a drag; run names made file-safe),
+  `test/packTear.test.ts` (16), the storyboard's beat 3 trigger brought to the owner's numbers.
+
+**Ran it:** `season1-pack-tear-s96/check.txt` **54 PASS, 0 FAIL**. On the way it caught two real faults: a drag
+starting in the margin above the pack began outside the stage, so the page never heard it (the gesture now listens on
+the whole document), and on a phone a slanted swipe could have been taken as a scroll (the page now sets
+`touch-action: none` until the pack is open); and the first open put the card stack in front of the pack and lifted
+it off the stage (now it rises from behind the face and settles). `season1-pack-wrappers-s96/check.txt` 70 PASS (it
+caught the brighter light taking Crest's season line to 4.1:1, then 4.4:1: fixed at 5.2:1; and the new switches
+pushing the phone's pack 16 px off screen: moved under the stage). Flash sampler: every tear run and the pointer sweep
+**0 counted flashes**, no red (`flash/`). Tests: season1 168 of 168, the render suite 1257 of 1257, typecheck clean.
+
+**Worked:** sharing the tear's maths with the page as source strings again; real touch events through CDP, which
+exercise the browser's own touch-action rules. **Thin:** render/quality-debt.md (no real hand has torn a pack yet;
+the stand-in server; no haptics). **Blocked:** nothing; five small calls at the render checkpoint. **Next:** render 97
+is the hardening pass; then part two of the opening (the reveal).

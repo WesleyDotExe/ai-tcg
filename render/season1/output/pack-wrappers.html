@@ -35,18 +35,18 @@ button:focus-visible, .slot:focus-visible { outline: 2px solid #8fa6ff; outline-
 .pw .rg-symbol { color: #f2f5ff; filter: drop-shadow(0 0 2cqw color-mix(in srgb, var(--fc) 80%, transparent)); } .pw .rg-symbol svg { width: 100%; height: 100%; }
 .pw .wm { font-weight: 900; letter-spacing: .06em; white-space: nowrap; background: linear-gradient(180deg, #ffffff 0%, #dfe9ff 42%, #8fa6d8 52%, #f4f0ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .3cqw .5cqw rgba(0,0,0,.8)) drop-shadow(0 0 1.6cqw rgba(0,0,0,.6)); }
 .pw .wm i { font-style: normal; color: var(--fc); -webkit-text-fill-color: color-mix(in srgb, var(--fc) 60%, #fff); }
-.pw .sl { font: 700 1em/1 ui-monospace, Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: #dfe5fb; white-space: nowrap; text-shadow: 0 0 .8cqw #000, 0 0 2.4cqw rgba(0,0,0,.85); }
+.pw .sl { font: 700 1em/1 ui-monospace, Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: #f6f8ff; white-space: nowrap; text-shadow: 0 0 .6cqw #000, 0 0 1.4cqw rgba(0,0,0,.95), 0 0 3cqw rgba(0,0,0,.9); }
 .pw .sl i { font-style: normal; color: color-mix(in srgb, var(--fc) 50%, #fff); }
 .pw .ti { font-weight: 900; letter-spacing: .01em; color: #fff; white-space: nowrap; text-shadow: 0 .5cqw 1.4cqw rgba(0,0,0,.75), 0 0 3cqw color-mix(in srgb, var(--fc) 55%, transparent); }
 .pw .scrim::before { content: ""; position: absolute; inset: -18% -6%; z-index: -1; border-radius: 1.5cqw; background: rgba(6,8,22,.72); box-shadow: 0 0 4cqw 2cqw rgba(6,8,22,.45); }
 .pw .rg-wordmark.scrim::before { background: rgba(10,14,34,.6); box-shadow: inset 0 0 0 .3cqw rgba(255,255,255,.18); }
 .pw .win { position: absolute; inset: 0; clip-path: polygon(8% 0, 92% 0, 100% 6%, 100% 94%, 92% 100%, 8% 100%, 0 94%, 0 6%); background: linear-gradient(180deg, #050816, color-mix(in srgb, var(--fc) 18%, #050816)); }
 .pw .win::after { content: ""; position: absolute; inset: 0; clip-path: inherit; box-shadow: inset 0 0 0 .5cqw color-mix(in srgb, var(--fc) 75%, #fff), inset 0 0 5cqw color-mix(in srgb, var(--fc) 35%, transparent); }
-.pw .holo { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.2; mix-blend-mode: screen;
+.pw .holo { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.3; mix-blend-mode: screen;
   background: repeating-linear-gradient(115deg, #ff7ad9 0%, #7affea 6%, #8f8bff 12%, #ffe37a 18%, #ff7ad9 24%); background-size: 260% 260%; background-position: var(--holo) 50%;
   -webkit-mask: linear-gradient(115deg, transparent 10%, #000 45%, #000 55%, transparent 90%); mask: linear-gradient(115deg, transparent 10%, #000 45%, #000 55%, transparent 90%); }
-.pw .spec { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(38% 26% at var(--lx) var(--ly), rgba(255,255,255,0.12), rgba(255,255,255,0.040) 45%, transparent 75%); }
-.pw .streak { position: absolute; inset: -20% -60%; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.06) 47.5%, rgba(255,255,255,0.12) 49%, rgba(255,255,255,0.06) 50.5%, transparent 54%); transform: translateX(calc((var(--lx) - 50%) * 1.1)); }
+.pw .spec { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(38% 26% at var(--lx) var(--ly), rgba(255,255,255,0.26), rgba(255,255,255,0.087) 45%, transparent 75%); }
+.pw .streak { position: absolute; inset: -20% -60%; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.11) 47.5%, rgba(255,255,255,0.22) 49%, rgba(255,255,255,0.11) 50.5%, transparent 54%); transform: translateX(calc((var(--lx) - 50%) * 1.1)); }
 .pw .pillow { position: absolute; inset: 0; z-index: 4; pointer-events: none; background:
   radial-gradient(55% 32% at 34% 30%, rgba(255,255,255,.07), transparent 70%),
   linear-gradient(180deg, rgba(0,0,0,.38), transparent 9%, transparent 91%, rgba(0,0,0,.38)),
@@ -67,10 +67,41 @@ button:focus-visible, .slot:focus-visible { outline: 2px solid #8fa6ff; outline-
 .slot .pw { transition: none; }
 .pick.picked .slot:not(.chosen) { opacity: 0 !important; transition: opacity .45s ease-out; }
 .slot.chosen { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
-.pickbar { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
-.picked-note { text-align: center; min-height: 1.5em; color: var(--ink); }
+.picked-note { text-align: center; min-height: 1.5em; color: var(--ink); margin-left: auto; margin-right: auto; }
 .designs-nav { display: flex; gap: 8px; flex-wrap: wrap; } .designs-nav a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); text-decoration: none; } .designs-nav a[aria-current] { background: rgba(143,166,255,.22); }
 @media (prefers-reduced-motion: reduce) { .pick.picked .slot:not(.chosen), .slot.chosen { transition: none; } }
+.pick.picked { cursor: default; touch-action: none; }
+html.tearing, html.tearing body { touch-action: none; } /* until the pack is open, a swipe anywhere near it is a tear, never a scroll */
+.slot.chosen .pw { translate: var(--shx, 0px) var(--shy, 0px); rotate: var(--lean, 0deg); }
+.ov { position: absolute; left: 0; top: 0; width: 270px; height: 432px; pointer-events: none; }
+.ov svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tearcue { position: absolute; left: 4%; right: 4%; top: calc(12.5 / 160 * 100% - 7px); height: 14px; transition: opacity .5s ease-out; }
+.tearcue::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; border-radius: 2px;
+  background: repeating-linear-gradient(90deg, rgba(190,210,255,.85) 0 10px, transparent 10px 18px); background-size: 36px 2px; box-shadow: 0 0 8px rgba(150,180,255,.55); animation: cuedash 1.6s linear infinite; }
+.tearcue i { position: absolute; top: 0; width: 0; height: 0; border: 7px solid transparent; }
+.tearcue i.l { left: -10px; border-left-color: rgba(220,230,255,.9); animation: cuenudge 1.8s ease-in-out infinite; }
+.tearcue i.r { right: -10px; border-right-color: rgba(220,230,255,.9); animation: cuenudge 1.8s ease-in-out infinite reverse; }
+.tearcue.gone { opacity: 0; }
+.tearcue.nudge { animation: cuebob .5s ease-out; }
+@keyframes cuedash { to { background-position: 36px 0; } }
+@keyframes cuenudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+@keyframes cuebob { 0% { transform: translateY(0); } 35% { transform: translateY(-6px); } 100% { transform: translateY(0); } }
+.seam { position: absolute; left: 3%; right: 3%; top: calc(10.5 / 160 * 100%); height: calc(4 / 160 * 100%); border-radius: 50%; opacity: 0; transition: opacity .6s ease-out;
+  background: linear-gradient(90deg, transparent, var(--tell) 14%, var(--tell) 86%, transparent); filter: blur(2.5px); box-shadow: 0 0 14px 3px color-mix(in srgb, var(--tell) 60%, transparent); }
+.leak { position: absolute; left: -40%; right: -40%; top: -60%; height: 90%; opacity: 0; pointer-events: none;
+  background: radial-gradient(48% 44% at 50% 78%, var(--tell), transparent 72%); mix-blend-mode: screen; }
+.stack { position: absolute; left: 13%; width: 74%; top: 9%; aspect-ratio: 5 / 7; z-index: -1; }
+.stack .back { position: absolute; inset: 0; border-radius: 6%; background:
+  radial-gradient(60% 40% at 50% 45%, rgba(143,166,255,.35), transparent 70%),
+  repeating-linear-gradient(60deg, rgba(255,255,255,.05) 0 2px, transparent 2px 9px),
+  linear-gradient(160deg, #1a2160, #0a0d26 60%, #141a4a);
+  box-shadow: inset 0 0 0 3px rgba(200,215,255,.55), inset 0 0 0 7px rgba(10,13,38,.9), inset 0 0 0 8px rgba(200,215,255,.25), 0 6px 18px rgba(0,0,0,.55);
+  display: grid; place-items: center; }
+.stack .back span { font: 900 22px system-ui, sans-serif; letter-spacing: .08em; color: rgba(230,236,255,.85); text-shadow: 0 0 10px rgba(120,150,255,.8); }
+.scrap { position: absolute; width: 9px; height: 6px; background: linear-gradient(135deg, #e6ecff, #7d88aa); clip-path: polygon(0 20%, 70% 0, 100% 60%, 30% 100%); }
+.controls { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.controls label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .tearcue::before, .tearcue i { animation: none; } .tearcue.nudge { animation: none; } }
 </style></head><body><main>
   <div class="kick">Season 1 · phase 2 · render session 95</div>
   <h1>Booster packs: three wrapper designs</h1>
@@ -103,7 +134,7 @@ button:focus-visible, .slot:focus-visible { outline: 2px solid #8fa6ff; outline-
     <a href="pack-pick.html?design=bleed">Pick a pack in this design →</a>
   </section></div>
 </main><script>
-const LIGHT={"maxTurnY":14,"maxTurnX":9,"sweepMs":7000,"tiltRange":25,"restBeta":40,"specAlpha":0.12,"streakAlpha":0.12,"holoAlpha":0.2};const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));const lightAt=function lightAt(input){let px=0,py=0;if(input.mode==="pointer"){px=clamp(input.px,-1,1);py=clamp(input.py,-1,1)}else if(input.mode==="tilt"){px=clamp(input.gamma/LIGHT.tiltRange,-1,1);py=clamp((input.beta-LIGHT.restBeta)/LIGHT.tiltRange,-1,1)}else if(input.mode==="sweep"){const a=2*Math.PI*input.t/LIGHT.sweepMs;px=Math.sin(a);py=.35*Math.sin(2*a)}else{px=-.45;py=-.35}return{turnY:+(px*LIGHT.maxTurnY).toFixed(2),turnX:+(-py*LIGHT.maxTurnX).toFixed(2),lx:+(50-px*42).toFixed(2),ly:+(42-py*30).toFixed(2),holo:+(50+px*50).toFixed(2)}};
+const LIGHT={"maxTurnY":14,"maxTurnX":9,"sweepMs":7000,"tiltRange":25,"restBeta":40,"specAlpha":0.26,"streakAlpha":0.22,"holoAlpha":0.3};const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));const lightAt=function lightAt(input){let px=0,py=0;if(input.mode==="pointer"){px=clamp(input.px,-1,1);py=clamp(input.py,-1,1)}else if(input.mode==="tilt"){px=clamp(input.gamma/LIGHT.tiltRange,-1,1);py=clamp((input.beta-LIGHT.restBeta)/LIGHT.tiltRange,-1,1)}else if(input.mode==="sweep"){const a=2*Math.PI*input.t/LIGHT.sweepMs;px=Math.sin(a);py=.35*Math.sin(2*a)}else{px=-.45;py=-.35}return{turnY:+(px*LIGHT.maxTurnY).toFixed(2),turnX:+(-py*LIGHT.maxTurnX).toFixed(2),lx:+(50-px*42).toFixed(2),ly:+(42-py*30).toFixed(2),holo:+(50+px*50).toFixed(2)}};
 const Q = new URLSearchParams(location.search);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FORCED = Q.get('light');

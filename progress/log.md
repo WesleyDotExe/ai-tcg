@@ -5671,3 +5671,14 @@ row (seven identical packs, drag / wheel / keys with a fling and snap, a tap pic
 page tells packs apart). Ran it: the browser check 70 PASS, 0 FAIL; the flash sampler 0 changes in every run; render
 suite 1241 of 1241. Details in `progress/render/log.md`; the design pick and five calls in
 `progress/render/checkpoints.md`. Blocked: nothing. Next: render 96, the opening rework's grip and tear.
+
+**2026-11-28 — render session 96 (render lane, by the owner's 2026-11-22 point 7): the pack opening's grip and
+tear on Crest.** The owner's 2026-11-28 points 6-9 and call 3: the pick row lost its buttons and "Back to the row"
+(keys still work; a pick is final); the picked pack has a cue along its top, a grip (it trembles harder the longer
+it's held, leans, crinkles; the seam glows in the tell's colour for a hit), a forgiving tear (the top quarter plus a
+margin, 48 px or more on a phone; any drag of a third of the width, slanted or crooked; a tap tears in 600 ms) that
+follows the finger with scraps, leaking light and a rip sound, and an open (the strip flies off, one swell, five
+cards rise out backs up). The shine is brighter. Ran it: the new browser check 54 PASS, 0 FAIL (nine drags each on a
+desktop and on a phone with real touch events); the wrapper check 70 PASS; the flash sampler's new tear drive 0
+counted flashes in every run; render suite 1257 of 1257. Details in `progress/render/log.md`; five small calls in
+`progress/render/checkpoints.md`. Blocked: nothing. Next: render 97, the hardening pass; then the reveal.
