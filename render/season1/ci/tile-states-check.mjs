@@ -35,11 +35,18 @@
 // one it's bought at); each Buy carries its purchase (data-buy="S0:10").
 // Packs adds: every size says the same count; S keeps to the count (no
 // sentence); the fanned packs stay inside the tile.
+// Match history adds (render session 94): every size leads with the last
+// result in words; the rows are the matches before it (S none, M 3, L 6), in
+// order, under a header; L gives a Replay link to each row with a replay.
+// Notifications adds: every size says the same new count (or "All caught
+// up"); S names the newest new alert and lists none; M lists the newest 3,
+// L 5, newest first, each one link to the tile that owns it, in two lines
+// each kept to one; the "more new" line counts the new ones not shown.
 // Fails on any miss (this is the session's own bar, not a report).
 // Writes check.txt and the 191 px stills (light, dark) to
 // progress/render/evidence/season1-<tile>-tile-s<session>/ (or the folder given).
 //
-//   node render/season1/ci/tile-states-check.mjs agent|ladder|store|packs [outDir]
+//   node render/season1/ci/tile-states-check.mjs agent|ladder|store|packs|collection|daily|notif|history [outDir]
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -49,8 +56,8 @@ import { contrast, NOTEXT_CSS } from './contrast.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const season1 = resolve(here, '..');
 const TILE = process.argv[2] ?? 'agent';
-const SESSION = { agent: 90, ladder: 92, store: 91, packs: 91, collection: 93, daily: 93 }[TILE];
-if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent, ladder, store, packs, collection or daily)`);
+const SESSION = { agent: 90, ladder: 92, store: 91, packs: 91, collection: 93, daily: 93, notif: 94, history: 94 }[TILE];
+if (!SESSION) throw new Error(`no states sheet for "${TILE}" (agent, ladder, store, packs, collection, daily, notif or history)`);
 const OUT = resolve(process.argv[3] ?? join(season1, '..', '..', 'progress', 'render', 'evidence', `season1-${TILE}-tile-s${SESSION}`));
 mkdirSync(OUT, { recursive: true });
 const PAGE = pathToFileURL(join(season1, 'output', `${TILE}-states.html`)).href;
@@ -146,6 +153,12 @@ const measure = () => [...document.querySelectorAll('.case')].flatMap((sec) => [
     nowSteps: [...el.querySelectorAll('[data-fact="winSchedule"] .steps li')].map((li, i) => li.classList.contains('now') ? i : -1).filter((i) => i >= 0),
     stepsOneRow: new Set([...el.querySelectorAll('[data-fact="winSchedule"] .steps li')].map((li) => Math.round(li.getBoundingClientRect().top))).size <= 1,
     results: el.querySelectorAll('[data-fact="paidToday"] .paid li').length, noResults: !!el.querySelector('[data-fact="paidToday"] > .sub'),
+    // Render session 94: Match history and Notifications.
+    last: txt('[data-fact="lastResult"] .rw'), mrows: [...el.querySelectorAll('.mh li:not(.hd)')].map((li) => li.querySelector('.chip')?.textContent.trim() ?? ''),
+    mhead: !!el.querySelector('.mh li.hd'), rpLinks: el.querySelectorAll('.mh a.rp').length,
+    unreadBig: txt('[data-fact="unread"] .big'), caught: /All caught up|No alerts yet/.test(txt('[data-fact="unread"]')),
+    arows: [...el.querySelectorAll('.al .alink')].map((a) => ({ t: a.querySelector('.at b')?.textContent.trim() ?? '', to: a.dataset.to ?? '', twoLines: !!a.querySelector('.at .sub'), oneLine: [...a.querySelectorAll('.at > *')].every((x) => x.getBoundingClientRect().height <= 18) })),
+    moreNew: Number((txt('[data-fact="alerts"] .more').match(/\d+/) ?? [0])[0]), latest: txt('[data-fact="alerts"] .ln1'),
     moreLine: /more pack/.test(txt('[data-fact="buyPacks"] > .sub')),
     count: txt('[data-fact="unopened"] .big'), why: !!el.querySelector('[data-fact="unopened"] .why'),
     fanOut: (() => { const f = el.querySelector('.pk-fan'); if (!f) return 0; const q = f.getBoundingClientRect(); return Math.max(0, r.left + pad.l - q.left, q.right - (r.right - pad.r)); })(),
@@ -247,6 +260,21 @@ try {
           const ml = row.filter((t) => t.size !== 'S');
           check(ml.every((t) => t.stepsOneRow && (e.nowStep < 0 ? t.nowSteps.length === 0 : t.nowSteps.length === 1 && t.nowSteps[0] === e.nowStep)), `${s}: today's pay is one row of steps at M and L, the next win's step marked (${e.nowStep < 0 ? 'none: every paid win in' : 'step ' + (e.nowStep + 1)})`);
           check(row.filter((t) => t.size === 'L').every((t) => (e.results ? t.results === e.results : t.noResults)), `${s}: L lists today's results (${e.results || 'none yet'})`);
+        } else if (TILE === 'history') {
+          const e = row[0].expect;
+          check(row.every((t) => t.last === e.last), `${s}: every size leads with the last match in words ("${e.last}")`);
+          const by = { S: 0, M: e.m, L: e.l };
+          check(row.every((t) => t.mrows.length === by[t.size] && t.mrows.join('') === e.shorts.slice(0, by[t.size]).join('')), `${s}: the matches before it, never the last again: S none, M ${e.m}, L ${e.l} (${e.shorts.join(' ') || 'none'})`);
+          check(row.filter((t) => t.mrows.length).every((t) => t.mhead), `${s}: each list has its header naming the columns`);
+          check(row.every((t) => t.rpLinks === (t.size === 'L' ? e.replays : 0)), `${s}: L has a Replay link for each row with a replay (${e.replays}), M and S none`);
+        } else if (TILE === 'notif') {
+          const e = row[0].expect;
+          check(row.every((t) => (e.unread ? t.unreadBig === String(e.unread) && !t.caught : t.caught && !t.unreadBig)), `${s}: every size says the same new count (${e.unread || 'all caught up'})`);
+          check(row.filter((t) => t.size === 'S').every((t) => t.latest === e.latest && !t.arows.length), `${s}: S names the newest new alert ("${e.latest || 'none'}") and lists none`);
+          const by = { S: 0, M: e.m, L: e.l };
+          check(row.every((t) => t.arows.length === by[t.size] && t.arows.map((a) => a.t).join('|') === e.titles.slice(0, by[t.size]).join('|')), `${s}: M lists the newest ${e.m}, L ${e.l}, newest first`);
+          check(row.every((t) => t.arows.every((a) => a.to && a.twoLines && a.oneLine)), `${s}: each alert is one link to the tile that owns it, in two lines, each kept to one line`);
+          check(row.every((t) => t.size === 'S' || t.moreNew === (t.size === 'M' ? e.moreM : e.moreL)), `${s}: a "more new" line counts the new ones not shown (M ${e.moreM}, L ${e.moreL})`);
         } else {
           const agree = new Set(row.map((t) => t.rating)).size === 1 && new Set(row.map((t) => t.tier)).size === 1;
           check(agree, `${s}: every size says the same rating and tier ("${row[0].rating}", "${row[0].tier}")`);

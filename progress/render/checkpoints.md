@@ -7,6 +7,42 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-28 — Render session 94: Notifications and Match history on the Season 1 Home grid (phase 2, group 4's second half) — AWAITING FEEDBACK (five small calls)
+
+**Start here:** `render/season1/output/home.html` (Notifications S on the recommended board; "All M" and "All L" show
+the rest; switch to Wren for a new player), or the stills
+`progress/render/evidence/season1-notif-tile-s94/notif-states-1280-light.jpg` and
+`season1-history-tile-s94/history-states-1280-light.jpg` (every state at S, M and L).
+
+**What it is:** the last two tiles built for their boxes, which closes phase 2's "tiles in groups": **every tile on
+the Home now fits its box, 166 of 166 renders** (Notifications M ran up to 83 px over, Match history S on a phone 32
+px), no tile reads under 4.5:1, and the only big empty glass left is Music L (waiting on your spec). Match history
+leads with the last match in words ("Won vs Rook's agent", what it paid, the rating change, when) and lists the
+matches before it with a column per number; L adds Replay links and a tally. Notifications says how many are new and
+lists the newest, each one link in two lines (what happened; when and the detail). Two bugs fixed on the way: a
+cancelled or abandoned match was drawn as "Drew" (the tiles only knew win, loss and draw), and a big-pull alert read
+fields the API never sends, so it would have said "a rare card" for every pull.
+
+**Calls for you (none blocks):**
+1. **Match history's list is the matches *before* the headline one** (M three, L six), so the last match never shows
+   twice (your point 17 on duplicates). Keep?
+2. **Every result in words, with a letter chip in the list:** Won (W), Lost (L), Drew (D), Cancelled (C, "paid nothing
+   · not rated"), "Your agent left" and "Opponent left" (A, "paid nothing"; rated, as ECONOMY.md says). Keep the
+   words and letters?
+3. **Each alert is two lines, the time first** ("1:18 pm · Its 45 minutes of play are up"), with where it goes as a
+   word at L ("Match history →") and an arrow at M; the full line in its tooltip. With two agents the agent's name
+   comes last, so it is what gets cut first. Keep?
+4. **A new player's L explains:** Match history shows what a match pays (a win most, a loss a little, a cancel or
+   abandon nothing, and what each does to the rating); Notifications shows what each kind of alert tells and that all
+   but the agent stopping can be switched off. Keep, or keep L shorter?
+5. **Notifications S names the newest new alert** ("Latest: Your free pack is waiting") and nothing when all are read
+   (the headline says "All caught up"). Keep?
+
+**Thin:** in `progress/render/quality-debt.md` (the sheets' extra states are made up; "Yesterday" and dates on the
+day's clock from the API's day; the kind chips open Alerts, which the prototype doesn't draw filtered).
+
+---
+
 ## 2026-11-28 — Render session 93: Collection and Daily rewards on the Season 1 Home grid (phase 2, group 4's first half) — AWAITING FEEDBACK (five small calls)
 
 **Start here:** `render/season1/output/home.html` (Daily rewards S and Collection M on the recommended board; "All

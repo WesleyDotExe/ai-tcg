@@ -1,0 +1,64 @@
+
+=== light ===
+PASS unit 191px, served: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, read: S, M and L fit their boxes, nothing spills
+PASS unit 191px, empty: S, M and L fit their boxes, nothing spills
+PASS unit 191px, every-kind: S, M and L fit their boxes, nothing spills
+PASS unit 191px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 218px, served: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, read: S, M and L fit their boxes, nothing spills
+PASS unit 218px, empty: S, M and L fit their boxes, nothing spills
+PASS unit 218px, every-kind: S, M and L fit their boxes, nothing spills
+PASS unit 218px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 231px, served: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, read: S, M and L fit their boxes, nothing spills
+PASS unit 231px, empty: S, M and L fit their boxes, nothing spills
+PASS unit 231px, every-kind: S, M and L fit their boxes, nothing spills
+PASS unit 231px, long-names: S, M and L fit their boxes, nothing spills
+PASS served: every size says the same new count (24)
+PASS served: S names the newest new alert ("Your free pack is waiting") and lists none
+PASS served: M lists the newest 3, L 5, newest first
+PASS served: each alert is one link to the tile that owns it, in two lines, each kept to one line
+PASS served: a "more new" line counts the new ones not shown (M 21, L 19)
+PASS new: every size says the same new count (1)
+PASS new: S names the newest new alert ("Your free pack is waiting") and lists none
+PASS new: M lists the newest 1, L 1, newest first
+PASS new: each alert is one link to the tile that owns it, in two lines, each kept to one line
+PASS new: a "more new" line counts the new ones not shown (M 0, L 0)
+PASS read: every size says the same new count (all caught up)
+PASS read: S names the newest new alert ("none") and lists none
+PASS read: M lists the newest 3, L 5, newest first
+PASS read: each alert is one link to the tile that owns it, in two lines, each kept to one line
+PASS read: a "more new" line counts the new ones not shown (M 0, L 0)
+PASS empty: every size says the same new count (all caught up)
+PASS empty: S names the newest new alert ("none") and lists none
+PASS empty: M lists the newest 0, L 0, newest first
+PASS empty: each alert is one link to the tile that owns it, in two lines, each kept to one line
+PASS empty: a "more new" line counts the new ones not shown (M 0, L 0)
+PASS every-kind: every size says the same new count (6)
+PASS every-kind: S names the newest new alert ("Your agent stopped playing") and lists none
+PASS every-kind: M lists the newest 3, L 5, newest first
+PASS every-kind: each alert is one link to the tile that owns it, in two lines, each kept to one line
+PASS every-kind: a "more new" line counts the new ones not shown (M 3, L 1)
+PASS long-names: every size says the same new count (6)
+PASS long-names: S names the newest new alert ("Your agent left vs Sentinel of the Eleventh Firewall") and lists none
+PASS long-names: M lists the newest 3, L 5, newest first
+PASS long-names: each alert is one link to the tile that owns it, in two lines, each kept to one line
+PASS long-names: a "more new" line counts the new ones not shown (M 3, L 1)
+PASS light: no tile is the hero panel (54 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, alerts "Latest")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, alerts "12:44 pm · +30 credits · rat")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, alerts "12:44 pm · +30 credits · rat")
+
+=== dark ===
+PASS dark: no tile is the hero panel (54 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.8:1, alerts "12:44 pm · +30 credits · rat")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.8:1, alerts "12:44 pm · +30 credits · rat")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.8:1, alerts "12:44 pm · +30 credits · rat")
+PASS no page errors
+PASS no outside requests
+
+58 PASS, 0 FAIL

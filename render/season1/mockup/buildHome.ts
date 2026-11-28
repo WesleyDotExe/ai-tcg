@@ -13,6 +13,8 @@ import { storeStatesPage } from "../src/storeStates.js";
 import { packsStatesPage } from "../src/packsStates.js";
 import { collectionStatesPage } from "../src/collectionStates.js";
 import { dailyStatesPage } from "../src/dailyStates.js";
+import { notifStatesPage } from "../src/notifStates.js";
+import { historyStatesPage } from "../src/historyStates.js";
 import type { HomeData } from "../src/homeFacts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -49,6 +51,13 @@ console.log(`[home] wrote ${packs} (${(psheet.length / 1024).toFixed(0)} KB)`);
 
 // The Collection and Daily rewards tiles in every state (render session 93).
 for (const [name, page] of [["collection", collectionStatesPage(data)], ["daily", dailyStatesPage(data)]] as const) {
+  const f = join(here, "..", "output", `${name}-states.html`);
+  writeFileSync(f, page);
+  console.log(`[home] wrote ${f} (${(page.length / 1024).toFixed(0)} KB)`);
+}
+
+// The Notifications and Match history tiles in every state (render session 94).
+for (const [name, page] of [["notif", notifStatesPage(data)], ["history", historyStatesPage(data)]] as const) {
   const f = join(here, "..", "output", `${name}-states.html`);
   writeFileSync(f, page);
   console.log(`[home] wrote ${f} (${(page.length / 1024).toFixed(0)} KB)`);

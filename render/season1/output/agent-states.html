@@ -148,7 +148,7 @@ main { padding: 22px 26px 48px; max-width: 1440px; margin: 0 auto; min-width: 0;
 .badge { width: 52px; height: 52px; color: var(--c); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent)); } .badge svg { width: 100%; height: 100%; }
 .badge path { fill: color-mix(in srgb, var(--c) 24%, transparent); stroke: currentColor; stroke-width: 1.4; } .badge path.in { fill: color-mix(in srgb, var(--c) 55%, transparent); stroke-width: 1; }
 .bellart { width: 50px; height: 50px; border-radius: 16px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); } .bellart.on { box-shadow: 0 0 16px color-mix(in srgb, var(--c) 45%, transparent); }
-.res-art { width: 48px; height: 48px; border-radius: 14px; font: 900 22px system-ui; color: #fff; background: #9aa0b8; } .res-art.win { background: linear-gradient(135deg, #2fae66, #1c8a73); } .res-art.loss { background: linear-gradient(135deg, #ff5d73, #c13d7a); } .res-art.none { background: var(--soft); color: var(--muted); }
+.res-art { width: 48px; height: 48px; border-radius: 14px; font: 900 22px system-ui; color: #fff; background: #9aa0b8; } .res-art.win { background: linear-gradient(135deg, #2fae66, #1c8a73); } .res-art.loss { background: linear-gradient(135deg, #ff5d73, #c13d7a); } .res-art.empty { background: var(--soft); color: var(--muted); }
 /* Cards and the arena (shared fact markup). */
 .cards { display: flex; gap: 6px; flex-wrap: wrap; }
 .mcard { --fc: #999; position: relative; display: inline-flex; flex-direction: column; justify-content: flex-end; flex: none; width: 46px; aspect-ratio: 5 / 7; border-radius: 6px; overflow: hidden; color: #fff; font-style: normal;
@@ -630,6 +630,108 @@ main { padding: 22px 26px 48px; max-width: 1440px; margin: 0 auto; min-width: 0;
   .ugrid .tile:is([data-tile="collection"], [data-tile="daily"]).s-S .headline { gap: 7px; }
   .ugrid .tile[data-tile="daily"].s-S .hstack [data-fact="nextWinPays"] { font-size: 11.5px; }
 }
+/* Match history and Notifications (render session 94, phase 2 group 4's
+   second half). Each headline is a word, not a code: the last result
+   ("Won", "Cancelled", "Opponent left") or how many alerts are new. */
+.tile:is([data-tile="history"], [data-tile="notif"]) .hl { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.tile:is([data-tile="history"], [data-tile="notif"]) .hl .rw { font-size: 19px; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.tile:is([data-tile="history"], [data-tile="notif"]) .hl .vs { font-size: 13.5px; font-weight: 650; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile:is([data-tile="history"], [data-tile="notif"]) .hl .ln { font-size: 12px; line-height: 1.3; }
+.tile:is([data-tile="history"], [data-tile="notif"]) [data-fact="lastResult"], .tile[data-tile="notif"] [data-fact="unread"] { min-width: 0; align-items: center; }
+.ugrid .res.draw, .ugrid .res.void { color: var(--ink); }
+.ugrid .res-art.draw, .ugrid .res-art.void, .ugrid .res-art.empty { background: var(--soft); color: color-mix(in srgb, var(--muted) 60%, var(--ink)); box-shadow: inset 0 0 0 1.5px var(--line); }
+.ugrid .res-art.win { background: linear-gradient(135deg, #1f8a50, #156b5a); } .ugrid .res-art.loss { background: linear-gradient(135deg, #c8364d, #9a2d62); }
+.ugrid .tile[data-tile="history"] .chip.res { display: inline-grid; place-items: center; width: 18px; height: 18px; padding: 0; border-radius: 6px; font-size: 11px; font-weight: 800; color: #fff; background: #474c66; box-shadow: none; }
+.ugrid .tile[data-tile="history"] .chip.res.win { background: #0f5a33; } .ugrid .tile[data-tile="history"] .chip.res.loss { background: #8e1c31; } .ugrid .tile[data-tile="history"] .chip.res.void { background: #474c66; }
+.tile[data-tile="history"] .mh { gap: 2px; }
+.tile[data-tile="history"] .mh li { display: grid; grid-template-columns: 18px minmax(0, 1fr) 30px 44px 54px; align-items: center; column-gap: 7px; padding: 1px 0; font-size: 12.5px; line-height: 1.3; }
+.tile[data-tile="history"] .mh li > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile[data-tile="history"] .mh li .who { font-weight: 600; }
+.tile[data-tile="history"] .mh :is(.cr, .rt, .tm) { text-align: right; font-variant-numeric: tabular-nums; }
+.tile[data-tile="history"] .mh .tm { color: var(--muted); }
+.tile[data-tile="history"] .mh .rt.up { color: color-mix(in srgb, var(--ok) 50%, var(--ink)); font-weight: 700; } .tile[data-tile="history"] .mh .rt.down { color: color-mix(in srgb, var(--warn) 45%, var(--ink)); font-weight: 700; }
+.tile[data-tile="history"] .mh li.hd { font: 700 9.5px ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tile[data-tile="history"] .mh li.hd .who { font-weight: 700; }
+.tile[data-tile="history"] .mh li.hd .chip { visibility: hidden; }
+.tile[data-tile="history"] .mh .rp { text-align: right; font-size: 12px; font-weight: 700; text-decoration: none; color: color-mix(in srgb, var(--accent) 62%, var(--ink)); }
+.tile[data-tile="history"] .mh .rp.nr { color: var(--muted); font-weight: 600; }
+.tile[data-tile="history"] .mh a.rp:hover { text-decoration: underline; }
+.tile[data-tile="history"] .pays { list-style: none; margin: 0 0 2px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tile[data-tile="history"] .pays .chip { flex: none; }
+.ugrid .tile[data-tile="history"]:is(.s-M, .s-L) .hl .np { display: none; } /* the list says it */
+.tile[data-tile="history"] .pays li { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.35; }
+.tile[data-tile="history"] [data-fact="replays"].two { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 10px; font-size: 12.5px; line-height: 1.3; }
+.tile[data-tile="history"] [data-fact="recentMatches"] > .sub { font-size: 12.5px; line-height: 1.35; }
+/* S: the result, the opponent, the line of what it paid. */
+.ugrid .tile[data-tile="history"].s-S .headline { align-items: flex-start; }
+.ugrid .tile[data-tile="history"].s-S .hl .rw { font-size: 17px; }
+/* M: the last match on the left (with its button), the three before it on the right. */
+.ugrid .tile[data-tile="history"].s-M { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+.ugrid .tile[data-tile="history"].s-M > .headline { align-self: start; }
+.ugrid .tile[data-tile="history"].s-M .res-art { display: none; }
+.ugrid .tile[data-tile="history"].s-M .hl .ln { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.ugrid .tile[data-tile="history"].s-M > .body { justify-content: center; }
+.ugrid .tile[data-tile="history"].s-M .mh li { grid-template-columns: 18px minmax(0, 1fr) 28px 42px; column-gap: 6px; }
+.ugrid .tile[data-tile="history"].s-M .mh .tm { display: none; }
+.ugrid .tile[data-tile="history"].s-M > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+/* L: the last match with the button beside it, then the six before it
+   (each with its replay), then the tally and the replays. */
+.ugrid .tile:is([data-tile="history"], [data-tile="notif"]).s-L { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hd hd" "nm ft" "bd bd"; column-gap: 12px; row-gap: 6px; }
+.ugrid .tile:is([data-tile="history"], [data-tile="notif"]).s-L > header { grid-area: hd; }
+.ugrid .tile:is([data-tile="history"], [data-tile="notif"]).s-L > .headline { grid-area: nm; min-width: 0; }
+.ugrid .tile:is([data-tile="history"], [data-tile="notif"]).s-L > footer { grid-area: ft; align-self: center; padding: 0; }
+.ugrid .tile:is([data-tile="history"], [data-tile="notif"]).s-L > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+.ugrid .tile:is([data-tile="history"], [data-tile="notif"]).s-L > .body { grid-area: bd; display: flex; flex-direction: column; gap: 9px; }
+.ugrid .tile[data-tile="history"].s-L .mh li { grid-template-columns: 18px minmax(0, 1fr) 34px 46px 62px 46px; padding: 2px 0; }
+.ugrid .tile[data-tile="history"].s-L .mh li:not(.hd) { border-top: 1px solid var(--line); }
+/* Notifications. Each alert a link in two lines (what, then the detail and
+   when), a dot in its kind's colour, filled while it is new. */
+.tile[data-tile="notif"] .bellart { flex: none; }
+.tile[data-tile="notif"] [data-fact="unread"] .of { font-size: 14px; font-weight: 650; color: var(--muted); }
+.ugrid .al li.new::before { display: none; }
+.tile[data-tile="notif"] .al { display: flex; flex-direction: column; gap: 2px; }
+.tile[data-tile="notif"] .al li { display: block; min-width: 0; }
+.tile[data-tile="notif"] .alink { display: grid; grid-template-columns: 9px minmax(0, 1fr) auto; align-items: center; column-gap: 8px; padding: 2px 0; border-radius: 7px; color: var(--ink); text-decoration: none; cursor: pointer; }
+.tile[data-tile="notif"] .alink:hover { background: var(--soft); }
+.tile[data-tile="notif"] .alink:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.tile[data-tile="notif"] .at { display: flex; flex-direction: column; min-width: 0; }
+.tile[data-tile="notif"] .at > * { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile[data-tile="notif"] .at b { font-size: 12.5px; line-height: 1.25; }
+.tile[data-tile="notif"] .at .sub { font-size: 11.5px; line-height: 1.25; }
+.tile[data-tile="notif"] li:not(.new) .at b { font-weight: 550; color: color-mix(in srgb, var(--muted) 45%, var(--ink)); }
+.tile[data-tile="notif"] .go { font-size: 12px; font-weight: 700; white-space: nowrap; color: color-mix(in srgb, var(--accent) 62%, var(--ink)); }
+.tile[data-tile="notif"] .ak { display: block; width: 9px; height: 9px; border-radius: 50%; --k: var(--accent); background: var(--k); }
+.tile[data-tile="notif"] li:not(.new) .ak { background: transparent; box-shadow: inset 0 0 0 1.5px var(--k); }
+.tile[data-tile="notif"] .k-bigPull { --k: #c99a2e; } .tile[data-tile="notif"] .k-dailyPack { --k: var(--ok); } .tile[data-tile="notif"] .k-autoPlayStopped { --k: var(--warn); }
+.tile[data-tile="notif"] .more { font-size: 12px; align-self: flex-start; }
+.tile[data-tile="notif"] [data-fact="alerts"] > .hint { font-size: 12px; line-height: 1.35; margin-top: 4px; }
+.tile[data-tile="notif"] [data-fact="alerts"] .ln1 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 13px; font-weight: 650; line-height: 1.3; }
+.tile[data-tile="notif"] [data-fact="alerts"] > .sub { font-size: 12.5px; line-height: 1.35; }
+.tile[data-tile="notif"] .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.tile[data-tile="notif"] .kf { text-decoration: none; color: var(--ink); cursor: pointer; font-size: 12px; }
+.tile[data-tile="notif"] .kf:hover { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent); }
+.tile[data-tile="notif"] .kinds { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.tile[data-tile="notif"] .kinds li { display: grid; grid-template-columns: 9px minmax(0, 1fr); align-items: baseline; column-gap: 8px; font-size: 12.5px; line-height: 1.3; }
+.tile[data-tile="notif"] [data-fact="alertKinds"] > .sub { font-size: 12px; line-height: 1.3; }
+.ugrid .tile[data-tile="notif"].s-S .headline .big { font-size: 24px; }
+.ugrid .tile[data-tile="notif"].s-S .bellart { width: 38px; height: 38px; border-radius: 12px; }
+.ugrid .tile[data-tile="notif"].s-S [data-fact="alerts"] .ln1 { font-size: 12.5px; line-height: 1.25; }
+.ugrid .tile[data-tile="notif"] [data-fact="alerts"]:empty { display: none; }
+.ugrid .tile[data-tile="notif"]:is(.s-S, .s-M) .hl .rw { font-size: 16px; }
+.ugrid .tile[data-tile="notif"].s-M .hl .ln { display: none; } /* the list beside it says it */
+.ugrid .tile[data-tile="notif"].s-S .hl .rw { font-size: 16px; }
+.ugrid .tile[data-tile="notif"].s-M { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); }
+.ugrid .tile[data-tile="notif"].s-M > .headline { align-self: start; }
+.ugrid .tile[data-tile="notif"].s-M > .body { justify-content: flex-start; padding-top: 4px; }
+.ugrid .tile[data-tile="notif"].s-M > footer .btn { padding: 6px 11px; font-size: 12.5px; }
+.ugrid .tile[data-tile="notif"].s-M .bellart { width: 40px; height: 40px; border-radius: 13px; }
+.ugrid .tile[data-tile="notif"].s-M [data-fact="unread"] { flex-wrap: wrap; gap: 2px 6px; }
+.ugrid .tile[data-tile="notif"].s-L [data-fact="alertKinds"]:not(:has(.kinds)) { order: -1; }
+.ugrid .tile[data-tile="notif"].s-L .al { gap: 3px; }
+.ugrid .tile[data-tile="notif"].s-M .al { gap: 1px; }
+.ugrid .tile[data-tile="notif"].s-M .alink { padding: 1px 0; }
+.tile[data-tile="notif"] [data-fact="alertKinds"] > .kv { display: flex; flex-direction: column; gap: 2px; }
+.tile[data-tile="notif"] [data-fact="alertKinds"] { gap: 6px; }
 /* The small cards on the glass (render session 93, measured from the
    pixels): a light finish (Prototype, Gold) left the white name at 4:1, so
    a dark scrim sits under the name and the cost badge is darker; a long
@@ -672,6 +774,8 @@ main { padding: 22px 26px 48px; max-width: 1440px; margin: 0 auto; min-width: 0;
      play style keeps its line above the button. */
   .ugrid .tile[data-tile="agent"].s-S .pill { font-size: 11.5px; padding: 1px 8px; white-space: nowrap; }
   .ugrid .tile[data-tile="agent"].s-S [data-fact="personality"] .lab { letter-spacing: .06em; }
+  /* Match history S on a phone (render session 94): a new player's line gives way to the button. */
+  .ugrid .tile[data-tile="history"].s-S .hl .np { display: none; }
 }
 
 main { max-width: none; }

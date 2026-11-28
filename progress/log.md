@@ -5651,3 +5651,14 @@ have and would have passed on nothing.
 **Thin:** in quality-debt.md (seen at the next round's start, not the moment of the switch; switching on isn't
 printed; a restart forgets the list).
 **Blocked:** nothing.
+
+## 2026-11-28 — Render session 94: Notifications and Match history on the Season 1 Home grid
+
+Render lane (the owner's 2026-11-22 point 7: render only). Built the last two Home tiles for their S / M / L boxes,
+which closes phase 2's "tiles in groups": every tile on the Season 1 Home now fits its box (fit.txt 166 of 166, was
+160), no tile reads under 4.5:1. Match history leads with the last match in words and lists the matches before it
+(Replay links at L); Notifications leads with the new count and lists the newest, each a link in two lines. Fixed on
+the way: a cancelled or abandoned match was drawn as "Drew"; big-pull alerts read fields the owner API never sends.
+Ran it: states sheets 58 and 59 PASS, the grid check 177 PASS, 0 FAIL; every other tile's sheet re-run unchanged;
+render suite 1222 of 1222. Details in `progress/render/log.md`; five small calls in `progress/render/checkpoints.md`.
+Blocked: nothing. Next: render 95, three pack-wrapper designs with placeholder art.

@@ -1,0 +1,65 @@
+
+=== light ===
+PASS unit 191px, served: S, M and L fit their boxes, nothing spills
+PASS unit 191px, new: S, M and L fit their boxes, nothing spills
+PASS unit 191px, first: S, M and L fit their boxes, nothing spills
+PASS unit 191px, every-result: S, M and L fit their boxes, nothing spills
+PASS unit 191px, two-agents: S, M and L fit their boxes, nothing spills
+PASS unit 191px, losing-day: S, M and L fit their boxes, nothing spills
+PASS unit 191px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 218px, served: S, M and L fit their boxes, nothing spills
+PASS unit 218px, new: S, M and L fit their boxes, nothing spills
+PASS unit 218px, first: S, M and L fit their boxes, nothing spills
+PASS unit 218px, every-result: S, M and L fit their boxes, nothing spills
+PASS unit 218px, two-agents: S, M and L fit their boxes, nothing spills
+PASS unit 218px, losing-day: S, M and L fit their boxes, nothing spills
+PASS unit 218px, long-names: S, M and L fit their boxes, nothing spills
+PASS unit 231px, served: S, M and L fit their boxes, nothing spills
+PASS unit 231px, new: S, M and L fit their boxes, nothing spills
+PASS unit 231px, first: S, M and L fit their boxes, nothing spills
+PASS unit 231px, every-result: S, M and L fit their boxes, nothing spills
+PASS unit 231px, two-agents: S, M and L fit their boxes, nothing spills
+PASS unit 231px, losing-day: S, M and L fit their boxes, nothing spills
+PASS unit 231px, long-names: S, M and L fit their boxes, nothing spills
+PASS served: every size leads with the last match in words ("Won")
+PASS served: the matches before it, never the last again: S none, M 3, L 5 (L W W W W)
+PASS served: each list has its header naming the columns
+PASS served: L has a Replay link for each row with a replay (3), M and S none
+PASS new: every size leads with the last match in words ("No matches yet")
+PASS new: the matches before it, never the last again: S none, M 0, L 0 (none)
+PASS new: each list has its header naming the columns
+PASS new: L has a Replay link for each row with a replay (0), M and S none
+PASS first: every size leads with the last match in words ("Won")
+PASS first: the matches before it, never the last again: S none, M 0, L 0 (none)
+PASS first: each list has its header naming the columns
+PASS first: L has a Replay link for each row with a replay (0), M and S none
+PASS every-result: every size leads with the last match in words ("Cancelled")
+PASS every-result: the matches before it, never the last again: S none, M 3, L 6 (A D A L W W)
+PASS every-result: each list has its header naming the columns
+PASS every-result: L has a Replay link for each row with a replay (4), M and S none
+PASS two-agents: every size leads with the last match in words ("Won")
+PASS two-agents: the matches before it, never the last again: S none, M 3, L 5 (L W W W W)
+PASS two-agents: each list has its header naming the columns
+PASS two-agents: L has a Replay link for each row with a replay (3), M and S none
+PASS losing-day: every size leads with the last match in words ("Lost")
+PASS losing-day: the matches before it, never the last again: S none, M 3, L 6 (L L L L L L)
+PASS losing-day: each list has its header naming the columns
+PASS losing-day: L has a Replay link for each row with a replay (6), M and S none
+PASS long-names: every size leads with the last match in words ("Won")
+PASS long-names: the matches before it, never the last again: S none, M 3, L 3 (L A W)
+PASS long-names: each list has its header naming the columns
+PASS long-names: L has a Replay link for each row with a replay (2), M and S none
+PASS light: no tile is the hero panel (63 tiles)
+PASS light, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, recentMatches "–")
+PASS light, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, recentMatches "The first match: the ones af")
+PASS light, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 5.7:1, recentMatches "Press Start on My agent: eve")
+
+=== dark ===
+PASS dark: no tile is the hero panel (63 tiles)
+PASS dark, unit 191px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.7:1, replays "Replays")
+PASS dark, unit 218px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.8:1, recentMatches "The first match: the ones af")
+PASS dark, unit 231px: every text line on the glass reads at 4.5:1 or more, measured from the pixels (lowest 6.8:1, recentMatches "Press Start on My agent: eve")
+PASS no page errors
+PASS no outside requests
+
+59 PASS, 0 FAIL
